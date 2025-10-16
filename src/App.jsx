@@ -25,13 +25,17 @@ function App() {
   const { loading: userLoading } = useContext(UserContext);
   // Initialize from URL hash or localStorage
   const [currentPage, setCurrentPage] = useState(() => {
-    // Check URL hash first (e.g., #/checkout)
-    const hash = window.location.hash.slice(1); // Remove #
-    if (hash) {
-      return hash.replace('/', ''); // Convert #/checkout to 'checkout'
+    // ALWAYS start on home page in production
+    // Clear any stored page data
+    localStorage.removeItem('currentPage');
+    localStorage.removeItem('pageData');
+
+    // Clear URL hash
+    if (window.location.hash) {
+      window.location.hash = '';
     }
-    // Don't use localStorage on initial load - always start fresh
-    // This prevents blank screen issues in Telegram
+
+    console.log('🏠 Initializing to home page');
     return 'home';
   });
 
