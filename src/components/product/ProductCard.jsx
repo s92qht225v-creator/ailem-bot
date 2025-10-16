@@ -1,9 +1,9 @@
 import { Star, Heart } from 'lucide-react';
 import { formatPrice, calculateDiscountPercentage } from '../../utils/helpers';
-import { useContext } from 'react';
+import { useContext, memo } from 'react';
 import { UserContext } from '../../context/UserContext';
 
-const ProductCard = ({ product, onView }) => {
+const ProductCard = memo(({ product, onView }) => {
   const { toggleFavorite, isFavorite } = useContext(UserContext);
   const favorite = isFavorite(product.id);
   const discount = calculateDiscountPercentage(product.originalPrice, product.price);
@@ -89,6 +89,8 @@ const ProductCard = ({ product, onView }) => {
       </div>
     </div>
   );
-};
+});
+
+ProductCard.displayName = 'ProductCard';
 
 export default ProductCard;
