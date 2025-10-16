@@ -6,16 +6,12 @@ import { useProducts } from '../../hooks/useProducts';
 import { formatPrice, calculateDiscountedPrice } from '../../utils/helpers';
 
 const FavoritesPage = ({ onNavigate }) => {
-  const { favorites, toggleFavorite } = useContext(UserContext);
+  const { toggleFavorite, isFavorite } = useContext(UserContext);
   const { addToCart } = useContext(CartContext);
   const { products } = useProducts();
 
   // Get favorite products with null checks
-  const favoriteProducts = products?.filter(product => {
-    const productId = product?.id;
-    if (!productId) return false;
-    return favorites?.includes(productId.toString());
-  }) || [];
+  const favoriteProducts = products?.filter(product => isFavorite(product?.id)) || [];
 
   const handleAddToCart = (product) => {
     if (!product) return;
