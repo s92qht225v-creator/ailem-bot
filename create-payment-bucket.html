@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Payment Screenshots Bucket</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: #fff;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      color: #333;
+    }
+    h1 { color: #f5576c; margin-bottom: 10px; }
+    .warning {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      color: #856404;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-weight: bold;
+    }
+    .step {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      border-left: 4px solid #f5576c;
+    }
+    .step h3 {
+      margin-top: 0;
+      color: #f5576c;
+    }
+    button {
+      background: #f5576c;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background: #e0466a;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+    }
+    .success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    .error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    .info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      color: #e83e8c;
+    }
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    .sql-box {
+      background: #fff;
+      border: 2px solid #f5576c;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    .copy-btn {
+      background: #28a745;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+    .copy-btn:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔒 Create Payment Screenshots Bucket (PRIVATE)</h1>
+
+    <div class="warning">
+      ⚠️ SECURITY: Payment screenshots contain sensitive financial information!<br>
+      This bucket should be PRIVATE, not public like product-images.
+    </div>
+
+    <p>This will create a separate private bucket for payment screenshots with proper security.</p>
+
+    <!-- Step 1 -->
+    <div class="step">
+      <h3>Step 1: Create Private Bucket (Manual)</h3>
+      <div class="info">
+        <strong>Important:</strong> Storage buckets must be created via Supabase Dashboard.
+      </div>
+      <ol>
+        <li>Go to <a href="https://supabase.com/dashboard/project/cjicnsltjuatduzuwgoo/storage/buckets" target="_blank">Supabase Storage</a></li>
+        <li>Click <strong>"New bucket"</strong></li>
+        <li>Name: <code>payment-screenshots</code></li>
+        <li>Set to <strong>PRIVATE bucket</strong> ❌ (NOT public!)</li>
+        <li>Click <strong>"Create bucket"</strong></li>
+      </ol>
+      <button onclick="checkBucket()">✓ Check if Bucket Exists</button>
+      <div id="bucketStatus"></div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step">
+      <h3>Step 2: Set Storage Policies (SQL)</h3>
+      <p>Run this SQL to allow admins to view payment screenshots:</p>
+
+      <div class="sql-box">
+        <button class="copy-btn" onclick="copySQL()">📋 Copy SQL</button>
+        <pre id="sqlCode">-- Allow authenticated users (admins) to read payment screenshots
+CREATE POLICY "Allow authenticated users to view payment screenshots"
+ON storage.objects FOR SELECT
+USING (
+  bucket_id = 'payment-screenshots'
+  AND auth.role() = 'authenticated'
+);
+
+-- Allow anyone to upload payment screenshots (needed for user orders)
+CREATE POLICY "Allow public uploads to payment screenshots"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'payment-screenshots');
+
+-- Optional: Allow authenticated users to delete (for cleanup)
+CREATE POLICY "Allow authenticated users to delete payment screenshots"
+ON storage.objects FOR DELETE
+USING (
+  bucket_id = 'payment-screenshots'
+  AND auth.role() = 'authenticated'
+);</pre>
+      </div>
+
+      <button onclick="window.open('https://supabase.com/dashboard/project/cjicnsltjuatduzuwgoo/sql/new', '_blank')">
+        Open SQL Editor
+      </button>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step">
+      <h3>Step 3: Test Upload</h3>
+      <p>Test uploading a payment screenshot to the new private bucket:</p>
+
+      <input type="file" id="testImage" accept="image/*" style="margin: 10px 0;">
+      <br>
+      <button onclick="testUpload()">🚀 Test Upload</button>
+
+      <div id="uploadStatus"></div>
+      <div id="imagePreview"></div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step">
+      <h3>Step 4: Verification</h3>
+      <button onclick="verifySetup()">📋 Verify Complete Setup</button>
+      <div id="verifyStatus"></div>
+    </div>
+
+    <!-- Security Comparison -->
+    <div class="step">
+      <h3>🔐 Security Comparison</h3>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr style="background: #f8f9fa;">
+          <th style="padding: 10px; border: 1px solid #ddd;">Aspect</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">product-images (Public)</th>
+          <th style="padding: 10px; border: 1px solid #ddd;">payment-screenshots (Private)</th>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #ddd;"><strong>Access</strong></td>
+          <td style="padding: 10px; border: 1px solid #ddd;">❌ Anyone can view</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">✅ Only authenticated admins</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #ddd;"><strong>Security</strong></td>
+          <td style="padding: 10px; border: 1px solid #ddd;">❌ Exposed URLs</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">✅ Private URLs with auth</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #ddd;"><strong>Privacy</strong></td>
+          <td style="padding: 10px; border: 1px solid #ddd;">❌ Customer info exposed</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">✅ Customer info protected</td>
+        </tr>
+        <tr>
+          <td style="padding: 10px; border: 1px solid #ddd;"><strong>Best for</strong></td>
+          <td style="padding: 10px; border: 1px solid #ddd;">Product catalog images</td>
+          <td style="padding: 10px; border: 1px solid #ddd;">Payment proofs, sensitive data</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://cjicnsltjuatduzuwgoo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqaWNuc2x0anVhdGR1enV3Z29vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY1MjcwMDgsImV4cCI6MjA1MjEwMzAwOH0.rO8S9psFBUbS2L1WrIXOKj40NdcApvJLexAT1r6hslY';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function copySQL() {
+      const sql = document.getElementById('sqlCode').textContent;
+      navigator.clipboard.writeText(sql);
+      alert('SQL copied to clipboard!');
+    }
+
+    async function checkBucket() {
+      const statusDiv = document.getElementById('bucketStatus');
+      statusDiv.innerHTML = '<p>Checking...</p>';
+
+      try {
+        const { data, error } = await supabase.storage.listBuckets();
+
+        if (error) throw error;
+
+        const bucket = data.find(b => b.name === 'payment-screenshots');
+
+        if (bucket) {
+          if (bucket.public) {
+            statusDiv.innerHTML = `
+              <div class="error">
+                <strong>⚠️ Warning!</strong><br>
+                Bucket "payment-screenshots" exists but is PUBLIC.<br>
+                This is a security risk! Payment screenshots should be private.<br>
+                <strong>Action:</strong> Delete and recreate as PRIVATE bucket.
+              </div>
+            `;
+          } else {
+            statusDiv.innerHTML = `
+              <div class="success">
+                <strong>✅ Perfect!</strong><br>
+                Bucket "payment-screenshots" exists and is PRIVATE.<br>
+                Payment screenshots are secure!
+              </div>
+            `;
+          }
+        } else {
+          statusDiv.innerHTML = `
+            <div class="error">
+              <strong>❌ Not Found</strong><br>
+              Bucket "payment-screenshots" does not exist.<br>
+              Please create it manually in the Supabase Dashboard.
+            </div>
+          `;
+        }
+      } catch (err) {
+        statusDiv.innerHTML = `
+          <div class="error">
+            <strong>❌ Error:</strong> ${err.message}
+          </div>
+        `;
+      }
+    }
+
+    async function testUpload() {
+      const fileInput = document.getElementById('testImage');
+      const statusDiv = document.getElementById('uploadStatus');
+      const previewDiv = document.getElementById('imagePreview');
+
+      if (!fileInput.files || !fileInput.files[0]) {
+        statusDiv.innerHTML = '<div class="error">Please select an image file.</div>';
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const fileName = `test-${Date.now()}-${file.name}`;
+
+      statusDiv.innerHTML = '<p>Uploading...</p>';
+
+      try {
+        // Upload file
+        const { data, error } = await supabase.storage
+          .from('payment-screenshots')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (error) throw error;
+
+        // Get public URL (will require auth to view)
+        const { data: { publicUrl } } = supabase.storage
+          .from('payment-screenshots')
+          .getPublicUrl(fileName);
+
+        statusDiv.innerHTML = `
+          <div class="success">
+            <strong>✅ Upload Successful!</strong><br>
+            File: <code>${fileName}</code><br>
+            URL: <code>${publicUrl}</code><br>
+            <small>Note: URL requires authentication to view (secure!)</small>
+          </div>
+        `;
+
+        previewDiv.innerHTML = `
+          <h4>Preview (may not load due to private bucket):</h4>
+          <img src="${publicUrl}" alt="Uploaded" style="max-width: 100%; border-radius: 8px; margin-top: 10px;">
+          <p class="info">If image doesn't load, that's GOOD - it means the bucket is private!</p>
+        `;
+
+      } catch (err) {
+        statusDiv.innerHTML = `
+          <div class="error">
+            <strong>❌ Upload Failed:</strong> ${err.message}<br>
+            <small>Make sure you created the bucket and it's private.</small>
+          </div>
+        `;
+      }
+    }
+
+    async function verifySetup() {
+      const statusDiv = document.getElementById('verifyStatus');
+      statusDiv.innerHTML = '<p>Verifying...</p>';
+
+      let html = '';
+
+      // Check bucket
+      try {
+        const { data, error } = await supabase.storage.listBuckets();
+        if (error) throw error;
+
+        const bucket = data.find(b => b.name === 'payment-screenshots');
+
+        if (bucket && !bucket.public) {
+          html += '<div class="success">✅ Bucket exists and is private</div>';
+        } else if (bucket && bucket.public) {
+          html += '<div class="error">❌ Bucket is PUBLIC (security risk!)</div>';
+        } else {
+          html += '<div class="error">❌ Bucket does not exist</div>';
+        }
+      } catch (err) {
+        html += `<div class="error">❌ Bucket check failed: ${err.message}</div>`;
+      }
+
+      // Check if can upload
+      try {
+        const testFile = new Blob(['test'], { type: 'text/plain' });
+        const testFileName = `verify-test-${Date.now()}.txt`;
+
+        const { error } = await supabase.storage
+          .from('payment-screenshots')
+          .upload(testFileName, testFile);
+
+        if (error) {
+          html += `<div class="error">❌ Upload test failed: ${error.message}</div>`;
+        } else {
+          html += '<div class="success">✅ Upload permissions working</div>';
+
+          // Clean up test file
+          await supabase.storage
+            .from('payment-screenshots')
+            .remove([testFileName]);
+        }
+      } catch (err) {
+        html += `<div class="error">❌ Upload test error: ${err.message}</div>`;
+      }
+
+      html += `
+        <div class="info" style="margin-top: 15px;">
+          <strong>Next step:</strong> Update the app code to use <code>payment-screenshots</code> bucket!
+        </div>
+      `;
+
+      statusDiv.innerHTML = html;
+    }
+
+    // Auto-check on page load
+    window.onload = function() {
+      checkBucket();
+    };
+  </script>
+</body>
+</html>

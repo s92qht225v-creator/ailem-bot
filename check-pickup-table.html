@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Check Pickup Points Table</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h1 { color: #667eea; }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+      font-weight: bold;
+    }
+    button:hover { background: #5568d3; }
+    .log {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+    }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+    .warning { color: #f59e0b; }
+    .info { color: #3b82f6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🗺️ Pickup Points Table Check</h1>
+    <p>Check if pickup_points table exists in Supabase</p>
+
+    <button onclick="checkTable()">Check Table</button>
+
+    <div class="log" id="output">Click "Check Table" to start...</div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const supabase = createClient(
+      'https://cjicnsltjuatduzuwgoo.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqaWNuc2x0anVhdGR1enV3Z29vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMDMsImV4cCI6MjA3NjA4MjMwM30.w_OX2XY9TU8Cf3H_kVh8ivEMham8UNvifMJwxmgLGs4'
+    );
+
+    window.checkTable = async () => {
+      const output = document.getElementById('output');
+      output.innerHTML = '<span class="info">Checking pickup_points table...</span>\n';
+
+      try {
+        // Try to query pickup_points table
+        const { data, error, count } = await supabase
+          .from('pickup_points')
+          .select('*', { count: 'exact' });
+
+        if (error) {
+          if (error.message.includes('does not exist')) {
+            output.innerHTML += '<span class="error">❌ pickup_points table does NOT exist in Supabase</span>\n\n';
+            output.innerHTML += '<span class="info">Current Status: Pickup points are stored in localStorage (demo data)</span>\n\n';
+            output.innerHTML += '<span class="warning">To fix: You need to create the pickup_points table in Supabase</span>\n';
+          } else {
+            output.innerHTML += `<span class="error">❌ Error: ${error.message}</span>\n`;
+          }
+          return;
+        }
+
+        output.innerHTML += `<span class="success">✅ pickup_points table EXISTS!</span>\n`;
+        output.innerHTML += `<span class="info">Found ${count || 0} pickup points in database</span>\n\n`;
+
+        if (data && data.length > 0) {
+          output.innerHTML += '<span class="info">Pickup Points:</span>\n';
+          data.forEach((point, index) => {
+            output.innerHTML += `\n${index + 1}. ${point.courier_service || point.courierService || 'N/A'}\n`;
+            output.innerHTML += `   City: ${point.city}\n`;
+            output.innerHTML += `   Address: ${point.address}\n`;
+            output.innerHTML += `   Phone: ${point.phone}\n`;
+            output.innerHTML += `   Active: ${point.active ? 'Yes' : 'No'}\n`;
+          });
+        } else {
+          output.innerHTML += '<span class="warning">⚠️  Table exists but is empty</span>\n';
+        }
+
+      } catch (err) {
+        output.innerHTML += `<span class="error">❌ Error: ${err.message}</span>\n`;
+      }
+    };
+  </script>
+</body>
+</html>

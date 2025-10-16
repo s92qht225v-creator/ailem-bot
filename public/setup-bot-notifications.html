@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Telegram Bot Notifications</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      color: #333;
+    }
+    h1 { color: #667eea; }
+    .step {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      border-left: 4px solid #667eea;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px 10px 0;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    .error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    .info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #e83e8c;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 Setup Telegram Bot Notifications</h1>
+    <p>Configure your Telegram bot to send order notifications</p>
+
+    <div class="info">
+      <strong>ℹ️ You can use your existing Mini App bot!</strong><br>
+      No need to create a new bot - use the same bot token that hosts your Mini App.
+    </div>
+
+    <!-- Step 1: Bot Token -->
+    <div class="step">
+      <h3>Step 1: Enter Your Bot Token</h3>
+      <p>This is the token from the bot that hosts your Mini App</p>
+      <input
+        type="text"
+        id="botToken"
+        placeholder="123456789:ABCdefGHIjklMNOpqrsTUVwxyz"
+        value=""
+      >
+      <small>You can find this in your BotFather conversation when you created the bot</small>
+    </div>
+
+    <!-- Step 2: Admin Chat ID -->
+    <div class="step">
+      <h3>Step 2: Enter Admin Chat ID</h3>
+      <p>Your Telegram user ID (to receive admin notifications)</p>
+      <input
+        type="text"
+        id="adminChatId"
+        placeholder="8370090674"
+        value="8370090674"
+      >
+      <small>This is your Telegram user ID. Get it from <a href="https://t.me/userinfobot" target="_blank">@userinfobot</a></small>
+    </div>
+
+    <!-- Step 3: Save & Test -->
+    <div class="step">
+      <h3>Step 3: Save Configuration</h3>
+      <button onclick="saveConfig()">💾 Save Configuration</button>
+      <button onclick="testNotification()">🧪 Send Test Notification</button>
+      <div id="status"></div>
+    </div>
+
+    <!-- Current Status -->
+    <div class="step">
+      <h3>Current Configuration</h3>
+      <button onclick="showCurrentConfig()">👁️ Show Current Config</button>
+      <div id="currentConfig"></div>
+    </div>
+
+    <div class="info">
+      <h4>📋 What Happens Next:</h4>
+      <ul>
+        <li>✅ Admin receives notification when new order is placed</li>
+        <li>✅ Users receive notification when order status changes (approved, shipped, delivered)</li>
+        <li>✅ Notifications sent via your Telegram bot</li>
+      </ul>
+    </div>
+  </div>
+
+  <script>
+    function saveConfig() {
+      const botToken = document.getElementById('botToken').value.trim();
+      const adminChatId = document.getElementById('adminChatId').value.trim();
+      const statusDiv = document.getElementById('status');
+
+      if (!botToken) {
+        statusDiv.innerHTML = '<div class="error">❌ Please enter bot token</div>';
+        return;
+      }
+
+      if (!adminChatId) {
+        statusDiv.innerHTML = '<div class="error">❌ Please enter admin chat ID</div>';
+        return;
+      }
+
+      // Save to localStorage
+      localStorage.setItem('telegramBotToken', botToken);
+      localStorage.setItem('adminChatId', adminChatId);
+
+      statusDiv.innerHTML = `
+        <div class="success">
+          ✅ Configuration saved successfully!<br>
+          Bot Token: ${botToken.substring(0, 10)}...${botToken.substring(botToken.length - 10)}<br>
+          Admin Chat ID: ${adminChatId}
+        </div>
+      `;
+    }
+
+    async function testNotification() {
+      const botToken = document.getElementById('botToken').value.trim() || localStorage.getItem('telegramBotToken');
+      const adminChatId = document.getElementById('adminChatId').value.trim() || localStorage.getItem('adminChatId');
+      const statusDiv = document.getElementById('status');
+
+      if (!botToken) {
+        statusDiv.innerHTML = '<div class="error">❌ Bot token not configured. Please save configuration first.</div>';
+        return;
+      }
+
+      if (!adminChatId) {
+        statusDiv.innerHTML = '<div class="error">❌ Admin chat ID not configured. Please save configuration first.</div>';
+        return;
+      }
+
+      statusDiv.innerHTML = '<div class="info">📤 Sending test notification...</div>';
+
+      try {
+        const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+        const message = `
+✅ <b>Test Notification</b>
+
+Your Telegram bot is configured correctly!
+You will receive order notifications here.
+
+🤖 Bot is ready to send notifications.
+        `.trim();
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: adminChatId,
+            text: message,
+            parse_mode: 'HTML'
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.description || 'Failed to send message');
+        }
+
+        statusDiv.innerHTML = `
+          <div class="success">
+            ✅ Test notification sent successfully!<br>
+            Check your Telegram - you should have received a message from your bot.
+          </div>
+        `;
+      } catch (error) {
+        statusDiv.innerHTML = `
+          <div class="error">
+            ❌ Failed to send test notification:<br>
+            ${error.message}<br><br>
+            <small>Make sure your bot token is correct and the bot is not blocked.</small>
+          </div>
+        `;
+      }
+    }
+
+    function showCurrentConfig() {
+      const botToken = localStorage.getItem('telegramBotToken');
+      const adminChatId = localStorage.getItem('adminChatId');
+      const configDiv = document.getElementById('currentConfig');
+
+      if (!botToken || !adminChatId) {
+        configDiv.innerHTML = '<div class="error">❌ No configuration found. Please set up first.</div>';
+        return;
+      }
+
+      configDiv.innerHTML = `
+        <div class="info">
+          <strong>Bot Token:</strong> ${botToken.substring(0, 10)}...${botToken.substring(botToken.length - 10)}<br>
+          <strong>Admin Chat ID:</strong> ${adminChatId}<br>
+          <strong>Status:</strong> ✅ Configured
+        </div>
+      `;
+    }
+
+    // Auto-load saved config
+    window.onload = function() {
+      const botToken = localStorage.getItem('telegramBotToken');
+      const adminChatId = localStorage.getItem('adminChatId');
+
+      if (botToken) {
+        document.getElementById('botToken').value = botToken;
+      }
+      if (adminChatId) {
+        document.getElementById('adminChatId').value = adminChatId;
+      }
+
+      if (botToken && adminChatId) {
+        showCurrentConfig();
+      }
+    };
+  </script>
+</body>
+</html>

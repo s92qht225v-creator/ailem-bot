@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Complete Orders Table Fix</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+    .warning {
+      background: #fef3c7;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+    .sql-box {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      max-height: 500px;
+      overflow-y: auto;
+      border: 2px solid #667eea;
+    }
+    .comment {
+      color: #94a3b8;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+    .step {
+      background: #e0e7ff;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 4px solid #667eea;
+    }
+    .step h3 {
+      margin-top: 0;
+      color: #667eea;
+    }
+    ol li {
+      margin: 10px 0;
+      line-height: 1.6;
+    }
+    .success-msg {
+      background: #d1fae5;
+      border-left: 4px solid #10b981;
+      padding: 15px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Complete Orders Table Fix</h1>
+    <p>Add ALL missing columns to the orders table in one go.</p>
+
+    <div class="warning">
+      <strong>⚠️ Important:</strong> This will add all missing columns that your app needs. Make sure to run the complete SQL below.
+    </div>
+
+    <div class="step">
+      <h3>Step 1: Copy the Complete SQL</h3>
+      <button onclick="copySQL()">📋 Copy Complete SQL</button>
+      <div class="sql-box" id="sqlBox"><span class="comment">-- ================================================
+-- COMPLETE ORDERS TABLE SCHEMA FIX
+-- Add all missing columns to orders table
+-- ================================================</span>
+
+<span class="comment">-- Add courier column</span>
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS courier TEXT;
+
+<span class="comment">-- Add subtotal column</span>
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS subtotal NUMERIC(10,2);
+
+<span class="comment">-- Add bonus_discount column</span>
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS bonus_discount NUMERIC(10,2) DEFAULT 0;
+
+<span class="comment">-- Add bonus_points_used column</span>
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS bonus_points_used INTEGER DEFAULT 0;
+
+<span class="comment">-- Add delivery_fee column</span>
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS delivery_fee NUMERIC(10,2);
+
+<span class="comment">-- Add total column</span>
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS total NUMERIC(10,2);
+
+<span class="comment">-- Add payment_screenshot column</span>
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS payment_screenshot TEXT;
+
+<span class="comment">-- Update existing orders with default values</span>
+UPDATE orders
+SET
+  bonus_discount = COALESCE(bonus_discount, 0),
+  bonus_points_used = COALESCE(bonus_points_used, 0)
+WHERE bonus_discount IS NULL OR bonus_points_used IS NULL;
+
+<span class="comment">-- Verify all columns exist</span>
+SELECT column_name, data_type, is_nullable, column_default
+FROM information_schema.columns
+WHERE table_name = 'orders'
+ORDER BY ordinal_position;</div>
+    </div>
+
+    <div class="step">
+      <h3>Step 2: Run in Supabase Dashboard</h3>
+      <ol>
+        <li><strong>Open Supabase SQL Editor:</strong><br>
+          <a href="https://supabase.com/dashboard/project/cjicnsltjuatduzuwgoo/sql/new" target="_blank" style="color: #667eea; font-weight: bold;">
+            Click here to open SQL Editor
+          </a>
+        </li>
+        <li><strong>Paste the SQL</strong> you copied above</li>
+        <li><strong>Click "Run"</strong> (or press Cmd+Enter / Ctrl+Enter)</li>
+        <li><strong>Wait for success</strong> - You should see a table showing all columns</li>
+      </ol>
+    </div>
+
+    <div class="step">
+      <h3>Step 3: Verify Columns Added</h3>
+      <p>After running the SQL, you should see these columns in the output:</p>
+      <ul>
+        <li>✅ id</li>
+        <li>✅ user_id</li>
+        <li>✅ user_name</li>
+        <li>✅ user_phone</li>
+        <li>✅ items</li>
+        <li>✅ delivery_info</li>
+        <li>✅ <strong>courier</strong> ← NEW</li>
+        <li>✅ <strong>subtotal</strong> ← NEW</li>
+        <li>✅ <strong>bonus_discount</strong> ← NEW</li>
+        <li>✅ <strong>bonus_points_used</strong> ← NEW</li>
+        <li>✅ <strong>delivery_fee</strong> ← NEW</li>
+        <li>✅ <strong>total</strong> ← NEW</li>
+        <li>✅ <strong>payment_screenshot</strong> ← NEW</li>
+        <li>✅ status</li>
+        <li>✅ created_at</li>
+      </ul>
+    </div>
+
+    <div class="success-msg" id="successMsg" style="display: none;">
+      <h3 style="margin-top: 0; color: #10b981;">✅ SQL Copied Successfully!</h3>
+      <p>Now go to Supabase SQL Editor and paste it.</p>
+    </div>
+
+    <div class="step">
+      <h3>Step 4: Test Order Creation</h3>
+      <ol>
+        <li>Go back to your Telegram Mini App</li>
+        <li>Add products to cart</li>
+        <li>Go through checkout</li>
+        <li>Upload payment screenshot</li>
+        <li>Submit order</li>
+        <li><strong>SUCCESS!</strong> 🎉 Order should be created without errors</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    function copySQL() {
+      const sqlBox = document.getElementById('sqlBox');
+      const sql = sqlBox.innerText || sqlBox.textContent;
+
+      navigator.clipboard.writeText(sql).then(() => {
+        const successMsg = document.getElementById('successMsg');
+        successMsg.style.display = 'block';
+
+        // Scroll to success message
+        successMsg.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+          successMsg.style.display = 'none';
+        }, 5000);
+      }).catch(err => {
+        alert('Failed to copy. Please select the SQL manually and copy it.');
+        console.error('Copy failed:', err);
+      });
+    }
+  </script>
+</body>
+</html>

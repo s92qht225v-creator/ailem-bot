@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Fix Orders Table Schema</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 20px;
+    }
+    .sql-box {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      border: 2px solid #667eea;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+    .success {
+      color: #10b981;
+      font-weight: bold;
+    }
+    .error {
+      color: #ef4444;
+      font-weight: bold;
+    }
+    .info {
+      color: #3b82f6;
+    }
+    .step {
+      background: #e0e7ff;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+      border-left: 4px solid #667eea;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Fix Orders Table Schema</h1>
+    <p>The orders table is missing required columns. Follow these steps to fix it:</p>
+
+    <div class="step">
+      <h3>Step 1: Copy the SQL below</h3>
+      <div class="sql-box" id="sqlBox">-- Fix Orders Table Schema
+-- Add missing columns to orders table
+
+-- Add bonus_points_used column
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS bonus_points_used INTEGER DEFAULT 0;
+
+-- Add bonus_discount column
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS bonus_discount NUMERIC(10,2) DEFAULT 0;
+
+-- Add payment_screenshot column
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS payment_screenshot TEXT;
+
+-- Update existing orders to have default values
+UPDATE orders
+SET bonus_points_used = 0
+WHERE bonus_points_used IS NULL;
+
+UPDATE orders
+SET bonus_discount = 0
+WHERE bonus_discount IS NULL;
+
+-- Verify the schema
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'orders'
+ORDER BY ordinal_position;</div>
+      <button onclick="copySQL()">📋 Copy SQL</button>
+    </div>
+
+    <div class="step">
+      <h3>Step 2: Run in Supabase Dashboard</h3>
+      <ol>
+        <li>Go to: <a href="https://supabase.com/dashboard/project/cjicnsltjuatduzuwgoo/sql/new" target="_blank">Supabase SQL Editor</a></li>
+        <li>Paste the SQL you copied</li>
+        <li>Click "Run" (or press Cmd/Ctrl + Enter)</li>
+        <li>You should see "Success" and a list of all columns</li>
+      </ol>
+    </div>
+
+    <div class="step">
+      <h3>Step 3: Test Order Creation</h3>
+      <p>After running the SQL:</p>
+      <ol>
+        <li>Go back to your Telegram Mini App</li>
+        <li>Try creating an order again</li>
+        <li>It should work without errors!</li>
+      </ol>
+    </div>
+
+    <div class="step">
+      <h3>Expected Result</h3>
+      <p>After running the SQL, you should see output like:</p>
+      <div class="sql-box">
+column_name          | data_type | is_nullable
+---------------------|-----------|------------
+id                   | text      | NO
+user_id              | text      | YES
+user_name            | text      | YES
+user_phone           | text      | YES
+items                | jsonb     | YES
+delivery_info        | jsonb     | YES
+courier              | text      | YES
+subtotal             | numeric   | YES
+bonus_discount       | numeric   | YES  ← NEW
+bonus_points_used    | integer   | YES  ← NEW
+delivery_fee         | numeric   | YES
+total                | numeric   | YES
+payment_screenshot   | text      | YES  ← NEW
+status               | text      | YES
+created_at           | timestamp | YES
+      </div>
+    </div>
+
+    <p id="message"></p>
+  </div>
+
+  <script>
+    function copySQL() {
+      const sql = document.getElementById('sqlBox').textContent;
+      navigator.clipboard.writeText(sql).then(() => {
+        const msg = document.getElementById('message');
+        msg.innerHTML = '<p class="success">✅ SQL copied to clipboard! Now paste it in Supabase SQL Editor.</p>';
+        setTimeout(() => {
+          msg.innerHTML = '';
+        }, 3000);
+      }).catch(err => {
+        alert('Failed to copy. Please select and copy manually.');
+      });
+    }
+  </script>
+</body>
+</html>

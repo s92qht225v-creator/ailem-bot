@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Migrate Pickup Points to Supabase</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h1 { color: #667eea; margin-bottom: 10px; }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+      font-weight: bold;
+    }
+    button:hover { background: #5568d3; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .step {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 4px solid #667eea;
+    }
+    .sql-box {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 15px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .success { color: #10b981; font-weight: bold; }
+    .error { color: #ef4444; font-weight: bold; }
+    .warning { color: #f59e0b; font-weight: bold; }
+    .info { color: #3b82f6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🗺️ Migrate Pickup Points to Supabase</h1>
+    <p>Complete migration: Create table → Migrate data → Update app</p>
+
+    <div class="step">
+      <h3>Step 1: Create Table in Supabase</h3>
+      <button onclick="copySQL()" id="copyBtn">📋 Copy SQL</button>
+      <div class="sql-box" id="sqlBox">-- Create pickup_points table
+CREATE TABLE IF NOT EXISTS pickup_points (
+  id SERIAL PRIMARY KEY,
+  courier_service TEXT NOT NULL,
+  state TEXT,
+  city TEXT NOT NULL,
+  address TEXT NOT NULL,
+  working_hours TEXT,
+  phone TEXT,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE pickup_points ENABLE ROW LEVEL SECURITY;
+
+-- Allow public read access
+CREATE POLICY "Allow public read access on pickup_points"
+ON pickup_points FOR SELECT
+USING (true);
+
+-- Allow authenticated users to insert/update/delete
+CREATE POLICY "Allow authenticated users to modify pickup_points"
+ON pickup_points FOR ALL
+USING (true)
+WITH CHECK (true);
+
+-- Verify
+SELECT column_name, data_type FROM information_schema.columns
+WHERE table_name = 'pickup_points' ORDER BY ordinal_position;</div>
+      <p><strong>Go to:</strong> <a href="https://supabase.com/dashboard/project/cjicnsltjuatduzuwgoo/sql/new" target="_blank">Supabase SQL Editor</a></p>
+      <p>Paste the SQL and click "Run"</p>
+    </div>
+
+    <div class="step">
+      <h3>Step 2: Migrate Demo Data</h3>
+      <button onclick="migrateData()" id="migrateBtn" disabled>🚀 Migrate 6 Pickup Points</button>
+      <div id="migrateOutput" style="margin-top: 15px;"></div>
+    </div>
+
+    <div class="step">
+      <h3>Step 3: Verify Data</h3>
+      <button onclick="verifyData()" id="verifyBtn" disabled>✅ Verify Migration</button>
+      <div id="verifyOutput" style="margin-top: 15px;"></div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const supabase = createClient(
+      'https://cjicnsltjuatduzuwgoo.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqaWNuc2x0anVhdGR1enV3Z29vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMDMsImV4cCI6MjA3NjA4MjMwM30.w_OX2XY9TU8Cf3H_kVh8ivEMham8UNvifMJwxmgLGs4'
+    );
+
+    const demoPickupPoints = [
+      {
+        courier_service: 'BTS',
+        state: 'Tashkent Region',
+        city: 'Tashkent',
+        address: 'Amir Temur Ave, 107A',
+        working_hours: '09:00 - 20:00',
+        phone: '+998 71 123 4567',
+        active: true
+      },
+      {
+        courier_service: 'Starex',
+        state: 'Tashkent Region',
+        city: 'Tashkent',
+        address: 'Mirzo Ulugbek District, Buyuk Ipak Yuli 129',
+        working_hours: '09:00 - 20:00',
+        phone: '+998 71 123 4568',
+        active: true
+      },
+      {
+        courier_service: 'EMU',
+        state: 'Tashkent Region',
+        city: 'Tashkent',
+        address: 'Sergeli District, Yangi Sergeli MFY',
+        working_hours: '09:00 - 21:00',
+        phone: '+998 71 234 5678',
+        active: true
+      },
+      {
+        courier_service: 'UzPost',
+        state: 'Samarkand Region',
+        city: 'Samarkand',
+        address: 'Registan Square, Main Post Office',
+        working_hours: '08:00 - 18:00',
+        phone: '+998 66 123 4567',
+        active: true
+      },
+      {
+        courier_service: 'Yandex Go',
+        state: 'Tashkent Region',
+        city: 'Tashkent',
+        address: 'Chilanzar District, Block 12',
+        working_hours: '24/7',
+        phone: '+998 71 345 6789',
+        active: true
+      },
+      {
+        courier_service: 'Click',
+        state: 'Tashkent Region',
+        city: 'Tashkent',
+        address: 'Yunusabad District, Abdulla Qodiriy 36',
+        working_hours: '09:00 - 22:00',
+        phone: '+998 71 234 5679',
+        active: true
+      }
+    ];
+
+    window.copySQL = () => {
+      const sql = document.getElementById('sqlBox').textContent;
+      navigator.clipboard.writeText(sql).then(() => {
+        alert('✅ SQL copied! Now paste it in Supabase SQL Editor and run it.');
+        document.getElementById('migrateBtn').disabled = false;
+      });
+    };
+
+    window.migrateData = async () => {
+      const output = document.getElementById('migrateOutput');
+      output.innerHTML = '<p class="info">Migrating 6 pickup points to Supabase...</p>';
+
+      try {
+        const { data, error } = await supabase
+          .from('pickup_points')
+          .insert(demoPickupPoints)
+          .select();
+
+        if (error) throw error;
+
+        output.innerHTML = `<p class="success">✅ Successfully migrated ${data.length} pickup points!</p>`;
+        output.innerHTML += '<ul style="margin-left: 20px;">';
+        data.forEach(point => {
+          output.innerHTML += `<li>${point.courier_service} - ${point.city}</li>`;
+        });
+        output.innerHTML += '</ul>';
+
+        document.getElementById('verifyBtn').disabled = false;
+
+      } catch (err) {
+        output.innerHTML = `<p class="error">❌ Error: ${err.message}</p>`;
+        if (err.message.includes('does not exist')) {
+          output.innerHTML += '<p class="warning">The pickup_points table doesn\'t exist yet. Run Step 1 first!</p>';
+        }
+      }
+    };
+
+    window.verifyData = async () => {
+      const output = document.getElementById('verifyOutput');
+      output.innerHTML = '<p class="info">Verifying data in Supabase...</p>';
+
+      try {
+        const { data, error, count } = await supabase
+          .from('pickup_points')
+          .select('*', { count: 'exact' })
+          .order('id');
+
+        if (error) throw error;
+
+        output.innerHTML = `<p class="success">✅ Found ${count} pickup points in database!</p>`;
+        output.innerHTML += '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;">';
+        output.innerHTML += '<tr style="background: #f3f4f6; font-weight: bold;"><td style="padding: 8px; border: 1px solid #ddd;">Courier</td><td style="padding: 8px; border: 1px solid #ddd;">City</td><td style="padding: 8px; border: 1px solid #ddd;">Address</td><td style="padding: 8px; border: 1px solid #ddd;">Active</td></tr>';
+        data.forEach(point => {
+          output.innerHTML += `<tr><td style="padding: 8px; border: 1px solid #ddd;">${point.courier_service}</td><td style="padding: 8px; border: 1px solid #ddd;">${point.city}</td><td style="padding: 8px; border: 1px solid #ddd;">${point.address}</td><td style="padding: 8px; border: 1px solid #ddd;">${point.active ? '✅' : '❌'}</td></tr>`;
+        });
+        output.innerHTML += '</table>';
+
+        output.innerHTML += '<p class="success" style="margin-top: 20px;">🎉 Migration Complete! Now I\'ll update the app code to use Supabase.</p>';
+
+      } catch (err) {
+        output.innerHTML = `<p class="error">❌ Error: ${err.message}</p>`;
+      }
+    };
+  </script>
+</body>
+</html>

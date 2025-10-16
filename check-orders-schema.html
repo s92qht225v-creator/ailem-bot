@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Check Orders Table Schema</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h1 { color: #667eea; }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+      font-weight: bold;
+    }
+    button:hover { background: #5568d3; }
+    button.danger {
+      background: #ef4444;
+    }
+    button.danger:hover {
+      background: #dc2626;
+    }
+    button.success {
+      background: #10b981;
+    }
+    button.success:hover {
+      background: #059669;
+    }
+    .log {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+    .warning { color: #f59e0b; }
+    .info { color: #3b82f6; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    th {
+      background: #667eea;
+      color: white;
+      font-weight: bold;
+    }
+    tr:hover {
+      background: #f3f4f6;
+    }
+    .sql-box {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Orders Table Schema Checker</h1>
+    <p>Check what columns exist and generate the correct fix SQL.</p>
+
+    <div>
+      <button onclick="checkSchema()">1. Check Current Schema</button>
+      <button onclick="generateFixSQL()" id="generateBtn" disabled class="success">2. Generate Fix SQL</button>
+      <button onclick="recreateTable()" class="danger">3. ⚠️ Recreate Table (DANGEROUS)</button>
+    </div>
+
+    <div id="output" class="log">Click "Check Current Schema" to start...</div>
+
+    <div id="sqlOutput"></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const supabase = createClient(
+      'https://cjicnsltjuatduzuwgoo.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqaWNuc2x0anVhdGR1enV3Z29vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMDMsImV4cCI6MjA3NjA4MjMwM30.w_OX2XY9TU8Cf3H_kVh8ivEMham8UNvifMJwxmgLGs4'
+    );
+
+    let currentColumns = [];
+
+    const requiredColumns = {
+      'id': 'TEXT PRIMARY KEY',
+      'user_id': 'TEXT',
+      'user_name': 'TEXT',
+      'user_phone': 'TEXT',
+      'items': 'JSONB',
+      'delivery_info': 'JSONB',
+      'courier': 'TEXT',
+      'subtotal': 'NUMERIC(10,2)',
+      'bonus_discount': 'NUMERIC(10,2) DEFAULT 0',
+      'bonus_points_used': 'INTEGER DEFAULT 0',
+      'delivery_fee': 'NUMERIC(10,2)',
+      'total': 'NUMERIC(10,2)',
+      'payment_screenshot': 'TEXT',
+      'status': 'TEXT',
+      'created_at': 'TIMESTAMPTZ DEFAULT NOW()'
+    };
+
+    function log(message, type = 'info') {
+      const output = document.getElementById('output');
+      const colors = {
+        success: '#10b981',
+        error: '#ef4444',
+        warning: '#f59e0b',
+        info: '#3b82f6'
+      };
+      output.innerHTML += `<span style="color: ${colors[type]}">${message}</span>\n`;
+      output.scrollTop = output.scrollHeight;
+    }
+
+    window.checkSchema = async () => {
+      const output = document.getElementById('output');
+      output.innerHTML = '';
+      log('🔍 Checking orders table schema...', 'info');
+
+      try {
+        // Try to select from orders to see what columns exist
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .limit(1);
+
+        if (error) {
+          log(`❌ Error: ${error.message}`, 'error');
+          if (error.message.includes('does not exist')) {
+            log('\n⚠️  Orders table does not exist!', 'warning');
+            log('You need to create it from scratch.', 'warning');
+            document.getElementById('generateBtn').disabled = false;
+            return;
+          }
+        }
+
+        if (data && data.length > 0) {
+          currentColumns = Object.keys(data[0]);
+          log(`✅ Found ${currentColumns.length} columns:\n`, 'success');
+          currentColumns.forEach(col => {
+            log(`  • ${col}`, 'info');
+          });
+        } else {
+          log('⚠️  Table exists but is empty', 'warning');
+          currentColumns = [];
+        }
+
+        // Check missing columns
+        const requiredCols = Object.keys(requiredColumns);
+        const missingCols = requiredCols.filter(col => !currentColumns.includes(col));
+
+        if (missingCols.length > 0) {
+          log(`\n❌ Missing ${missingCols.length} columns:`, 'error');
+          missingCols.forEach(col => {
+            log(`  • ${col}`, 'error');
+          });
+          document.getElementById('generateBtn').disabled = false;
+        } else {
+          log('\n✅ All required columns exist!', 'success');
+        }
+
+      } catch (err) {
+        log(`❌ Error: ${err.message}`, 'error');
+      }
+    };
+
+    window.generateFixSQL = () => {
+      const requiredCols = Object.keys(requiredColumns);
+      const missingCols = requiredCols.filter(col => !currentColumns.includes(col));
+
+      if (missingCols.length === 0 && currentColumns.length > 0) {
+        alert('No missing columns! Table schema is complete.');
+        return;
+      }
+
+      let sql = `-- Add Missing Columns to Orders Table\n\n`;
+
+      missingCols.forEach(col => {
+        sql += `ALTER TABLE orders\nADD COLUMN IF NOT EXISTS ${col} ${requiredColumns[col]};\n\n`;
+      });
+
+      sql += `-- Verify schema\nSELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'orders' ORDER BY ordinal_position;`;
+
+      const sqlOutput = document.getElementById('sqlOutput');
+      sqlOutput.innerHTML = `
+        <h3>Generated Fix SQL:</h3>
+        <div class="sql-box">${sql}</div>
+        <button onclick="copySQL()">📋 Copy SQL</button>
+        <p><strong>Next:</strong> Copy this SQL and run it in Supabase SQL Editor</p>
+      `;
+
+      window.generatedSQL = sql;
+    };
+
+    window.copySQL = () => {
+      navigator.clipboard.writeText(window.generatedSQL).then(() => {
+        alert('✅ SQL copied! Now paste it in Supabase SQL Editor.');
+      });
+    };
+
+    window.recreateTable = () => {
+      if (!confirm('⚠️ WARNING: This will DELETE the orders table and recreate it from scratch. All existing orders will be LOST. Are you sure?')) {
+        return;
+      }
+
+      if (!confirm('⚠️ FINAL WARNING: This cannot be undone! Continue?')) {
+        return;
+      }
+
+      const sql = `-- ⚠️ DROP AND RECREATE ORDERS TABLE
+DROP TABLE IF EXISTS orders CASCADE;
+
+CREATE TABLE orders (
+  id TEXT PRIMARY KEY,
+  user_id TEXT,
+  user_name TEXT,
+  user_phone TEXT,
+  items JSONB,
+  delivery_info JSONB,
+  courier TEXT,
+  subtotal NUMERIC(10,2),
+  bonus_discount NUMERIC(10,2) DEFAULT 0,
+  bonus_points_used INTEGER DEFAULT 0,
+  delivery_fee NUMERIC(10,2),
+  total NUMERIC(10,2),
+  payment_screenshot TEXT,
+  status TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+
+-- Allow all operations (you can restrict this later)
+CREATE POLICY "Allow all operations on orders" ON orders
+FOR ALL USING (true) WITH CHECK (true);
+
+-- Verify
+SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'orders' ORDER BY ordinal_position;`;
+
+      const sqlOutput = document.getElementById('sqlOutput');
+      sqlOutput.innerHTML = `
+        <h3 style="color: #ef4444;">⚠️ RECREATE TABLE SQL (DANGEROUS):</h3>
+        <div class="sql-box">${sql}</div>
+        <button onclick="copyRecreateSQL()">📋 Copy SQL</button>
+        <p style="color: #ef4444;"><strong>WARNING:</strong> This will delete all existing orders!</p>
+      `;
+
+      window.recreateSQL = sql;
+    };
+
+    window.copyRecreateSQL = () => {
+      navigator.clipboard.writeText(window.recreateSQL).then(() => {
+        alert('⚠️ DANGEROUS SQL copied! Be careful when running this.');
+      });
+    };
+  </script>
+</body>
+</html>

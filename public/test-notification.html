@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Notification</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      margin: 10px 0;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 5px;
+      display: none;
+    }
+    .result.success {
+      background: #e8f5e9;
+      border: 1px solid #4CAF50;
+      color: #2e7d32;
+    }
+    .result.error {
+      background: #ffebee;
+      border: 1px solid #f44336;
+      color: #c62828;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔔 Test Admin Notification</h1>
+
+    <button onclick="testAdminNotification()">Send Test Admin Notification</button>
+    <button onclick="testCustomerNotification()">Send Test Customer Notification</button>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    const BOT_TOKEN = '7721843664:AAEDBUydg2j3sxCRTBApCOkMYIg8ZT_eMyw';
+    const ADMIN_CHAT_ID = '8370090674';
+
+    async function testAdminNotification() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.style.display = 'block';
+      resultDiv.className = 'result';
+      resultDiv.innerHTML = 'Sending admin notification...';
+
+      const message = `
+🔔 <b>Test: New Order Received!</b>
+
+Order ID: <b>#TEST-12345</b>
+Customer: Test Customer
+Phone: +998 90 123 45 67
+
+📦 <b>Items:</b>
+  • Test Product (x2) - 150000 UZS
+  • Another Product (x1) - 75000 UZS
+
+💰 <b>Total:</b> 225000 UZS
+🚚 <b>Courier:</b> Test Courier
+📍 <b>Location:</b> Tashkent
+
+⏰ Please review and approve the order.
+      `.trim();
+
+      try {
+        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: ADMIN_CHAT_ID,
+            text: message,
+            parse_mode: 'HTML'
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.ok) {
+          resultDiv.className = 'result success';
+          resultDiv.innerHTML = `
+            <strong>✅ Success!</strong> Admin notification sent.<br>
+            <strong>Check your Telegram (@ailemuz_bot)</strong><br><br>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        } else {
+          resultDiv.className = 'result error';
+          resultDiv.innerHTML = `
+            <strong>❌ Error:</strong> ${data.description || 'Failed to send'}<br><br>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        }
+      } catch (error) {
+        resultDiv.className = 'result error';
+        resultDiv.innerHTML = `
+          <strong>❌ Error:</strong> ${error.message}<br><br>
+          <pre>${error.stack}</pre>
+        `;
+      }
+    }
+
+    async function testCustomerNotification() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.style.display = 'block';
+      resultDiv.className = 'result';
+      resultDiv.innerHTML = 'Sending customer notification...';
+
+      const message = `
+✅ <b>Test: Order Received!</b>
+
+Thank you for your order! 🎉
+
+Order ID: <b>#TEST-12345</b>
+
+📦 <b>Items:</b>
+  • Test Product (x2)
+  • Another Product (x1)
+
+💰 <b>Total:</b> 225000 UZS
+🚚 <b>Courier:</b> Test Courier
+📍 <b>Delivery:</b> Tashkent
+
+⏰ Your order is pending approval. You'll be notified once it's approved and ready to ship!
+      `.trim();
+
+      try {
+        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: ADMIN_CHAT_ID, // Sending to admin for testing
+            text: message,
+            parse_mode: 'HTML'
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.ok) {
+          resultDiv.className = 'result success';
+          resultDiv.innerHTML = `
+            <strong>✅ Success!</strong> Customer notification sent (to admin for testing).<br>
+            <strong>Check your Telegram (@ailemuz_bot)</strong><br><br>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        } else {
+          resultDiv.className = 'result error';
+          resultDiv.innerHTML = `
+            <strong>❌ Error:</strong> ${data.description || 'Failed to send'}<br><br>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `;
+        }
+      } catch (error) {
+        resultDiv.className = 'result error';
+        resultDiv.innerHTML = `
+          <strong>❌ Error:</strong> ${error.message}<br><br>
+          <pre>${error.stack}</pre>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check Order Data</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: monospace;
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #1e1e1e;
+      color: #d4d4d4;
+    }
+    h1 { color: #4ec9b0; }
+    pre {
+      background: #2d2d2d;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+      border: 1px solid #3e3e3e;
+    }
+    button {
+      background: #0e639c;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+    button:hover { background: #1177bb; }
+    .error { color: #f48771; }
+    .success { color: #4ec9b0; }
+  </style>
+</head>
+<body>
+  <h1>🔍 Check Order Data in Supabase</h1>
+  <button onclick="checkOrders()">Check Latest Order</button>
+  <div id="output"></div>
+
+  <script>
+    const SUPABASE_URL = 'https://cjicnsltjuatduzuwgoo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqaWNuc2x0anVhdGR1enV3Z29vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY1MjcwMDgsImV4cCI6MjA1MjEwMzAwOH0.rO8S9psFBUbS2L1WrIXOKj40NdcApvJLexAT1r6hslY';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function checkOrders() {
+      const output = document.getElementById('output');
+      output.innerHTML = '<p>Loading...</p>';
+
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1);
+
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+          output.innerHTML = '<p class="error">No orders found</p>';
+          return;
+        }
+
+        const order = data[0];
+
+        let html = '<h2 class="success">✅ Latest Order Found</h2>';
+        html += '<h3>Raw Database Data:</h3>';
+        html += '<pre>' + JSON.stringify(order, null, 2) + '</pre>';
+
+        html += '<h3>Field Analysis:</h3>';
+        html += '<pre>';
+        html += `Order ID: ${order.id}\n`;
+        html += `User Name: ${order.user_name}\n`;
+        html += `User Phone: ${order.user_phone}\n`;
+        html += `Courier: ${order.courier}\n`;
+        html += `\nDelivery Info (JSONB field):\n`;
+        html += JSON.stringify(order.delivery_info, null, 2) + '\n';
+        html += `\nDelivery Info Type: ${typeof order.delivery_info}\n`;
+        html += `Is null: ${order.delivery_info === null}\n`;
+        html += `Is undefined: ${order.delivery_info === undefined}\n`;
+
+        if (order.delivery_info) {
+          html += `\nAccessing fields:\n`;
+          html += `  address: ${order.delivery_info.address}\n`;
+          html += `  city: ${order.delivery_info.city}\n`;
+          html += `  phone: ${order.delivery_info.phone}\n`;
+          html += `  fullName: ${order.delivery_info.fullName}\n`;
+        }
+
+        html += '</pre>';
+
+        output.innerHTML = html;
+      } catch (err) {
+        output.innerHTML = '<p class="error">Error: ' + err.message + '</p>';
+      }
+    }
+
+    // Auto-run on load
+    window.onload = checkOrders;
+  </script>
+</body>
+</html>

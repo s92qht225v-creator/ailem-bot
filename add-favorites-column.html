@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add Favorites Column to Users</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background: #5568d3;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .log {
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      white-space: pre-wrap;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    .success {
+      color: #10b981;
+      font-weight: bold;
+    }
+    .error {
+      color: #ef4444;
+      font-weight: bold;
+    }
+    .info {
+      color: #3b82f6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Add Favorites Column to Users Table</h1>
+    <p>This will add a <code>favorites</code> column to the <code>users</code> table in Supabase to store user's favorite products.</p>
+
+    <button onclick="checkColumn()" id="checkBtn">1. Check Current Schema</button>
+    <button onclick="addColumn()" id="addBtn" disabled>2. Add Favorites Column</button>
+    <button onclick="testColumn()" id="testBtn" disabled>3. Test Favorites</button>
+
+    <div class="log" id="log">Waiting for action...</div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const supabase = createClient(
+      'https://cjicnsltjuatduzuwgoo.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqaWNuc2x0anVhdGR1enV3Z29vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMDMsImV4cCI6MjA3NjA4MjMwM30.w_OX2XY9TU8Cf3H_kVh8ivEMham8UNvifMJwxmgLGs4'
+    );
+
+    const log = document.getElementById('log');
+
+    function addLog(message, type = 'info') {
+      const timestamp = new Date().toLocaleTimeString();
+      const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+      log.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+      log.scrollTop = log.scrollHeight;
+    }
+
+    window.checkColumn = async () => {
+      log.innerHTML = '';
+      addLog('🔍 Checking users table schema...', 'info');
+
+      try {
+        // Try to get a user and check if favorites column exists
+        const { data: users, error } = await supabase
+          .from('users')
+          .select('*')
+          .limit(1);
+
+        if (error) {
+          addLog(`❌ Error checking schema: ${error.message}`, 'error');
+          return;
+        }
+
+        if (users && users.length > 0) {
+          const columns = Object.keys(users[0]);
+          addLog('✅ Found columns: ' + columns.join(', '), 'success');
+
+          if (columns.includes('favorites')) {
+            addLog('✅ Favorites column already exists!', 'success');
+            document.getElementById('testBtn').disabled = false;
+          } else {
+            addLog('⚠️  Favorites column NOT found. Need to add it.', 'error');
+            document.getElementById('addBtn').disabled = false;
+          }
+        } else {
+          addLog('⚠️  No users found in table. Will create column anyway.', 'info');
+          document.getElementById('addBtn').disabled = false;
+        }
+      } catch (err) {
+        addLog(`❌ Error: ${err.message}`, 'error');
+      }
+    };
+
+    window.addColumn = async () => {
+      addLog('📝 Adding favorites column to users table...', 'info');
+      addLog('⚠️  NOTE: This requires database admin access via SQL Editor in Supabase Dashboard', 'info');
+      addLog('', 'info');
+      addLog('Please run this SQL in Supabase Dashboard > SQL Editor:', 'info');
+      addLog('', 'info');
+      addLog('-- Add favorites column to users table', 'info');
+      addLog('ALTER TABLE users ADD COLUMN IF NOT EXISTS favorites JSONB DEFAULT \'[]\'::jsonb;', 'info');
+      addLog('', 'info');
+      addLog('-- Update existing users to have empty array', 'info');
+      addLog('UPDATE users SET favorites = \'[]\'::jsonb WHERE favorites IS NULL;', 'info');
+      addLog('', 'info');
+      addLog('After running the SQL, click "1. Check Current Schema" again to verify.', 'success');
+    };
+
+    window.testColumn = async () => {
+      addLog('🧪 Testing favorites functionality...', 'info');
+
+      try {
+        // Get first user
+        const { data: users, error: getUserError } = await supabase
+          .from('users')
+          .select('*')
+          .limit(1);
+
+        if (getUserError) throw getUserError;
+
+        if (!users || users.length === 0) {
+          addLog('⚠️  No users found to test with', 'error');
+          return;
+        }
+
+        const testUser = users[0];
+        addLog(`📋 Testing with user: ${testUser.name} (ID: ${testUser.id})`, 'info');
+        addLog(`📥 Current favorites: ${JSON.stringify(testUser.favorites || [])}`, 'info');
+
+        // Test adding a favorite
+        const testProductId = 'test-product-123';
+        const currentFavorites = testUser.favorites || [];
+        const newFavorites = [...currentFavorites, testProductId];
+
+        addLog(`➕ Adding test product ID: ${testProductId}`, 'info');
+
+        const { data: updated, error: updateError } = await supabase
+          .from('users')
+          .update({ favorites: newFavorites })
+          .eq('id', testUser.id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+
+        addLog(`✅ Successfully updated favorites!`, 'success');
+        addLog(`📦 New favorites: ${JSON.stringify(updated.favorites)}`, 'success');
+
+        // Verify by reading again
+        const { data: verified, error: verifyError } = await supabase
+          .from('users')
+          .select('favorites')
+          .eq('id', testUser.id)
+          .single();
+
+        if (verifyError) throw verifyError;
+
+        addLog(`✅ Verified - favorites persisted in database!`, 'success');
+        addLog(`📦 Verified favorites: ${JSON.stringify(verified.favorites)}`, 'success');
+
+        // Clean up - remove test product
+        const cleanedFavorites = (verified.favorites || []).filter(id => id !== testProductId);
+        await supabase
+          .from('users')
+          .update({ favorites: cleanedFavorites })
+          .eq('id', testUser.id);
+
+        addLog(`🧹 Cleaned up test data`, 'info');
+        addLog(`✅ Favorites column is working perfectly!`, 'success');
+
+      } catch (err) {
+        addLog(`❌ Test failed: ${err.message}`, 'error');
+      }
+    };
+
+    // Auto-check on load
+    setTimeout(() => {
+      checkColumn();
+    }, 500);
+  </script>
+</body>
+</html>

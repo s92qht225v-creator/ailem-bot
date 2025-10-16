@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Telegram ID Column</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      width: 100%;
+      margin: 10px 0;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 5px;
+      display: none;
+    }
+    .result.success {
+      background: #e8f5e9;
+      border: 1px solid #4CAF50;
+      color: #2e7d32;
+    }
+    .result.error {
+      background: #ffebee;
+      border: 1px solid #f44336;
+      color: #c62828;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    .info {
+      background: #e3f2fd;
+      border-left: 4px solid #2196F3;
+      padding: 15px;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Add user_telegram_id Column to Orders Table</h1>
+
+    <div class="info">
+      <strong>What this does:</strong>
+      <p>This will add a <code>user_telegram_id</code> column to the <code>orders</code> table in Supabase. This column is needed to send Telegram notifications to customers when their order status changes.</p>
+      <p><strong>SQL Command:</strong></p>
+      <pre>ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_telegram_id TEXT;</pre>
+    </div>
+
+    <button onclick="addColumn()">Add Column to Database</button>
+
+    <div class="result" id="result"></div>
+  </div>
+
+  <script type="module">
+    // Import Supabase configuration
+    const SUPABASE_URL = 'https://rqxwqqzndgqgqxwxcmxh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxeHdxcXpuZGdxZ3F4d3hjbXhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyMjEwNjYsImV4cCI6MjA1MTc5NzA2Nn0.OyeSiMiPwmKC6vXo3j8vQhq2pYOYCDmFYTtvPHx0AKs';
+
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    window.addColumn = async function() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.style.display = 'block';
+      resultDiv.className = 'result';
+      resultDiv.innerHTML = 'Adding column to database...';
+
+      try {
+        // Execute SQL to add column
+        const { data, error } = await supabaseClient.rpc('exec_sql', {
+          sql: 'ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_telegram_id TEXT;'
+        });
+
+        if (error) {
+          // If RPC doesn't exist, show manual instructions
+          if (error.message.includes('function') || error.message.includes('not found')) {
+            resultDiv.className = 'result error';
+            resultDiv.innerHTML = `
+              <strong>⚠️ Cannot execute SQL directly</strong><br><br>
+              Please run this SQL command manually in Supabase:<br>
+              <ol>
+                <li>Go to <a href="https://supabase.com/dashboard/project/rqxwqqzndgqgqxwxcmxh/editor" target="_blank">Supabase SQL Editor</a></li>
+                <li>Click "New Query"</li>
+                <li>Paste this command:</li>
+              </ol>
+              <pre>ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_telegram_id TEXT;</pre>
+              <li>Click "Run"</li>
+              <br>
+              <strong>After running the SQL, refresh your app and try placing a new order!</strong>
+            `;
+            return;
+          }
+          throw error;
+        }
+
+        resultDiv.className = 'result success';
+        resultDiv.innerHTML = `
+          <strong>✅ Success!</strong><br>
+          The <code>user_telegram_id</code> column has been added to the orders table.<br><br>
+          <strong>Next steps:</strong>
+          <ol>
+            <li>Refresh your app</li>
+            <li>Place a new order</li>
+            <li>Reject/Approve the order from admin panel</li>
+            <li>You should receive the notification!</li>
+          </ol>
+        `;
+      } catch (error) {
+        resultDiv.className = 'result error';
+        resultDiv.innerHTML = `
+          <strong>❌ Error:</strong> ${error.message}<br><br>
+          <strong>Manual fix required:</strong><br>
+          Please run this SQL command manually in Supabase:<br>
+          <ol>
+            <li>Go to <a href="https://supabase.com/dashboard/project/rqxwqqzndgqgqxwxcmxh/editor" target="_blank">Supabase SQL Editor</a></li>
+            <li>Click "New Query"</li>
+            <li>Paste this command:</li>
+          </ol>
+          <pre>ALTER TABLE orders ADD COLUMN IF NOT EXISTS user_telegram_id TEXT;</pre>
+          <li>Click "Run"</li>
+          <br>
+          <pre>${error.stack || error.message}</pre>
+        `;
+      }
+    };
+  </script>
+</body>
+</html>

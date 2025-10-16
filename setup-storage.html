@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Setup Supabase Storage</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      color: #333;
+    }
+    h1 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+    .step {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      border-left: 4px solid #667eea;
+    }
+    .step h3 {
+      margin-top: 0;
+      color: #667eea;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .success {
+      background: #d4edda;
+      border: 1px solid #c3e6cb;
+      color: #155724;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    .error {
+      background: #f8d7da;
+      border: 1px solid #f5c6cb;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    .info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      color: #e83e8c;
+    }
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    .sql-box {
+      background: #fff;
+      border: 2px solid #667eea;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+    }
+    .copy-btn {
+      background: #28a745;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+    .copy-btn:hover {
+      background: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🗄️ Setup Supabase Storage for Images</h1>
+    <p>This tool will help you set up image storage in Supabase.</p>
+
+    <!-- Step 1: Create Storage Bucket -->
+    <div class="step">
+      <h3>Step 1: Create Storage Bucket (Manual)</h3>
+      <div class="info">
+        <strong>⚠️ Important:</strong> Storage buckets must be created via Supabase Dashboard (cannot be created via API).
+      </div>
+      <ol>
+        <li>Go to <a href="https://supabase.com/dashboard/project/cjicnsltjuatduzuwgoo/storage/buckets" target="_blank">Supabase Storage</a></li>
+        <li>Click <strong>"New bucket"</strong></li>
+        <li>Name: <code>product-images</code></li>
+        <li>Set to <strong>Public</strong> bucket ✅</li>
+        <li>Click <strong>"Create bucket"</strong></li>
+      </ol>
+      <button onclick="checkBucket()">✓ Check if Bucket Exists</button>
+      <div id="bucketStatus"></div>
+    </div>
+
+    <!-- Step 2: Set Storage Policies -->
+    <div class="step">
+      <h3>Step 2: Set Storage Policies (SQL)</h3>
+      <p>Run this SQL in Supabase SQL Editor to allow public access:</p>
+
+      <div class="sql-box">
+        <button class="copy-btn" onclick="copySQL()">📋 Copy SQL</button>
+        <pre id="sqlCode">-- Allow public to read all files in product-images bucket
+CREATE POLICY "Public Access"
+ON storage.objects FOR SELECT
+USING (bucket_id = 'product-images');
+
+-- Allow authenticated users to upload files
+CREATE POLICY "Allow authenticated uploads"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'product-images' AND auth.role() = 'authenticated');
+
+-- Allow anyone to upload (if you want public uploads)
+CREATE POLICY "Allow public uploads"
+ON storage.objects FOR INSERT
+WITH CHECK (bucket_id = 'product-images');</pre>
+      </div>
+
+      <button onclick="window.open('https://supabase.com/dashboard/project/cjicnsltjuatduzuwgoo/sql/new', '_blank')">
+        Open SQL Editor
+      </button>
+    </div>
+
+    <!-- Step 3: Test Upload -->
+    <div class="step">
+      <h3>Step 3: Test Image Upload</h3>
+      <p>Select an image to test uploading to Supabase Storage:</p>
+
+      <input type="file" id="testImage" accept="image/*" style="margin: 10px 0;">
+      <br>
+      <button onclick="testUpload()">🚀 Test Upload</button>
+
+      <div id="uploadStatus"></div>
+      <div id="imagePreview"></div>
+    </div>
+
+    <!-- Step 4: Verification -->
+    <div class="step">
+      <h3>Step 4: Verification</h3>
+      <button onclick="listImages()">📋 List Uploaded Images</button>
+      <div id="imageList"></div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://cjicnsltjuatduzuwgoo.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqaWNuc2x0anVhdGR1enV3Z29vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY1MjcwMDgsImV4cCI6MjA1MjEwMzAwOH0.rO8S9psFBUbS2L1WrIXOKj40NdcApvJLexAT1r6hslY';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function copySQL() {
+      const sql = document.getElementById('sqlCode').textContent;
+      navigator.clipboard.writeText(sql);
+      alert('SQL copied to clipboard!');
+    }
+
+    async function checkBucket() {
+      const statusDiv = document.getElementById('bucketStatus');
+      statusDiv.innerHTML = '<p>Checking...</p>';
+
+      try {
+        const { data, error } = await supabase.storage.listBuckets();
+
+        if (error) throw error;
+
+        const bucket = data.find(b => b.name === 'product-images');
+
+        if (bucket) {
+          statusDiv.innerHTML = `
+            <div class="success">
+              <strong>✅ Success!</strong><br>
+              Bucket "product-images" exists.<br>
+              Public: ${bucket.public ? 'Yes ✅' : 'No ❌'}<br>
+              ${!bucket.public ? '<strong>⚠️ Warning: Bucket should be public!</strong>' : ''}
+            </div>
+          `;
+        } else {
+          statusDiv.innerHTML = `
+            <div class="error">
+              <strong>❌ Error:</strong><br>
+              Bucket "product-images" does not exist.<br>
+              Please create it manually in the Supabase Dashboard.
+            </div>
+          `;
+        }
+      } catch (err) {
+        statusDiv.innerHTML = `
+          <div class="error">
+            <strong>❌ Error:</strong> ${err.message}
+          </div>
+        `;
+      }
+    }
+
+    async function testUpload() {
+      const fileInput = document.getElementById('testImage');
+      const statusDiv = document.getElementById('uploadStatus');
+      const previewDiv = document.getElementById('imagePreview');
+
+      if (!fileInput.files || !fileInput.files[0]) {
+        statusDiv.innerHTML = '<div class="error">Please select an image file.</div>';
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const fileName = `test-${Date.now()}-${file.name}`;
+
+      statusDiv.innerHTML = '<p>Uploading...</p>';
+
+      try {
+        // Upload file
+        const { data, error } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (error) throw error;
+
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('product-images')
+          .getPublicUrl(fileName);
+
+        statusDiv.innerHTML = `
+          <div class="success">
+            <strong>✅ Upload Successful!</strong><br>
+            File: <code>${fileName}</code><br>
+            Public URL: <code>${publicUrl}</code><br>
+            <button class="copy-btn" onclick="navigator.clipboard.writeText('${publicUrl}')">
+              Copy URL
+            </button>
+          </div>
+        `;
+
+        previewDiv.innerHTML = `
+          <h4>Preview:</h4>
+          <img src="${publicUrl}" alt="Uploaded" style="max-width: 100%; border-radius: 8px; margin-top: 10px;">
+        `;
+
+      } catch (err) {
+        statusDiv.innerHTML = `
+          <div class="error">
+            <strong>❌ Upload Failed:</strong> ${err.message}<br>
+            <small>Make sure you created the bucket and it's set to public.</small>
+          </div>
+        `;
+      }
+    }
+
+    async function listImages() {
+      const listDiv = document.getElementById('imageList');
+      listDiv.innerHTML = '<p>Loading...</p>';
+
+      try {
+        const { data, error } = await supabase.storage
+          .from('product-images')
+          .list('', {
+            limit: 10,
+            offset: 0,
+            sortBy: { column: 'created_at', order: 'desc' }
+          });
+
+        if (error) throw error;
+
+        if (data.length === 0) {
+          listDiv.innerHTML = '<div class="info">No images uploaded yet.</div>';
+          return;
+        }
+
+        let html = '<div class="success"><strong>Uploaded Images:</strong><ul>';
+        data.forEach(file => {
+          const { data: { publicUrl } } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(file.name);
+
+          html += `
+            <li>
+              <strong>${file.name}</strong> (${(file.metadata.size / 1024).toFixed(2)} KB)<br>
+              <a href="${publicUrl}" target="_blank">View Image</a>
+            </li>
+          `;
+        });
+        html += '</ul></div>';
+
+        listDiv.innerHTML = html;
+
+      } catch (err) {
+        listDiv.innerHTML = `
+          <div class="error">
+            <strong>❌ Error:</strong> ${err.message}
+          </div>
+        `;
+      }
+    }
+
+    // Auto-check bucket on page load
+    window.onload = function() {
+      checkBucket();
+    };
+  </script>
+</body>
+</html>

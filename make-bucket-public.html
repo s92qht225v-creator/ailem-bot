@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Make Payment Screenshots Bucket Public</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+    }
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      color: #333;
+    }
+    h1 { color: #667eea; }
+    .info {
+      background: #d1ecf1;
+      border: 1px solid #bee5eb;
+      color: #0c5460;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 15px 0;
+    }
+    .step {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin: 20px 0;
+      border-left: 4px solid #667eea;
+    }
+    ol { margin: 10px 0; padding-left: 20px; }
+    li { margin: 10px 0; }
+    code {
+      background: #f4f4f4;
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #e83e8c;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Make Payment Screenshots Bucket Public</h1>
+
+    <div class="info">
+      <strong>Why make it public?</strong><br>
+      • Simple solution - images will display immediately<br>
+      • Still secure - filenames are long random strings<br>
+      • No one can guess the URLs without database access<br>
+      • If someone has database access, they already have all your data anyway
+    </div>
+
+    <div class="step">
+      <h3>Step 1: Change Bucket to Public</h3>
+      <ol>
+        <li>Go to <a href="https://supabase.com/dashboard/project/cjicnsltjuatduzuwgoo/storage/buckets" target="_blank">Supabase Storage</a></li>
+        <li>Find the <code>payment-screenshots</code> bucket</li>
+        <li>Click the <strong>⋮</strong> (three dots) menu</li>
+        <li>Click <strong>"Edit bucket"</strong></li>
+        <li>Toggle <strong>"Public bucket"</strong> to ON ✅</li>
+        <li>Click <strong>"Save"</strong></li>
+      </ol>
+    </div>
+
+    <div class="info">
+      <strong>✅ That's it!</strong><br>
+      After making the bucket public, refresh your Telegram app and the payment screenshots will display in the admin panel.
+    </div>
+
+    <div class="step">
+      <h3>Security Notes:</h3>
+      <ul>
+        <li>✅ Filenames are random: <code>payments/1234567890-abc123.jpg</code></li>
+        <li>✅ URLs are stored in database (which is already protected)</li>
+        <li>✅ No directory listing (can't browse all files)</li>
+        <li>✅ Only people with database access can see URLs</li>
+        <li>❌ Someone could technically share the URL, but they'd need database access first</li>
+      </ul>
+    </div>
+
+    <div class="info">
+      <strong>Alternative (if you really want private):</strong><br>
+      We can implement server-side signed URL generation on every page load, but it's more complex and slower. For most e-commerce apps, public bucket with random filenames is the standard approach.
+    </div>
+  </div>
+</body>
+</html>

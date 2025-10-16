@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migrate to Supabase</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #1a202c;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #718096;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .button {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    .button:active {
+      transform: translateY(0);
+    }
+
+    .button:disabled {
+      background: #cbd5e0;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .log-container {
+      margin-top: 30px;
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 20px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      display: none;
+    }
+
+    .log-container.visible {
+      display: block;
+    }
+
+    .log-line {
+      margin-bottom: 8px;
+      padding: 4px 0;
+    }
+
+    .log-line.info {
+      color: #2d3748;
+    }
+
+    .log-line.success {
+      color: #22c55e;
+      font-weight: 600;
+    }
+
+    .log-line.error {
+      color: #ef4444;
+      font-weight: 600;
+    }
+
+    .log-line.warning {
+      color: #f59e0b;
+    }
+
+    .info-box {
+      background: #ebf8ff;
+      border-left: 4px solid #3b82f6;
+      padding: 16px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+      font-size: 14px;
+      color: #1e40af;
+      line-height: 1.6;
+    }
+
+    .info-box strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 Migrate to Supabase</h1>
+    <p class="subtitle">Transfer your products and reviews to the cloud database</p>
+
+    <div class="info-box">
+      <strong>ℹ️ What this does:</strong>
+      This will migrate all 10 demo products and their reviews from your local data files to your Supabase PostgreSQL database. This is a one-time operation.
+    </div>
+
+    <button id="migrateBtn" class="button" onclick="startMigration()">
+      Start Migration
+    </button>
+
+    <div id="logContainer" class="log-container"></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+    import { products } from './src/data/products.js';
+
+    const supabaseUrl = 'https://cjicnsltjuatduzuwgoo.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqaWNuc2x0anVhdGR1enV3Z29vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMDMsImV4cCI6MjA3NjA4MjMwM30.w_OX2XY9TU8Cf3H_kVh8ivEMham8UNvifMJwxmgLGs4';
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    const logContainer = document.getElementById('logContainer');
+    const migrateBtn = document.getElementById('migrateBtn');
+
+    function log(message, type = 'info') {
+      const line = document.createElement('div');
+      line.className = `log-line ${type}`;
+      line.textContent = message;
+      logContainer.appendChild(line);
+      logContainer.scrollTop = logContainer.scrollHeight;
+      logContainer.classList.add('visible');
+    }
+
+    window.startMigration = async function() {
+      try {
+        migrateBtn.disabled = true;
+        migrateBtn.innerHTML = '<span class="spinner"></span>Migrating...';
+        logContainer.innerHTML = '';
+
+        log('🚀 Starting migration to Supabase...', 'info');
+        log('', 'info');
+
+        // Step 1: Get categories
+        log('📋 Fetching categories from Supabase...', 'info');
+        const { data: categories, error: categoriesError } = await supabase
+          .from('categories')
+          .select('*');
+
+        if (categoriesError) {
+          throw new Error(`Failed to fetch categories: ${categoriesError.message}`);
+        }
+
+        log(`✅ Found ${categories.length} categories`, 'success');
+
+        // Create category map
+        const categoryMap = {};
+        categories.forEach(cat => {
+          categoryMap[cat.name] = cat.id;
+        });
+
+        // Step 2: Transform products
+        log('', 'info');
+        log('🔄 Transforming products...', 'info');
+        const productsToInsert = products.map(product => {
+          const categoryId = categoryMap[product.category];
+
+          if (!categoryId) {
+            log(`⚠️  Category "${product.category}" not found for product "${product.name}"`, 'warning');
+          }
+
+          return {
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            original_price: product.originalPrice || null,
+            category_id: categoryId || null,
+            category_name: product.category,
+            image: product.image,
+            images: product.images || [product.image],
+            stock: product.stock,
+            badge: product.badge || null,
+            material: product.material || null,
+            colors: product.colors || [],
+            sizes: product.sizes || [],
+            tags: product.tags || [],
+            rating: product.rating || 0,
+            review_count: product.reviewCount || 0
+          };
+        });
+
+        log(`✅ Transformed ${productsToInsert.length} products`, 'success');
+
+        // Step 3: Insert products
+        log('', 'info');
+        log('📦 Inserting products into Supabase...', 'info');
+        const { data: insertedProducts, error: productsError } = await supabase
+          .from('products')
+          .insert(productsToInsert)
+          .select();
+
+        if (productsError) {
+          throw new Error(`Failed to insert products: ${productsError.message}`);
+        }
+
+        log(`✅ Successfully inserted ${insertedProducts.length} products`, 'success');
+
+        // Step 4: Extract and insert reviews
+        log('', 'info');
+        log('💬 Processing reviews...', 'info');
+        const allReviews = [];
+
+        products.forEach((product, index) => {
+          if (product.reviews && product.reviews.length > 0) {
+            const productId = insertedProducts[index].id;
+
+            product.reviews.forEach(review => {
+              allReviews.push({
+                product_id: productId,
+                user_id: null,
+                user_name: review.userName,
+                rating: review.rating,
+                comment: review.comment,
+                approved: review.approved || false,
+                created_at: review.date ? new Date(review.date).toISOString() : new Date().toISOString()
+              });
+            });
+          }
+        });
+
+        if (allReviews.length > 0) {
+          log(`📝 Inserting ${allReviews.length} reviews...`, 'info');
+          const { data: insertedReviews, error: reviewsError } = await supabase
+            .from('reviews')
+            .insert(allReviews)
+            .select();
+
+          if (reviewsError) {
+            throw new Error(`Failed to insert reviews: ${reviewsError.message}`);
+          }
+
+          log(`✅ Successfully inserted ${insertedReviews.length} reviews`, 'success');
+        } else {
+          log('ℹ️  No reviews to migrate', 'info');
+        }
+
+        // Summary
+        log('', 'info');
+        log('✨ Migration Summary:', 'success');
+        log('─────────────────────────────────', 'info');
+        log(`📦 Products migrated: ${insertedProducts.length}`, 'info');
+        log(`💬 Reviews migrated: ${allReviews.length}`, 'info');
+        log('─────────────────────────────────', 'info');
+        log('', 'info');
+        log('✅ Migration completed successfully!', 'success');
+        log('', 'info');
+        log('📊 Next steps:', 'info');
+        log('1. Verify data in Supabase Table Editor', 'info');
+        log('2. Your app will now use Supabase data', 'info');
+
+        migrateBtn.innerHTML = '✅ Migration Complete';
+        migrateBtn.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
+
+      } catch (error) {
+        log('', 'info');
+        log(`❌ Migration failed: ${error.message}`, 'error');
+        console.error('Error details:', error);
+        migrateBtn.disabled = false;
+        migrateBtn.innerHTML = 'Retry Migration';
+      }
+    };
+  </script>
+</body>
+</html>

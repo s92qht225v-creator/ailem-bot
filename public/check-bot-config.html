@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check Bot Config</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .config-item {
+      margin: 15px 0;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 5px;
+      border-left: 4px solid #4CAF50;
+    }
+    .config-item.missing {
+      border-left-color: #f44336;
+    }
+    .label {
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 5px;
+    }
+    .value {
+      color: #333;
+      font-family: monospace;
+      word-break: break-all;
+    }
+    .status {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .status.ok {
+      background: #4CAF50;
+      color: white;
+    }
+    .status.missing {
+      background: #f44336;
+      color: white;
+    }
+    button {
+      background: #2196F3;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 5px;
+    }
+    button:hover {
+      background: #1976D2;
+    }
+    .test-result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 5px;
+      display: none;
+    }
+    .test-result.success {
+      background: #e8f5e9;
+      border: 1px solid #4CAF50;
+      color: #2e7d32;
+    }
+    .test-result.error {
+      background: #ffebee;
+      border: 1px solid #f44336;
+      color: #c62828;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 Bot Configuration Status</h1>
+
+    <div class="config-item" id="botTokenItem">
+      <div class="label">Bot Token:</div>
+      <div class="value" id="botTokenValue">Checking...</div>
+    </div>
+
+    <div class="config-item" id="adminChatIdItem">
+      <div class="label">Admin Chat ID:</div>
+      <div class="value" id="adminChatIdValue">Checking...</div>
+    </div>
+
+    <div class="config-item" id="envTokenItem">
+      <div class="label">.env.local Bot Token:</div>
+      <div class="value" id="envTokenValue">Checking...</div>
+    </div>
+
+    <div style="margin-top: 20px;">
+      <button onclick="testNotification()">Test Admin Notification</button>
+      <button onclick="location.href='/setup-bot-notifications.html'">Setup Bot</button>
+    </div>
+
+    <div class="test-result" id="testResult"></div>
+  </div>
+
+  <script>
+    // Check configuration
+    window.addEventListener('DOMContentLoaded', () => {
+      const botToken = localStorage.getItem('telegramBotToken');
+      const adminChatId = localStorage.getItem('adminChatId');
+      const envToken = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
+
+      // Bot Token
+      const botTokenItem = document.getElementById('botTokenItem');
+      const botTokenValue = document.getElementById('botTokenValue');
+      if (botToken) {
+        botTokenValue.textContent = botToken.substring(0, 20) + '...';
+        botTokenValue.innerHTML += ' <span class="status ok">✓ SET</span>';
+      } else {
+        botTokenValue.textContent = 'Not set';
+        botTokenValue.innerHTML += ' <span class="status missing">✗ MISSING</span>';
+        botTokenItem.classList.add('missing');
+      }
+
+      // Admin Chat ID
+      const adminChatIdItem = document.getElementById('adminChatIdItem');
+      const adminChatIdValue = document.getElementById('adminChatIdValue');
+      if (adminChatId) {
+        adminChatIdValue.textContent = adminChatId;
+        adminChatIdValue.innerHTML += ' <span class="status ok">✓ SET</span>';
+      } else {
+        adminChatIdValue.textContent = 'Not set';
+        adminChatIdValue.innerHTML += ' <span class="status missing">✗ MISSING</span>';
+        adminChatIdItem.classList.add('missing');
+      }
+
+      // Environment Token
+      const envTokenItem = document.getElementById('envTokenItem');
+      const envTokenValue = document.getElementById('envTokenValue');
+      if (envToken) {
+        envTokenValue.textContent = envToken.substring(0, 20) + '...';
+        envTokenValue.innerHTML += ' <span class="status ok">✓ SET</span>';
+      } else {
+        envTokenValue.textContent = 'Not set';
+        envTokenValue.innerHTML += ' <span class="status missing">✗ MISSING</span>';
+        envTokenItem.classList.add('missing');
+      }
+    });
+
+    async function testNotification() {
+      const botToken = localStorage.getItem('telegramBotToken') || import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
+      const adminChatId = localStorage.getItem('adminChatId');
+      const testResult = document.getElementById('testResult');
+
+      if (!botToken || !adminChatId) {
+        testResult.className = 'test-result error';
+        testResult.style.display = 'block';
+        testResult.innerHTML = '<strong>Error:</strong> Bot token or admin chat ID not configured. Please setup first.';
+        return;
+      }
+
+      testResult.className = 'test-result';
+      testResult.style.display = 'block';
+      testResult.textContent = 'Sending test notification...';
+
+      try {
+        const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: adminChatId,
+            text: '✅ <b>Test Notification</b>\n\nBot configuration is working correctly!\nYou will receive order notifications.',
+            parse_mode: 'HTML'
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.ok) {
+          testResult.className = 'test-result success';
+          testResult.innerHTML = '<strong>Success!</strong> Test notification sent. Check your Telegram!';
+        } else {
+          testResult.className = 'test-result error';
+          testResult.innerHTML = `<strong>Error:</strong> ${data.description || 'Failed to send notification'}`;
+        }
+      } catch (error) {
+        testResult.className = 'test-result error';
+        testResult.innerHTML = `<strong>Error:</strong> ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>

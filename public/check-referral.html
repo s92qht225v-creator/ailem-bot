@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Check Referral Data</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 0;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .result {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 5px;
+      background: #f9f9f9;
+      border-left: 4px solid #4CAF50;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Referral System Diagnostic</h1>
+
+    <button onclick="checkAllUsers()">Check All Users & Referrals</button>
+    <button onclick="checkOrders()">Check Recent Orders</button>
+
+    <div id="result"></div>
+  </div>
+
+  <script type="module">
+    const SUPABASE_URL = 'https://rqxwqqzndgqgqxwxcmxh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJxeHdxcXpuZGdxZ3F4d3hjbXhoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYyMjEwNjYsImV4cCI6MjA1MTc5NzA2Nn0.OyeSiMiPwmKC6vXo3j8vQhq2pYOYCDmFYTtvPHx0AKs';
+
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    window.checkAllUsers = async function() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = 'Loading users...';
+
+      try {
+        const { data: users, error } = await supabaseClient
+          .from('users')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        let html = '<div class="result"><h2>All Users</h2>';
+        html += '<table>';
+        html += '<tr><th>Name</th><th>Telegram ID</th><th>Referral Code</th><th>Referred By</th><th>Referrals</th><th>Bonus Points</th></tr>';
+
+        users.forEach(user => {
+          html += `<tr>
+            <td>${user.name}</td>
+            <td>${user.telegram_id}</td>
+            <td><strong>${user.referral_code}</strong></td>
+            <td>${user.referred_by || '<em>None</em>'}</td>
+            <td>${user.referrals || 0}</td>
+            <td>${user.bonus_points || 0}</td>
+          </tr>`;
+        });
+
+        html += '</table></div>';
+        resultDiv.innerHTML = html;
+
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="result" style="border-left-color: #f44336;"><strong>Error:</strong> ${error.message}</div>`;
+      }
+    };
+
+    window.checkOrders = async function() {
+      const resultDiv = document.getElementById('result');
+      resultDiv.innerHTML = 'Loading orders...';
+
+      try {
+        const { data: orders, error } = await supabaseClient
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+
+        let html = '<div class="result"><h2>Recent Orders</h2>';
+        html += '<table>';
+        html += '<tr><th>Order ID</th><th>User ID</th><th>User Name</th><th>Status</th><th>Total</th><th>Created</th></tr>';
+
+        orders.forEach(order => {
+          html += `<tr>
+            <td>${order.id}</td>
+            <td>${order.user_id}</td>
+            <td>${order.user_name}</td>
+            <td><strong>${order.status}</strong></td>
+            <td>${order.total}</td>
+            <td>${new Date(order.created_at).toLocaleString()}</td>
+          </tr>`;
+        });
+
+        html += '</table>';
+        html += '<h3 style="margin-top: 20px;">Order Details (JSON)</h3>';
+        html += '<pre>' + JSON.stringify(orders, null, 2) + '</pre>';
+        html += '</div>';
+        resultDiv.innerHTML = html;
+
+      } catch (error) {
+        resultDiv.innerHTML = `<div class="result" style="border-left-color: #f44336;"><strong>Error:</strong> ${error.message}</div>`;
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Verify Orders & Reviews</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1200px;
+      margin: 30px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    h1 { color: #667eea; margin-bottom: 10px; }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 5px;
+      font-weight: bold;
+    }
+    button:hover { background: #5568d3; }
+    .section {
+      background: #f9fafb;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      border-left: 4px solid #667eea;
+    }
+    .success { color: #10b981; font-weight: bold; }
+    .error { color: #ef4444; font-weight: bold; }
+    .warning { color: #f59e0b; font-weight: bold; }
+    .info { color: #3b82f6; }
+    .item {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+      margin: 5px 5px 5px 0;
+    }
+    .badge-pending { background: #fef3c7; color: #92400e; }
+    .badge-approved { background: #d1fae5; color: #065f46; }
+    .badge-rejected { background: #fee2e2; color: #991b1b; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 36px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .stat-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Data Verification Dashboard</h1>
+    <p>Check if orders and reviews were saved to Supabase</p>
+
+    <div>
+      <button onclick="loadAllData()">🔄 Load All Data</button>
+      <button onclick="loadOrders()">📦 Check Orders</button>
+      <button onclick="loadReviews()">⭐ Check Reviews</button>
+      <button onclick="loadUsers()">👥 Check Users</button>
+    </div>
+
+    <div id="stats"></div>
+    <div id="output"></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const supabase = createClient(
+      'https://cjicnsltjuatduzuwgoo.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqaWNuc2x0anVhdGR1enV3Z29vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMDMsImV4cCI6MjA3NjA4MjMwM30.w_OX2XY9TU8Cf3H_kVh8ivEMham8UNvifMJwxmgLGs4'
+    );
+
+    function formatPrice(amount) {
+      return new Intl.NumberFormat('uz-UZ').format(amount) + ' UZS';
+    }
+
+    function formatDate(dateString) {
+      return new Date(dateString).toLocaleString();
+    }
+
+    window.loadOrders = async () => {
+      const output = document.getElementById('output');
+      output.innerHTML = '<p class="info">Loading orders...</p>';
+
+      try {
+        const { data: orders, error } = await supabase
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+
+        output.innerHTML = `
+          <div class="section">
+            <h2>📦 Recent Orders (${orders.length})</h2>
+            ${orders.length === 0 ? '<p class="warning">No orders found</p>' : ''}
+            ${orders.map(order => `
+              <div class="item">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                  <div>
+                    <strong>Order ID:</strong> ${order.id}<br>
+                    <strong>User:</strong> ${order.user_name || 'N/A'}<br>
+                    <strong>Total:</strong> <span class="success">${formatPrice(order.total)}</span><br>
+                    <strong>Items:</strong> ${order.items ? order.items.length : 0}<br>
+                    <strong>Created:</strong> ${formatDate(order.created_at)}
+                  </div>
+                  <span class="badge badge-${order.status}">${order.status.toUpperCase()}</span>
+                </div>
+                ${order.items ? `
+                  <details style="margin-top: 10px;">
+                    <summary style="cursor: pointer; color: #667eea;">View Items</summary>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                      ${order.items.map(item => `
+                        <li>${item.productName} - Qty: ${item.quantity} - ${formatPrice(item.price)}</li>
+                      `).join('')}
+                    </ul>
+                  </details>
+                ` : ''}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        output.innerHTML = `<p class="error">Error loading orders: ${err.message}</p>`;
+      }
+    };
+
+    window.loadReviews = async () => {
+      const output = document.getElementById('output');
+      output.innerHTML = '<p class="info">Loading reviews...</p>';
+
+      try {
+        const { data: reviews, error } = await supabase
+          .from('reviews')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+
+        output.innerHTML = `
+          <div class="section">
+            <h2>⭐ Recent Reviews (${reviews.length})</h2>
+            ${reviews.length === 0 ? '<p class="warning">No reviews found</p>' : ''}
+            ${reviews.map(review => `
+              <div class="item">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                  <div>
+                    <strong>User:</strong> ${review.user_name}<br>
+                    <strong>Product ID:</strong> ${review.product_id}<br>
+                    <strong>Rating:</strong> ${'⭐'.repeat(review.rating)} (${review.rating}/5)<br>
+                    <strong>Comment:</strong> ${review.comment || 'No comment'}<br>
+                    <strong>Created:</strong> ${formatDate(review.created_at)}
+                  </div>
+                  <span class="badge badge-${review.approved ? 'approved' : 'pending'}">
+                    ${review.approved ? 'APPROVED' : 'PENDING'}
+                  </span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        output.innerHTML = `<p class="error">Error loading reviews: ${err.message}</p>`;
+      }
+    };
+
+    window.loadUsers = async () => {
+      const output = document.getElementById('output');
+      output.innerHTML = '<p class="info">Loading users...</p>';
+
+      try {
+        const { data: users, error } = await supabase
+          .from('users')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (error) throw error;
+
+        output.innerHTML = `
+          <div class="section">
+            <h2>👥 Recent Users (${users.length})</h2>
+            ${users.length === 0 ? '<p class="warning">No users found</p>' : ''}
+            ${users.map(user => `
+              <div class="item">
+                <strong>Name:</strong> ${user.name}<br>
+                <strong>Username:</strong> @${user.username || 'N/A'}<br>
+                <strong>Bonus Points:</strong> <span class="success">${formatPrice(user.bonus_points || 0)}</span><br>
+                <strong>Referrals:</strong> ${user.referrals || 0}<br>
+                <strong>Favorites:</strong> ${user.favorites ? user.favorites.length : 0}<br>
+                <strong>Joined:</strong> ${formatDate(user.created_at)}
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        output.innerHTML = `<p class="error">Error loading users: ${err.message}</p>`;
+      }
+    };
+
+    window.loadAllData = async () => {
+      const statsDiv = document.getElementById('stats');
+      const output = document.getElementById('output');
+
+      statsDiv.innerHTML = '<p class="info">Loading statistics...</p>';
+      output.innerHTML = '<p class="info">Loading all data...</p>';
+
+      try {
+        // Load counts
+        const [ordersRes, reviewsRes, usersRes] = await Promise.all([
+          supabase.from('orders').select('*', { count: 'exact', head: true }),
+          supabase.from('reviews').select('*', { count: 'exact', head: true }),
+          supabase.from('users').select('*', { count: 'exact', head: true })
+        ]);
+
+        const ordersCount = ordersRes.count || 0;
+        const reviewsCount = reviewsRes.count || 0;
+        const usersCount = usersRes.count || 0;
+
+        // Get pending reviews count
+        const { count: pendingReviewsCount } = await supabase
+          .from('reviews')
+          .select('*', { count: 'exact', head: true })
+          .eq('approved', false);
+
+        // Get pending orders count
+        const { count: pendingOrdersCount } = await supabase
+          .from('orders')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending');
+
+        statsDiv.innerHTML = `
+          <div class="stats">
+            <div class="stat-card">
+              <div class="stat-number">${ordersCount}</div>
+              <div class="stat-label">Total Orders</div>
+              ${pendingOrdersCount > 0 ? `<div style="margin-top: 10px; font-size: 12px;">${pendingOrdersCount} pending</div>` : ''}
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">${reviewsCount}</div>
+              <div class="stat-label">Total Reviews</div>
+              ${pendingReviewsCount > 0 ? `<div style="margin-top: 10px; font-size: 12px;">${pendingReviewsCount} pending</div>` : ''}
+            </div>
+            <div class="stat-card">
+              <div class="stat-number">${usersCount}</div>
+              <div class="stat-label">Total Users</div>
+            </div>
+          </div>
+        `;
+
+        // Load recent data
+        const [orders, reviews, users] = await Promise.all([
+          supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5),
+          supabase.from('reviews').select('*').order('created_at', { ascending: false }).limit(5),
+          supabase.from('users').select('*').order('created_at', { ascending: false }).limit(5)
+        ]);
+
+        output.innerHTML = `
+          <div class="section">
+            <h2>📦 Latest Orders</h2>
+            ${orders.data.map(order => `
+              <div class="item">
+                <strong>${order.user_name}</strong> - ${formatPrice(order.total)}
+                <span class="badge badge-${order.status}">${order.status}</span><br>
+                <small>${formatDate(order.created_at)}</small>
+              </div>
+            `).join('') || '<p class="warning">No orders yet</p>'}
+          </div>
+
+          <div class="section">
+            <h2>⭐ Latest Reviews</h2>
+            ${reviews.data.map(review => `
+              <div class="item">
+                <strong>${review.user_name}</strong> - ${'⭐'.repeat(review.rating)}
+                <span class="badge badge-${review.approved ? 'approved' : 'pending'}">
+                  ${review.approved ? 'APPROVED' : 'PENDING'}
+                </span><br>
+                <small>${review.comment}</small><br>
+                <small>${formatDate(review.created_at)}</small>
+              </div>
+            `).join('') || '<p class="warning">No reviews yet</p>'}
+          </div>
+
+          <div class="section">
+            <h2>👥 Latest Users</h2>
+            ${users.data.map(user => `
+              <div class="item">
+                <strong>${user.name}</strong> (@${user.username || 'N/A'})<br>
+                Bonus: ${formatPrice(user.bonus_points || 0)} |
+                Referrals: ${user.referrals || 0}<br>
+                <small>${formatDate(user.created_at)}</small>
+              </div>
+            `).join('') || '<p class="warning">No users yet</p>'}
+          </div>
+        `;
+
+      } catch (err) {
+        statsDiv.innerHTML = '';
+        output.innerHTML = `<p class="error">Error: ${err.message}</p>`;
+      }
+    };
+
+    // Auto-load on page load
+    setTimeout(loadAllData, 500);
+  </script>
+</body>
+</html>

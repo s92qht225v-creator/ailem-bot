@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Page</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .container {
+      text-align: center;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 40px;
+      border-radius: 20px;
+      backdrop-filter: blur(10px);
+    }
+    h1 { margin: 0 0 20px 0; }
+    button {
+      background: white;
+      color: #667eea;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px;
+    }
+    button:hover {
+      transform: scale(1.05);
+    }
+    #result {
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+      min-height: 100px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Supabase Connection Test</h1>
+    <p>Click the button to test your Supabase connection</p>
+    <button onclick="testConnection()">Test Connection</button>
+    <button onclick="window.location.href='/'">Go to Main App</button>
+    <div id="result"></div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+    const supabaseUrl = 'https://cjicnsltjuatduzuwgoo.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqaWNuc2x0anVhdGR1enV3Z29vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1MDYzMDMsImV4cCI6MjA3NjA4MjMwM30.w_OX2XY9TU8Cf3H_kVh8ivEMham8UNvifMJwxmgLGs4';
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    window.testConnection = async function() {
+      const result = document.getElementById('result');
+      result.innerHTML = '<p>⏳ Testing connection...</p>';
+
+      try {
+        // Test 1: Fetch categories
+        const { data: categories, error: catError } = await supabase
+          .from('categories')
+          .select('*');
+
+        if (catError) throw catError;
+
+        result.innerHTML = `<p>✅ Connection successful!</p>`;
+        result.innerHTML += `<p>📊 Found ${categories.length} categories</p>`;
+        result.innerHTML += `<pre style="text-align: left; overflow: auto; max-height: 200px;">${JSON.stringify(categories, null, 2)}</pre>`;
+
+        // Test 2: Fetch products
+        const { data: products, error: prodError } = await supabase
+          .from('products')
+          .select('*');
+
+        if (prodError) throw prodError;
+
+        result.innerHTML += `<p>📦 Found ${products.length} products</p>`;
+
+        // Test 3: Fetch reviews
+        const { data: reviews, error: revError } = await supabase
+          .from('reviews')
+          .select('*');
+
+        if (revError) throw revError;
+
+        result.innerHTML += `<p>💬 Found ${reviews.length} reviews</p>`;
+
+      } catch (error) {
+        result.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+        console.error('Full error:', error);
+      }
+    };
+  </script>
+</body>
+</html>
