@@ -127,10 +127,28 @@ export const saveToLocalStorage = (key, data) => {
 export const loadFromLocalStorage = (key, defaultValue = null) => {
   try {
     const item = safeLocalStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultValue;
+    if (item === null || item === undefined || item === '') {
+      return defaultValue;
+    }
+
+    try {
+      return JSON.parse(item);
+    } catch {
+      // Value was stored without JSON.stringify, return as-is
+      return item;
+    }
   } catch (error) {
     console.error('Error loading from localStorage:', error);
     return defaultValue;
+  }
+};
+
+// Remove from localStorage
+export const removeFromLocalStorage = (key) => {
+  try {
+    safeLocalStorage.removeItem(key);
+  } catch (error) {
+    console.error('Error removing from localStorage:', error);
   }
 };
 

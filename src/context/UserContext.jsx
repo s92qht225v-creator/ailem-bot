@@ -172,8 +172,8 @@ export const UserProvider = ({ children }) => {
 
     try {
       // Get configured commission percentage from localStorage
-      const bonusConfig = JSON.parse(localStorage.getItem('bonusConfig') || '{"referralCommission": 10}');
-      const commissionPercentage = bonusConfig.referralCommission || 10;
+      const bonusConfig = loadFromLocalStorage('bonusConfig', { referralCommission: 10 });
+      const commissionPercentage = bonusConfig?.referralCommission || 10;
       const commissionAmount = Math.round((orderTotal * commissionPercentage) / 100);
 
       const newReferrals = user.referrals + 1;

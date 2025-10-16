@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from 'react';
 import { Users, Copy, Share2, Gift, UserPlus, Award, Link as LinkIcon } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
-import { copyToClipboard, formatPrice } from '../../utils/helpers';
+import { copyToClipboard, formatPrice, loadFromLocalStorage } from '../../utils/helpers';
 import { generateReferralLink, shareReferralLink } from '../../utils/telegram';
 
 // Telegram bot username
@@ -15,8 +15,8 @@ const ReferralsPage = () => {
   const [commissionRate, setCommissionRate] = useState(10);
 
   useEffect(() => {
-    const bonusConfig = JSON.parse(localStorage.getItem('bonusConfig') || '{"referralCommission": 10}');
-    setCommissionRate(bonusConfig.referralCommission || 10);
+    const bonusConfig = loadFromLocalStorage('bonusConfig', { referralCommission: 10 });
+    setCommissionRate((bonusConfig?.referralCommission ?? 10) || 10);
   }, []);
 
   const handleCopyLink = async () => {

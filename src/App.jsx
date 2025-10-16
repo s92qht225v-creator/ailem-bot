@@ -19,7 +19,7 @@ import ReferralsPage from './components/pages/ReferralsPage';
 import AdminPanel from './components/pages/AdminPanel';
 import { useProducts } from './hooks/useProducts';
 import { initTelegramWebApp, getTelegramUser, isInTelegram, getReferralCode } from './utils/telegram';
-import { loadFromLocalStorage, saveToLocalStorage } from './utils/helpers';
+import { loadFromLocalStorage, saveToLocalStorage, removeFromLocalStorage } from './utils/helpers';
 
 function App() {
   const { products, loading: adminLoading, error: adminError } = useContext(AdminContext);
@@ -28,16 +28,11 @@ function App() {
   const [currentPage, setCurrentPage] = useState(() => {
     // ALWAYS start on home page in production
     // Clear any stored page data (safe for Telegram Desktop)
-    try {
-      localStorage.removeItem('currentPage');
-      localStorage.removeItem('pageData');
-    } catch (e) {
-      // localStorage not available in Telegram Desktop
-      console.warn('localStorage not available:', e);
-    }
+    removeFromLocalStorage('currentPage');
+    removeFromLocalStorage('pageData');
 
     // Clear URL hash
-    if (window.location.hash) {
+    if (typeof window !== 'undefined' && window.location.hash) {
       window.location.hash = '';
     }
 
@@ -45,9 +40,7 @@ function App() {
     return 'home';
   });
 
-  const [pageData, setPageData] = useState(() => {
-    return loadFromLocalStorage('pageData', {});
-  });
+  const [pageData, setPageData] = useState(() => loadFromLocalStorage('pageData', {}));
 
   const { user, toggleAdminMode, setUser, setReferredBy } = useContext(UserContext);
 

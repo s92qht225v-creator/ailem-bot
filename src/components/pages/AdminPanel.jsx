@@ -3,7 +3,7 @@ import { Shield, Package, Star, Users as UsersIcon, CheckCircle, XCircle, Edit, 
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
 import { ShippingRatesContext } from '../../context/ShippingRatesContext';
-import { formatPrice, formatDate, getStatusColor } from '../../utils/helpers';
+import { formatPrice, formatDate, getStatusColor, loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { calculateAnalytics, getRevenueChartData } from '../../utils/analytics';
 import { generateVariants, updateVariantStock, getTotalVariantStock, getLowStockVariants, getOutOfStockVariants } from '../../utils/variants';
 import ImageModal from '../common/ImageModal';
@@ -394,8 +394,8 @@ const OrdersTab = ({ statusFilter = 'all' }) => {
             console.log('✅ Found referrer:', referrer.name);
 
             // Calculate referral commission (10% of order total)
-            const bonusConfig = JSON.parse(localStorage.getItem('bonusConfig') || '{"referralCommission": 10}');
-            const commissionPercentage = bonusConfig.referralCommission || 10;
+            const bonusConfig = loadFromLocalStorage('bonusConfig', { referralCommission: 10 });
+            const commissionPercentage = bonusConfig?.referralCommission || 10;
             const commissionAmount = Math.round((order.total * commissionPercentage) / 100);
 
             // Reward the referrer
@@ -449,8 +449,8 @@ const OrdersTab = ({ statusFilter = 'all' }) => {
     if (!order) return;
 
     // Calculate bonus points that were awarded (10% of total)
-    const bonusConfig = JSON.parse(localStorage.getItem('bonusConfig') || '{"purchaseBonus": 10}');
-    const bonusPercentage = bonusConfig.purchaseBonus || 10;
+    const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 10 });
+    const bonusPercentage = bonusConfig?.purchaseBonus || 10;
     const earnedPoints = Math.round((order.total * bonusPercentage) / 100);
 
     // Reject the order and refund bonus points
@@ -1887,17 +1887,16 @@ const ReviewCard = ({ review, showActions, onApprove, onDelete }) => {
 // Bonus Settings Tab Component
 const BonusSettingsTab = () => {
   const [bonusConfig, setBonusConfig] = useState(() => {
-    const saved = localStorage.getItem('bonusConfig');
-    return saved ? JSON.parse(saved) : {
+    return loadFromLocalStorage('bonusConfig', {
       referralCommission: 10,
       purchaseBonus: 10,
       currency: 'UZS'
-    };
+    });
   });
 
   const saveBonusConfig = (newConfig) => {
     setBonusConfig(newConfig);
-    localStorage.setItem('bonusConfig', JSON.stringify(newConfig));
+    saveToLocalStorage('bonusConfig', newConfig);
   };
 
   return (
@@ -1976,31 +1975,28 @@ const BonusSettingsTab = () => {
 // App Settings Tab Component
 const AppSettingsTab = () => {
   const [categories, setCategories] = useState(() => {
-    const saved = localStorage.getItem('appCategories');
-    return saved ? JSON.parse(saved) : [
+    return loadFromLocalStorage('appCategories', [
       { id: 1, name: 'Bedsheets', icon: '🛏️', visible: true },
       { id: 2, name: 'Pillows', icon: '🛌', visible: true },
       { id: 3, name: 'Curtains', icon: '🪟', visible: true },
       { id: 4, name: 'Towels', icon: '🧺', visible: true }
-    ];
+    ]);
   });
 
   const [saleTimer, setSaleTimer] = useState(() => {
-    const saved = localStorage.getItem('saleTimer');
-    return saved ? JSON.parse(saved) : {
+    return loadFromLocalStorage('saleTimer', {
       endDate: '2025-12-31T23:59:59',
       enabled: true
-    };
+    });
   });
 
   const [saleBanner, setSaleBanner] = useState(() => {
-    const saved = localStorage.getItem('saleBanner');
-    return saved ? JSON.parse(saved) : {
+    return loadFromLocalStorage('saleBanner', {
       title: 'Summer Sale',
       subtitle: 'Up to 50% Off on Selected Items',
       imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
       enabled: true
-    };
+    });
   });
 
   const [editingCategory, setEditingCategory] = useState(null);
@@ -2010,17 +2006,17 @@ const AppSettingsTab = () => {
 
   const saveCategories = (newCategories) => {
     setCategories(newCategories);
-    localStorage.setItem('appCategories', JSON.stringify(newCategories));
+    saveToLocalStorage('appCategories', newCategories);
   };
 
   const saveSaleTimer = (newTimer) => {
     setSaleTimer(newTimer);
-    localStorage.setItem('saleTimer', JSON.stringify(newTimer));
+    saveToLocalStorage('saleTimer', newTimer);
   };
 
   const saveSaleBanner = (newBanner) => {
     setSaleBanner(newBanner);
-    localStorage.setItem('saleBanner', JSON.stringify(newBanner));
+    saveToLocalStorage('saleBanner', newBanner);
   };
 
   const handleAddCategory = () => {

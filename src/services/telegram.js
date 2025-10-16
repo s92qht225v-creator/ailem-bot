@@ -1,3 +1,5 @@
+import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
+
 /**
  * Telegram Bot Notification Service
  * Sends notifications to users and admins via Telegram Bot API
@@ -6,7 +8,7 @@
 // Get bot token from environment or localStorage
 const getBotToken = () => {
   // First check localStorage for bot token (set by admin)
-  const storedToken = localStorage.getItem('telegramBotToken');
+  const storedToken = loadFromLocalStorage('telegramBotToken');
   if (storedToken) return storedToken;
 
   // Fallback to environment variable (if using build-time config)
@@ -16,7 +18,7 @@ const getBotToken = () => {
 // Get admin chat ID (where to send admin notifications)
 const getAdminChatId = () => {
   // First check localStorage
-  const storedChatId = localStorage.getItem('adminChatId');
+  const storedChatId = loadFromLocalStorage('adminChatId');
   if (storedChatId) return storedChatId;
 
   // Fallback to environment variable
@@ -353,10 +355,10 @@ You will receive order notifications here.
  */
 export const saveBotConfig = (botToken, adminChatId) => {
   if (botToken) {
-    localStorage.setItem('telegramBotToken', botToken);
+    saveToLocalStorage('telegramBotToken', botToken);
   }
   if (adminChatId) {
-    localStorage.setItem('adminChatId', adminChatId);
+    saveToLocalStorage('adminChatId', adminChatId);
   }
 };
 
