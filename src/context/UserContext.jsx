@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useCallback } from 'react';
 import { usersAPI } from '../services/api';
 import { generateReferralCode, saveToLocalStorage, loadFromLocalStorage } from '../utils/helpers';
 import { getTelegramUser, isInTelegram } from '../utils/telegram';
@@ -206,27 +206,25 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  const toggleFavorite = (productId) => {
-    const isFav = favorites.includes(productId);
+  const toggleFavorite = useCallback((productId) => {
+    setFavorites(prev => {
+      const isFav = prev.includes(productId);
+      console.log('🔄 Toggle favorite:', { productId, isFav });
 
-    console.log('🔄 Toggle favorite:', { productId, isFav, userId: user?.id });
+      const newFavorites = isFav
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId];
 
-    // Update local state immediately for responsive UI
-    const newFavorites = isFav
-      ? favorites.filter(id => id !== productId)
-      : [...favorites, productId];
+      console.log('✅ Local favorites updated:', newFavorites);
+      console.log('💾 Favorites saved locally only (Supabase sync disabled)');
 
-    setFavorites(newFavorites);
-    console.log('✅ Local favorites updated:', newFavorites);
+      return newFavorites;
+    });
+  }, []);
 
-    // TEMPORARILY DISABLED: Supabase sync causing freeze
-    // Will re-enable after fixing the API performance issue
-    console.log('💾 Favorites saved locally only (Supabase sync disabled)');
-  };
-
-  const isFavorite = (productId) => {
+  const isFavorite = useCallback((productId) => {
     return favorites.includes(productId);
-  };
+  }, [favorites]);
 
   const toggleAdminMode = () => {
     setUser(prev => ({
