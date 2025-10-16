@@ -1,11 +1,8 @@
 import { Star, Heart } from 'lucide-react';
 import { formatPrice, calculateDiscountPercentage } from '../../utils/helpers';
-import { useContext, memo } from 'react';
-import { UserContext } from '../../context/UserContext';
+import { memo } from 'react';
 
-const ProductCard = memo(({ product, onView }) => {
-  const { toggleFavorite, isFavorite } = useContext(UserContext);
-  const favorite = isFavorite(product.id);
+const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => {
   const discount = calculateDiscountPercentage(product.originalPrice, product.price);
 
   // Calculate actual approved reviews count
@@ -51,12 +48,12 @@ const ProductCard = memo(({ product, onView }) => {
         <button
           onClick={(e) => {
             e.stopPropagation();
-            toggleFavorite(product.id);
+            onToggleFavorite(product.id);
           }}
           className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
         >
           <Heart
-            className={`w-5 h-5 ${favorite ? 'fill-error text-error' : 'text-gray-400'}`}
+            className={`w-5 h-5 ${isFavorite ? 'fill-error text-error' : 'text-gray-400'}`}
           />
         </button>
       </div>

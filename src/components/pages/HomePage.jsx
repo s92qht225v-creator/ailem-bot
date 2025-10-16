@@ -2,11 +2,13 @@ import { useState, useEffect, useContext } from 'react';
 import CountdownTimer from '../common/CountdownTimer';
 import ProductCard from '../product/ProductCard';
 import { AdminContext } from '../../context/AdminContext';
+import { UserContext } from '../../context/UserContext';
 import { useProducts } from '../../hooks/useProducts';
 import { loadFromLocalStorage } from '../../utils/helpers';
 
 const HomePage = ({ onNavigate }) => {
   const { categories, loading } = useContext(AdminContext);
+  const { toggleFavorite, isFavorite } = useContext(UserContext);
   const { getFeaturedProducts } = useProducts();
   const featuredProducts = getFeaturedProducts();
 
@@ -140,6 +142,8 @@ const HomePage = ({ onNavigate }) => {
               key={product.id}
               product={product}
               onView={(id) => onNavigate('product', { productId: id })}
+              isFavorite={isFavorite(product.id)}
+              onToggleFavorite={toggleFavorite}
             />
           ))}
         </div>
