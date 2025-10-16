@@ -1,8 +1,8 @@
-import { Star } from 'lucide-react';
+import { Star, Heart } from 'lucide-react';
 import { formatPrice, calculateDiscountPercentage } from '../../utils/helpers';
 import { memo } from 'react';
 
-const ProductCard = memo(({ product, onView }) => {
+const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => {
   const discount = calculateDiscountPercentage(product.originalPrice, product.price);
 
   // Calculate actual approved reviews count
@@ -45,6 +45,18 @@ const ProductCard = memo(({ product, onView }) => {
             -{discount}%
           </span>
         )}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(product.id);
+          }}
+          className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
+          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+        >
+          <Heart
+            className={`w-5 h-5 ${isFavorite ? 'fill-error text-error' : 'text-gray-400'}`}
+          />
+        </button>
       </div>
 
       <div className="p-3 flex flex-col">

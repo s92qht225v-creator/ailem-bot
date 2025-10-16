@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Package, Award, Settings, HelpCircle, ChevronRight, MapPin, MessageSquare } from 'lucide-react';
+import { Package, Award, Settings, HelpCircle, Heart, ChevronRight, MapPin, MessageSquare } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useOrders } from '../../hooks/useOrders';
 import { formatPrice } from '../../utils/helpers';
@@ -65,6 +65,13 @@ const ProfilePage = ({ onNavigate }) => {
           title="My Reviews"
           subtitle="Reviews for your purchases"
           onClick={() => onNavigate('myReviews')}
+        />
+
+        <MenuCard
+          icon={Heart}
+          title="Favorites"
+          subtitle="Your wishlist items"
+          onClick={() => onNavigate('favorites')}
         />
 
         <MenuCard
