@@ -206,7 +206,7 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  const toggleFavorite = async (productId) => {
+  const toggleFavorite = (productId) => {
     const isFav = favorites.includes(productId);
 
     console.log('🔄 Toggle favorite:', { productId, isFav, userId: user?.id });
@@ -219,30 +219,9 @@ export const UserProvider = ({ children }) => {
     setFavorites(newFavorites);
     console.log('✅ Local favorites updated:', newFavorites);
 
-    // Sync with Supabase in background (don't await, don't revert on error)
-    if (user && user.id !== 'demo-1') {
-      console.log('📤 Syncing to Supabase for user:', user.id);
-
-      // Add timeout wrapper to prevent hanging (5 second timeout)
-      const timeout = (ms) => new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout after ' + ms + 'ms')), ms)
-      );
-
-      const apiCall = isFav
-        ? usersAPI.removeFavorite(user.id, productId)
-        : usersAPI.addFavorite(user.id, productId);
-
-      Promise.race([apiCall, timeout(5000)])
-        .then(() => {
-          console.log(`✅ Favorite ${isFav ? 'removed from' : 'added to'} Supabase`);
-        })
-        .catch(err => {
-          console.error('❌ Failed to sync favorite (non-blocking):', err.message || err);
-          // Don't revert local state - keep the UI responsive
-        });
-    } else {
-      console.log('💾 Saving to localStorage for demo user');
-    }
+    // TEMPORARILY DISABLED: Supabase sync causing freeze
+    // Will re-enable after fixing the API performance issue
+    console.log('💾 Favorites saved locally only (Supabase sync disabled)');
   };
 
   const isFavorite = (productId) => {
