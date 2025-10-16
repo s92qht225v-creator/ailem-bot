@@ -19,6 +19,7 @@ import ReferralsPage from './components/pages/ReferralsPage';
 import AdminPanel from './components/pages/AdminPanel';
 import { useProducts } from './hooks/useProducts';
 import { initTelegramWebApp, getTelegramUser, isInTelegram, getReferralCode } from './utils/telegram';
+import { loadFromLocalStorage, saveToLocalStorage } from './utils/helpers';
 
 function App() {
   const { products, loading: adminLoading, error: adminError } = useContext(AdminContext);
@@ -26,9 +27,14 @@ function App() {
   // Initialize from URL hash or localStorage
   const [currentPage, setCurrentPage] = useState(() => {
     // ALWAYS start on home page in production
-    // Clear any stored page data
-    localStorage.removeItem('currentPage');
-    localStorage.removeItem('pageData');
+    // Clear any stored page data (safe for Telegram Desktop)
+    try {
+      localStorage.removeItem('currentPage');
+      localStorage.removeItem('pageData');
+    } catch (e) {
+      // localStorage not available in Telegram Desktop
+      console.warn('localStorage not available:', e);
+    }
 
     // Clear URL hash
     if (window.location.hash) {
@@ -40,8 +46,7 @@ function App() {
   });
 
   const [pageData, setPageData] = useState(() => {
-    const saved = localStorage.getItem('pageData');
-    return saved ? JSON.parse(saved) : {};
+    return loadFromLocalStorage('pageData', {});
   });
 
   const { user, toggleAdminMode, setUser, setReferredBy } = useContext(UserContext);
@@ -121,9 +126,9 @@ function App() {
   const navigate = (page, data = {}) => {
     setCurrentPage(page);
     setPageData(data);
-    // Save to localStorage
-    localStorage.setItem('currentPage', page);
-    localStorage.setItem('pageData', JSON.stringify(data));
+    // Save to localStorage (safe for Telegram Desktop)
+    saveToLocalStorage('currentPage', page);
+    saveToLocalStorage('pageData', data);
     // Update URL hash
     window.location.hash = `/${page}`;
     window.scrollTo(0, 0);
@@ -144,8 +149,8 @@ function App() {
 
   // Save current page and data to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('currentPage', currentPage);
-    localStorage.setItem('pageData', JSON.stringify(pageData));
+    saveToLocalStorage('currentPage', currentPage);
+    saveToLocalStorage('pageData', pageData);
   }, [currentPage, pageData]);
 
   const getPageTitle = () => {

@@ -1,11 +1,11 @@
 import { createContext, useState, useEffect } from 'react';
+import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
 
 export const ShippingRatesContext = createContext();
 
 export const ShippingRatesProvider = ({ children }) => {
   const [shippingRates, setShippingRates] = useState(() => {
-    const saved = localStorage.getItem('shippingRates');
-    return saved ? JSON.parse(saved) : [
+    return loadFromLocalStorage('shippingRates', [
       // Sample rates structure:
       // { courier: 'BTS', state: 'Tashkent Region', firstKg: 15000, additionalKg: 5000 }
       { id: 1, courier: 'BTS', state: 'Tashkent Region', firstKg: 15000, additionalKg: 5000 },
@@ -14,11 +14,11 @@ export const ShippingRatesProvider = ({ children }) => {
       { id: 4, courier: 'EMU', state: 'Tashkent Region', firstKg: 12000, additionalKg: 4000 },
       { id: 5, courier: 'UzPost', state: 'Tashkent Region', firstKg: 10000, additionalKg: 3000 },
       { id: 6, courier: 'Yandex', state: 'Tashkent', firstKg: 25000, additionalKg: 0 }, // Flat rate for Yandex
-    ];
+    ]);
   });
 
   useEffect(() => {
-    localStorage.setItem('shippingRates', JSON.stringify(shippingRates));
+    saveToLocalStorage('shippingRates', shippingRates);
   }, [shippingRates]);
 
   const addShippingRate = (rate) => {

@@ -3,6 +3,7 @@ import CountdownTimer from '../common/CountdownTimer';
 import ProductCard from '../product/ProductCard';
 import { AdminContext } from '../../context/AdminContext';
 import { useProducts } from '../../hooks/useProducts';
+import { loadFromLocalStorage } from '../../utils/helpers';
 
 const HomePage = ({ onNavigate }) => {
   const { categories, loading } = useContext(AdminContext);
@@ -23,35 +24,33 @@ const HomePage = ({ onNavigate }) => {
 
   // Load sale banner settings from localStorage (managed in Admin Settings)
   const [saleBanner, setSaleBanner] = useState(() => {
-    const saved = localStorage.getItem('saleBanner');
-    return saved ? JSON.parse(saved) : {
+    return loadFromLocalStorage('saleBanner', {
       title: 'Summer Sale',
       subtitle: 'Up to 50% Off on Selected Items',
       imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
       enabled: true
-    };
+    });
   });
 
   // Load sale timer from localStorage (managed in Admin Settings)
   const [saleTimer, setSaleTimer] = useState(() => {
-    const saved = localStorage.getItem('saleTimer');
-    return saved ? JSON.parse(saved) : {
+    return loadFromLocalStorage('saleTimer', {
       endDate: '2025-12-31T23:59:59',
       enabled: true
-    };
+    });
   });
 
   // Listen for changes to settings
   useEffect(() => {
     const handleStorageChange = () => {
-      const savedBanner = localStorage.getItem('saleBanner');
-      const savedTimer = localStorage.getItem('saleTimer');
+      const savedBanner = loadFromLocalStorage('saleBanner');
+      const savedTimer = loadFromLocalStorage('saleTimer');
 
       if (savedBanner) {
-        setSaleBanner(JSON.parse(savedBanner));
+        setSaleBanner(savedBanner);
       }
       if (savedTimer) {
-        setSaleTimer(JSON.parse(savedTimer));
+        setSaleTimer(savedTimer);
       }
     };
 

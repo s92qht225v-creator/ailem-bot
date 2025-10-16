@@ -1,3 +1,24 @@
+// Safe localStorage wrapper for Telegram Desktop compatibility
+// Telegram Desktop disables localStorage in WebView, causing DOMException
+const safeLocalStorage = (() => {
+  try {
+    const test = '__storage_test__';
+    window.localStorage.setItem(test, test);
+    window.localStorage.removeItem(test);
+    return window.localStorage;
+  } catch {
+    console.warn('⚠️ localStorage not available (Telegram Desktop), using in-memory fallback');
+    // In-memory fallback for Telegram Desktop
+    const storage = {};
+    return {
+      getItem: (key) => storage[key] || null,
+      setItem: (key, value) => { storage[key] = value; },
+      removeItem: (key) => { delete storage[key]; },
+      clear: () => { Object.keys(storage).forEach(key => delete storage[key]); }
+    };
+  }
+})();
+
 // Format price to display with currency (UZS - Uzbek Som)
 export const formatPrice = (price) => {
   return `${Math.round(price).toLocaleString()} UZS`;
@@ -62,7 +83,7 @@ export const formatDate = (dateString) => {
 // Bonus points = percentage of order total (e.g., 10% of 50,000 = 5,000 bonus points)
 export const calculateBonusPoints = (amount) => {
   // Get configured bonus percentage from localStorage
-  const bonusConfig = JSON.parse(localStorage.getItem('bonusConfig') || '{"purchaseBonus": 10}');
+  const bonusConfig = JSON.parse(safeLocalStorage.getItem('bonusConfig') || '{"purchaseBonus": 10}');
   const bonusPercentage = bonusConfig.purchaseBonus || 10;
 
   // Calculate bonus as percentage of order total
@@ -77,7 +98,7 @@ export const calculateBonusPoints = (amount) => {
 // Calculate max bonus points that can be used (20% of order)
 export const calculateMaxBonusUsage = (orderTotal) => {
   // Get configured point value from localStorage
-  const bonusConfig = JSON.parse(localStorage.getItem('bonusConfig') || '{"pointValue": 1000}');
+  const bonusConfig = JSON.parse(safeLocalStorage.getItem('bonusConfig') || '{"pointValue": 1000}');
   const pointValue = bonusConfig.pointValue || 1000;
 
   const maxDiscount = orderTotal * 0.2; // 20% of order
@@ -87,7 +108,7 @@ export const calculateMaxBonusUsage = (orderTotal) => {
 // Convert bonus points to currency value
 export const bonusPointsToDollars = (points) => {
   // Get configured point value from localStorage
-  const bonusConfig = JSON.parse(localStorage.getItem('bonusConfig') || '{"pointValue": 1000}');
+  const bonusConfig = JSON.parse(safeLocalStorage.getItem('bonusConfig') || '{"pointValue": 1000}');
   const pointValue = bonusConfig.pointValue || 1000;
 
   return points * pointValue;
@@ -96,7 +117,7 @@ export const bonusPointsToDollars = (points) => {
 // Save to localStorage
 export const saveToLocalStorage = (key, data) => {
   try {
-    localStorage.setItem(key, JSON.stringify(data));
+    safeLocalStorage.setItem(key, JSON.stringify(data));
   } catch (error) {
     console.error('Error saving to localStorage:', error);
   }
@@ -105,7 +126,7 @@ export const saveToLocalStorage = (key, data) => {
 // Load from localStorage
 export const loadFromLocalStorage = (key, defaultValue = null) => {
   try {
-    const item = localStorage.getItem(key);
+    const item = safeLocalStorage.getItem(key);
     return item ? JSON.parse(item) : defaultValue;
   } catch (error) {
     console.error('Error loading from localStorage:', error);
