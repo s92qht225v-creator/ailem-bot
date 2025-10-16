@@ -21,7 +21,7 @@ import { useProducts } from './hooks/useProducts';
 import { initTelegramWebApp, getTelegramUser, isInTelegram, getReferralCode } from './utils/telegram';
 
 function App() {
-  const { loading: adminLoading, error: adminError } = useContext(AdminContext);
+  const { products, loading: adminLoading, error: adminError } = useContext(AdminContext);
   const { loading: userLoading } = useContext(UserContext);
   // Initialize from URL hash or localStorage
   const [currentPage, setCurrentPage] = useState(() => {
