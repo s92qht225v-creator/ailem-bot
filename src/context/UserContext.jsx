@@ -1,9 +1,28 @@
-import { createContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { usersAPI } from '../services/api';
 import { generateReferralCode, saveToLocalStorage, loadFromLocalStorage } from '../utils/helpers';
 import { getTelegramUser, isInTelegram } from '../utils/telegram';
 
 export const UserContext = createContext();
+
+const normalizeId = (value) => {
+  if (value === null || value === undefined) return null;
+  return typeof value === 'string' ? value : String(value);
+};
+
+const normalizeFavorites = (value) => {
+  if (!Array.isArray(value)) return [];
+
+  const unique = new Set();
+  for (const item of value) {
+    const normalized = normalizeId(item);
+    if (normalized) {
+      unique.add(normalized);
+    }
+  }
+
+  return Array.from(unique);
+};
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -66,7 +85,7 @@ export const UserProvider = ({ children }) => {
 
           setUser(appUser);
           // Load user's favorites from database
-          const userFavorites = dbUser.favorites || [];
+          const userFavorites = normalizeFavorites(dbUser.favorites || []);
           console.log('📥 Loading favorites from Supabase:', userFavorites);
           setFavorites(userFavorites);
           // Also cache in localStorage for faster subsequent loads
@@ -90,7 +109,7 @@ export const UserProvider = ({ children }) => {
 
       setUser(demoUser);
       // Load demo user favorites from localStorage
-      const demoFavorites = loadFromLocalStorage('favorites', []);
+      const demoFavorites = normalizeFavorites(loadFromLocalStorage('favorites', []));
       console.log('📥 Loading favorites from localStorage (demo user):', demoFavorites);
       setFavorites(demoFavorites);
       saveToLocalStorage('demoUser', demoUser);
@@ -109,7 +128,7 @@ export const UserProvider = ({ children }) => {
       };
       setUser(demoUser);
       // Load demo user favorites from localStorage
-      const demoFavorites = loadFromLocalStorage('favorites', []);
+      const demoFavorites = normalizeFavorites(loadFromLocalStorage('favorites', []));
       setFavorites(demoFavorites);
     } finally {
       setLoading(false);
@@ -207,24 +226,33 @@ export const UserProvider = ({ children }) => {
   };
 
   const toggleFavorite = useCallback((productId) => {
+    const normalizedId = normalizeId(productId);
+    if (!normalizedId) return;
+
     setFavorites(prev => {
-      const isFav = prev.includes(productId);
-      console.log('🔄 Toggle favorite:', { productId, isFav });
+      const currentFavorites = normalizeFavorites(prev);
+      const isFav = currentFavorites.includes(normalizedId);
+      console.log('🔄 Toggle favorite:', { productId: normalizedId, isFav });
 
-      const newFavorites = isFav
-        ? prev.filter(id => id !== productId)
-        : [...prev, productId];
+      const updatedFavorites = isFav
+        ? currentFavorites.filter(id => id !== normalizedId)
+        : [...currentFavorites, normalizedId];
 
-      console.log('✅ Local favorites updated:', newFavorites);
+      console.log('✅ Local favorites updated:', updatedFavorites);
       console.log('💾 Favorites saved locally only (Supabase sync disabled)');
 
-      return newFavorites;
+      return updatedFavorites;
     });
   }, []);
 
+  const favoritesSet = useMemo(() => new Set(normalizeFavorites(favorites)), [favorites]);
+
   const isFavorite = useCallback((productId) => {
-    return favorites.includes(productId);
-  }, [favorites]);
+    const normalizedId = normalizeId(productId);
+    if (!normalizedId) return false;
+
+    return favoritesSet.has(normalizedId);
+  }, [favoritesSet]);
 
   const toggleAdminMode = () => {
     setUser(prev => ({

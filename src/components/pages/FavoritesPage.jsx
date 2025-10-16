@@ -11,9 +11,11 @@ const FavoritesPage = ({ onNavigate }) => {
   const { products } = useProducts();
 
   // Get favorite products with null checks
-  const favoriteProducts = products?.filter(product =>
-    favorites?.includes(product?.id)
-  ) || [];
+  const favoriteProducts = products?.filter(product => {
+    const productId = product?.id;
+    if (!productId) return false;
+    return favorites?.includes(productId.toString());
+  }) || [];
 
   const handleAddToCart = (product) => {
     if (!product) return;
