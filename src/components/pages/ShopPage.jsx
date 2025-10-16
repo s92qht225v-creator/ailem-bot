@@ -5,11 +5,9 @@ import ProductCard from '../product/ProductCard';
 import CustomDropdown from '../common/CustomDropdown';
 import { useProducts } from '../../hooks/useProducts';
 import { AdminContext } from '../../context/AdminContext';
-import { UserContext } from '../../context/UserContext';
 
 const ShopPage = ({ onNavigate, initialCategory }) => {
   const { categories } = useContext(AdminContext);
-  const { toggleFavorite, isFavorite } = useContext(UserContext);
 
   const {
     products,
@@ -185,8 +183,6 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
                 key={product.id}
                 product={product}
                 onView={(id) => onNavigate('product', { productId: id })}
-                isFavorite={isFavorite(product.id)}
-                onToggleFavorite={toggleFavorite}
               />
             ))}
           </div>

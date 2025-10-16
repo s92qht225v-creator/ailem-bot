@@ -14,7 +14,6 @@ import OrderHistoryPage from './components/pages/OrderHistoryPage';
 import OrderDetailsPage from './components/pages/OrderDetailsPage';
 import MyReviewsPage from './components/pages/MyReviewsPage';
 import WriteReviewPage from './components/pages/WriteReviewPage';
-import FavoritesPage from './components/pages/FavoritesPage';
 import ReferralsPage from './components/pages/ReferralsPage';
 import AdminPanel from './components/pages/AdminPanel';
 import { initTelegramWebApp, getTelegramUser, getReferralCode } from './utils/telegram';
@@ -153,8 +152,6 @@ function App() {
         return 'My Reviews';
       case 'writeReview':
         return 'Write Review';
-      case 'favorites':
-        return 'Favorites';
       case 'referrals':
         return 'Referrals';
       case 'admin':
@@ -164,7 +161,7 @@ function App() {
     }
   };
 
-  const showHeader = !['home', 'admin', 'referrals', 'profile', 'favorites', 'orderHistory', 'orderDetails', 'myReviews', 'writeReview'].includes(currentPage);
+  const showHeader = !['home', 'admin', 'referrals', 'profile', 'orderHistory', 'orderDetails', 'myReviews', 'writeReview'].includes(currentPage);
 
   // Only show loading for a short time - then show content anyway
   // This prevents blank screen issues in Telegram
@@ -277,8 +274,6 @@ function App() {
         {currentPage === 'myReviews' && <MyReviewsPage onNavigate={navigate} />}
 
         {currentPage === 'writeReview' && <WriteReviewPage onNavigate={navigate} pageData={pageData} />}
-
-        {currentPage === 'favorites' && <FavoritesPage onNavigate={navigate} />}
 
         {currentPage === 'referrals' && <ReferralsPage />}
 

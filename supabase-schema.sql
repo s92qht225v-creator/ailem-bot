@@ -55,7 +55,6 @@ CREATE TABLE users (
   referral_code TEXT UNIQUE NOT NULL,
   referred_by TEXT,
   referrals INTEGER DEFAULT 0,
-  favorites TEXT[] DEFAULT '{}',
   total_orders INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
