@@ -10,18 +10,45 @@ const FavoritesPage = ({ onNavigate }) => {
   const { addToCart } = useContext(CartContext);
   const { products } = useProducts();
 
-  // Get favorite products
-  const favoriteProducts = products.filter(product =>
-    favorites.includes(product.id)
-  );
+  // Get favorite products with null checks
+  const favoriteProducts = products?.filter(product =>
+    favorites?.includes(product?.id)
+  ) || [];
 
   const handleAddToCart = (product) => {
+    if (!product) return;
+
     // Get default color and size if available
     const defaultColor = product.colors?.[0];
     const defaultSize = product.sizes?.[0];
 
     addToCart(product, 1, defaultColor, defaultSize);
   };
+
+  // Show loading state if products not loaded
+  if (!products) {
+    return (
+      <div className="pb-20 bg-gray-50 min-h-screen">
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+          <div className="max-w-mobile mx-auto px-4 py-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => onNavigate('profile')}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <h1 className="text-xl font-bold">Favorites</h1>
+            </div>
+          </div>
+        </div>
+        <div className="p-4 text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading favorites...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-20 bg-gray-50 min-h-screen">

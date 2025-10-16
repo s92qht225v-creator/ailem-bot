@@ -48,56 +48,72 @@ function App() {
 
   // Initialize Telegram WebApp
   useEffect(() => {
+    let mounted = true;
+
     const initApp = async () => {
-      console.log('🚀 Initializing app...');
-      const tg = await initTelegramWebApp();
+      try {
+        console.log('🚀 Initializing app...');
+        const tg = await initTelegramWebApp();
 
-      if (tg) {
-        console.log('✅ Telegram WebApp initialized');
-        console.log('Platform:', tg.platform);
-        console.log('Version:', tg.version);
+        if (!mounted) return;
 
-        // Get Telegram user data
-        const tgUser = getTelegramUser();
-        if (tgUser) {
-          console.log('Telegram User:', tgUser);
+        if (tg) {
+          console.log('✅ Telegram WebApp initialized');
+          console.log('Platform:', tg.platform);
+          console.log('Version:', tg.version);
 
-          // Update user with Telegram data
-          setUser(prev => ({
-            ...prev,
-            name: `${tgUser.firstName} ${tgUser.lastName || ''}`.trim(),
-            telegramId: tgUser.id,
-            username: tgUser.username || '',
-            photoUrl: tgUser.photoUrl || ''
-          }));
-        }
+          // Get Telegram user data
+          const tgUser = getTelegramUser();
+          if (tgUser && mounted) {
+            console.log('Telegram User:', tgUser);
 
-        // Check for referral code
-        const refCode = getReferralCode();
-        if (refCode && user) {
-          console.log('Referral code detected:', refCode);
-
-          // Prevent self-referral
-          if (refCode === user.referralCode) {
-            alert('❌ You cannot use your own referral code!');
-            return;
+            // Update user with Telegram data
+            setUser(prev => ({
+              ...prev,
+              name: `${tgUser.firstName} ${tgUser.lastName || ''}`.trim(),
+              telegramId: tgUser.id,
+              username: tgUser.username || '',
+              photoUrl: tgUser.photoUrl || ''
+            }));
           }
 
-          // Save referral code if user hasn't been referred before
-          if (!user.referredBy) {
-            await setReferredBy(refCode);
-            console.log('✅ Referral code saved to database');
-            alert(`🎉 Welcome! You've been referred by a friend!\n\nYou'll earn bonus points from your purchases!`);
-          } else {
-            console.log('User already has a referrer');
+          // Check for referral code
+          const refCode = getReferralCode();
+          if (refCode && user && mounted) {
+            console.log('Referral code detected:', refCode);
+
+            // Prevent self-referral
+            if (refCode === user.referralCode) {
+              if (tg.showAlert) {
+                tg.showAlert('❌ You cannot use your own referral code!');
+              }
+              return;
+            }
+
+            // Save referral code if user hasn't been referred before
+            if (!user.referredBy) {
+              await setReferredBy(refCode);
+              console.log('✅ Referral code saved to database');
+              if (tg.showAlert) {
+                tg.showAlert('🎉 Welcome! You\'ve been referred by a friend!\n\nYou\'ll earn bonus points from your purchases!');
+              }
+            } else {
+              console.log('User already has a referrer');
+            }
           }
+        } else {
+          console.log('ℹ️ Not running in Telegram - using demo mode');
         }
-      } else {
-        console.log('ℹ️ Not running in Telegram - using demo mode');
+      } catch (error) {
+        console.error('❌ Error initializing app:', error);
       }
     };
 
     initApp();
+
+    return () => {
+      mounted = false;
+    };
   }, [setUser, setReferredBy, user?.referralCode, user?.referredBy]);
 
   const inTelegram = isInTelegram();
