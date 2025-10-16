@@ -1,14 +1,14 @@
 import { useState, useContext } from 'react';
-import { Shield, Package, Star, Users as UsersIcon, CheckCircle, XCircle, Edit, Trash2, Plus, ZoomIn, Settings as SettingsIcon, ChevronRight, Edit2, ShoppingBag, Truck, Gift, Image, Sliders, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload, TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle } from 'lucide-react';
+import { Shield, Package, Star, Users as UsersIcon, CheckCircle, XCircle, Edit, Trash2, Plus, ChevronRight, Edit2, ShoppingBag, Truck, Gift, Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload, TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
 import { ShippingRatesContext } from '../../context/ShippingRatesContext';
-import { formatPrice, formatDate, getStatusColor, loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
+import { formatPrice, formatDate, loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { calculateAnalytics, getRevenueChartData } from '../../utils/analytics';
 import { generateVariants, updateVariantStock, getTotalVariantStock, getLowStockVariants, getOutOfStockVariants } from '../../utils/variants';
 import ImageModal from '../common/ImageModal';
-import { storageAPI } from '../../services/api';
-import { notifyUserOrderStatus, notifyReferrerReward } from '../../services/telegram';
+import { storageAPI, usersAPI } from '../../services/api';
+import { notifyUserOrderStatus, notifyReferrerReward, notifyAdminLowStock } from '../../services/telegram';
 
 const AdminPanel = () => {
   const [activeSection, setActiveSection] = useState(null);
@@ -18,7 +18,6 @@ const AdminPanel = () => {
   const pendingOrders = orders.filter(o => o.status === 'pending').length;
   const approvedOrders = orders.filter(o => o.status === 'approved').length;
   const shippedOrders = orders.filter(o => o.status === 'shipped').length;
-  const deliveredOrders = orders.filter(o => o.status === 'delivered').length;
   const rejectedOrders = orders.filter(o => o.status === 'rejected').length;
 
   // Calculate review counts
@@ -379,7 +378,6 @@ const OrdersTab = ({ statusFilter = 'all' }) => {
     // Check if this user was referred by someone and reward the referrer
     if (order.userId) {
       try {
-        const { usersAPI } = await import('../../services/api');
         const customer = await usersAPI.getById(order.userId);
 
         console.log('🔍 Checking referral for customer:', customer);
@@ -985,8 +983,6 @@ const ProductsTab = ({ initialFormOpen = false }) => {
         const outOfStockVariants = getOutOfStockVariants(productData.variants);
 
         if (outOfStockVariants.length > 0 || lowStockVariants.length > 0) {
-          const { notifyAdminLowStock } = await import('../../services/telegram');
-
           // Send notification for each out of stock variant
           for (const variant of outOfStockVariants) {
             await notifyAdminLowStock({
@@ -1013,7 +1009,6 @@ const ProductsTab = ({ initialFormOpen = false }) => {
         const newStock = productData.stock;
 
         if (newStock < 10 && newStock !== oldStock) {
-          const { notifyAdminLowStock } = await import('../../services/telegram');
           await notifyAdminLowStock({ ...productData, name: productData.name });
           console.log(`⚠️ Low stock notification sent for: ${productData.name}`);
         }
@@ -1027,8 +1022,6 @@ const ProductsTab = ({ initialFormOpen = false }) => {
         const outOfStockVariants = getOutOfStockVariants(productData.variants);
 
         if (outOfStockVariants.length > 0 || lowStockVariants.length > 0) {
-          const { notifyAdminLowStock } = await import('../../services/telegram');
-
           for (const variant of [...outOfStockVariants, ...lowStockVariants]) {
             await notifyAdminLowStock({
               ...productData,
@@ -1039,7 +1032,6 @@ const ProductsTab = ({ initialFormOpen = false }) => {
           }
         }
       } else if (productData.stock < 10) {
-        const { notifyAdminLowStock } = await import('../../services/telegram');
         await notifyAdminLowStock(productData);
         console.log(`⚠️ Low stock notification sent for new product: ${productData.name}`);
       }

@@ -17,12 +17,11 @@ import WriteReviewPage from './components/pages/WriteReviewPage';
 import FavoritesPage from './components/pages/FavoritesPage';
 import ReferralsPage from './components/pages/ReferralsPage';
 import AdminPanel from './components/pages/AdminPanel';
-import { useProducts } from './hooks/useProducts';
-import { initTelegramWebApp, getTelegramUser, isInTelegram, getReferralCode } from './utils/telegram';
+import { initTelegramWebApp, getTelegramUser, getReferralCode } from './utils/telegram';
 import { loadFromLocalStorage, saveToLocalStorage, removeFromLocalStorage } from './utils/helpers';
 
 function App() {
-  const { products, loading: adminLoading, error: adminError } = useContext(AdminContext);
+  const { loading: adminLoading, error: adminError } = useContext(AdminContext);
   const { loading: userLoading } = useContext(UserContext);
   // Initialize from URL hash or localStorage
   const [currentPage, setCurrentPage] = useState(() => {
@@ -36,7 +35,6 @@ function App() {
       window.location.hash = '';
     }
 
-    console.log('🏠 Initializing to home page');
     return 'home';
   });
 
@@ -50,20 +48,14 @@ function App() {
 
     const initApp = async () => {
       try {
-        console.log('🚀 Initializing app...');
         const tg = await initTelegramWebApp();
 
         if (!mounted) return;
 
         if (tg) {
-          console.log('✅ Telegram WebApp initialized');
-          console.log('Platform:', tg.platform);
-          console.log('Version:', tg.version);
-
           // Get Telegram user data
           const tgUser = getTelegramUser();
           if (tgUser && mounted) {
-            console.log('Telegram User:', tgUser);
 
             // Update user with Telegram data
             setUser(prev => ({
@@ -78,8 +70,6 @@ function App() {
           // Check for referral code
           const refCode = getReferralCode();
           if (refCode && user && mounted) {
-            console.log('Referral code detected:', refCode);
-
             // Prevent self-referral
             if (refCode === user.referralCode) {
               if (tg.showAlert) {
@@ -91,16 +81,11 @@ function App() {
             // Save referral code if user hasn't been referred before
             if (!user.referredBy) {
               await setReferredBy(refCode);
-              console.log('✅ Referral code saved to database');
               if (tg.showAlert) {
                 tg.showAlert('🎉 Welcome! You\'ve been referred by a friend!\n\nYou\'ll earn bonus points from your purchases!');
               }
-            } else {
-              console.log('User already has a referrer');
             }
           }
-        } else {
-          console.log('ℹ️ Not running in Telegram - using demo mode');
         }
       } catch (error) {
         console.error('❌ Error initializing app:', error);
@@ -113,8 +98,6 @@ function App() {
       mounted = false;
     };
   }, [setUser, setReferredBy, user?.referralCode, user?.referredBy]);
-
-  const inTelegram = isInTelegram();
 
   const navigate = (page, data = {}) => {
     setCurrentPage(page);
@@ -182,7 +165,6 @@ function App() {
   };
 
   const showHeader = !['home', 'admin', 'referrals', 'profile', 'favorites', 'orderHistory', 'orderDetails', 'myReviews', 'writeReview'].includes(currentPage);
-  const showSearch = ['shop'].includes(currentPage);
 
   // Only show loading for a short time - then show content anyway
   // This prevents blank screen issues in Telegram
@@ -226,15 +208,6 @@ function App() {
     );
   }
 
-  // Debug logging
-  console.log('📄 App rendering:', {
-    currentPage,
-    adminLoading,
-    userLoading,
-    showLoading,
-    categoriesCount: products?.length || 0
-  });
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Mode Toggle - Always visible */}
@@ -263,7 +236,6 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-mobile mx-auto bg-white min-h-screen">
-        {console.log('🏠 Rendering home page:', currentPage === 'home')}
         {currentPage === 'home' && <HomePage onNavigate={navigate} />}
 
         {currentPage === 'shop' && (
