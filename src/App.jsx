@@ -226,7 +226,13 @@ function App() {
       {/* Admin Mode Toggle - Always visible */}
       {user && (
         <button
-          onClick={toggleAdminMode}
+          onClick={() => {
+            toggleAdminMode();
+            // Navigate to home when switching from admin to user
+            if (user.isAdmin) {
+              navigate('home');
+            }
+          }}
           className="fixed top-4 right-4 z-50 bg-primary text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg hover:bg-gray-800"
         >
           {user.isAdmin ? '👑 Admin' : '👤 User'}
