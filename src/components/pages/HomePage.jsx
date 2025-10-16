@@ -7,8 +7,7 @@ import { loadFromLocalStorage } from '../../utils/helpers';
 
 const HomePage = ({ onNavigate }) => {
   const { categories, loading } = useContext(AdminContext);
-  const { getFeaturedProducts } = useProducts();
-  const featuredProducts = getFeaturedProducts();
+  const { featuredProducts } = useProducts();
 
   // Show loading state if no data yet
   if (loading && (!categories || categories.length === 0)) {

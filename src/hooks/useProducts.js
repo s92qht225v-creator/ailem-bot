@@ -100,9 +100,11 @@ export const useProducts = () => {
     return products.find(product => product.id === id || product.id === parseInt(id));
   };
 
-  const getFeaturedProducts = () => {
+  const featuredProducts = useMemo(() => {
     return products.filter(product => product.badge === 'BEST SELLER').slice(0, 6);
-  };
+  }, [products]);
+
+  const getFeaturedProducts = () => featuredProducts;
 
   return {
     products: filteredProducts,
@@ -122,6 +124,7 @@ export const useProducts = () => {
     sortBy,
     setSortBy,
     getProductById,
-    getFeaturedProducts
+    getFeaturedProducts,
+    featuredProducts
   };
 };
