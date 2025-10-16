@@ -1,12 +1,14 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useContext } from 'react';
 import { Search } from 'lucide-react';
 import CategoryFilter from '../common/CategoryFilter';
 import ProductCard from '../product/ProductCard';
 import CustomDropdown from '../common/CustomDropdown';
 import { useProducts } from '../../hooks/useProducts';
-import { categories } from '../../data/categories';
+import { AdminContext } from '../../context/AdminContext';
 
 const ShopPage = ({ onNavigate, initialCategory }) => {
+  const { categories } = useContext(AdminContext);
+
   const {
     products,
     allProducts,
@@ -63,7 +65,10 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
     }
   }, [initialCategory, setSelectedCategory]);
 
-  const categoryNames = categories.map(c => c.name);
+  const categoryNames = useMemo(() =>
+    categories?.map(c => c.name) || [],
+    [categories]
+  );
 
   return (
     <div className="pb-20">

@@ -147,6 +147,7 @@ export const productsAPI = {
       image: product.imageUrl || product.image,
       images: product.images || [],
       stock: product.stock || 0,
+      weight: product.weight || null,
       badge: product.badge || null,
       material: product.material || null,
       colors: product.colors || [],

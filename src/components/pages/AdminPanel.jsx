@@ -883,7 +883,7 @@ const OrdersTab = ({ statusFilter = 'all' }) => {
 
 // Products Tab Component
 const ProductsTab = ({ initialFormOpen = false }) => {
-  const { products, addProduct, updateProduct, deleteProduct } = useContext(AdminContext);
+  const { products, categories, addProduct, updateProduct, deleteProduct } = useContext(AdminContext);
   const [showForm, setShowForm] = useState(initialFormOpen);
   const [editingProduct, setEditingProduct] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -896,7 +896,7 @@ const ProductsTab = ({ initialFormOpen = false }) => {
     salePrice: '',
     imageUrl: '',
     additionalImages: '',
-    category: 'Bedsheets',
+    category: '',
     weight: '',
     stock: '',
     badge: '',
@@ -1292,10 +1292,10 @@ const ProductsTab = ({ initialFormOpen = false }) => {
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg"
               >
-                <option value="Bedsheets">Bedsheets</option>
-                <option value="Pillows">Pillows</option>
-                <option value="Curtains">Curtains</option>
-                <option value="Towels">Towels</option>
+                <option value="">Select a category</option>
+                {categories?.map(cat => (
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                ))}
               </select>
             </div>
 
