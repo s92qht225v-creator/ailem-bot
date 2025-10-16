@@ -44,9 +44,10 @@ function App() {
 
   // Initialize Telegram WebApp
   useEffect(() => {
-    const tg = initTelegramWebApp();
+    const initApp = async () => {
+      console.log('🚀 Initializing app...');
+      const tg = await initTelegramWebApp();
 
-    const handleReferral = async () => {
       if (tg) {
         console.log('✅ Telegram WebApp initialized');
         console.log('Platform:', tg.platform);
@@ -92,7 +93,7 @@ function App() {
       }
     };
 
-    handleReferral();
+    initApp();
   }, [setUser, setReferredBy, user?.referralCode, user?.referredBy]);
 
   const inTelegram = isInTelegram();
@@ -207,6 +208,15 @@ function App() {
     );
   }
 
+  // Debug logging
+  console.log('📄 App rendering:', {
+    currentPage,
+    adminLoading,
+    userLoading,
+    showLoading,
+    categoriesCount: products?.length || 0
+  });
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Admin Mode Toggle - Always visible */}
@@ -229,6 +239,7 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-mobile mx-auto bg-white min-h-screen">
+        {console.log('🏠 Rendering home page:', currentPage === 'home')}
         {currentPage === 'home' && <HomePage onNavigate={navigate} />}
 
         {currentPage === 'shop' && (
