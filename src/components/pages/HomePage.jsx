@@ -5,9 +5,21 @@ import { AdminContext } from '../../context/AdminContext';
 import { useProducts } from '../../hooks/useProducts';
 
 const HomePage = ({ onNavigate }) => {
-  const { categories } = useContext(AdminContext);
+  const { categories, loading } = useContext(AdminContext);
   const { getFeaturedProducts } = useProducts();
   const featuredProducts = getFeaturedProducts();
+
+  // Show loading state if no data yet
+  if (loading && (!categories || categories.length === 0)) {
+    return (
+      <div className="pb-20 px-4 pt-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading store...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Load sale banner settings from localStorage (managed in Admin Settings)
   const [saleBanner, setSaleBanner] = useState(() => {
@@ -90,14 +102,23 @@ const HomePage = ({ onNavigate }) => {
                 src={category.image}
                 alt={category.name}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
               />
               <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
                 <span className="text-white font-bold text-lg">{category.name}</span>
               </div>
             </button>
           )) : (
-            <div className="col-span-2 text-center text-gray-500 py-8">
-              No categories available
+            <div className="col-span-2 text-center py-8">
+              <p className="text-gray-500 mb-4">Loading categories...</p>
+              <button
+                onClick={() => onNavigate('shop')}
+                className="bg-accent text-white px-6 py-2 rounded-lg font-semibold"
+              >
+                Browse All Products
+              </button>
             </div>
           )}
         </div>
