@@ -222,27 +222,24 @@ export const UserProvider = ({ children }) => {
     // Sync with Supabase in background (don't await, don't revert on error)
     if (user && user.id !== 'demo-1') {
       console.log('📤 Syncing to Supabase for user:', user.id);
-      try {
-        if (isFav) {
-          usersAPI.removeFavorite(user.id, productId)
-            .then(() => {
-              console.log('✅ Favorite removed from Supabase');
-            })
-            .catch(err => {
-              console.error('❌ Failed to remove favorite from Supabase:', err);
-            });
-        } else {
-          usersAPI.addFavorite(user.id, productId)
-            .then(() => {
-              console.log('✅ Favorite added to Supabase');
-            })
-            .catch(err => {
-              console.error('❌ Failed to add favorite to Supabase:', err);
-            });
-        }
-      } catch (err) {
-        console.error('❌ Failed to sync favorites (non-blocking):', err);
-      }
+
+      // Add timeout wrapper to prevent hanging (5 second timeout)
+      const timeout = (ms) => new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout after ' + ms + 'ms')), ms)
+      );
+
+      const apiCall = isFav
+        ? usersAPI.removeFavorite(user.id, productId)
+        : usersAPI.addFavorite(user.id, productId);
+
+      Promise.race([apiCall, timeout(5000)])
+        .then(() => {
+          console.log(`✅ Favorite ${isFav ? 'removed from' : 'added to'} Supabase`);
+        })
+        .catch(err => {
+          console.error('❌ Failed to sync favorite (non-blocking):', err.message || err);
+          // Don't revert local state - keep the UI responsive
+        });
     } else {
       console.log('💾 Saving to localStorage for demo user');
     }
