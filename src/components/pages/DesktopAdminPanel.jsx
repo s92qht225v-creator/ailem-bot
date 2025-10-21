@@ -69,6 +69,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
       color: 'text-indigo-600'
     },
     {
+      id: 'pickup-points',
+      label: 'Pickup Points',
+      icon: MapPin,
+      color: 'text-pink-600'
+    },
+    {
+      id: 'shipping-rates',
+      label: 'Shipping Rates',
+      icon: Truck,
+      color: 'text-cyan-600'
+    },
+    {
       id: 'analytics',
       label: 'Analytics',
       icon: BarChart3,
@@ -159,6 +171,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 {activeSection === 'categories' && `${categories.length} product categories`}
                 {activeSection === 'reviews' && `${reviews?.length || 0} customer reviews`}
                 {activeSection === 'users' && 'Manage customers and administrators'}
+                {activeSection === 'pickup-points' && 'Manage courier pickup locations'}
+                {activeSection === 'shipping-rates' && 'Configure delivery pricing by region'}
                 {activeSection === 'analytics' && 'Detailed business insights'}
                 {activeSection === 'settings' && 'System configuration and preferences'}
               </p>
@@ -192,6 +206,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
           {activeSection === 'categories' && <CategoriesContent />}
           {activeSection === 'reviews' && <ReviewsContent />}
           {activeSection === 'users' && <UsersContent />}
+          {activeSection === 'pickup-points' && <PickupPointsContent />}
+          {activeSection === 'shipping-rates' && <ShippingRatesContent />}
           {activeSection === 'analytics' && <AnalyticsContent />}
           {activeSection === 'settings' && <SettingsContent />}
         </main>
@@ -1823,6 +1839,620 @@ const DesktopAdminPanel = ({ onLogout }) => {
             </div>
           </div>
         )}
+      </div>
+    );
+  }
+
+  function PickupPointsContent() {
+    const {
+      pickupPoints,
+      addPickupPoint,
+      updatePickupPoint,
+      deletePickupPoint,
+      togglePickupPointStatus,
+      duplicatePickupPoint
+    } = useContext(PickupPointsContext);
+
+    const [showForm, setShowForm] = useState(false);
+    const [editingPoint, setEditingPoint] = useState(null);
+    const [expandedCouriers, setExpandedCouriers] = useState(new Set());
+    const [expandedStates, setExpandedStates] = useState(new Set());
+    const [expandedCities, setExpandedCities] = useState(new Set());
+    const [formData, setFormData] = useState({
+      courierService: '',
+      state: '',
+      city: '',
+      address: '',
+      workingHours: '09:00 - 20:00',
+      phone: ''
+    });
+
+    // Group pickup points by courier → state → city
+    const groupedPoints = pickupPoints.reduce((acc, point) => {
+      if (!acc[point.courierService]) {
+        acc[point.courierService] = {};
+      }
+      if (!acc[point.courierService][point.state]) {
+        acc[point.courierService][point.state] = {};
+      }
+      if (!acc[point.courierService][point.state][point.city]) {
+        acc[point.courierService][point.state][point.city] = [];
+      }
+      acc[point.courierService][point.state][point.city].push(point);
+      return acc;
+    }, {});
+
+    const toggleCourier = (courier) => {
+      const newSet = new Set(expandedCouriers);
+      if (newSet.has(courier)) {
+        newSet.delete(courier);
+        const newStatesSet = new Set(expandedStates);
+        const newCitiesSet = new Set(expandedCities);
+        Object.keys(groupedPoints[courier] || {}).forEach((state) => {
+          newStatesSet.delete(`${courier}-${state}`);
+          Object.keys(groupedPoints[courier][state] || {}).forEach((city) => {
+            newCitiesSet.delete(`${courier}-${state}-${city}`);
+          });
+        });
+        setExpandedStates(newStatesSet);
+        setExpandedCities(newCitiesSet);
+      } else {
+        newSet.add(courier);
+      }
+      setExpandedCouriers(newSet);
+    };
+
+    const toggleState = (courier, state) => {
+      const stateKey = `${courier}-${state}`;
+      const newSet = new Set(expandedStates);
+      if (newSet.has(stateKey)) {
+        newSet.delete(stateKey);
+        const newCitiesSet = new Set(expandedCities);
+        Object.keys(groupedPoints[courier]?.[state] || {}).forEach((city) => {
+          newCitiesSet.delete(`${courier}-${state}-${city}`);
+        });
+        setExpandedCities(newCitiesSet);
+      } else {
+        newSet.add(stateKey);
+      }
+      setExpandedStates(newSet);
+    };
+
+    const toggleCity = (courier, state, city) => {
+      const cityKey = `${courier}-${state}-${city}`;
+      const newSet = new Set(expandedCities);
+      if (newSet.has(cityKey)) {
+        newSet.delete(cityKey);
+      } else {
+        newSet.add(cityKey);
+      }
+      setExpandedCities(newSet);
+    };
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+
+      if (!formData.courierService || !formData.state || !formData.city || !formData.address || !formData.phone) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      if (editingPoint) {
+        updatePickupPoint(editingPoint.id, formData);
+      } else {
+        addPickupPoint(formData);
+      }
+
+      setFormData({
+        courierService: '',
+        state: '',
+        city: '',
+        address: '',
+        workingHours: '09:00 - 20:00',
+        phone: ''
+      });
+      setEditingPoint(null);
+      setShowForm(false);
+    };
+
+    const handleEdit = (point) => {
+      setEditingPoint(point);
+      setFormData({
+        courierService: point.courierService,
+        state: point.state,
+        city: point.city,
+        address: point.address,
+        workingHours: point.workingHours,
+        phone: point.phone
+      });
+      setShowForm(true);
+    };
+
+    const handleDelete = (pointId) => {
+      if (confirm('Are you sure you want to delete this pickup point?')) {
+        deletePickupPoint(pointId);
+      }
+    };
+
+    return (
+      <div>
+        {!showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="mb-4 bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Add Pickup Point
+          </button>
+        )}
+
+        {showForm && (
+          <div className="bg-white rounded-lg shadow-md p-6 mb-4">
+            <h3 className="text-xl font-bold mb-4">
+              {editingPoint ? 'Edit Pickup Point' : 'Add New Pickup Point'}
+            </h3>
+            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Courier Service *</label>
+                <input
+                  type="text"
+                  value={formData.courierService}
+                  onChange={(e) => setFormData({ ...formData, courierService: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="e.g., Yandex, Uzum, Express24"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">State/Region *</label>
+                <input
+                  type="text"
+                  value={formData.state}
+                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="e.g., Tashkent Region"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">City *</label>
+                <input
+                  type="text"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="e.g., Tashkent"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">Phone Number *</label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="+998 XX XXX XXXX"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">Working Hours *</label>
+                <input
+                  type="text"
+                  value={formData.workingHours}
+                  onChange={(e) => setFormData({ ...formData, workingHours: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="e.g., 09:00 - 20:00"
+                  required
+                />
+              </div>
+
+              <div className="col-span-2">
+                <label className="block text-sm font-semibold mb-1">Address *</label>
+                <textarea
+                  value={formData.address}
+                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  rows="2"
+                  placeholder="Full address of pickup point"
+                  required
+                />
+              </div>
+
+              <div className="col-span-2 flex gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 bg-accent text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+                >
+                  {editingPoint ? 'Update Pickup Point' : 'Add Pickup Point'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingPoint(null);
+                    setFormData({
+                      courierService: '',
+                      state: '',
+                      city: '',
+                      address: '',
+                      workingHours: '09:00 - 20:00',
+                      phone: ''
+                    });
+                  }}
+                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        <div className="grid gap-4">
+          {Object.keys(groupedPoints).length === 0 ? (
+            <div className="bg-white rounded-lg shadow-md p-12 text-center">
+              <MapPin className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No pickup points found</p>
+            </div>
+          ) : (
+            Object.entries(groupedPoints).map(([courier, stateGroups]) => {
+              const isCourierExpanded = expandedCouriers.has(courier);
+              const totalPoints = Object.values(stateGroups).reduce((sum, cityGroups) =>
+                sum + Object.values(cityGroups).reduce((citySum, addresses) => citySum + addresses.length, 0), 0
+              );
+
+              return (
+                <div key={courier} className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <button
+                    onClick={() => toggleCourier(courier)}
+                    className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${
+                      isCourierExpanded ? 'rotate-90' : ''
+                    }`} />
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                      <Truck className="w-6 h-6 text-white" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <h2 className="text-lg font-bold text-gray-800">{courier}</h2>
+                      <p className="text-sm text-gray-500">{totalPoints} pickup points</p>
+                    </div>
+                  </button>
+
+                  {isCourierExpanded && (
+                    <div className="px-4 pb-4 space-y-2">
+                      {Object.entries(stateGroups).map(([state, cityGroups]) => {
+                        const isStateExpanded = expandedStates.has(`${courier}-${state}`);
+                        const statePoints = Object.values(cityGroups).reduce((sum, addresses) => sum + addresses.length, 0);
+
+                        return (
+                          <div key={state} className="bg-gray-50 rounded-lg overflow-hidden">
+                            <button
+                              onClick={() => toggleState(courier, state)}
+                              className="w-full flex items-center gap-2 p-3 hover:bg-gray-100 transition-colors"
+                            >
+                              <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${
+                                isStateExpanded ? 'rotate-90' : ''
+                              }`} />
+                              <MapPin className="w-5 h-5 text-accent flex-shrink-0" />
+                              <div className="flex-1 text-left">
+                                <h3 className="font-bold text-gray-800">{state}</h3>
+                                <p className="text-xs text-gray-500">{statePoints} locations</p>
+                              </div>
+                            </button>
+
+                            {isStateExpanded && (
+                              <div className="px-3 pb-3 space-y-2">
+                                {Object.entries(cityGroups).map(([city, addresses]) => {
+                                  const isCityExpanded = expandedCities.has(`${courier}-${state}-${city}`);
+
+                                  return (
+                                    <div key={city} className="bg-white rounded-lg overflow-hidden border border-gray-200">
+                                      <button
+                                        onClick={() => toggleCity(courier, state, city)}
+                                        className="w-full flex items-center gap-2 p-3 hover:bg-gray-50 transition-colors"
+                                      >
+                                        <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${
+                                          isCityExpanded ? 'rotate-90' : ''
+                                        }`} />
+                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
+                                          <MapPin className="w-4 h-4 text-white" />
+                                        </div>
+                                        <div className="flex-1 text-left">
+                                          <h4 className="font-semibold text-gray-800">{city}</h4>
+                                          <p className="text-xs text-gray-500">{addresses.length} addresses</p>
+                                        </div>
+                                      </button>
+
+                                      {isCityExpanded && (
+                                        <div className="px-3 pb-3 space-y-2">
+                                          {addresses.map((point) => (
+                                            <div key={point.id} className="bg-gray-50 rounded-lg p-3">
+                                              <div className="flex items-start justify-between mb-2">
+                                                <div className="flex-1">
+                                                  <div className="flex items-center gap-2 mb-2">
+                                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                                      point.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                                                    }`}>
+                                                      {point.active ? 'Active' : 'Inactive'}
+                                                    </span>
+                                                  </div>
+                                                  <p className="text-gray-800 font-medium mb-1">{point.address}</p>
+                                                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                                                    <span className="flex items-center gap-1">
+                                                      <Clock className="w-4 h-4" />
+                                                      {point.workingHours}
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                      <Phone className="w-4 h-4" />
+                                                      {point.phone}
+                                                    </span>
+                                                  </div>
+                                                </div>
+                                                <div className="flex gap-2">
+                                                  <button
+                                                    onClick={() => togglePickupPointStatus(point.id)}
+                                                    className={`text-sm px-3 py-1 rounded ${
+                                                      point.active
+                                                        ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                                                        : 'bg-green-100 text-green-800 hover:bg-green-200'
+                                                    }`}
+                                                  >
+                                                    {point.active ? 'Deactivate' : 'Activate'}
+                                                  </button>
+                                                  <button
+                                                    onClick={() => handleEdit(point)}
+                                                    className="text-accent p-2 hover:bg-blue-50 rounded"
+                                                  >
+                                                    <Edit className="w-4 h-4" />
+                                                  </button>
+                                                  <button
+                                                    onClick={() => duplicatePickupPoint(point.id)}
+                                                    className="text-gray-600 p-2 hover:bg-gray-100 rounded"
+                                                  >
+                                                    <Copy className="w-4 h-4" />
+                                                  </button>
+                                                  <button
+                                                    onClick={() => handleDelete(point.id)}
+                                                    className="text-error p-2 hover:bg-red-50 rounded"
+                                                  >
+                                                    <Trash2 className="w-4 h-4" />
+                                                  </button>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  function ShippingRatesContent() {
+    const {
+      shippingRates,
+      addShippingRate,
+      updateShippingRate,
+      deleteShippingRate
+    } = useContext(ShippingRatesContext);
+
+    const [showForm, setShowForm] = useState(false);
+    const [editingRate, setEditingRate] = useState(null);
+    const [formData, setFormData] = useState({
+      courier: '',
+      state: '',
+      firstKg: '',
+      additionalKg: ''
+    });
+
+    const handleSubmit = (e) => {
+      e.preventDefault();
+
+      if (!formData.courier || !formData.state || !formData.firstKg) {
+        alert('Please fill in all required fields');
+        return;
+      }
+
+      const rateData = {
+        ...formData,
+        firstKg: parseFloat(formData.firstKg),
+        additionalKg: parseFloat(formData.additionalKg) || 0
+      };
+
+      if (editingRate) {
+        updateShippingRate(editingRate.id, rateData);
+      } else {
+        addShippingRate(rateData);
+      }
+
+      setFormData({ courier: '', state: '', firstKg: '', additionalKg: '' });
+      setEditingRate(null);
+      setShowForm(false);
+    };
+
+    const handleEdit = (rate) => {
+      setEditingRate(rate);
+      setFormData({
+        courier: rate.courier,
+        state: rate.state,
+        firstKg: rate.firstKg.toString(),
+        additionalKg: rate.additionalKg.toString()
+      });
+      setShowForm(true);
+    };
+
+    const handleDelete = (rateId) => {
+      if (confirm('Are you sure you want to delete this shipping rate?')) {
+        deleteShippingRate(rateId);
+      }
+    };
+
+    const groupedRates = shippingRates.reduce((acc, rate) => {
+      if (!acc[rate.courier]) {
+        acc[rate.courier] = [];
+      }
+      acc[rate.courier].push(rate);
+      return acc;
+    }, {});
+
+    return (
+      <div>
+        {!showForm && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="mb-4 bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center gap-2"
+          >
+            <Plus className="w-5 h-5" />
+            Add Shipping Rate
+          </button>
+        )}
+
+        {showForm && (
+          <div className="bg-white rounded-lg shadow-md p-6 mb-4">
+            <h3 className="text-xl font-bold mb-4">
+              {editingRate ? 'Edit Shipping Rate' : 'Add New Shipping Rate'}
+            </h3>
+            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold mb-1">Courier Service *</label>
+                <input
+                  type="text"
+                  value={formData.courier}
+                  onChange={(e) => setFormData({ ...formData, courier: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="e.g., BTS, Yandex, Starex"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">State/Region *</label>
+                <input
+                  type="text"
+                  value={formData.state}
+                  onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="e.g., Tashkent Region"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">First KG Rate (UZS) *</label>
+                <input
+                  type="number"
+                  value={formData.firstKg}
+                  onChange={(e) => setFormData({ ...formData, firstKg: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="e.g., 15000"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-1">Additional KG Rate (UZS)</label>
+                <input
+                  type="number"
+                  value={formData.additionalKg}
+                  onChange={(e) => setFormData({ ...formData, additionalKg: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg"
+                  placeholder="e.g., 5000 (0 for flat rate)"
+                />
+              </div>
+
+              <div className="col-span-2 flex gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 bg-accent text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+                >
+                  {editingRate ? 'Update Rate' : 'Add Rate'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowForm(false);
+                    setEditingRate(null);
+                    setFormData({ courier: '', state: '', firstKg: '', additionalKg: '' });
+                  }}
+                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        <div className="grid gap-4">
+          {Object.keys(groupedRates).length === 0 ? (
+            <div className="bg-white rounded-lg shadow-md p-12 text-center">
+              <Truck className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No shipping rates configured</p>
+            </div>
+          ) : (
+            Object.entries(groupedRates).map(([courier, rates]) => (
+              <div key={courier} className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center gap-3 mb-4 pb-3 border-b">
+                  <Truck className="w-6 h-6 text-accent" />
+                  <h3 className="text-xl font-bold text-gray-800">{courier}</h3>
+                </div>
+
+                <div className="grid gap-3">
+                  {rates.map((rate) => (
+                    <div key={rate.id} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-800 mb-2">{rate.state}</p>
+                        <div className="flex gap-6 text-sm text-gray-600">
+                          <div>
+                            <span className="font-medium">First KG:</span> {formatPrice(rate.firstKg)}
+                          </div>
+                          <div>
+                            <span className="font-medium">Additional KG:</span> {rate.additionalKg > 0 ? formatPrice(rate.additionalKg) : 'Flat rate'}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEdit(rate)}
+                          className="text-accent p-2 hover:bg-blue-50 rounded"
+                        >
+                          <Edit className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(rate.id)}
+                          className="text-error p-2 hover:bg-red-50 rounded"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     );
   }
