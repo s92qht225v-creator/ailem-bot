@@ -20,15 +20,19 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
     }
   }, [user?.id]);
 
-  // Detect screen size for responsive admin panel
+  // Detect screen size for responsive admin panel after mount
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsDesktop(window.innerWidth >= 1024); // lg breakpoint
+      if (typeof window !== 'undefined') {
+        setIsDesktop(window.innerWidth >= 1024); // lg breakpoint
+      }
     };
     
     checkScreenSize();
-    window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', checkScreenSize);
+      return () => window.removeEventListener('resize', checkScreenSize);
+    }
   }, []);
 
   // Admin passwords configuration (in production, move to environment variables)
