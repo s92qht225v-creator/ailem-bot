@@ -33,22 +33,31 @@ const HomePage = ({ onNavigate }) => {
   }
 
   // Load sale banner settings from localStorage (managed in Admin Settings)
-  const [saleBanner, setSaleBanner] = useState(() => {
-    return loadFromLocalStorage('saleBanner', {
-      title: 'Summer Sale',
-      subtitle: 'Up to 50% Off on Selected Items',
-      imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
-      enabled: true
-    });
+  const [saleBanner, setSaleBanner] = useState({
+    title: 'Summer Sale',
+    subtitle: 'Up to 50% Off on Selected Items',
+    imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
+    enabled: true
   });
 
   // Load sale timer from localStorage (managed in Admin Settings)
-  const [saleTimer, setSaleTimer] = useState(() => {
-    return loadFromLocalStorage('saleTimer', {
-      endDate: '2025-12-31T23:59:59',
-      enabled: true
-    });
+  const [saleTimer, setSaleTimer] = useState({
+    endDate: '2025-12-31T23:59:59',
+    enabled: true
   });
+
+  // Load settings from localStorage after mount
+  useEffect(() => {
+    const savedBanner = loadFromLocalStorage('saleBanner');
+    const savedTimer = loadFromLocalStorage('saleTimer');
+
+    if (savedBanner) {
+      setSaleBanner(savedBanner);
+    }
+    if (savedTimer) {
+      setSaleTimer(savedTimer);
+    }
+  }, []);
 
   // Listen for changes to settings
   useEffect(() => {

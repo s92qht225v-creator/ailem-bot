@@ -7,17 +7,18 @@ import AdminPanel from './pages/AdminPanel';
 const AdminAuth = ({ children, onAuthSuccess }) => {
   const { user } = useContext(UserContext);
   const [password, setPassword] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    // Check if admin was recently authenticated (valid for 24 hours)
-    const authData = loadFromLocalStorage('adminAuth');
-    if (authData && authData.expires > Date.now() && authData.userId === user?.id) {
-      return true;
-    }
-    return false;
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+
+  // Check authentication after component mounts
+  useEffect(() => {
+    const authData = loadFromLocalStorage('adminAuth');
+    if (authData && authData.expires > Date.now() && authData.userId === user?.id) {
+      setIsAuthenticated(true);
+    }
+  }, [user?.id]);
 
   // Detect screen size for responsive admin panel
   useEffect(() => {
