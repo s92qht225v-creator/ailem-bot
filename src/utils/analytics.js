@@ -73,34 +73,82 @@ export const calculateAnalytics = (orders = [], users = [], products = []) => {
   const weekRevenue = weekOrders.reduce((sum, order) => sum + (order.total || 0), 0);
   const monthRevenue = monthOrders.reduce((sum, order) => sum + (order.total || 0), 0);
 
-  // Top selling products
+  // Top selling products with variant tracking
   const productSales = {};
+  const variantSales = {};
+  
   completedOrders.forEach(order => {
     order.items?.forEach(item => {
-      const key = item.productId || item.id;
-      if (!productSales[key]) {
+      const productKey = item.productId || item.id;
+      
+      // Track by product
+      if (!productSales[productKey]) {
         // Try to get product name from item first, then lookup in products array
         let productName = item.productName || item.name;
-        if (!productName || productName === key) {
-          const product = products.find(p => p.id === key);
-          productName = product?.name || `Product #${key}`;
+        if (!productName || productName === productKey) {
+          const product = products.find(p => p.id === productKey);
+          productName = product?.name || `Product #${productKey}`;
         }
 
-        productSales[key] = {
-          productId: key,
+        productSales[productKey] = {
+          productId: productKey,
           name: productName,
           quantity: 0,
           revenue: 0,
+          variants: {}
         };
       }
-      productSales[key].quantity += item.quantity || 1;
-      productSales[key].revenue += (item.price || 0) * (item.quantity || 1);
+      productSales[productKey].quantity += item.quantity || 1;
+      productSales[productKey].revenue += (item.price || 0) * (item.quantity || 1);
+      
+      // Track by variant if color and size exist
+      const hasVariant = item.color && item.size;
+      if (hasVariant) {
+        const variantKey = `${productKey}:${item.color}:${item.size}`;
+        
+        if (!variantSales[variantKey]) {
+          variantSales[variantKey] = {
+            productId: productKey,
+            productName: productSales[productKey].name,
+            color: item.color,
+            size: item.size,
+            quantity: 0,
+            revenue: 0
+          };
+        }
+        
+        variantSales[variantKey].quantity += item.quantity || 1;
+        variantSales[variantKey].revenue += (item.price || 0) * (item.quantity || 1);
+        
+        // Also track variants within the product
+        const variantLabel = `${item.color} • ${item.size}`;
+        if (!productSales[productKey].variants[variantLabel]) {
+          productSales[productKey].variants[variantLabel] = {
+            color: item.color,
+            size: item.size,
+            quantity: 0,
+            revenue: 0
+          };
+        }
+        productSales[productKey].variants[variantLabel].quantity += item.quantity || 1;
+        productSales[productKey].variants[variantLabel].revenue += (item.price || 0) * (item.quantity || 1);
+      }
     });
   });
 
   const topProducts = Object.values(productSales)
     .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 5);
+    .slice(0, 5)
+    .map(product => ({
+      ...product,
+      variants: Object.entries(product.variants)
+        .map(([label, data]) => ({ label, ...data }))
+        .sort((a, b) => b.quantity - a.quantity) // Sort variants by quantity sold
+    }));
+    
+  const topVariants = Object.values(variantSales)
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 10);
 
   // Recent orders (last 10)
   const recentOrders = [...realOrders]
@@ -168,6 +216,7 @@ export const calculateAnalytics = (orders = [], users = [], products = []) => {
     lowStockProducts: lowStockProducts.length,
     outOfStockProducts: outOfStockProducts.length,
     topProducts,
+    topVariants,
 
     // Low stock items (for alerts)
     lowStockItems: lowStockProducts.slice(0, 5),

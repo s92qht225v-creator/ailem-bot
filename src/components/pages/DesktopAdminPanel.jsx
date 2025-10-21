@@ -1758,20 +1758,40 @@ const DesktopAdminPanel = ({ onLogout }) => {
           {analytics.topProducts.length > 0 ? (
             <div className="space-y-4">
               {analytics.topProducts.map((product, index) => (
-                <div key={product.productId} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
-                      #{index + 1}
+                <div key={product.productId} className="bg-gray-50 rounded-lg overflow-hidden">
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+                        #{index + 1}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">{product.name}</p>
+                        <p className="text-sm text-gray-500">{product.quantity} units sold</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{product.name}</p>
-                      <p className="text-sm text-gray-500">{product.quantity} units sold</p>
+                    <div className="text-right">
+                      <p className="font-bold text-gray-900">{formatPrice(product.revenue)}</p>
+                      <p className="text-sm text-gray-500">Revenue</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-gray-900">{formatPrice(product.revenue)}</p>
-                    <p className="text-sm text-gray-500">Revenue</p>
-                  </div>
+                  
+                  {/* Variant Breakdown */}
+                  {product.variants && product.variants.length > 0 && (
+                    <div className="px-4 pb-4">
+                      <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Top Variants:</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {product.variants.slice(0, 4).map((variant, vIdx) => (
+                          <div key={vIdx} className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
+                            <span className="text-xs text-gray-700">{variant.label}</span>
+                            <span className="text-xs font-semibold text-gray-900">{variant.quantity} sold</span>
+                          </div>
+                        ))}
+                      </div>
+                      {product.variants.length > 4 && (
+                        <p className="text-xs text-gray-500 mt-2">+{product.variants.length - 4} more variant{product.variants.length - 4 !== 1 ? 's' : ''}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
