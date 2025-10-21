@@ -1244,11 +1244,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
-                          {review.userName?.charAt(0).toUpperCase() || 'U'}
+                          {(review.user_name || review.userName)?.charAt(0).toUpperCase() || 'U'}
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900">{review.userName || 'Anonymous'}</h4>
-                          <p className="text-sm text-gray-500">{formatDate(review.createdAt)}</p>
+                          <h4 className="font-semibold text-gray-900">{review.user_name || review.userName || 'Anonymous'}</h4>
+                          <p className="text-sm text-gray-500">{formatDate(review.created_at || review.createdAt)}</p>
                         </div>
                       </div>
                       {renderStars(review.rating)}
