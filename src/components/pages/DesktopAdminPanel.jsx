@@ -11,6 +11,7 @@ import { PickupPointsContext } from '../../context/PickupPointsContext';
 import { ShippingRatesContext } from '../../context/ShippingRatesContext';
 import { formatPrice, formatDate, loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { calculateAnalytics, getRevenueChartData } from '../../utils/analytics';
+import { generateVariants, updateVariantStock, getTotalVariantStock } from '../../utils/variants';
 
 const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -529,6 +530,41 @@ const DesktopAdminPanel = ({ onLogout }) => {
       }
     };
 
+    // Auto-generate variants when colors or sizes change
+    const handleColorsOrSizesChange = (field, value) => {
+      const updatedFormData = { ...formData, [field]: value };
+
+      // Parse colors and sizes
+      const colors = updatedFormData.colors ? updatedFormData.colors.split(',').map(c => c.trim()).filter(c => c) : [];
+      const sizes = updatedFormData.sizes ? updatedFormData.sizes.split(',').map(s => s.trim()).filter(s => s) : [];
+
+      // Generate new variants if both colors and sizes exist
+      if (colors.length > 0 && sizes.length > 0) {
+        const newVariants = generateVariants(colors, sizes, 0);
+
+        // Merge with existing variants to preserve stock
+        const mergedVariants = newVariants.map(newV => {
+          const existing = formData.variants.find(v =>
+            v.color?.toLowerCase() === newV.color.toLowerCase() &&
+            v.size?.toLowerCase() === newV.size.toLowerCase()
+          );
+          return existing ? { ...newV, stock: existing.stock } : newV;
+        });
+
+        updatedFormData.variants = mergedVariants;
+      } else {
+        updatedFormData.variants = [];
+      }
+
+      setFormData(updatedFormData);
+    };
+
+    // Update variant stock
+    const handleVariantStockChange = (color, size, newStock) => {
+      const updatedVariants = updateVariantStock(formData.variants, color, size, parseInt(newStock) || 0);
+      setFormData({ ...formData, variants: updatedVariants });
+    };
+
     return (
       <div className="space-y-6">
         {/* Header Actions */}
@@ -676,7 +712,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <input
                   type="text"
                   value={formData.colors}
-                  onChange={(e) => setFormData({ ...formData, colors: e.target.value })}
+                  onChange={(e) => handleColorsOrSizesChange('colors', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                   placeholder="White, Gray, Navy Blue (comma separated)"
                 />
@@ -687,11 +723,59 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <input
                   type="text"
                   value={formData.sizes}
-                  onChange={(e) => setFormData({ ...formData, sizes: e.target.value })}
+                  onChange={(e) => handleColorsOrSizesChange('sizes', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                   placeholder="Twin, Full, Queen, King (comma separated)"
                 />
               </div>
+
+              {/* Variant Stock Management */}
+              {formData.variants.length > 0 && (
+                <div className="md:col-span-2 border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-bold text-blue-900">
+                      Variant Inventory ({formData.variants.length} variants)
+                    </label>
+                    <span className="text-xs text-blue-700 font-medium">
+                      Total: {getTotalVariantStock(formData.variants)} units
+                    </span>
+                  </div>
+                  <p className="text-xs text-blue-700 mb-3">
+                    Set stock quantity for each color + size combination
+                  </p>
+
+                  {/* Variant Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                    {formData.variants.map((variant, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-2 bg-white p-2 rounded border"
+                      >
+                        <div className="flex-1 text-sm">
+                          <span className="font-medium">{variant.color}</span>
+                          <span className="text-gray-500 mx-1">•</span>
+                          <span className="font-medium">{variant.size}</span>
+                        </div>
+                        <input
+                          type="number"
+                          min="0"
+                          value={variant.stock}
+                          onChange={(e) => handleVariantStockChange(variant.color, variant.size, e.target.value)}
+                          className="w-20 px-2 py-1 border rounded text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                    <p className="text-xs text-yellow-800">
+                      💡 <strong>Note:</strong> The "Stock Quantity" field above is now ignored when variants are present.
+                      Inventory is tracked per variant instead.
+                    </p>
+                  </div>
+                </div>
+              )}
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
