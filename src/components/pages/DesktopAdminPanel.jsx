@@ -362,6 +362,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [showForm, setShowForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [allImages, setAllImages] = useState([]); // Array of all product images
     const [formData, setFormData] = useState({
       name: '',
       description: '',
@@ -381,7 +382,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
       variants: []
     });
 
-    const handleImageUpload = async (e, isMainImage) => {
+    const handleImageUpload = async (e) => {
       const file = e.target.files?.[0];
       if (!file) return;
 
@@ -395,17 +396,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         console.log('✅ Image uploaded:', result.url);
 
-        if (isMainImage) {
-          setFormData(prev => ({ ...prev, imageUrl: result.url }));
-        } else {
-          // Add to additional images
-          setFormData(prev => ({
-            ...prev,
-            additionalImages: prev.additionalImages
-              ? `${prev.additionalImages}, ${result.url}`
-              : result.url
-          }));
-        }
+        // Add to images array
+        setAllImages(prev => [...prev, result.url]);
       } catch (error) {
         console.error('❌ Image upload failed:', error);
         alert('Failed to upload image. Please try again.');
@@ -416,10 +408,29 @@ const DesktopAdminPanel = ({ onLogout }) => {
       }
     };
 
+    const handleRemoveImage = (indexToRemove) => {
+      setAllImages(prev => prev.filter((_, index) => index !== indexToRemove));
+    };
+
+    const handleMoveImage = (fromIndex, toIndex) => {
+      setAllImages(prev => {
+        const newImages = [...prev];
+        const [movedImage] = newImages.splice(fromIndex, 1);
+        newImages.splice(toIndex, 0, movedImage);
+        return newImages;
+      });
+    };
+
     const handleSubmit = async (e) => {
       e.preventDefault();
       
       try {
+        // Ensure we have at least one image
+        if (allImages.length === 0) {
+          alert('Please add at least one product image.');
+          return;
+        }
+
         // Prepare product data in app format (API will handle database conversion)
         const productData = {
           name: formData.name,
@@ -427,8 +438,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
           price: parseFloat(formData.salePrice || formData.price), // Use sale price if available, otherwise regular price
           originalPrice: formData.salePrice ? parseFloat(formData.price) : null, // Original price only if there's a sale
           category: formData.category,  // Use category (API converts to category_name)
-          imageUrl: formData.imageUrl,  // Use imageUrl (API converts to image)
-          images: formData.additionalImages ? [formData.imageUrl, ...formData.additionalImages.split(',').map(url => url.trim()).filter(url => url)] : [formData.imageUrl],
+          imageUrl: allImages[0],  // First image is the main image
+          images: allImages,  // All images in order
           weight: formData.weight ? parseFloat(formData.weight) : null,
           stock: parseInt(formData.stock) || 0,
           badge: formData.badge || null,
@@ -452,6 +463,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         // Reset form and close
         setShowForm(false);
         setEditingProduct(null);
+        setAllImages([]);
         setFormData({
           name: '',
           description: '',
@@ -478,6 +490,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
     const handleEdit = (product) => {
       setEditingProduct(product);
+      // Set images array from product
+      const productImages = product.images || [product.image || product.imageUrl];
+      setAllImages(productImages.filter(url => url)); // Filter out any null/undefined
+      
       setFormData({
         name: product.name,
         description: product.description || '',
@@ -540,6 +556,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingProduct(null);
+                  setAllImages([]);
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
@@ -676,94 +693,87 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Main Product Image *</label>
-                <div className="space-y-3">
-                  {/* Upload Button */}
-                  <div>
-                    <label className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-blue-600 hover:to-blue-700 transition-all flex items-center justify-center gap-2">
-                      <Upload className="w-5 h-5" />
-                      <span>{uploadingImage ? 'Uploading...' : 'Upload Image from Device'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, true)}
-                        className="hidden"
-                        disabled={uploadingImage}
-                      />
-                    </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Product Images * {allImages.length > 0 && <span className="text-gray-500 font-normal">({allImages.length} image{allImages.length !== 1 ? 's' : ''})</span>}
+                </label>
+                
+                {/* Image Gallery */}
+                {allImages.length > 0 && (
+                  <div className="mb-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    {allImages.map((imageUrl, index) => (
+                      <div key={index} className="relative group">
+                        <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
+                          <img
+                            src={imageUrl}
+                            alt={`Product ${index + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3EError%3C/text%3E%3C/svg%3E';
+                            }}
+                          />
+                        </div>
+                        
+                        {/* Image Badge */}
+                        {index === 0 && (
+                          <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded font-medium">
+                            Main
+                          </div>
+                        )}
+                        
+                        {/* Action Buttons */}
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100">
+                          {index > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => handleMoveImage(index, index - 1)}
+                              className="bg-white text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                              title="Move left"
+                            >
+                              <ChevronRight className="w-4 h-4 rotate-180" />
+                            </button>
+                          )}
+                          {index < allImages.length - 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleMoveImage(index, index + 1)}
+                              className="bg-white text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                              title="Move right"
+                            >
+                              <ChevronRight className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveImage(index)}
+                            className="bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 transition-colors"
+                            title="Remove image"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
+                )}
 
-                  {/* OR Divider */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px bg-gray-300"></div>
-                    <span className="text-sm text-gray-500 font-medium">OR</span>
-                    <div className="flex-1 h-px bg-gray-300"></div>
-                  </div>
-
-                  {/* URL Input */}
-                  <input
-                    type="url"
-                    value={formData.imageUrl}
-                    onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                    placeholder="Paste image URL (https://...)"
-                    required
-                  />
-                  <p className="text-xs text-gray-500">
-                    Upload from device or paste direct image link
-                  </p>
-
-                  {/* Image Preview */}
-                  {formData.imageUrl && (
-                    <div className="mt-2">
-                      <img
-                        src={formData.imageUrl}
-                        alt="Preview"
-                        className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
-                        onError={(e) => {
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  )}
+                {/* Upload Button */}
+                <div>
+                  <label className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-blue-600 hover:to-blue-700 transition-all flex items-center justify-center gap-2">
+                    <Upload className="w-5 h-5" />
+                    <span>{uploadingImage ? 'Uploading...' : (allImages.length === 0 ? 'Upload Product Images' : 'Add More Images')}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      disabled={uploadingImage}
+                    />
+                  </label>
                 </div>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Additional Images (Optional)</label>
-                <div className="space-y-3">
-                  {/* Upload Button */}
-                  <div>
-                    <label className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-green-600 hover:to-green-700 transition-all flex items-center justify-center gap-2">
-                      <Upload className="w-5 h-5" />
-                      <span>{uploadingImage ? 'Uploading...' : 'Upload More Images'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => handleImageUpload(e, false)}
-                        className="hidden"
-                        disabled={uploadingImage}
-                      />
-                    </label>
-                  </div>
-
-                  {/* OR Divider */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px bg-gray-300"></div>
-                    <span className="text-sm text-gray-500 font-medium">OR</span>
-                    <div className="flex-1 h-px bg-gray-300"></div>
-                  </div>
-
-                  {/* URL Input */}
-                  <input
-                    type="text"
-                    value={formData.additionalImages}
-                    onChange={(e) => setFormData({ ...formData, additionalImages: e.target.value })}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                    placeholder="Paste URLs separated by commas"
-                  />
-                  <p className="text-xs text-gray-500">Upload multiple images or paste URLs (comma separated)</p>
-                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  {allImages.length === 0 ? 'Upload at least one product image. ' : ''}
+                  First image will be the main product image. Click and drag to reorder.
+                </p>
               </div>
 
               <div className="md:col-span-2">
@@ -791,6 +801,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   onClick={() => {
                     setShowForm(false);
                     setEditingProduct(null);
+                    setAllImages([]);
                   }}
                   className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-medium transition-colors"
                 >
