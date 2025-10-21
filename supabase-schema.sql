@@ -48,6 +48,7 @@ CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   telegram_id BIGINT UNIQUE,
   name TEXT NOT NULL,
+  email TEXT,
   phone TEXT,
   username TEXT,
   photo_url TEXT,
@@ -55,6 +56,7 @@ CREATE TABLE users (
   referral_code TEXT UNIQUE NOT NULL,
   referred_by TEXT,
   referrals INTEGER DEFAULT 0,
+  favorites TEXT[] DEFAULT '{}',
   total_orders INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -80,6 +82,7 @@ CREATE TABLE orders (
   total NUMERIC(10, 2) NOT NULL,
   payment_screenshot TEXT,
   items JSONB NOT NULL,
+  date TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   CONSTRAINT valid_status CHECK (status IN ('pending', 'approved', 'shipped', 'delivered', 'rejected'))
@@ -104,6 +107,22 @@ CREATE TABLE reviews (
 );
 
 -- ============================================
+-- 6. PICKUP POINTS TABLE
+-- ============================================
+CREATE TABLE pickup_points (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  address TEXT NOT NULL,
+  phone TEXT,
+  working_hours TEXT,
+  latitude NUMERIC(10, 8),
+  longitude NUMERIC(11, 8),
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- ============================================
 -- INDEXES for Performance
 -- ============================================
 CREATE INDEX idx_products_category ON products(category_id);
@@ -111,9 +130,11 @@ CREATE INDEX idx_products_tags ON products USING GIN(tags);
 CREATE INDEX idx_orders_user ON orders(user_id);
 CREATE INDEX idx_orders_status ON orders(status);
 CREATE INDEX idx_orders_created ON orders(created_at DESC);
+CREATE INDEX idx_orders_number ON orders(order_number);
 CREATE INDEX idx_reviews_product ON reviews(product_id);
 CREATE INDEX idx_reviews_approved ON reviews(approved);
 CREATE INDEX idx_users_telegram ON users(telegram_id);
+CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_referral ON users(referral_code);
 
 -- ============================================
@@ -139,6 +160,9 @@ CREATE TRIGGER update_orders_updated_at BEFORE UPDATE ON orders
 CREATE TRIGGER update_reviews_updated_at BEFORE UPDATE ON reviews
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_pickup_points_updated_at BEFORE UPDATE ON pickup_points
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- ============================================
 -- ROW LEVEL SECURITY (RLS) Policies
 -- ============================================
@@ -149,6 +173,7 @@ ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pickup_points ENABLE ROW LEVEL SECURITY;
 
 -- Categories: Everyone can read, only service role can write
 CREATE POLICY "Categories are viewable by everyone" ON categories
@@ -215,14 +240,33 @@ CREATE POLICY "Reviews are updatable by service role" ON reviews
 CREATE POLICY "Reviews are deletable by service role" ON reviews
   FOR DELETE USING (true);
 
+-- Pickup Points: Everyone can read, only service role can write
+CREATE POLICY "Pickup points are viewable by everyone" ON pickup_points
+  FOR SELECT USING (true);
+
+CREATE POLICY "Pickup points are insertable by service role" ON pickup_points
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Pickup points are updatable by service role" ON pickup_points
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Pickup points are deletable by service role" ON pickup_points
+  FOR DELETE USING (true);
+
 -- ============================================
--- INSERT INITIAL CATEGORIES DATA
+-- INSERT INITIAL DATA
 -- ============================================
+-- Categories
 INSERT INTO categories (name, image) VALUES
   ('Bedsheets', 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=400&h=300&fit=crop'),
   ('Pillows', 'https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?w=400&h=300&fit=crop'),
   ('Curtains', 'https://images.unsplash.com/photo-1578898886636-5c4ab2c2a8e6?w=400&h=300&fit=crop'),
   ('Towels', 'https://images.unsplash.com/photo-1622622641693-8f5830c51c02?w=400&h=300&fit=crop');
+
+-- Pickup Points
+INSERT INTO pickup_points (name, address, phone, working_hours) VALUES
+  ('Main Office', 'Tashkent, Yunusabad District', '+998901234567', '9:00 - 18:00'),
+  ('Shopping Center', 'Tashkent, Chilanzar District', '+998901234568', '10:00 - 20:00');
 
 -- ============================================
 -- COMPLETE!

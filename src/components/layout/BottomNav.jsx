@@ -1,16 +1,20 @@
-import { Home, ShoppingBag, ShoppingCart, User, Users } from 'lucide-react';
+import { Home, ShoppingBag, ShoppingCart, User, Heart } from 'lucide-react';
+import { useContext } from 'react';
+import { UserContext } from '../../context/UserContext';
 import { useCart } from '../../hooks/useCart';
 
 const BottomNav = ({ currentPage, onNavigate }) => {
+  const { favorites } = useContext(UserContext);
   const { getCartItemsCount } = useCart();
   const cartCount = getCartItemsCount();
+  const favoritesCount = favorites?.length || 0;
 
   const navItems = [
-    { id: 'shop', label: 'Shop', icon: ShoppingBag },
-    { id: 'cart', label: 'Cart', icon: ShoppingCart, badge: cartCount },
     { id: 'home', label: 'Home', icon: Home },
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'referrals', label: 'Referrals', icon: Users }
+    { id: 'shop', label: 'Shop', icon: ShoppingBag },
+    { id: 'favorites', label: 'Favorites', icon: Heart, badge: favoritesCount },
+    { id: 'account', label: 'Account', icon: User },
+    { id: 'cart', label: 'Cart', icon: ShoppingCart, badge: cartCount }
   ];
 
   return (
@@ -19,7 +23,10 @@ const BottomNav = ({ currentPage, onNavigate }) => {
         <div className="flex justify-around items-center py-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = currentPage === item.id;
+            // Account is active when on profile or referrals pages
+            const isActive = item.id === 'account'
+              ? (currentPage === 'profile' || currentPage === 'referrals' || currentPage === 'account')
+              : currentPage === item.id;
 
             return (
               <button

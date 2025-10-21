@@ -34,21 +34,23 @@ const AdminPanel = () => {
 
   if (activeSection) {
     return (
-      <div className="pb-20 bg-gray-50 min-h-screen">
+      <div className="pb-20 md:pb-0 bg-gray-50 min-h-screen">
         {/* Header with Back Button */}
-        <div className="bg-gradient-to-r from-primary to-gray-700 text-white p-4 sticky top-0 z-10 shadow-md">
-          <button
-            onClick={handleBackToMenu}
-            className="flex items-center gap-2 text-white mb-2"
-          >
-            <ChevronRight className="w-5 h-5 transform rotate-180" />
-            <span className="text-sm">Back</span>
-          </button>
-          <h2 className="text-xl font-bold capitalize">{activeSection?.replace('-', ' ')}</h2>
+        <div className="bg-gradient-to-r from-primary to-gray-700 text-white p-4 md:p-6 sticky top-0 z-10 shadow-md">
+          <div className="max-w-7xl mx-auto">
+            <button
+              onClick={handleBackToMenu}
+              className="flex items-center gap-2 text-white mb-2 hover:opacity-80 transition-opacity"
+            >
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6 transform rotate-180" />
+              <span className="text-sm md:text-base">Back to Menu</span>
+            </button>
+            <h2 className="text-xl md:text-3xl font-bold capitalize">{activeSection?.replace('-', ' ')}</h2>
+          </div>
         </div>
 
         {/* Content */}
-        <div className="p-4">
+        <div className="p-4 md:p-8 max-w-7xl mx-auto">
           {activeSection === 'analytics' && <AnalyticsTab />}
           {activeSection === 'orders-pending' && <OrdersTab statusFilter="pending" />}
           {activeSection === 'orders-approved' && <OrdersTab statusFilter="approved" />}
@@ -72,23 +74,27 @@ const AdminPanel = () => {
   }
 
   return (
-    <div className="pb-20 bg-gray-50 min-h-screen">
+    <div className="pb-20 md:pb-0 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="bg-gradient-to-r from-primary to-gray-700 text-white p-6">
-        <div className="flex items-center gap-3 mb-2">
-          <Shield className="w-8 h-8" />
-          <h2 className="text-2xl font-bold">Admin Panel</h2>
+      <div className="bg-gradient-to-r from-primary to-gray-700 text-white p-6 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 mb-2">
+            <Shield className="w-8 h-8 md:w-10 md:h-10" />
+            <div>
+              <h2 className="text-2xl md:text-4xl font-bold">Admin Panel</h2>
+              <p className="text-sm md:text-base opacity-90">Manage your store</p>
+            </div>
+          </div>
         </div>
-        <p className="text-sm opacity-90">Manage your store</p>
       </div>
 
       {/* Menu Items */}
-      <div className="p-4 space-y-6">
+      <div className="p-4 md:p-8 max-w-7xl mx-auto">
         {/* Analytics Section */}
-        <div>
+        <div className="mb-6">
           <button
             onClick={() => handleActionClick('analytics')}
-            className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+            className="w-full md:max-w-3xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl shadow-lg p-6 md:p-8 hover:shadow-xl transition-shadow"
           >
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 rounded-full bg-white/20 flex items-center justify-center flex-shrink-0">
@@ -104,9 +110,9 @@ const AdminPanel = () => {
         </div>
 
         {/* Products Section */}
-        <div>
-          <h3 className="text-lg font-bold text-gray-800 mb-3 px-1">Products</h3>
-          <div className="space-y-3">
+        <div className="mb-6">
+          <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4 px-1">Products</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               onClick={() => handleActionClick('products-manage')}
               className="w-full bg-white rounded-2xl shadow-md p-4 flex items-center gap-4 hover:shadow-lg transition-shadow"
@@ -138,9 +144,9 @@ const AdminPanel = () => {
         </div>
 
         {/* Categories Section */}
-        <div>
-          <h3 className="text-lg font-bold text-gray-800 mb-3 px-1">Categories</h3>
-          <div className="space-y-3">
+        <div className="mb-6">
+          <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4 px-1">Categories</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               onClick={() => handleActionClick('categories-manage')}
               className="w-full bg-white rounded-2xl shadow-md p-4 flex items-center gap-4 hover:shadow-lg transition-shadow"
@@ -172,9 +178,9 @@ const AdminPanel = () => {
         </div>
 
         {/* Promotions Section */}
-        <div>
-          <h3 className="text-lg font-bold text-gray-800 mb-3 px-1">Promotions</h3>
-          <div className="space-y-3">
+        <div className="mb-6">
+          <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4 px-1">Promotions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               onClick={() => handleActionClick('promotions-upload')}
               className="w-full bg-white rounded-2xl shadow-md p-4 flex items-center gap-4 hover:shadow-lg transition-shadow"
@@ -192,9 +198,9 @@ const AdminPanel = () => {
         </div>
 
         {/* Delivery Section */}
-        <div>
-          <h3 className="text-lg font-bold text-gray-800 mb-3 px-1">Delivery</h3>
-          <div className="space-y-3">
+        <div className="mb-6">
+          <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4 px-1">Delivery</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               onClick={() => handleActionClick('pickup-points')}
               className="w-full bg-white rounded-2xl shadow-md p-4 flex items-center gap-4 hover:shadow-lg transition-shadow"
@@ -226,9 +232,9 @@ const AdminPanel = () => {
         </div>
 
         {/* Orders Section */}
-        <div>
-          <h3 className="text-lg font-bold text-gray-800 mb-3 px-1">Orders</h3>
-          <div className="space-y-3">
+        <div className="mb-6">
+          <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4 px-1">Orders</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <button
               onClick={() => handleActionClick('orders-pending')}
               className="w-full bg-white rounded-2xl shadow-md p-4 flex items-center gap-4 hover:shadow-lg transition-shadow"
@@ -288,9 +294,9 @@ const AdminPanel = () => {
         </div>
 
         {/* Reviews Section */}
-        <div>
-          <h3 className="text-lg font-bold text-gray-800 mb-3 px-1">Reviews</h3>
-          <div className="space-y-3">
+        <div className="mb-6">
+          <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4 px-1">Reviews</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               onClick={() => handleActionClick('reviews-pending')}
               className="w-full bg-white rounded-2xl shadow-md p-4 flex items-center gap-4 hover:shadow-lg transition-shadow"
@@ -322,9 +328,9 @@ const AdminPanel = () => {
         </div>
 
         {/* Users Section */}
-        <div>
-          <h3 className="text-lg font-bold text-gray-800 mb-3 px-1">Users</h3>
-          <div className="space-y-3">
+        <div className="mb-6">
+          <h3 className="text-lg md:text-xl font-bold text-gray-800 mb-4 px-1">Users</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               onClick={() => handleActionClick('users-manage')}
               className="w-full bg-white rounded-2xl shadow-md p-4 flex items-center gap-4 hover:shadow-lg transition-shadow"
@@ -1522,11 +1528,11 @@ const ProductsTab = ({ initialFormOpen = false }) => {
                     {product.category}
                   </span>
                   <span className={`text-xs px-2 py-1 rounded ${
-                    product.inStock !== false
+                    (product.stock > 0 || (product.variants && getTotalVariantStock(product.variants) > 0))
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {product.inStock !== false ? 'In Stock' : 'Out of Stock'}
+                    {(product.stock > 0 || (product.variants && getTotalVariantStock(product.variants) > 0)) ? 'In Stock' : 'Out of Stock'}
                   </span>
                 </div>
               </div>

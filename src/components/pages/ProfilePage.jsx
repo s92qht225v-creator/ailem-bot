@@ -1,24 +1,28 @@
-import { useContext } from 'react';
-import { Package, Award, Settings, HelpCircle, Heart, ChevronRight, MapPin, MessageSquare } from 'lucide-react';
+import { useContext, useState } from 'react';
+import { Package, Award, Settings, HelpCircle, Heart, ChevronRight, MapPin, MessageSquare, LogIn, LogOut } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useOrders } from '../../hooks/useOrders';
 import { formatPrice } from '../../utils/helpers';
+import AuthModal from '../common/AuthModal';
 
-const ProfilePage = ({ onNavigate }) => {
-  const { user } = useContext(UserContext);
+const ProfilePage = ({ onNavigate, hideHeader = false }) => {
+  const { user, login, logout } = useContext(UserContext);
   const { getUserOrders } = useOrders();
   const userOrders = getUserOrders();
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const getInitial = (name) => {
     return name ? name.charAt(0).toUpperCase() : 'U';
   };
 
   return (
-    <div className="pb-20 bg-gray-50 min-h-screen">
+    <div className={hideHeader ? '' : 'pb-20 bg-gray-50 min-h-screen'}>
       {/* Header */}
-      <div className="bg-white p-4 border-b border-gray-200">
-        <h1 className="text-xl font-bold text-gray-900 text-center">Profile</h1>
-      </div>
+      {!hideHeader && (
+        <div className="bg-white p-4 border-b border-gray-200">
+          <h1 className="text-xl font-bold text-gray-900 text-center">Profile</h1>
+        </div>
+      )}
 
       {/* Profile Info */}
       <div className="bg-white p-6 text-center">
@@ -41,7 +45,9 @@ const ProfilePage = ({ onNavigate }) => {
           {getInitial(user.name)}
         </div>
         <h2 className="text-xl font-bold text-gray-900 mb-1">{user.name}</h2>
-        <p className="text-sm text-gray-500">{user.phone || user.username || '@' + user.username}</p>
+        <p className="text-sm text-gray-500">
+          {user.phone || (user.username && user.username !== 'guest' ? `@${user.username}` : (user.telegramId ? `ID: ${user.telegramId}` : 'Guest User'))}
+        </p>
       </div>
 
       {/* Menu Cards */}
@@ -94,7 +100,31 @@ const ProfilePage = ({ onNavigate }) => {
           subtitle="Get assistance"
           onClick={() => alert('Support coming soon!')}
         />
+
+        {/* Login/Logout Button */}
+        {user && user.id === 'guest' ? (
+          <MenuCard
+            icon={LogIn}
+            title="Login / Sign Up"
+            subtitle="Create an account to save your data"
+            onClick={() => setShowAuthModal(true)}
+          />
+        ) : (
+          <MenuCard
+            icon={LogOut}
+            title="Logout"
+            subtitle="Sign out of your account"
+            onClick={logout}
+          />
+        )}
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onLogin={login}
+      />
     </div>
   );
 };

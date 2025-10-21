@@ -7,7 +7,7 @@ import { generateReferralLink, shareReferralLink } from '../../utils/telegram';
 // Telegram bot username
 const BOT_USERNAME = 'ailemuz_bot';
 
-const ReferralsPage = () => {
+const ReferralsPage = ({ hideHeader = false }) => {
   const { user } = useContext(UserContext);
   const referralLink = generateReferralLink(user.referralCode, BOT_USERNAME);
 
@@ -31,7 +31,7 @@ const ReferralsPage = () => {
   };
 
   return (
-    <div className="pb-20 bg-gray-50 min-h-screen">
+    <div className={hideHeader ? '' : 'pb-20 bg-gray-50 min-h-screen'}>
       {/* Header */}
       <div className="bg-gradient-to-r from-accent to-blue-600 text-white p-6">
         <div className="text-center mb-6">

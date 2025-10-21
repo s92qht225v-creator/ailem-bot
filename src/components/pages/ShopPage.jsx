@@ -9,7 +9,7 @@ import { UserContext } from '../../context/UserContext';
 
 const ShopPage = ({ onNavigate, initialCategory }) => {
   const { categories } = useContext(AdminContext);
-  const { toggleFavorite, isFavorite } = useContext(UserContext);
+  const { toggleFavorite, isFavorite, favorites } = useContext(UserContext);
 
   const {
     products,
@@ -29,6 +29,15 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
     sortBy,
     setSortBy
   } = useProducts();
+
+  // Create a favorites lookup map to avoid calling isFavorite in render
+  const favoritesMap = useMemo(() => {
+    const map = {};
+    products.forEach(product => {
+      map[product.id] = isFavorite(product.id);
+    });
+    return map;
+  }, [products, favorites, isFavorite]);
 
   // Extract unique materials and colors from all products
   const availableMaterials = useMemo(() => {
@@ -179,13 +188,13 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
             <p className="text-gray-400 text-sm mt-2">Try adjusting your filters</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
                 onView={(id) => onNavigate('product', { productId: id })}
-                isFavorite={isFavorite(product.id)}
+                isFavorite={favoritesMap[product.id]}
                 onToggleFavorite={toggleFavorite}
               />
             ))}

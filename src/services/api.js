@@ -179,9 +179,29 @@ export const productsAPI = {
 
   // Update product
   async update(id, updates) {
+    // Transform app fields to database fields (same as create)
+    const dbUpdates = {};
+    
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.price !== undefined) dbUpdates.price = updates.price;
+    if (updates.originalPrice !== undefined) dbUpdates.original_price = updates.originalPrice;
+    if (updates.category !== undefined) dbUpdates.category_name = updates.category;
+    if (updates.imageUrl !== undefined) dbUpdates.image = updates.imageUrl;
+    if (updates.image !== undefined) dbUpdates.image = updates.image;
+    if (updates.images !== undefined) dbUpdates.images = updates.images;
+    if (updates.stock !== undefined) dbUpdates.stock = updates.stock;
+    if (updates.weight !== undefined) dbUpdates.weight = updates.weight;
+    if (updates.badge !== undefined) dbUpdates.badge = updates.badge;
+    if (updates.material !== undefined) dbUpdates.material = updates.material;
+    if (updates.colors !== undefined) dbUpdates.colors = updates.colors;
+    if (updates.sizes !== undefined) dbUpdates.sizes = updates.sizes;
+    if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
+    if (updates.variants !== undefined) dbUpdates.variants = updates.variants;
+
     const { data, error } = await supabase
       .from('products')
-      .update(updates)
+      .update(dbUpdates)
       .eq('id', id)
       .select()
       .single();
@@ -232,16 +252,90 @@ export const productsAPI = {
 // ============================================
 
 export const usersAPI = {
-  // Get or create user by Telegram ID
+  // Get user by ID
+  async getById(userId) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
+      throw error;
+    }
+    return data;
+  },
+
+  // Get or create user by email or phone
+  async getOrCreateByEmailOrPhone(userData) {
+    // Try to find existing user by email or phone
+    let query = supabase.from('users').select('*');
+
+    if (userData.email) {
+      query = query.eq('email', userData.email);
+    } else if (userData.phone) {
+      query = query.eq('phone', userData.phone);
+    } else {
+      throw new Error('Email or phone is required');
+    }
+
+    const { data: existingUser } = await query.maybeSingle();
+
+    if (existingUser) return existingUser;
+
+    // Create new user
+    const newUser = {
+      name: userData.name,
+      email: userData.email || null,
+      phone: userData.phone || null,
+      username: userData.username || userData.email || userData.phone,
+      referral_code: userData.referralCode,
+      bonus_points: 0,
+      total_orders: 0
+    };
+
+    const { data, error } = await supabase
+      .from('users')
+      .insert([newUser])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Get or create user by Telegram ID (legacy, keeping for compatibility)
   async getOrCreate(telegramUser) {
     // Try to get existing user
     const { data: existingUser } = await supabase
       .from('users')
       .select('*')
       .eq('telegram_id', telegramUser.telegramId)
-      .single();
+      .maybeSingle();
 
-    if (existingUser) return existingUser;
+    if (existingUser) {
+      // Update existing user with latest Telegram data (name, photo, username might have changed)
+      const updates = {
+        name: telegramUser.name,
+        username: telegramUser.username || existingUser.username,
+        photo_url: telegramUser.photoUrl || existingUser.photo_url
+      };
+
+      const { data: updatedUser, error: updateError } = await supabase
+        .from('users')
+        .update(updates)
+        .eq('id', existingUser.id)
+        .select()
+        .single();
+
+      if (updateError) {
+        console.error('Failed to update user:', updateError);
+        return existingUser; // Return existing user if update fails
+      }
+
+      return updatedUser;
+    }
 
     // Create new user
     const newUser = {
@@ -271,6 +365,19 @@ export const usersAPI = {
     const { data, error } = await supabase
       .from('users')
       .update({ bonus_points: points })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Update user favorites
+  async updateFavorites(userId, favorites) {
+    const { data, error } = await supabase
+      .from('users')
+      .update({ favorites: favorites })
       .eq('id', userId)
       .select()
       .single();
@@ -371,6 +478,9 @@ export const ordersAPI = {
   _mapOrderFromDB(order) {
     return {
       ...order,
+      // Map order_number to id for backward compatibility
+      id: order.order_number || order.id,
+      orderNumber: order.order_number,
       userId: order.user_id,
       userTelegramId: order.user_telegram_id, // Map Telegram ID for notifications
       userName: order.user_name,
@@ -380,6 +490,7 @@ export const ordersAPI = {
       bonusPointsUsed: order.bonus_points_used,
       deliveryFee: order.delivery_fee,
       paymentScreenshot: order.payment_screenshot,
+      date: order.date || (order.created_at ? new Date(order.created_at).toISOString().split('T')[0] : ''),
       createdAt: order.created_at
     };
   },
@@ -423,7 +534,8 @@ export const ordersAPI = {
   async create(order) {
     // Transform app fields to database fields
     const dbOrder = {
-      id: order.id,
+      // DO NOT set id - let Supabase auto-generate UUID
+      order_number: order.id, // Store human-readable ID in order_number field
       user_id: order.userId,
       user_telegram_id: order.userTelegramId || null, // Add Telegram ID for notifications
       user_name: order.userName,
@@ -438,6 +550,7 @@ export const ordersAPI = {
       total: order.total,
       payment_screenshot: order.paymentScreenshot || null,
       status: order.status || 'pending',
+      date: order.date || new Date().toISOString().split('T')[0], // Add date field
       created_at: order.createdAt || new Date().toISOString()
     };
 
@@ -457,18 +570,7 @@ export const ordersAPI = {
     console.log('✅ Order created successfully:', data);
 
     // Map database fields back to app format
-    return {
-      ...data,
-      userId: data.user_id,
-      userName: data.user_name,
-      userPhone: data.user_phone,
-      deliveryInfo: data.delivery_info,
-      bonusDiscount: data.bonus_discount,
-      bonusPointsUsed: data.bonus_points_used,
-      deliveryFee: data.delivery_fee,
-      paymentScreenshot: data.payment_screenshot,
-      createdAt: data.created_at
-    };
+    return this._mapOrderFromDB(data);
   },
 
   // Update order status

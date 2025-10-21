@@ -54,12 +54,13 @@ export const UserProvider = ({ children }) => {
           console.log('✅ Telegram user found:', tgUser);
 
           // Prepare user data for Supabase
+          const fullName = `${tgUser.firstName || ''} ${tgUser.lastName || ''}`.trim();
           const telegramUserData = {
             telegramId: tgUser.id.toString(),
-            name: `${tgUser.first_name || ''} ${tgUser.last_name || ''}`.trim() || 'Telegram User',
+            name: fullName || tgUser.username || `User ${tgUser.id}`,
             username: tgUser.username || `user${tgUser.id}`,
-            photoUrl: tgUser.photo_url || '',
-            referralCode: generateReferralCode(tgUser.first_name || tgUser.username || tgUser.id.toString()),
+            photoUrl: tgUser.photoUrl || '',
+            referralCode: generateReferralCode(tgUser.firstName || tgUser.username || tgUser.id.toString()),
             referredBy: null // Will be set from URL param in App.jsx
           };
 
@@ -79,16 +80,26 @@ export const UserProvider = ({ children }) => {
             referralCode: dbUser.referral_code,
             referrals: dbUser.referrals || 0,
             referredBy: dbUser.referred_by,
-            totalOrders: dbUser.total_orders || 0,
-            isAdmin: false // Can be toggled with button
+            totalOrders: dbUser.total_orders || 0
           };
 
           setUser(appUser);
 
-          // Load user's favorites from database
-          const userFavorites = normalizeFavorites(dbUser.favorites || []);
-          console.log('📥 Loading favorites from Supabase:', userFavorites);
+          // Load user's favorites - prioritize localStorage, fallback to database
+          const localFavorites = normalizeFavorites(loadFromLocalStorage('favorites', []));
+          const dbFavorites = normalizeFavorites(dbUser.favorites || []);
+          
+          // Use localStorage if it has data, otherwise use database
+          const userFavorites = localFavorites.length > 0 ? localFavorites : dbFavorites;
+          console.log('📥 Loading favorites:', { local: localFavorites, db: dbFavorites, using: userFavorites });
           setFavorites(userFavorites);
+          
+          // If we used localStorage, sync it back to database
+          if (localFavorites.length > 0 && JSON.stringify(localFavorites) !== JSON.stringify(dbFavorites)) {
+            usersAPI.updateFavorites(dbUser.id, localFavorites)
+              .then(() => console.log('🔄 Synced localStorage favorites to Supabase'))
+              .catch(err => console.error('❌ Failed to sync favorites to Supabase:', err));
+          }
 
           // Cache the user locally for faster subsequent loads
           saveToLocalStorage('cachedUser', appUser);
@@ -105,8 +116,7 @@ export const UserProvider = ({ children }) => {
         bonusPoints: 250,
         referralCode: generateReferralCode('Demo User'),
         referrals: 3,
-        referredBy: null,
-        isAdmin: false
+        referredBy: null
       };
 
       setUser(demoUser);
@@ -127,8 +137,7 @@ export const UserProvider = ({ children }) => {
         bonusPoints: 250,
         referralCode: generateReferralCode('Demo User'),
         referrals: 3,
-        referredBy: null,
-        isAdmin: false
+        referredBy: null
       };
       setUser(demoUser);
       // Load demo user favorites from localStorage
@@ -229,7 +238,7 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  const toggleFavorite = useCallback((productId) => {
+  const toggleFavorite = useCallback(async (productId) => {
     const normalizedId = normalizeId(productId);
     if (!normalizedId) return;
 
@@ -243,11 +252,26 @@ export const UserProvider = ({ children }) => {
         : [...currentFavorites, normalizedId];
 
       console.log('✅ Local favorites updated:', updatedFavorites);
-      console.log('💾 Favorites saved locally only (Supabase sync disabled)');
+
+      // Sync to Supabase for real users, localStorage for demo users
+      if (user?.id && user.id !== 'demo-1') {
+        usersAPI.updateFavorites(user.id, updatedFavorites)
+          .then(() => console.log('💾 Favorites synced to Supabase'))
+          .catch(err => {
+            console.error('❌ Failed to sync favorites to Supabase:', err);
+            // Save to localStorage as fallback
+            saveToLocalStorage('favorites', updatedFavorites);
+            console.log('💾 Favorites saved to localStorage as fallback');
+          });
+      } else {
+        // Demo user - save to localStorage
+        saveToLocalStorage('favorites', updatedFavorites);
+        console.log('💾 Demo user favorites saved to localStorage');
+      }
 
       return updatedFavorites;
     });
-  }, []);
+  }, [user]);
 
   const favoritesSet = useMemo(() => new Set(normalizeFavorites(favorites)), [favorites]);
 
@@ -263,12 +287,6 @@ export const UserProvider = ({ children }) => {
     removeFromLocalStorage('demoUser');
   }, []);
 
-  const toggleAdminMode = () => {
-    setUser(prev => ({
-      ...prev,
-      isAdmin: !prev.isAdmin
-    }));
-  };
 
   return (
     <UserContext.Provider value={{
@@ -280,7 +298,6 @@ export const UserProvider = ({ children }) => {
       favorites,
       toggleFavorite,
       isFavorite,
-      toggleAdminMode,
       loading,
       clearUserData
     }}>

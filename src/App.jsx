@@ -9,6 +9,7 @@ import ProductPage from './components/pages/ProductPage';
 import CartPage from './components/pages/CartPage';
 import CheckoutPage from './components/pages/CheckoutPage';
 import PaymentPage from './components/pages/PaymentPage';
+import AccountPage from './components/pages/AccountPage';
 import ProfilePage from './components/pages/ProfilePage';
 import OrderHistoryPage from './components/pages/OrderHistoryPage';
 import OrderDetailsPage from './components/pages/OrderDetailsPage';
@@ -17,59 +18,130 @@ import WriteReviewPage from './components/pages/WriteReviewPage';
 import FavoritesPage from './components/pages/FavoritesPage';
 import ReferralsPage from './components/pages/ReferralsPage';
 import AdminPanel from './components/pages/AdminPanel';
-import { initTelegramWebApp, getTelegramUser, getReferralCode } from './utils/telegram';
+import AdminAuth from './components/AdminAuth';
 import { loadFromLocalStorage, saveToLocalStorage, removeFromLocalStorage } from './utils/helpers';
+import { initTelegramWebApp, getReferralCode } from './utils/telegram';
 
 function App() {
   const { loading: adminLoading, error: adminError } = useContext(AdminContext);
-  const { loading: userLoading } = useContext(UserContext);
-  // Initialize from URL hash or localStorage
-  const [currentPage, setCurrentPage] = useState(() => {
-    // ALWAYS start on home page in production
-    // Clear any stored page data (safe for Telegram Desktop)
-    removeFromLocalStorage('currentPage');
-    removeFromLocalStorage('pageData');
+  // Initialize page state - admin detection happens in useEffect
+  const [currentPage, setCurrentPage] = useState('home');
 
-    // Clear URL hash
-    if (typeof window !== 'undefined' && window.location.hash) {
-      window.location.hash = '';
-    }
+  // Initialize pageData as empty object to avoid hydration mismatch
+  // Load from localStorage in useEffect after mount
+  const [pageData, setPageData] = useState({});
 
-    return 'home';
-  });
+  const { user, setReferredBy, toggleAdminMode } = useContext(UserContext);
 
-  const [pageData, setPageData] = useState(() => loadFromLocalStorage('pageData', {}));
-
-  const { user, toggleAdminMode, setUser, setReferredBy } = useContext(UserContext);
-
-  // Initialize Telegram WebApp
+  // Load pageData from localStorage after mount to avoid hydration mismatch
   useEffect(() => {
-    let mounted = true;
+    const savedPageData = loadFromLocalStorage('pageData', {});
+    if (savedPageData && Object.keys(savedPageData).length > 0) {
+      setPageData(savedPageData);
+    }
+  }, []);
 
+  const navigate = (page, data = {}) => {
+    setCurrentPage(page);
+    setPageData(data);
+    
+    // Handle admin page navigation
+    if (page === 'admin') {
+      // Add admin parameter to URL instead of hash
+      const currentUrl = new URL(window.location);
+      currentUrl.searchParams.set('admin', 'true');
+      window.history.pushState({}, '', currentUrl);
+    } else {
+      // Remove admin parameter and use hash for other pages
+      const currentUrl = new URL(window.location);
+      currentUrl.searchParams.delete('admin');
+      currentUrl.hash = `/${page}`;
+      window.history.pushState({}, '', currentUrl);
+      
+      // Save to localStorage (safe for Telegram Desktop)
+      saveToLocalStorage('currentPage', page);
+      saveToLocalStorage('pageData', data);
+    }
+    
+    window.scrollTo(0, 0);
+  };
+
+  // Monitor URL for admin parameter continuously
+  useEffect(() => {
+    const checkAdminParam = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const adminParam = urlParams.get('admin');
+      const isAdminParam = adminParam === 'true';
+
+      console.log('🔎 URL Check:', {
+        url: window.location.href,
+        adminParam,
+        isAdminParam,
+        currentPage,
+        userIsAdmin: user?.isAdmin
+      });
+
+      if (isAdminParam && currentPage !== 'admin') {
+        console.log('🔍 Admin access detected - switching to admin page');
+        setCurrentPage('admin');
+        // Enable admin mode in user context if not already enabled
+        if (user && !user.isAdmin) {
+          toggleAdminMode();
+        }
+      } else if (!isAdminParam && currentPage === 'admin') {
+        console.log('🏠 Admin param removed - returning to home');
+        setCurrentPage('home');
+        // Disable admin mode in user context if enabled
+        if (user && user.isAdmin) {
+          toggleAdminMode();
+        }
+      }
+    };
+    
+    // Check immediately
+    checkAdminParam();
+    
+    // Check on URL changes
+    const handleURLChange = () => {
+      checkAdminParam();
+      
+      // Handle hash changes for regular navigation (only if not admin)
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('admin') !== 'true') {
+        const hash = window.location.hash.slice(1).replace('/', '');
+        if (hash && hash !== currentPage) {
+          setCurrentPage(hash || 'home');
+        }
+      }
+    };
+
+    window.addEventListener('hashchange', handleURLChange);
+    window.addEventListener('popstate', handleURLChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleURLChange);
+      window.removeEventListener('popstate', handleURLChange);
+    };
+  }, [currentPage, user, toggleAdminMode]);
+
+  // Save current page and data to localStorage whenever they change
+  useEffect(() => {
+    saveToLocalStorage('currentPage', currentPage);
+    saveToLocalStorage('pageData', pageData);
+  }, [currentPage, pageData]);
+
+  // Initialize Telegram WebApp and handle referral codes
+  useEffect(() => {
     const initApp = async () => {
       try {
         const tg = await initTelegramWebApp();
 
-        if (!mounted) return;
-
         if (tg) {
-          // Get Telegram user data
-          const tgUser = getTelegramUser();
-          if (tgUser && mounted) {
-
-            // Update user with Telegram data
-            setUser(prev => ({
-              ...prev,
-              name: `${tgUser.firstName} ${tgUser.lastName || ''}`.trim(),
-              telegramId: tgUser.id,
-              username: tgUser.username || '',
-              photoUrl: tgUser.photoUrl || ''
-            }));
-          }
+          console.log('✅ Telegram WebApp initialized');
 
           // Check for referral code
           const refCode = getReferralCode();
-          if (refCode && user && mounted) {
+          if (refCode && user) {
             // Prevent self-referral
             if (refCode === user.referralCode) {
               if (tg.showAlert) {
@@ -79,7 +151,7 @@ function App() {
             }
 
             // Save referral code if user hasn't been referred before
-            if (!user.referredBy) {
+            if (!user.referredBy && setReferredBy) {
               await setReferredBy(refCode);
               if (tg.showAlert) {
                 tg.showAlert('🎉 Welcome! You\'ve been referred by a friend!\n\nYou\'ll earn bonus points from your purchases!');
@@ -88,46 +160,12 @@ function App() {
           }
         }
       } catch (error) {
-        console.error('❌ Error initializing app:', error);
+        console.error('❌ Error initializing Telegram:', error);
       }
     };
 
     initApp();
-
-    return () => {
-      mounted = false;
-    };
-  }, [setUser, setReferredBy, user?.referralCode, user?.referredBy]);
-
-  const navigate = (page, data = {}) => {
-    setCurrentPage(page);
-    setPageData(data);
-    // Save to localStorage (safe for Telegram Desktop)
-    saveToLocalStorage('currentPage', page);
-    saveToLocalStorage('pageData', data);
-    // Update URL hash
-    window.location.hash = `/${page}`;
-    window.scrollTo(0, 0);
-  };
-
-  // Listen for hash changes (browser back/forward)
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash.slice(1).replace('/', '');
-      if (hash && hash !== currentPage) {
-        setCurrentPage(hash || 'home');
-      }
-    };
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [currentPage]);
-
-  // Save current page and data to localStorage whenever they change
-  useEffect(() => {
-    saveToLocalStorage('currentPage', currentPage);
-    saveToLocalStorage('pageData', pageData);
-  }, [currentPage, pageData]);
+  }, [user, setReferredBy]);
 
   const getPageTitle = () => {
     switch (currentPage) {
@@ -143,6 +181,8 @@ function App() {
         return 'Checkout';
       case 'payment':
         return 'Payment';
+      case 'account':
+        return 'Account';
       case 'profile':
         return 'Profile';
       case 'orderHistory':
@@ -164,7 +204,7 @@ function App() {
     }
   };
 
-  const showHeader = !['home', 'admin', 'referrals', 'profile', 'favorites', 'orderHistory', 'orderDetails', 'myReviews', 'writeReview'].includes(currentPage);
+  const showHeader = !['home', 'admin', 'referrals', 'profile', 'favorites', 'orderHistory', 'orderDetails', 'myReviews', 'writeReview', 'account'].includes(currentPage);
 
   // Only show loading for a short time - then show content anyway
   // This prevents blank screen issues in Telegram
@@ -177,7 +217,7 @@ function App() {
   }, []);
 
   // Show loading screen while data is being fetched (max 2 seconds)
-  if ((adminLoading || userLoading) && showLoading) {
+  if (adminLoading && showLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary to-accent flex items-center justify-center">
         <div className="text-center">
@@ -210,21 +250,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Admin Mode Toggle - Always visible */}
-      {user && (
-        <button
-          onClick={() => {
-            toggleAdminMode();
-            // Navigate to home when switching from admin to user
-            if (user.isAdmin) {
-              navigate('home');
-            }
-          }}
-          className="fixed top-4 right-4 z-50 bg-primary text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg hover:bg-gray-800"
-        >
-          {user.isAdmin ? '👑 Admin' : '👤 User'}
-        </button>
-      )}
 
       {/* Header - Search functionality removed, now managed in ShopPage */}
       {showHeader && (
@@ -235,7 +260,7 @@ function App() {
       )}
 
       {/* Main Content */}
-      <main className="max-w-mobile mx-auto bg-white min-h-screen">
+      <main className="max-w-7xl mx-auto bg-white min-h-screen">
         {currentPage === 'home' && <HomePage onNavigate={navigate} />}
 
         {currentPage === 'shop' && (
@@ -263,6 +288,8 @@ function App() {
           />
         )}
 
+        {currentPage === 'account' && <AccountPage onNavigate={navigate} />}
+
         {currentPage === 'profile' && <ProfilePage onNavigate={navigate} />}
 
         {currentPage === 'orderHistory' && <OrderHistoryPage onNavigate={navigate} />}
@@ -282,45 +309,16 @@ function App() {
 
         {currentPage === 'referrals' && <ReferralsPage />}
 
-        {currentPage === 'admin' && user?.isAdmin && <AdminPanel />}
+        {currentPage === 'admin' && (
+          <AdminAuth>
+            <AdminPanel />
+          </AdminAuth>
+        )}
       </main>
 
-      {/* Bottom Navigation */}
-      {(!user || !user.isAdmin) && (
+      {/* Bottom Navigation - hidden only on admin page */}
+      {currentPage !== 'admin' && (
         <BottomNav currentPage={currentPage} onNavigate={navigate} />
-      )}
-
-      {/* Admin Quick Access */}
-      {user?.isAdmin && (
-        <div className="fixed bottom-0 left-0 right-0 bg-primary text-white shadow-lg z-50">
-          <div className="max-w-mobile mx-auto px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold">👑 Admin Mode</span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => navigate('admin')}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                  currentPage === 'admin'
-                    ? 'bg-accent text-white'
-                    : 'bg-white/20 hover:bg-white/30'
-                }`}
-              >
-                Admin Panel
-              </button>
-              <button
-                onClick={() => navigate('home')}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                  currentPage === 'home'
-                    ? 'bg-accent text-white'
-                    : 'bg-white/20 hover:bg-white/30'
-                }`}
-              >
-                Store View
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

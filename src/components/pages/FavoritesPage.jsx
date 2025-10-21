@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import { Heart, ArrowLeft, ShoppingCart } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { CartContext } from '../../context/CartContext';
@@ -6,12 +6,15 @@ import { useProducts } from '../../hooks/useProducts';
 import { formatPrice, calculateDiscountedPrice } from '../../utils/helpers';
 
 const FavoritesPage = ({ onNavigate }) => {
-  const { toggleFavorite, isFavorite } = useContext(UserContext);
+  const { toggleFavorite, favorites } = useContext(UserContext);
   const { addToCart } = useContext(CartContext);
   const { products } = useProducts();
 
-  // Get favorite products with null checks
-  const favoriteProducts = products?.filter(product => isFavorite(product?.id)) || [];
+  // Get favorite products by matching against favorites array
+  const favoriteProducts = useMemo(() => {
+    if (!products || !favorites) return [];
+    return products.filter(product => favorites.includes(product?.id));
+  }, [products, favorites]);
 
   const handleAddToCart = (product) => {
     if (!product) return;
@@ -82,7 +85,7 @@ const FavoritesPage = ({ onNavigate }) => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {favoriteProducts.map((product) => {
               const discountedPrice = calculateDiscountedPrice(
                 product.price,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useMemo } from 'react';
 import CountdownTimer from '../common/CountdownTimer';
 import ProductCard from '../product/ProductCard';
 import { AdminContext } from '../../context/AdminContext';
@@ -8,8 +8,17 @@ import { loadFromLocalStorage } from '../../utils/helpers';
 
 const HomePage = ({ onNavigate }) => {
   const { categories, loading } = useContext(AdminContext);
-  const { toggleFavorite, isFavorite } = useContext(UserContext);
+  const { toggleFavorite, isFavorite, favorites } = useContext(UserContext);
   const { featuredProducts } = useProducts();
+
+  // Create a favorites lookup map to avoid calling isFavorite in render
+  const favoritesMap = useMemo(() => {
+    const map = {};
+    featuredProducts.forEach(product => {
+      map[product.id] = isFavorite(product.id);
+    });
+    return map;
+  }, [featuredProducts, favorites, isFavorite]);
 
   // Show loading state if no data yet
   if (loading && (!categories || categories.length === 0)) {
@@ -135,13 +144,13 @@ const HomePage = ({ onNavigate }) => {
             View All
           </button>
         </div>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {featuredProducts.map((product) => (
             <ProductCard
               key={product.id}
               product={product}
               onView={(id) => onNavigate('product', { productId: id })}
-              isFavorite={isFavorite(product.id)}
+              isFavorite={favoritesMap[product.id]}
               onToggleFavorite={toggleFavorite}
             />
           ))}
