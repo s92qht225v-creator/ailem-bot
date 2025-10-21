@@ -1330,7 +1330,159 @@ const DesktopAdminPanel = ({ onLogout }) => {
   }
 
   function UsersContent() {
-    return <div className="bg-white rounded-lg shadow p-6">Users management coming soon...</div>;
+    const { users } = useContext(AdminContext);
+    const [expandedUser, setExpandedUser] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    // Filter users based on search
+    const filteredUsers = users.filter(user => 
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.phone?.includes(searchQuery) ||
+      user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    return (
+      <div>
+        {/* Search Bar */}
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Search users by name, username, phone, or email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+          />
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Total Users</p>
+                <p className="text-3xl font-bold text-gray-900">{users.length}</p>
+              </div>
+              <UsersIcon className="w-12 h-12 text-indigo-500" />
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">Active Today</p>
+                <p className="text-3xl font-bold text-gray-900">-</p>
+              </div>
+              <TrendingUp className="w-12 h-12 text-green-500" />
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600 mb-1">With Orders</p>
+                <p className="text-3xl font-bold text-gray-900">{users.filter(u => u.totalOrders > 0).length}</p>
+              </div>
+              <ShoppingBag className="w-12 h-12 text-blue-500" />
+            </div>
+          </div>
+        </div>
+
+        {/* Users List */}
+        {filteredUsers.length > 0 ? (
+          <div className="grid grid-cols-1 gap-4">
+            {filteredUsers.map((user) => (
+              <div key={user.id} className="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+                <div className="p-6">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                        {user.name?.charAt(0).toUpperCase() || 'U'}
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">{user.name}</h3>
+                        <p className="text-sm text-gray-500">@{user.username || 'No username'}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <p className="text-sm text-gray-500">Bonus Points</p>
+                        <p className="text-xl font-bold text-indigo-600">{user.bonusPoints || 0}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-500">Orders</p>
+                        <p className="text-xl font-bold text-gray-900">{user.totalOrders || 0}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Info */}
+                  <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b">
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase font-medium mb-1">Phone</p>
+                      <p className="text-sm text-gray-900">{user.phone || 'Not provided'}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase font-medium mb-1">Email</p>
+                      <p className="text-sm text-gray-900">{user.email || 'Not provided'}</p>
+                    </div>
+                  </div>
+
+                  {/* Expandable Details */}
+                  <button
+                    onClick={() => setExpandedUser(expandedUser === user.id ? null : user.id)}
+                    className="w-full px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    {expandedUser === user.id ? 'Hide Details' : 'Show Details'}
+                    <ChevronRight className={`w-4 h-4 transition-transform ${expandedUser === user.id ? 'rotate-90' : ''}`} />
+                  </button>
+
+                  {expandedUser === user.id && (
+                    <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase font-medium mb-1">Telegram ID</p>
+                          <p className="text-sm text-gray-900 font-mono">{user.telegramId || user.telegram_id || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase font-medium mb-1">Referral Code</p>
+                          <p className="text-sm text-gray-900 font-mono">{user.referralCode || 'N/A'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase font-medium mb-1">Referred By</p>
+                          <p className="text-sm text-gray-900">{user.referredBy || 'None'}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase font-medium mb-1">Referrals Made</p>
+                          <p className="text-sm text-gray-900">{user.referrals || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase font-medium mb-1">Joined Date</p>
+                          <p className="text-sm text-gray-900">{formatDate(user.createdAt)}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 uppercase font-medium mb-1">Last Updated</p>
+                          <p className="text-sm text-gray-900">{formatDate(user.updatedAt)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-lg shadow p-12 text-center">
+            <UsersIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              {searchQuery ? 'No users found' : 'No users yet'}
+            </h3>
+            <p className="text-gray-600">
+              {searchQuery ? 'Try a different search query' : 'Users will appear here when they sign up'}
+            </p>
+          </div>
+        )}
+      </div>
+    );
   }
 
   function AnalyticsContent() {
