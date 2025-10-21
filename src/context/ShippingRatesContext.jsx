@@ -4,19 +4,26 @@ import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
 export const ShippingRatesContext = createContext();
 
 export const ShippingRatesProvider = ({ children }) => {
-  const [shippingRates, setShippingRates] = useState(() => {
-    return loadFromLocalStorage('shippingRates', [
-      // Sample rates structure:
-      // { courier: 'BTS', state: 'Tashkent Region', firstKg: 15000, additionalKg: 5000 }
-      { id: 1, courier: 'BTS', state: 'Tashkent Region', firstKg: 15000, additionalKg: 5000 },
-      { id: 2, courier: 'BTS', state: 'Samarkand Region', firstKg: 20000, additionalKg: 7000 },
-      { id: 3, courier: 'Starex', state: 'Tashkent Region', firstKg: 18000, additionalKg: 6000 },
-      { id: 4, courier: 'EMU', state: 'Tashkent Region', firstKg: 12000, additionalKg: 4000 },
-      { id: 5, courier: 'UzPost', state: 'Tashkent Region', firstKg: 10000, additionalKg: 3000 },
-      { id: 6, courier: 'Yandex', state: 'Tashkent', firstKg: 25000, additionalKg: 0 }, // Flat rate for Yandex
-    ]);
-  });
+  const [shippingRates, setShippingRates] = useState([
+    // Sample rates structure:
+    // { courier: 'BTS', state: 'Tashkent Region', firstKg: 15000, additionalKg: 5000 }
+    { id: 1, courier: 'BTS', state: 'Tashkent Region', firstKg: 15000, additionalKg: 5000 },
+    { id: 2, courier: 'BTS', state: 'Samarkand Region', firstKg: 20000, additionalKg: 7000 },
+    { id: 3, courier: 'Starex', state: 'Tashkent Region', firstKg: 18000, additionalKg: 6000 },
+    { id: 4, courier: 'EMU', state: 'Tashkent Region', firstKg: 12000, additionalKg: 4000 },
+    { id: 5, courier: 'UzPost', state: 'Tashkent Region', firstKg: 10000, additionalKg: 3000 },
+    { id: 6, courier: 'Yandex', state: 'Tashkent', firstKg: 25000, additionalKg: 0 }, // Flat rate for Yandex
+  ]);
 
+  // Load shipping rates from localStorage after mount
+  useEffect(() => {
+    const savedRates = loadFromLocalStorage('shippingRates');
+    if (savedRates && savedRates.length > 0) {
+      setShippingRates(savedRates);
+    }
+  }, []);
+
+  // Save shipping rates to localStorage whenever they change
   useEffect(() => {
     saveToLocalStorage('shippingRates', shippingRates);
   }, [shippingRates]);

@@ -4,10 +4,17 @@ import { saveToLocalStorage, loadFromLocalStorage } from '../utils/helpers';
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState(() => {
-    return loadFromLocalStorage('cart', []);
-  });
+  const [cartItems, setCartItems] = useState([]);
 
+  // Load cart from localStorage after mount
+  useEffect(() => {
+    const savedCart = loadFromLocalStorage('cart', []);
+    if (savedCart && savedCart.length > 0) {
+      setCartItems(savedCart);
+    }
+  }, []);
+
+  // Save cart to localStorage whenever it changes
   useEffect(() => {
     saveToLocalStorage('cart', cartItems);
   }, [cartItems]);
