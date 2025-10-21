@@ -2301,6 +2301,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
       additionalKg: ''
     });
 
+    // Get unique couriers and states from existing rates
+    const uniqueCouriers = [...new Set(shippingRates.map(r => r.courier))].sort();
+    const uniqueStates = [...new Set(shippingRates.map(r => r.state))].sort();
+
     const handleSubmit = (e) => {
       e.preventDefault();
 
@@ -2310,15 +2314,20 @@ const DesktopAdminPanel = ({ onLogout }) => {
       }
 
       const rateData = {
-        ...formData,
+        courier: formData.courier,
         firstKg: parseFloat(formData.firstKg),
         additionalKg: parseFloat(formData.additionalKg) || 0
       };
 
       if (editingRate) {
-        updateShippingRate(editingRate.id, rateData);
+        // When editing, only update single rate
+        updateShippingRate(editingRate.id, { ...rateData, state: formData.state });
       } else {
-        addShippingRate(rateData);
+        // When adding, split states by comma and create multiple rates
+        const states = formData.state.split(',').map(s => s.trim()).filter(s => s);
+        states.forEach(state => {
+          addShippingRate({ ...rateData, state });
+        });
       }
 
       setFormData({ courier: '', state: '', firstKg: '', additionalKg: '' });
@@ -2372,25 +2381,44 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <div>
                 <label className="block text-sm font-semibold mb-1">Courier Service *</label>
                 <input
+                  list="courier-rates-list"
                   type="text"
                   value={formData.courier}
                   onChange={(e) => setFormData({ ...formData, courier: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                   placeholder="e.g., BTS, Yandex, Starex"
                   required
                 />
+                <datalist id="courier-rates-list">
+                  {uniqueCouriers.map(courier => (
+                    <option key={courier} value={courier} />
+                  ))}
+                </datalist>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">State/Region *</label>
+                <label className="block text-sm font-semibold mb-1">
+                  State/Region * {!editingRate && <span className="text-xs text-gray-500">(comma-separated for multiple)</span>}
+                </label>
                 <input
+                  list="state-rates-list"
                   type="text"
                   value={formData.state}
                   onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="e.g., Tashkent Region"
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  placeholder={editingRate ? "e.g., Tashkent Region" : "e.g., Tashkent Region, Samarkand Region"}
                   required
                 />
+                <datalist id="state-rates-list">
+                  {uniqueStates.map(state => (
+                    <option key={state} value={state} />
+                  ))}
+                </datalist>
+                {!editingRate && (
+                  <p className="text-xs text-gray-500 mt-1">
+                    💡 Tip: Enter multiple regions separated by commas to create rates for all at once
+                  </p>
+                )}
               </div>
 
               <div>
