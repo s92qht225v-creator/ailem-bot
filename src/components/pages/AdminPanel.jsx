@@ -2324,6 +2324,16 @@ const PickupPointsTab = () => {
     phone: ''
   });
 
+  // Extract unique values from existing pickup points
+  const uniqueCouriers = [...new Set(pickupPoints.map(p => p.courierService))].sort();
+  const uniqueStates = [...new Set(pickupPoints.map(p => p.state))].sort();
+  const uniqueCities = [...new Set(pickupPoints.map(p => p.city))].sort();
+  
+  // Filter cities based on selected state
+  const citiesForState = formData.state
+    ? [...new Set(pickupPoints.filter(p => p.state === formData.state).map(p => p.city))].sort()
+    : uniqueCities;
+
   // Group pickup points by courier → state → city
   const groupedPoints = pickupPoints.reduce((acc, point) => {
     if (!acc[point.courierService]) {
@@ -2454,37 +2464,55 @@ const PickupPointsTab = () => {
             <div>
               <label className="block text-sm font-semibold mb-1">Courier Service *</label>
               <input
+                list="courier-list-mobile"
                 type="text"
                 value={formData.courierService}
                 onChange={(e) => setFormData({ ...formData, courierService: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                 placeholder="e.g., Yandex, Uzum, Express24"
                 required
               />
+              <datalist id="courier-list-mobile">
+                {uniqueCouriers.map(courier => (
+                  <option key={courier} value={courier} />
+                ))}
+              </datalist>
             </div>
 
             <div>
               <label className="block text-sm font-semibold mb-1">State/Region *</label>
               <input
+                list="state-list-mobile"
                 type="text"
                 value={formData.state}
-                onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                onChange={(e) => setFormData({ ...formData, state: e.target.value, city: '' })}
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                 placeholder="e.g., Tashkent Region"
                 required
               />
+              <datalist id="state-list-mobile">
+                {uniqueStates.map(state => (
+                  <option key={state} value={state} />
+                ))}
+              </datalist>
             </div>
 
             <div>
               <label className="block text-sm font-semibold mb-1">City *</label>
               <input
+                list="city-list-mobile"
                 type="text"
                 value={formData.city}
                 onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                 placeholder="e.g., Tashkent"
                 required
               />
+              <datalist id="city-list-mobile">
+                {citiesForState.map(city => (
+                  <option key={city} value={city} />
+                ))}
+              </datalist>
             </div>
 
             <div>
@@ -2502,13 +2530,20 @@ const PickupPointsTab = () => {
             <div>
               <label className="block text-sm font-semibold mb-1">Working Hours *</label>
               <input
+                list="hours-list-mobile"
                 type="text"
                 value={formData.workingHours}
                 onChange={(e) => setFormData({ ...formData, workingHours: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                 placeholder="e.g., 09:00 - 20:00"
                 required
               />
+              <datalist id="hours-list-mobile">
+                <option value="09:00 - 20:00" />
+                <option value="08:00 - 22:00" />
+                <option value="10:00 - 19:00" />
+                <option value="24/7" />
+              </datalist>
             </div>
 
             <div>
