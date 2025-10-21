@@ -229,6 +229,7 @@ export const AdminProvider = ({ children }) => {
         user_name: review.userName,
         rating: review.rating,
         comment: review.comment,
+        images: review.images || [],
         approved: false
       };
 

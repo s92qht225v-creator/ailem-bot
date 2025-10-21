@@ -13,9 +13,11 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
   const [hoverRating, setHoverRating] = useState(0);
   const [comment, setComment] = useState('');
   const [reviewImages, setReviewImages] = useState([]);
+  const [uploadedImageUrls, setUploadedImageUrls] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter(file => file.type.startsWith('image/'));
 
@@ -24,13 +26,40 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
       return;
     }
 
-    const newImageUrls = validFiles.map(file => URL.createObjectURL(file));
-    setReviewImages([...reviewImages, ...newImageUrls]);
+    setIsUploadingImage(true);
+
+    try {
+      // Import storageAPI
+      const { storageAPI } = await import('../../services/api');
+      
+      // Upload each file and get permanent URLs
+      const uploadPromises = validFiles.map(async (file) => {
+        const result = await storageAPI.uploadProductImage(file);
+        return result.url;
+      });
+
+      const newUrls = await Promise.all(uploadPromises);
+      
+      // Add preview URLs for UI
+      const previewUrls = validFiles.map(file => URL.createObjectURL(file));
+      setReviewImages([...reviewImages, ...previewUrls]);
+      
+      // Store permanent URLs
+      setUploadedImageUrls([...uploadedImageUrls, ...newUrls]);
+      
+      console.log('✅ Images uploaded successfully:', newUrls);
+    } catch (error) {
+      console.error('❌ Image upload failed:', error);
+      alert('Failed to upload images. Please try again.');
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   const handleRemoveImage = (index) => {
     URL.revokeObjectURL(reviewImages[index]);
     setReviewImages(reviewImages.filter((_, i) => i !== index));
+    setUploadedImageUrls(uploadedImageUrls.filter((_, i) => i !== index));
   };
 
   const handleSubmit = (e) => {
@@ -55,7 +84,7 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
       orderId,
       rating,
       comment: comment.trim(),
-      images: reviewImages,
+      images: uploadedImageUrls, // Use permanent Supabase URLs
       date: new Date().toISOString().split('T')[0],
       verified: true, // This is a verified purchase
       approved: false // Needs admin approval
@@ -182,15 +211,20 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
 
             {/* File Input Button */}
             {reviewImages.length < 5 && (
-              <label className="w-full flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-4 px-4 rounded-lg font-semibold cursor-pointer hover:bg-gray-200 transition-colors border-2 border-dashed border-gray-300 mb-3">
+              <label className={`w-full flex items-center justify-center gap-2 py-4 px-4 rounded-lg font-semibold transition-colors border-2 border-dashed border-gray-300 mb-3 ${
+                isUploadingImage 
+                  ? 'bg-gray-200 text-gray-500 cursor-wait' 
+                  : 'bg-gray-100 text-gray-700 cursor-pointer hover:bg-gray-200'
+              }`}>
                 <Camera className="w-5 h-5" />
-                <span>Take Photo or Choose from Gallery</span>
+                <span>{isUploadingImage ? 'Uploading...' : 'Take Photo or Choose from Gallery'}</span>
                 <input
                   type="file"
                   accept="image/*"
                   multiple
                   onChange={handleImageUpload}
                   className="hidden"
+                  disabled={isUploadingImage}
                 />
               </label>
             )}
