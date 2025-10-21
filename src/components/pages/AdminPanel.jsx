@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { Shield, Package, Star, Users as UsersIcon, CheckCircle, XCircle, Edit, Trash2, Plus, ChevronRight, Edit2, ShoppingBag, Truck, Gift, Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload, TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
@@ -1884,13 +1884,19 @@ const ReviewCard = ({ review, showActions, onApprove, onDelete }) => {
 
 // Bonus Settings Tab Component
 const BonusSettingsTab = () => {
-  const [bonusConfig, setBonusConfig] = useState(() => {
-    return loadFromLocalStorage('bonusConfig', {
-      referralCommission: 10,
-      purchaseBonus: 10,
-      currency: 'UZS'
-    });
+  const [bonusConfig, setBonusConfig] = useState({
+    referralCommission: 10,
+    purchaseBonus: 10,
+    currency: 'UZS'
   });
+
+  // Load from localStorage after mount
+  useEffect(() => {
+    const saved = loadFromLocalStorage('bonusConfig');
+    if (saved) {
+      setBonusConfig(saved);
+    }
+  }, []);
 
   const saveBonusConfig = (newConfig) => {
     setBonusConfig(newConfig);
@@ -1972,30 +1978,35 @@ const BonusSettingsTab = () => {
 
 // App Settings Tab Component
 const AppSettingsTab = () => {
-  const [categories, setCategories] = useState(() => {
-    return loadFromLocalStorage('appCategories', [
-      { id: 1, name: 'Bedsheets', icon: '🛏️', visible: true },
-      { id: 2, name: 'Pillows', icon: '🛌', visible: true },
-      { id: 3, name: 'Curtains', icon: '🪟', visible: true },
-      { id: 4, name: 'Towels', icon: '🧺', visible: true }
-    ]);
+  const [categories, setCategories] = useState([
+    { id: 1, name: 'Bedsheets', icon: '🛏️', visible: true },
+    { id: 2, name: 'Pillows', icon: '🛌', visible: true },
+    { id: 3, name: 'Curtains', icon: '🪟', visible: true },
+    { id: 4, name: 'Towels', icon: '🧺', visible: true }
+  ]);
+
+  const [saleTimer, setSaleTimer] = useState({
+    endDate: '2025-12-31T23:59:59',
+    enabled: true
   });
 
-  const [saleTimer, setSaleTimer] = useState(() => {
-    return loadFromLocalStorage('saleTimer', {
-      endDate: '2025-12-31T23:59:59',
-      enabled: true
-    });
+  const [saleBanner, setSaleBanner] = useState({
+    title: 'Summer Sale',
+    subtitle: 'Up to 50% Off on Selected Items',
+    imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
+    enabled: true
   });
 
-  const [saleBanner, setSaleBanner] = useState(() => {
-    return loadFromLocalStorage('saleBanner', {
-      title: 'Summer Sale',
-      subtitle: 'Up to 50% Off on Selected Items',
-      imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
-      enabled: true
-    });
-  });
+  // Load from localStorage after mount
+  useEffect(() => {
+    const savedCategories = loadFromLocalStorage('appCategories');
+    const savedTimer = loadFromLocalStorage('saleTimer');
+    const savedBanner = loadFromLocalStorage('saleBanner');
+
+    if (savedCategories) setCategories(savedCategories);
+    if (savedTimer) setSaleTimer(savedTimer);
+    if (savedBanner) setSaleBanner(savedBanner);
+  }, []);
 
   const [editingCategory, setEditingCategory] = useState(null);
   const [newCategoryName, setNewCategoryName] = useState('');
