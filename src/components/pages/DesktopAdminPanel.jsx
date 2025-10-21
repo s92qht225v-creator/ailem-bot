@@ -897,8 +897,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [uploadingImage, setUploadingImage] = useState(false);
     const [formData, setFormData] = useState({
       name: '',
-      image: '',
-      icon: ''
+      image: ''
     });
 
     const handleImageUpload = async (e) => {
@@ -929,8 +928,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
       try {
         const categoryData = {
           name: formData.name,
-          image: formData.image || null,
-          icon: formData.icon || null
+          image: formData.image || null
         };
 
         if (editingCategory) {
@@ -943,7 +941,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         setShowForm(false);
         setEditingCategory(null);
-        setFormData({ name: '', image: '', icon: '' });
+        setFormData({ name: '', image: '' });
       } catch (error) {
         console.error('❌ Failed to save category:', error);
         alert('Failed to save category. Please try again.');
@@ -954,8 +952,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
       setEditingCategory(category);
       setFormData({
         name: category.name,
-        image: category.image || '',
-        icon: category.icon || ''
+        image: category.image || ''
       });
       setShowForm(true);
     };
@@ -1016,17 +1013,6 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                   required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category Icon (Emoji)</label>
-                <input
-                  type="text"
-                  value={formData.icon}
-                  onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="🛏️"
                 />
               </div>
 
@@ -1108,8 +1094,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-6xl">
-                    {category.icon || '📷'}
+                  <div className="w-full h-full flex items-center justify-center text-6xl text-gray-400">
+                    📷
                   </div>
                 )}
               </div>
