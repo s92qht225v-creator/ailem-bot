@@ -2,10 +2,17 @@ import { useContext } from 'react';
 import { Package, ChevronLeft } from 'lucide-react';
 import { useOrders } from '../../hooks/useOrders';
 import { formatPrice, formatDate, getStatusColor } from '../../utils/helpers';
+import { UserContext } from '../../context/UserContext';
+import { AdminContext } from '../../context/AdminContext';
 
 const OrderHistoryPage = ({ onNavigate }) => {
+  const { user } = useContext(UserContext);
+  const { reviews } = useContext(AdminContext);
   const { getUserOrders } = useOrders();
   const userOrders = getUserOrders();
+
+  // Get user's reviews
+  const userReviews = reviews?.filter(review => (review.user_id || review.userId) === user.id) || [];
 
   return (
     <div className="pb-20 bg-gray-50 min-h-screen">
@@ -40,14 +47,24 @@ const OrderHistoryPage = ({ onNavigate }) => {
           </div>
         ) : (
           <div className="space-y-3">
-            {userOrders.map((order) => (
-              <OrderCard
-                key={order.id}
-                order={order}
-                onViewDetails={() => onNavigate('orderDetails', { orderId: order.id })}
-                onWriteReview={() => onNavigate('myReviews')}
-              />
-            ))}
+            {userOrders.map((order) => {
+              // Check if all items in this order have been reviewed
+              const hasUnreviewedItems = order.items.some(item => 
+                !userReviews.some(review => 
+                  (review.product_id || review.productId) === item.productId
+                )
+              );
+
+              return (
+                <OrderCard
+                  key={order.id}
+                  order={order}
+                  onViewDetails={() => onNavigate('orderDetails', { orderId: order.id })}
+                  onWriteReview={() => onNavigate('myReviews')}
+                  hasUnreviewedItems={hasUnreviewedItems}
+                />
+              );
+            })}
           </div>
         )}
       </div>
@@ -55,7 +72,7 @@ const OrderHistoryPage = ({ onNavigate }) => {
   );
 };
 
-const OrderCard = ({ order, onViewDetails, onWriteReview }) => {
+const OrderCard = ({ order, onViewDetails, onWriteReview, hasUnreviewedItems }) => {
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm">
       {/* Header */}
@@ -120,8 +137,8 @@ const OrderCard = ({ order, onViewDetails, onWriteReview }) => {
           </button>
         </div>
 
-        {/* Review Button for Delivered Orders */}
-        {order.status === 'delivered' && (
+        {/* Review Button for Delivered Orders with Unreviewed Items */}
+        {order.status === 'delivered' && hasUnreviewedItems && (
           <button
             onClick={onWriteReview}
             className="w-full bg-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors"
