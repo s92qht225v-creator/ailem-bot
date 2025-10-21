@@ -15,14 +15,14 @@ const MyReviewsPage = ({ onNavigate }) => {
   const deliveredOrders = userOrders.filter(order => order.status === 'delivered');
 
   // Get user's reviews
-  const userReviews = reviews?.filter(review => review.userId === user.id) || [];
+  const userReviews = reviews?.filter(review => (review.user_id || review.userId) === user.id) || [];
 
   // Get items that can be reviewed (from delivered orders, not yet reviewed)
   const reviewableItems = [];
   deliveredOrders.forEach(order => {
     order.items.forEach(item => {
       const alreadyReviewed = userReviews.some(
-        review => review.productId === item.productId && review.orderId === order.id
+        review => (review.product_id || review.productId) === item.productId
       );
       if (!alreadyReviewed) {
         reviewableItems.push({
@@ -41,7 +41,7 @@ const MyReviewsPage = ({ onNavigate }) => {
     // Find the product details from orders
     let productDetails = null;
     deliveredOrders.forEach(order => {
-      const item = order.items.find(i => i.productId === review.productId);
+      const item = order.items.find(i => i.productId === (review.product_id || review.productId));
       if (item) {
         productDetails = {
           id: item.productId,
