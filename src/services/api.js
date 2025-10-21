@@ -608,16 +608,17 @@ export const reviewsAPI = {
       .from('reviews')
       .select(`
         *,
-        products:product_id (name)
+        products:product_id (name, image)
       `)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
 
-    // Transform data to include product name
+    // Transform data to include product name and image
     return data.map(review => ({
       ...review,
-      productName: review.products?.name || 'Unknown Product'
+      productName: review.products?.name || 'Unknown Product',
+      productImage: review.products?.image || null
     }));
   },
 

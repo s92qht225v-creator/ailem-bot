@@ -1266,10 +1266,21 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
                   {/* Product Info */}
                   {review.productName && (
-                    <div className="mb-3 pb-3 border-b">
-                      <p className="text-sm text-gray-600">
-                        Product: <span className="font-medium text-gray-900">{review.productName}</span>
-                      </p>
+                    <div className="mb-3 pb-3 border-b flex items-center gap-3">
+                      {review.productImage && (
+                        <img
+                          src={review.productImage}
+                          alt={review.productName}
+                          className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      )}
+                      <div>
+                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Product</p>
+                        <p className="font-medium text-gray-900">{review.productName}</p>
+                      </div>
                     </div>
                   )}
 
