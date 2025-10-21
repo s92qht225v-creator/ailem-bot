@@ -80,7 +80,7 @@ export const calculateAnalytics = (orders = [], users = [], products = []) => {
       const key = item.productId || item.id;
       if (!productSales[key]) {
         // Try to get product name from item first, then lookup in products array
-        let productName = item.name;
+        let productName = item.productName || item.name;
         if (!productName || productName === key) {
           const product = products.find(p => p.id === key);
           productName = product?.name || `Product #${key}`;
