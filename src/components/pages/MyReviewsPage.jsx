@@ -28,7 +28,7 @@ const MyReviewsPage = ({ onNavigate }) => {
         reviewableItems.push({
           id: item.productId,
           name: item.productName,
-          image: item.imageUrl,
+          image: item.image,
           orderId: order.id,
           orderDate: order.date
         });
@@ -46,7 +46,7 @@ const MyReviewsPage = ({ onNavigate }) => {
         productDetails = {
           id: item.productId,
           name: item.productName,
-          image: item.imageUrl,
+          image: item.image,
           orderId: order.id
         };
       }
