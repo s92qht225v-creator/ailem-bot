@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { 
   Shield, Package, Star, Users as UsersIcon, CheckCircle, XCircle, 
   Edit, Trash2, Plus, ChevronRight, Edit2, ShoppingBag, Truck, Gift, 
