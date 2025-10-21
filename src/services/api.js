@@ -602,6 +602,21 @@ export const ordersAPI = {
 // ============================================
 
 export const reviewsAPI = {
+  // Helper function to map database fields to app format
+  _mapReviewFromDB(review) {
+    return {
+      ...review,
+      productName: review.products?.name || 'Unknown Product',
+      productImage: review.products?.image || null,
+      date: review.created_at ? new Date(review.created_at).toISOString() : new Date().toISOString(),
+      userId: review.user_id,
+      productId: review.product_id,
+      orderId: review.order_id,
+      userName: review.user_name,
+      createdAt: review.created_at
+    };
+  },
+
   // Get all reviews
   async getAll() {
     const { data, error } = await supabase
@@ -614,12 +629,8 @@ export const reviewsAPI = {
 
     if (error) throw error;
 
-    // Transform data to include product name and image
-    return data.map(review => ({
-      ...review,
-      productName: review.products?.name || 'Unknown Product',
-      productImage: review.products?.image || null
-    }));
+    // Transform data to include product name, image and mapped fields
+    return data.map(review => this._mapReviewFromDB(review));
   },
 
   // Get reviews by product
@@ -631,7 +642,7 @@ export const reviewsAPI = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    return data.map(review => this._mapReviewFromDB(review));
   },
 
   // Get approved reviews by product
@@ -644,7 +655,7 @@ export const reviewsAPI = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    return data.map(review => this._mapReviewFromDB(review));
   },
 
   // Create review
@@ -656,7 +667,7 @@ export const reviewsAPI = {
       .single();
 
     if (error) throw error;
-    return data;
+    return this._mapReviewFromDB(data);
   },
 
   // Approve review
@@ -669,7 +680,7 @@ export const reviewsAPI = {
       .single();
 
     if (error) throw error;
-    return data;
+    return this._mapReviewFromDB(data);
   },
 
   // Delete review
