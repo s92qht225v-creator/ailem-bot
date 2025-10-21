@@ -252,6 +252,21 @@ export const productsAPI = {
 // ============================================
 
 export const usersAPI = {
+  // Helper function to map database fields to app format
+  _mapUserFromDB(user) {
+    return {
+      ...user,
+      telegramId: user.telegram_id,
+      photoUrl: user.photo_url,
+      bonusPoints: user.bonus_points,
+      referralCode: user.referral_code,
+      referredBy: user.referred_by,
+      totalOrders: user.total_orders,
+      createdAt: user.created_at,
+      updatedAt: user.updated_at
+    };
+  },
+
   // Get user by ID
   async getById(userId) {
     const { data, error } = await supabase
@@ -264,7 +279,7 @@ export const usersAPI = {
       if (error.code === 'PGRST116') return null; // Not found
       throw error;
     }
-    return data;
+    return this._mapUserFromDB(data);
   },
 
   // Get or create user by email or phone
@@ -282,7 +297,7 @@ export const usersAPI = {
 
     const { data: existingUser } = await query.maybeSingle();
 
-    if (existingUser) return existingUser;
+    if (existingUser) return this._mapUserFromDB(existingUser);
 
     // Create new user
     const newUser = {
@@ -302,7 +317,7 @@ export const usersAPI = {
       .single();
 
     if (error) throw error;
-    return data;
+    return this._mapUserFromDB(data);
   },
 
   // Get or create user by Telegram ID (legacy, keeping for compatibility)
@@ -331,10 +346,10 @@ export const usersAPI = {
 
       if (updateError) {
         console.error('Failed to update user:', updateError);
-        return existingUser; // Return existing user if update fails
+        return this._mapUserFromDB(existingUser); // Return existing user if update fails
       }
 
-      return updatedUser;
+      return this._mapUserFromDB(updatedUser);
     }
 
     // Create new user
@@ -357,7 +372,7 @@ export const usersAPI = {
       .single();
 
     if (error) throw error;
-    return data;
+    return this._mapUserFromDB(data);
   },
 
   // Update bonus points
@@ -370,7 +385,7 @@ export const usersAPI = {
       .single();
 
     if (error) throw error;
-    return data;
+    return this._mapUserFromDB(data);
   },
 
   // Update user favorites
@@ -383,7 +398,7 @@ export const usersAPI = {
       .single();
 
     if (error) throw error;
-    return data;
+    return this._mapUserFromDB(data);
   },
 
   // Get all users (admin)
@@ -394,10 +409,10 @@ export const usersAPI = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data;
+    return (data || []).map(user => this._mapUserFromDB(user));
   },
 
-  // Get user by ID
+  // Get user by ID (duplicate method, keeping for compatibility)
   async getById(userId) {
     const { data, error } = await supabase
       .from('users')
@@ -406,7 +421,7 @@ export const usersAPI = {
       .single();
 
     if (error) throw error;
-    return data;
+    return this._mapUserFromDB(data);
   },
 
   // Update user data
@@ -419,7 +434,7 @@ export const usersAPI = {
       .single();
 
     if (error) throw error;
-    return data;
+    return this._mapUserFromDB(data);
   },
 
   // Add favorite product

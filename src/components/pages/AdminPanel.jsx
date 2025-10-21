@@ -1767,10 +1767,12 @@ const UsersTab = () => {
 
               {expandedUser === user.id && (
                 <div className="mt-3 p-3 bg-gray-50 rounded-lg space-y-2 text-sm">
-                  <p><strong>Address:</strong> {user.address || 'Not provided'}</p>
-                  <p><strong>Telegram ID:</strong> {user.id}</p>
-                  <p><strong>Referrer:</strong> {user.referrerId || 'None'}</p>
+                  <p><strong>Telegram ID:</strong> {user.telegramId || user.telegram_id || 'N/A'}</p>
+                  <p><strong>Email:</strong> {user.email || 'Not provided'}</p>
+                  <p><strong>Referred By:</strong> {user.referredBy || 'None'}</p>
+                  <p><strong>Referral Code:</strong> {user.referralCode || 'N/A'}</p>
                   <p><strong>Total Orders:</strong> {user.totalOrders || 0}</p>
+                  <p><strong>Joined:</strong> {formatDate(user.createdAt)}</p>
                 </div>
               )}
             </div>

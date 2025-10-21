@@ -278,13 +278,13 @@ export const AdminProvider = ({ children }) => {
       const user = users.find(u => u.id === userId);
       if (!user) throw new Error('User not found');
 
-      const newPoints = Math.max(0, (user.bonus_points || 0) + points);
+      const newPoints = Math.max(0, (user.bonusPoints || user.bonus_points || 0) + points);
       await usersAPI.updateBonusPoints(userId, newPoints);
 
       setUsers(prev =>
         prev.map(u =>
           u.id === userId
-            ? { ...u, bonus_points: newPoints }
+            ? { ...u, bonusPoints: newPoints, bonus_points: newPoints }
             : u
         )
       );
