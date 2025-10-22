@@ -942,6 +942,69 @@ export const storageAPI = {
 };
 
 // ============================================
+// APP SETTINGS API
+// ============================================
+
+export const settingsAPI = {
+  // Get all settings
+  async getSettings() {
+    const { data, error } = await supabase
+      .from('app_settings')
+      .select('*')
+      .eq('id', 1)
+      .single();
+
+    if (error) {
+      console.error('Failed to fetch settings:', error);
+      // Return defaults if table doesn't exist yet
+      return {
+        sale_banner: {
+          title: 'Summer Sale',
+          subtitle: 'Up to 50% Off on Selected Items',
+          imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
+          enabled: true
+        },
+        sale_timer: {
+          endDate: '2025-12-31T23:59:59',
+          enabled: true
+        }
+      };
+    }
+
+    return {
+      sale_banner: data.sale_banner,
+      sale_timer: data.sale_timer
+    };
+  },
+
+  // Update banner settings
+  async updateBanner(banner) {
+    const { data, error } = await supabase
+      .from('app_settings')
+      .update({ sale_banner: banner })
+      .eq('id', 1)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data.sale_banner;
+  },
+
+  // Update timer settings
+  async updateTimer(timer) {
+    const { data, error } = await supabase
+      .from('app_settings')
+      .update({ sale_timer: timer })
+      .eq('id', 1)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data.sale_timer;
+  }
+};
+
+// ============================================
 // MIGRATION HELPERS
 // ============================================
 

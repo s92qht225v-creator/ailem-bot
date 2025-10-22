@@ -12,6 +12,7 @@ import { ShippingRatesContext } from '../../context/ShippingRatesContext';
 import { formatPrice, formatDate, loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { calculateAnalytics, getRevenueChartData } from '../../utils/analytics';
 import { generateVariants, updateVariantStock, getTotalVariantStock } from '../../utils/variants';
+import { settingsAPI } from '../../services/api';
 
 const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -2550,25 +2551,52 @@ const DesktopAdminPanel = ({ onLogout }) => {
       enabled: true
     });
 
-    // Load from localStorage
+    const [loading, setLoading] = useState(true);
+
+    // Load from Supabase
     useEffect(() => {
-      const savedBanner = loadFromLocalStorage('saleBanner');
-      const savedTimer = loadFromLocalStorage('saleTimer');
-      if (savedBanner) setSaleBanner(savedBanner);
-      if (savedTimer) setSaleTimer(savedTimer);
+      const loadSettings = async () => {
+        try {
+          const settings = await settingsAPI.getSettings();
+          if (settings.sale_banner) setSaleBanner(settings.sale_banner);
+          if (settings.sale_timer) setSaleTimer(settings.sale_timer);
+          console.log('\u2705 Settings loaded from Supabase');
+        } catch (error) {
+          console.error('Failed to load settings:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadSettings();
     }, []);
 
-    const saveSaleBanner = (newBanner) => {
+    const saveSaleBanner = async (newBanner) => {
       setSaleBanner(newBanner);
-      saveToLocalStorage('saleBanner', newBanner);
-      console.log('✅ Banner saved:', newBanner);
+      try {
+        await settingsAPI.updateBanner(newBanner);
+        console.log('\u2705 Banner saved to Supabase:', newBanner);
+      } catch (error) {
+        console.error('Failed to save banner:', error);
+      }
     };
 
-    const saveSaleTimer = (newTimer) => {
+    const saveSaleTimer = async (newTimer) => {
       setSaleTimer(newTimer);
-      saveToLocalStorage('saleTimer', newTimer);
-      console.log('✅ Timer saved:', newTimer);
+      try {
+        await settingsAPI.updateTimer(newTimer);
+        console.log('\u2705 Timer saved to Supabase:', newTimer);
+      } catch (error) {
+        console.error('Failed to save timer:', error);
+      }
     };
+
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center p-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
 
     return (
       <div className="max-w-6xl grid gap-6">

@@ -4,7 +4,7 @@ import ProductCard from '../product/ProductCard';
 import { AdminContext } from '../../context/AdminContext';
 import { UserContext } from '../../context/UserContext';
 import { useProducts } from '../../hooks/useProducts';
-import { loadFromLocalStorage } from '../../utils/helpers';
+import { settingsAPI } from '../../services/api';
 
 const HomePage = ({ onNavigate }) => {
   const { categories, loading } = useContext(AdminContext);
@@ -46,38 +46,23 @@ const HomePage = ({ onNavigate }) => {
     enabled: true
   });
 
-  // Load settings from localStorage after mount
+  // Load settings from Supabase
   useEffect(() => {
-    const savedBanner = loadFromLocalStorage('saleBanner');
-    const savedTimer = loadFromLocalStorage('saleTimer');
-    
-    console.log('🏠 HomePage loading banner:', savedBanner);
-    console.log('🏠 HomePage loading timer:', savedTimer);
-
-    if (savedBanner) {
-      setSaleBanner(savedBanner);
-    }
-    if (savedTimer) {
-      setSaleTimer(savedTimer);
-    }
-  }, []);
-
-  // Listen for changes to settings
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const savedBanner = loadFromLocalStorage('saleBanner');
-      const savedTimer = loadFromLocalStorage('saleTimer');
-
-      if (savedBanner) {
-        setSaleBanner(savedBanner);
-      }
-      if (savedTimer) {
-        setSaleTimer(savedTimer);
+    const loadSettings = async () => {
+      try {
+        const settings = await settingsAPI.getSettings();
+        console.log('\ud83c\udfe0 HomePage loading settings from Supabase:', settings);
+        if (settings.sale_banner) {
+          setSaleBanner(settings.sale_banner);
+        }
+        if (settings.sale_timer) {
+          setSaleTimer(settings.sale_timer);
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error);
       }
     };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    loadSettings();
   }, []);
 
   const saleEndDate = new Date(saleTimer.endDate);
