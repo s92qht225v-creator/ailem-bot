@@ -11,6 +11,9 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
+  // Check if product uses variant tracking (must be declared first)
+  const hasVariants = product.variants && product.variants.length > 0;
+
   // Get current variant if both color and size are selected
   const currentVariant = hasVariants && selectedColor && selectedSize
     ? findVariant(product.variants, selectedColor, selectedSize)
@@ -20,9 +23,6 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const images = currentVariant?.image 
     ? [currentVariant.image, ...(product.images || [product.image])]
     : (product.images || [product.image]);
-
-  // Check if product uses variant tracking
-  const hasVariants = product.variants && product.variants.length > 0;
 
   // Get current stock based on variant selection or total stock
   const getCurrentStock = () => {
