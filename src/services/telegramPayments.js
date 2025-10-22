@@ -80,12 +80,17 @@ export const createTelegramInvoice = async (params) => {
     invoiceParams.provider_data = JSON.stringify(providerData);
   }
 
-  console.log('📱 Opening Telegram payment form...', invoiceParams);
+  console.log('📱 Creating invoice link...', invoiceParams);
+
+  // Create invoice link from backend
+  const invoiceUrl = await createInvoiceUrl(invoiceParams);
+  
+  console.log('✅ Invoice link created, opening payment form...');
 
   // Open payment form in Telegram
   return new Promise((resolve, reject) => {
     tg.openInvoice(
-      createInvoiceUrl(invoiceParams),
+      invoiceUrl,
       (status) => {
         console.log('💳 Payment status:', status);
 
@@ -121,12 +126,29 @@ export const createTelegramInvoice = async (params) => {
 
 /**
  * Create invoice URL from parameters
- * This is a helper to format invoice params for Telegram
+ * Calls backend API to generate invoice link from Telegram Bot API
  */
-const createInvoiceUrl = (params) => {
-  // In practice, you'd call your bot's API to generate an invoice link
-  // For now, we'll use the openInvoice method with params
-  return params;
+const createInvoiceUrl = async (params) => {
+  try {
+    const response = await fetch('/api/create-invoice', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(params),
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || 'Failed to create invoice');
+    }
+
+    return data.invoiceLink;
+  } catch (error) {
+    console.error('❌ Failed to create invoice link:', error);
+    throw error;
+  }
 };
 
 /**
