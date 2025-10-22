@@ -48,10 +48,10 @@ export const createTelegramInvoice = async (params) => {
 
   // Format prices for Telegram
   // Telegram expects prices in the smallest currency unit (tiyin for UZS)
-  // 1 UZS = 1 tiyin for Telegram API (no decimals)
+  // 1 UZS = 100 tiyin (exp:2)
   const formattedPrices = prices.map(price => ({
     label: price.label,
-    amount: Math.round(price.amount) // Amount in smallest currency unit
+    amount: Math.round(price.amount * 100) // Convert UZS to tiyin (multiply by 100)
   }));
 
   // Invoice parameters for Telegram
@@ -76,7 +76,8 @@ export const createTelegramInvoice = async (params) => {
     invoiceParams.photo_height = 640;
   }
 
-  if (Object.keys(providerData).length > 0) {
+  // Only add provider_data if it has content
+  if (providerData && Object.keys(providerData).length > 0) {
     invoiceParams.provider_data = JSON.stringify(providerData);
   }
 
@@ -130,6 +131,8 @@ export const createTelegramInvoice = async (params) => {
  */
 const createInvoiceUrl = async (params) => {
   try {
+    console.log('📤 Sending invoice request:', params);
+
     const response = await fetch('/api/create-invoice', {
       method: 'POST',
       headers: {
@@ -140,8 +143,11 @@ const createInvoiceUrl = async (params) => {
 
     const data = await response.json();
 
+    console.log('📥 API Response:', data);
+
     if (!data.success) {
-      throw new Error(data.error || 'Failed to create invoice');
+      console.error('❌ API Error Details:', data);
+      throw new Error(data.details || data.error || 'Failed to create invoice');
     }
 
     return data.invoiceLink;
@@ -174,27 +180,20 @@ export const payWithTelegram = async (order) => {
     { label: 'Order Total', amount: Math.round(total) }
   ];
 
+  // Clean order ID for payload - remove special characters
+  // Telegram payload only accepts alphanumeric characters
+  const cleanPayload = orderId.replace(/[^a-zA-Z0-9]/g, '');
+
   // Create invoice
   return await createTelegramInvoice({
-    title: `Order #${orderId}`,
+    title: `Order ${orderId}`,
     description: `${items.length} item(s) from Ailem Store`,
-    // Keep payload short (<128 bytes)
-    payload: `order:${orderId}`,
+    // Payload: alphanumeric only, max 128 bytes
+    payload: cleanPayload,
     currency: 'UZS',
     prices,
-    providerData: {
-      receipt: {
-        items: items.map(item => ({
-          description: item.productName,
-          quantity: item.quantity,
-          amount: {
-            value: item.price,
-            currency: 'UZS'
-          }
-        }))
-      }
-    },
-    photoUrl: items[0]?.image, // Use first item image
+    providerData: {}, // Empty for now - Paycom doesn't require extra data
+    photoUrl: null, // Skip photo for now to avoid validation issues
     needName: true,
     needPhone: true,
   });

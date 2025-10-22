@@ -7,10 +7,10 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+  const BOT_TOKEN = process.env.VITE_TELEGRAM_BOT_TOKEN;
 
   if (!BOT_TOKEN) {
-    console.error('❌ TELEGRAM_BOT_TOKEN not configured');
+    console.error('❌ VITE_TELEGRAM_BOT_TOKEN not configured');
     return res.status(500).json({ error: 'Bot token not configured' });
   }
 
@@ -21,7 +21,6 @@ export default async function handler(req, res) {
       payload,
       currency,
       prices,
-      provider_token = '', // Empty for Telegram-connected providers (Paycom)
       photo_url,
       need_name = true,
       need_phone_number = true,
@@ -29,8 +28,11 @@ export default async function handler(req, res) {
       need_shipping_address = false,
     } = req.body;
 
+    console.log('📱 Creating invoice with:', { title, description, payload, currency, prices });
+
     // Validate required fields
     if (!title || !description || !payload || !currency || !prices) {
+      console.error('❌ Missing required fields:', { title, description, payload, currency, prices });
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -40,6 +42,7 @@ export default async function handler(req, res) {
       title,
       description,
       payload,
+      provider_token: '', // MUST be empty string for BotFather-connected providers like Paycom
       currency,
       prices,
       need_name,
@@ -48,7 +51,7 @@ export default async function handler(req, res) {
       need_shipping_address,
     };
 
-    if (provider_token) body.provider_token = provider_token;
+    // Only add photo_url if provided
     if (photo_url) body.photo_url = photo_url;
 
     const response = await fetch(
@@ -65,10 +68,13 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!data.ok) {
-      console.error('❌ Telegram API error:', data);
+      console.error('❌ Telegram API error:', JSON.stringify(data, null, 2));
+      console.error('❌ Request body was:', JSON.stringify(body, null, 2));
       return res.status(400).json({
+        success: false,
         error: 'Failed to create invoice',
         details: data.description,
+        telegram_error: data,
       });
     }
 

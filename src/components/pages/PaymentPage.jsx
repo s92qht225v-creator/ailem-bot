@@ -457,7 +457,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
             )}
 
             <div className="flex justify-between">
-              <span className="text-gray-600">Delivery ({checkoutData.courier.name})</span>
+              <span className="text-gray-600">Delivery ({checkoutData.courier})</span>
               <span>{formatPrice(checkoutData.deliveryFee)}</span>
             </div>
 
