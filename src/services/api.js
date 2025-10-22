@@ -547,9 +547,12 @@ export const ordersAPI = {
 
   // Create order
   async create(order) {
+    // Generate UUID for id field
+    const uuid = crypto.randomUUID();
+    
     // Transform app fields to database fields
     const dbOrder = {
-      // DO NOT set id - let Supabase auto-generate UUID
+      id: uuid, // Generate UUID for primary key
       order_number: order.id, // Store human-readable ID in order_number field
       user_id: order.userId,
       user_telegram_id: order.userTelegramId || null, // Add Telegram ID for notifications
