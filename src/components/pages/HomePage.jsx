@@ -50,6 +50,9 @@ const HomePage = ({ onNavigate }) => {
   useEffect(() => {
     const savedBanner = loadFromLocalStorage('saleBanner');
     const savedTimer = loadFromLocalStorage('saleTimer');
+    
+    console.log('🏠 HomePage loading banner:', savedBanner);
+    console.log('🏠 HomePage loading timer:', savedTimer);
 
     if (savedBanner) {
       setSaleBanner(savedBanner);
