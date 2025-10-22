@@ -100,7 +100,7 @@ const HomePage = ({ onNavigate }) => {
       )}
 
       {/* Categories */}
-      <div className="px-4 mb-6">
+      <div className="px-4 mb-6 pt-6">
         <h3 className="text-xl font-bold mb-4">Shop by Category</h3>
         <div className="grid grid-cols-2 gap-4">
           {categories && categories.length > 0 ? categories.map((category) => (
