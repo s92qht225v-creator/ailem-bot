@@ -10,7 +10,7 @@ export const useBackButton = (onClick, enabled = true) => {
   useEffect(() => {
     const tg = getTelegramWebApp();
     
-    if (!tg || !enabled) return;
+    if (!tg || !tg.BackButton || !enabled) return;
 
     // Show the back button
     tg.BackButton.show();
@@ -20,8 +20,10 @@ export const useBackButton = (onClick, enabled = true) => {
 
     // Cleanup: hide button and remove handler when component unmounts
     return () => {
-      tg.BackButton.hide();
-      tg.BackButton.offClick(onClick);
+      if (tg && tg.BackButton) {
+        tg.BackButton.hide();
+        tg.BackButton.offClick(onClick);
+      }
     };
   }, [onClick, enabled]);
 };

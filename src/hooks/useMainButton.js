@@ -22,7 +22,7 @@ export const useMainButton = (text, onClick, options = {}) => {
   useEffect(() => {
     const tg = getTelegramWebApp();
     
-    if (!tg || !enabled) return;
+    if (!tg || !tg.MainButton || !enabled) return;
 
     // Configure the button
     tg.MainButton.setText(text);
@@ -45,9 +45,11 @@ export const useMainButton = (text, onClick, options = {}) => {
 
     // Cleanup: hide button and remove handler when component unmounts
     return () => {
-      tg.MainButton.hide();
-      tg.MainButton.offClick(onClick);
-      tg.MainButton.hideProgress();
+      if (tg && tg.MainButton) {
+        tg.MainButton.hide();
+        tg.MainButton.offClick(onClick);
+        tg.MainButton.hideProgress();
+      }
     };
   }, [text, onClick, enabled, color, textColor, progress]);
 };
