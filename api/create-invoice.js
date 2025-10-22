@@ -8,6 +8,8 @@ export default async function handler(req, res) {
   }
 
   const BOT_TOKEN = process.env.VITE_TELEGRAM_BOT_TOKEN;
+  // Use PAYMENT_PROVIDER_TOKEN if set, otherwise empty string for BotFather-connected providers
+  const PAYMENT_PROVIDER_TOKEN = process.env.PAYMENT_PROVIDER_TOKEN || '';
 
   if (!BOT_TOKEN) {
     console.error('❌ VITE_TELEGRAM_BOT_TOKEN not configured');
@@ -42,7 +44,7 @@ export default async function handler(req, res) {
       title,
       description,
       payload,
-      provider_token: '', // MUST be empty string for BotFather-connected providers like Paycom
+      provider_token: PAYMENT_PROVIDER_TOKEN, // From env or empty for BotFather-connected
       currency,
       prices,
       need_name,
@@ -50,6 +52,8 @@ export default async function handler(req, res) {
       need_email,
       need_shipping_address,
     };
+
+    console.log('🔑 Using provider_token:', PAYMENT_PROVIDER_TOKEN ? 'SET' : 'EMPTY');
 
     // Only add photo_url if provided
     if (photo_url) body.photo_url = photo_url;
