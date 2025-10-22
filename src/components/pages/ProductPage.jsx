@@ -1,6 +1,7 @@
 import { ArrowLeft } from 'lucide-react';
 import ProductDetails from '../product/ProductDetails';
 import ReviewSection from '../product/ReviewSection';
+import RelatedProducts from '../product/RelatedProducts';
 import { useProducts } from '../../hooks/useProducts';
 import { useCart } from '../../hooks/useCart';
 
@@ -50,6 +51,9 @@ const ProductPage = ({ productId, onNavigate }) => {
 
       {/* Review Section */}
       <ReviewSection product={product} />
+
+      {/* Related Products */}
+      <RelatedProducts currentProduct={product} onNavigate={onNavigate} />
     </div>
   );
 };
