@@ -17,7 +17,7 @@ const getPaymeConfig = () => {
   return {
     merchantId: import.meta.env.VITE_PAYME_MERCHANT_ID || loadFromLocalStorage('paymeMerchantId'),
     apiKey: import.meta.env.VITE_PAYME_API_KEY || loadFromLocalStorage('paymeApiKey'),
-    testMode: import.meta.env.VITE_PAYME_TEST_MODE === 'true' || loadFromLocalStorage('paymeTestMode', true),
+    testMode: import.meta.env.VITE_PAYME_TEST_MODE !== 'false', // Default to test mode
     returnUrl: import.meta.env.VITE_APP_URL || window.location.origin,
   };
 };
@@ -43,28 +43,27 @@ export const generatePaymeLink = ({ orderId, amount, description, account = {} }
   // Amount must be in tiyin (1 UZS = 100 tiyin)
   const amountInTiyin = Math.round(amount * 100);
 
-  // Base64 encode the merchant ID for the URL
-  const merchantIdBase64 = btoa(config.merchantId);
-
-  // Build payment parameters
-  const params = new URLSearchParams({
-    'm': merchantIdBase64,
-    'ac.order_id': orderId,
-    'a': amountInTiyin.toString(),
-    'c': description || `Order #${orderId}`,
-    // Add custom account parameters
-    ...Object.entries(account).reduce((acc, [key, value]) => {
-      acc[`ac.${key}`] = value;
-      return acc;
-    }, {}),
+  // Build payment parameters string (semicolon-separated)
+  let paramsString = `m=${config.merchantId}`;
+  paramsString += `;ac.order_id=${orderId}`;
+  paramsString += `;a=${amountInTiyin}`;
+  
+  // Add custom account parameters
+  Object.entries(account).forEach(([key, value]) => {
+    if (key !== 'order_id') { // order_id already added
+      paramsString += `;ac.${key}=${value}`;
+    }
   });
 
-  // Return full payment URL
+  // Base64 encode the entire params string
+  const paramsBase64 = btoa(paramsString);
+
+  // Return full payment URL with base64 params
   const baseUrl = config.testMode
     ? 'https://checkout.test.paycom.uz'
     : 'https://checkout.paycom.uz';
 
-  return `${baseUrl}/${params.toString()}`;
+  return `${baseUrl}/${paramsBase64}`;
 };
 
 /**
