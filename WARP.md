@@ -130,6 +130,10 @@ UserProvider
 ```bash
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+VITE_PAYME_MERCHANT_ID=your_payme_merchant_id
+VITE_PAYME_TEST_MODE=true
+PAYME_KEY=your_payme_merchant_key
 ```
 
 ### Local Development
@@ -168,5 +172,37 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 - **Image Loading**: Lazy loading with fallbacks
 - **Error Boundaries**: App-level error catching
 - **Admin Authentication**: UI toggle only (implement proper auth for production)
-- **Payment Processing**: Manual verification via screenshot upload
-- **Order Status Flow**: pending → approved/rejected (manual admin action)
+- **Payment Processing**: Payme gateway integration with webhook auto-approval
+- **Order Status Flow**: pending → approved (via Payme webhook) / rejected (manual admin action)
+
+## Recent Implementations (2025-10-22)
+
+### Telegram Native UI Integration
+- **BackButton Hook**: `src/hooks/useBackButton.js` - Native back button with null safety
+- **MainButton Hook**: `src/hooks/useMainButton.js` - Native main button for CTAs
+- Used in: ProductPage, CheckoutPage, OrderDetailsPage, PaymentPage, WriteReviewPage
+- Always check `window.Telegram?.WebApp` availability before accessing
+
+### Cart Cloud Sync
+- Cart now persists to `users.cart` column in Supabase (JSONB)
+- Enables cross-device cart access
+- Syncs on cart changes via `CartContext`
+
+### Payme Payment Gateway
+- **Service**: `src/services/payme.js` - Payment link generation
+- **Webhook**: `api/payme-webhook.js` - Merchant API implementation
+- **Flow**: 
+  1. Generate checkout link with base64 encoded params
+  2. Opens in Telegram's in-app browser (test.paycom.uz in test mode)
+  3. Webhook receives PerformTransaction → auto-approves order
+- **Test Cards**: 8600 0000 0000 0000, exp 03/99, SMS 666666
+- **Database**: Added `payme_transaction_id`, `payme_transaction_time`, `payme_cancel_time` to orders table
+
+### Known Configuration Needs
+- ⚠️ **Webhook URL must be configured in Payme cabinet**: `https://www.ailem.uz/api/payme-webhook`
+- Test mode active by default (`VITE_PAYME_TEST_MODE=true`)
+- Switch to production: Set test mode to false and update `PAYME_KEY` to production password
+
+### Current Issues
+- None - all React errors and payment integration issues resolved
+- See `PROJECT_STATUS.md` for detailed status and testing instructions
