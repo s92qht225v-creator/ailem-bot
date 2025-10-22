@@ -15,6 +15,15 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
     return name ? name.charAt(0).toUpperCase() : 'U';
   };
 
+  // Show loading state if user is not loaded yet
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
   return (
     <div className={hideHeader ? '' : 'pb-20 bg-gray-50 min-h-screen'}>
       {/* Header */}
@@ -26,7 +35,7 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
 
       {/* Profile Info */}
       <div className="bg-white p-6 text-center">
-        {user.photoUrl ? (
+        {user?.photoUrl ? (
           <img
             src={user.photoUrl}
             alt={user.name}
@@ -40,13 +49,13 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
         ) : null}
         <div
           className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-300 to-orange-400 flex items-center justify-center text-4xl font-bold text-white mx-auto mb-4"
-          style={{ display: user.photoUrl ? 'none' : 'flex' }}
+          style={{ display: user?.photoUrl ? 'none' : 'flex' }}
         >
-          {getInitial(user.name)}
+          {getInitial(user?.name)}
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">{user.name}</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">{user?.name || 'Guest'}</h2>
         <p className="text-sm text-gray-500">
-          {user.phone || (user.username && user.username !== 'guest' ? `@${user.username}` : (user.telegramId ? `ID: ${user.telegramId}` : 'Guest User'))}
+          {user?.phone || (user?.username && user.username !== 'guest' ? `@${user.username}` : (user?.telegramId ? `ID: ${user.telegramId}` : 'Guest User'))}
         </p>
       </div>
 
@@ -83,7 +92,7 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
         <MenuCard
           icon={Award}
           title="Bonus Points"
-          subtitle={`${formatPrice(user.bonusPoints)} earnings`}
+          subtitle={`${formatPrice(user?.bonusPoints || 0)} earnings`}
           onClick={() => onNavigate('referrals')}
         />
 
