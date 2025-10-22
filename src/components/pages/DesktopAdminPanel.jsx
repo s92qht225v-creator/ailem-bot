@@ -331,6 +331,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const { approveOrder, rejectOrder, updateOrderStatus } = useContext(AdminContext);
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [selectedOrders, setSelectedOrders] = useState([]);
+    const [bulkAction, setBulkAction] = useState('');
 
     const filteredOrders = useMemo(() => {
       if (statusFilter === 'all') return orders;
@@ -389,9 +391,77 @@ const DesktopAdminPanel = ({ onLogout }) => {
       setSelectedOrder(order);
     };
 
+    const handleSelectOrder = (orderId) => {
+      setSelectedOrders(prev => 
+        prev.includes(orderId) 
+          ? prev.filter(id => id !== orderId)
+          : [...prev, orderId]
+      );
+    };
+
+    const handleSelectAll = () => {
+      if (selectedOrders.length === filteredOrders.length) {
+        setSelectedOrders([]);
+      } else {
+        setSelectedOrders(filteredOrders.map(o => o.id));
+      }
+    };
+
+    const handleBulkAction = async () => {
+      if (!bulkAction || selectedOrders.length === 0) {
+        alert('Please select orders and an action');
+        return;
+      }
+
+      const action = bulkAction;
+      const count = selectedOrders.length;
+      
+      if (!confirm(`${action} ${count} order(s)?`)) return;
+
+      try {
+        console.log(`📦 Performing bulk ${action} on ${count} orders...`);
+        
+        for (const orderId of selectedOrders) {
+          const order = orders.find(o => o.id === orderId);
+          if (!order) continue;
+
+          switch (action) {
+            case 'Approve':
+              if (order.status === 'pending') {
+                await approveOrder(orderId);
+              }
+              break;
+            case 'Mark as Shipped':
+              if (order.status === 'approved') {
+                await updateOrderStatus(orderId, 'shipped');
+              }
+              break;
+            case 'Mark as Delivered':
+              if (order.status === 'shipped') {
+                await updateOrderStatus(orderId, 'delivered');
+              }
+              break;
+            case 'Reject':
+              if (order.status === 'pending') {
+                await rejectOrder(orderId);
+              }
+              break;
+          }
+        }
+
+        console.log(`✅ Bulk ${action} completed`);
+        setSelectedOrders([]);
+        setBulkAction('');
+        alert(`Successfully ${action.toLowerCase()}d ${count} order(s)`);
+      } catch (error) {
+        console.error('❌ Bulk action failed:', error);
+        alert('Some orders failed to update. Please try again.');
+      }
+    };
+
     return (
       <div className="bg-white rounded-lg shadow">
-        <div className="p-6 border-b">
+        <div className="p-6 border-b space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Orders Management</h3>
             <div className="flex gap-2">
@@ -409,11 +479,52 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </select>
             </div>
           </div>
+
+          {/* Bulk Actions Bar */}
+          {selectedOrders.length > 0 && (
+            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+              <span className="text-sm font-semibold text-blue-900">
+                {selectedOrders.length} order(s) selected
+              </span>
+              <select
+                value={bulkAction}
+                onChange={(e) => setBulkAction(e.target.value)}
+                className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-accent"
+              >
+                <option value="">Select Action</option>
+                <option value="Approve">Approve</option>
+                <option value="Mark as Shipped">Mark as Shipped</option>
+                <option value="Mark as Delivered">Mark as Delivered</option>
+                <option value="Reject">Reject</option>
+              </select>
+              <button
+                onClick={handleBulkAction}
+                disabled={!bulkAction}
+                className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Apply
+              </button>
+              <button
+                onClick={() => setSelectedOrders([])}
+                className="px-3 py-1.5 text-gray-600 hover:text-gray-900 text-sm font-medium"
+              >
+                Clear
+              </button>
+            </div>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
+                <th className="px-4 py-3 text-left">
+                  <input
+                    type="checkbox"
+                    checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  />
+                </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
@@ -425,13 +536,21 @@ const DesktopAdminPanel = ({ onLogout }) => {
             <tbody className="divide-y divide-gray-200">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                  <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
                     No orders found for selected filter
                   </td>
                 </tr>
               ) : (
                 filteredOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-gray-50">
+                  <tr key={order.id} className={`hover:bg-gray-50 ${selectedOrders.includes(order.id) ? 'bg-blue-50' : ''}`}>
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedOrders.includes(order.id)}
+                        onChange={() => handleSelectOrder(order.id)}
+                        className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                      />
+                    </td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-900">#{order.id}</td>
                     <td className="px-6 py-4 text-sm text-gray-900">{order.userName}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{formatDate(order.createdAt || order.date)}</td>
