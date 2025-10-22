@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useMemo } from 'react';
 import { 
   Shield, Package, Star, Users as UsersIcon, CheckCircle, XCircle, 
   Edit, Trash2, Plus, ChevronRight, Edit2, ShoppingBag, Truck, Gift, 
@@ -328,18 +328,59 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
   // Other content components would be implemented similarly...
   function OrdersContent() {
+    const { approveOrder, rejectOrder } = useContext(AdminContext);
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [selectedOrder, setSelectedOrder] = useState(null);
+
+    const filteredOrders = useMemo(() => {
+      if (statusFilter === 'all') return orders;
+      return orders.filter(order => order.status === statusFilter);
+    }, [orders, statusFilter]);
+
+    const handleApprove = async (orderId) => {
+      if (confirm('Approve this order? This will deduct stock from inventory.')) {
+        try {
+          await approveOrder(orderId);
+          console.log('✅ Order approved');
+        } catch (error) {
+          console.error('❌ Failed to approve order:', error);
+          alert('Failed to approve order. Please try again.');
+        }
+      }
+    };
+
+    const handleReject = async (orderId) => {
+      if (confirm('Reject this order? If previously approved, stock will be restored.')) {
+        try {
+          await rejectOrder(orderId);
+          console.log('✅ Order rejected');
+        } catch (error) {
+          console.error('❌ Failed to reject order:', error);
+          alert('Failed to reject order. Please try again.');
+        }
+      }
+    };
+
+    const handleViewOrder = (order) => {
+      setSelectedOrder(order);
+    };
+
     return (
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Orders Management</h3>
             <div className="flex gap-2">
-              <select className="px-3 py-2 border rounded-lg text-sm">
-                <option>All Status</option>
-                <option>Pending</option>
-                <option>Approved</option>
-                <option>Shipped</option>
-                <option>Delivered</option>
+              <select 
+                className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">All Status ({orders.length})</option>
+                <option value="pending">Pending ({orders.filter(o => o.status === 'pending').length})</option>
+                <option value="approved">Approved ({orders.filter(o => o.status === 'approved').length})</option>
+                <option value="shipped">Shipped ({orders.filter(o => o.status === 'shipped').length})</option>
+                <option value="rejected">Rejected ({orders.filter(o => o.status === 'rejected').length})</option>
               </select>
             </div>
           </div>
@@ -357,38 +398,105 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {orders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">#{order.id}</td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{order.userName}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{formatDate(order.createdAt || order.date)}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatPrice(order.total)}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      order.status === 'approved' ? 'bg-green-100 text-green-800' :
-                      order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <div className="flex gap-2">
-                      <button className="text-blue-600 hover:text-blue-800">View</button>
-                      {order.status === 'pending' && (
-                        <>
-                          <button className="text-green-600 hover:text-green-800">Approve</button>
-                          <button className="text-red-600 hover:text-red-800">Reject</button>
-                        </>
-                      )}
-                    </div>
+              {filteredOrders.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                    No orders found for selected filter
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredOrders.map((order) => (
+                  <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">#{order.id}</td>
+                    <td className="px-6 py-4 text-sm text-gray-900">{order.userName}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{formatDate(order.createdAt || order.date)}</td>
+                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatPrice(order.total)}</td>
+                    <td className="px-6 py-4">
+                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                        order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                        order.status === 'approved' ? 'bg-green-100 text-green-800' :
+                        order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                        order.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {order.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      <div className="flex gap-2">
+                        <button 
+                          onClick={() => handleViewOrder(order)}
+                          className="text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          View
+                        </button>
+                        {order.status === 'pending' && (
+                          <>
+                            <button 
+                              onClick={() => handleApprove(order.id)}
+                              className="text-green-600 hover:text-green-800 font-medium"
+                            >
+                              Approve
+                            </button>
+                            <button 
+                              onClick={() => handleReject(order.id)}
+                              className="text-red-600 hover:text-red-800 font-medium"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
+
+        {/* Order Details Modal */}
+        {selectedOrder && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedOrder(null)}>
+            <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+              <div className="p-6 border-b">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold">Order #{selectedOrder.id}</h3>
+                  <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-gray-600">
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+              <div className="p-6 space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">Customer Information</h4>
+                  <p className="text-sm text-gray-600">Name: {selectedOrder.userName}</p>
+                  <p className="text-sm text-gray-600">Phone: {selectedOrder.userPhone}</p>
+                  {selectedOrder.deliveryAddress && (
+                    <p className="text-sm text-gray-600">Address: {selectedOrder.deliveryAddress}</p>
+                  )}
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-2">Order Items</h4>
+                  <div className="space-y-2">
+                    {selectedOrder.items?.map((item, idx) => (
+                      <div key={idx} className="flex justify-between text-sm">
+                        <span>{item.name} x{item.quantity}</span>
+                        <span>{formatPrice(item.price * item.quantity)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="border-t pt-4">
+                  <div className="flex justify-between font-bold">
+                    <span>Total:</span>
+                    <span>{formatPrice(selectedOrder.total)}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
