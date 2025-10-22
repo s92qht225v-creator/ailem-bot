@@ -594,24 +594,63 @@ export const ordersAPI = {
 
   // Update order status
   async updateStatus(id, status) {
-    // Try to find by database UUID first, fallback to order_number
-    let query = supabase
-      .from('orders')
-      .update({ status })
-      .select();
+    console.log('🔍 Updating order status. ID received:', id, 'Status:', status);
     
-    // If id looks like a UUID, use it directly
-    if (id.includes('-') && id.length > 20) {
-      query = query.eq('id', id);
-    } else {
-      // Otherwise assume it's an order_number
-      query = query.eq('order_number', id);
+    // First, try to find the order by order_number (human-readable ID)
+    const { data: foundOrders, error: findError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('order_number', id);
+    
+    if (findError) {
+      console.error('❌ Error finding order:', findError);
+      throw findError;
     }
     
-    const { data, error } = await query.single();
-
-    if (error) throw error;
-    return this._mapOrderFromDB(data);
+    if (!foundOrders || foundOrders.length === 0) {
+      // If not found by order_number, try by UUID id
+      console.log('⚠️ Order not found by order_number, trying UUID...');
+      const { data: uuidOrders, error: uuidError } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', id);
+      
+      if (uuidError) throw uuidError;
+      if (!uuidOrders || uuidOrders.length === 0) {
+        throw new Error(`Order not found with id: ${id}`);
+      }
+      
+      // Update using UUID
+      const { data: updated, error: updateError } = await supabase
+        .from('orders')
+        .update({ status })
+        .eq('id', id)
+        .select()
+        .single();
+      
+      if (updateError) throw updateError;
+      console.log('✅ Order updated by UUID:', updated);
+      return this._mapOrderFromDB(updated);
+    }
+    
+    // Update using the found order's actual database id
+    const actualDbId = foundOrders[0].id;
+    console.log('📝 Found order. DB ID:', actualDbId);
+    
+    const { data: updated, error: updateError } = await supabase
+      .from('orders')
+      .update({ status })
+      .eq('id', actualDbId)
+      .select()
+      .single();
+    
+    if (updateError) {
+      console.error('❌ Update error:', updateError);
+      throw updateError;
+    }
+    
+    console.log('✅ Order status updated successfully');
+    return this._mapOrderFromDB(updated);
   },
 
   // Delete order
