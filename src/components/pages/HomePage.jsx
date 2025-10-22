@@ -1,10 +1,11 @@
-import { useState, useEffect, useContext, useMemo } from 'react';
-import CountdownTimer from '../common/CountdownTimer';
-import ProductCard from '../product/ProductCard';
-import { AdminContext } from '../../context/AdminContext';
+import { useContext, useEffect, useState, useMemo } from 'react';
 import { UserContext } from '../../context/UserContext';
-import { useProducts } from '../../hooks/useProducts';
+import { AdminContext } from '../../context/AdminContext';
+import ProductCard from '../product/ProductCard';
+import CountdownTimer from '../common/CountdownTimer';
 import { settingsAPI } from '../../services/api';
+import { loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
+import { useProducts } from '../../hooks/useProducts';
 
 const HomePage = ({ onNavigate }) => {
   const { categories, loading } = useContext(AdminContext);
@@ -32,41 +33,35 @@ const HomePage = ({ onNavigate }) => {
     );
   }
 
-  const [saleBanner, setSaleBanner] = useState(null);
-  const [saleTimer, setSaleTimer] = useState(null);
-  const [settingsLoaded, setSettingsLoaded] = useState(false);
+  // Load cached settings immediately for instant display
+  const [saleBanner, setSaleBanner] = useState(() => {
+    const cached = loadFromLocalStorage('cachedSaleBanner');
+    return cached || null;
+  });
+  const [saleTimer, setSaleTimer] = useState(() => {
+    const cached = loadFromLocalStorage('cachedSaleTimer');
+    return cached || null;
+  });
 
-  // Load settings from Supabase
+  // Load fresh settings from Supabase in background
   useEffect(() => {
     const loadSettings = async () => {
       try {
         const settings = await settingsAPI.getSettings();
         console.log('\ud83c\udfe0 HomePage loading settings from Supabase:', settings);
-        setSaleBanner(settings.sale_banner || {
-          title: 'Summer Sale',
-          subtitle: 'Up to 50% Off on Selected Items',
-          imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
-          enabled: true
-        });
-        setSaleTimer(settings.sale_timer || {
-          endDate: '2025-12-31T23:59:59',
-          enabled: true
-        });
+        
+        if (settings.sale_banner) {
+          setSaleBanner(settings.sale_banner);
+          saveToLocalStorage('cachedSaleBanner', settings.sale_banner);
+        }
+        
+        if (settings.sale_timer) {
+          setSaleTimer(settings.sale_timer);
+          saveToLocalStorage('cachedSaleTimer', settings.sale_timer);
+        }
       } catch (error) {
-        console.error('Failed to load settings:', error);
-        // Set defaults on error
-        setSaleBanner({
-          title: 'Summer Sale',
-          subtitle: 'Up to 50% Off on Selected Items',
-          imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
-          enabled: true
-        });
-        setSaleTimer({
-          endDate: '2025-12-31T23:59:59',
-          enabled: true
-        });
-      } finally {
-        setSettingsLoaded(true);
+        console.error('Failed to load settings from Supabase:', error);
+        // Keep using cached values, don't override with defaults
       }
     };
     loadSettings();
@@ -77,7 +72,7 @@ const HomePage = ({ onNavigate }) => {
   return (
     <div className="pb-20">
       {/* Hero Banner - Only show if enabled in settings */}
-      {settingsLoaded && saleBanner && saleBanner.enabled && (
+      {saleBanner && saleBanner.enabled && (
         <div className="relative h-64 bg-gradient-to-r from-primary to-gray-700">
           <img
             src={saleBanner.imageUrl}
@@ -92,7 +87,7 @@ const HomePage = ({ onNavigate }) => {
       )}
 
       {/* Countdown Timer - Only show if timer is enabled */}
-      {settingsLoaded && saleTimer && saleTimer.enabled && saleEndDate && (
+      {saleTimer && saleTimer.enabled && saleEndDate && (
         <div className="bg-white shadow-md py-6 px-4 mb-6">
           <h3 className="text-center font-semibold text-gray-700 mb-3">Sale Ends In</h3>
           <CountdownTimer endDate={saleEndDate} />
