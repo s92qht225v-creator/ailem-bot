@@ -73,7 +73,7 @@ const HomePage = ({ onNavigate }) => {
     <div className="pb-20">
       {/* Hero Banner - Only show if enabled in settings */}
       {saleBanner && saleBanner.enabled && (
-        <div className="relative h-64 bg-gradient-to-r from-primary to-gray-700">
+        <div className="relative h-64 bg-gradient-to-r from-primary to-gray-700 mx-4 mb-6 rounded-lg overflow-hidden">
           <img
             src={saleBanner.imageUrl}
             alt="Hero Banner"
