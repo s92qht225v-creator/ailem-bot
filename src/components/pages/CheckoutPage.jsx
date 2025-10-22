@@ -1,9 +1,10 @@
 import { useState, useContext, useEffect } from 'react';
-import { ArrowLeft, MapPin, Clock, Phone } from 'lucide-react';
+import { MapPin, Clock, Phone } from 'lucide-react';
 import { useCart } from '../../hooks/useCart';
 import { UserContext } from '../../context/UserContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
 import { formatPrice, bonusPointsToDollars, calculateMaxBonusUsage } from '../../utils/helpers';
+import { useBackButton } from '../../hooks/useBackButton';
 import CustomDropdown from '../common/CustomDropdown';
 
 // Tashkent districts for Yandex
@@ -88,6 +89,9 @@ const CheckoutPage = ({ onNavigate }) => {
 
   // Get all courier services including Yandex
   const allCouriers = ['Yandex', ...getCourierServices()];
+
+  // Use native Telegram BackButton
+  useBackButton(() => onNavigate('cart'));
 
   // Reset fields when courier changes
   useEffect(() => {
@@ -231,17 +235,6 @@ const CheckoutPage = ({ onNavigate }) => {
 
   return (
     <div className="pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white shadow-sm">
-        <button
-          onClick={() => onNavigate('cart')}
-          className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="font-semibold">Back to Cart</span>
-        </button>
-      </div>
-
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
         <h2 className="text-2xl font-bold">Checkout</h2>
 

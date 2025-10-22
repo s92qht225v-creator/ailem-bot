@@ -1,9 +1,9 @@
-import { ArrowLeft } from 'lucide-react';
 import ProductDetails from '../product/ProductDetails';
 import ReviewSection from '../product/ReviewSection';
 import RelatedProducts from '../product/RelatedProducts';
 import { useProducts } from '../../hooks/useProducts';
 import { useCart } from '../../hooks/useCart';
+import { useBackButton } from '../../hooks/useBackButton';
 
 const ProductPage = ({ productId, onNavigate }) => {
   const { getProductById, selectedCategory } = useProducts();
@@ -13,6 +13,9 @@ const ProductPage = ({ productId, onNavigate }) => {
   const handleBackToShop = () => {
     onNavigate('shop', { category: selectedCategory });
   };
+
+  // Use native Telegram BackButton
+  useBackButton(handleBackToShop);
 
   if (!product) {
     return (
@@ -35,17 +38,6 @@ const ProductPage = ({ productId, onNavigate }) => {
 
   return (
     <div className="pb-20">
-      {/* Back Button */}
-      <div className="sticky top-0 z-10 bg-white shadow-sm">
-        <button
-          onClick={handleBackToShop}
-          className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="font-semibold">Back</span>
-        </button>
-      </div>
-
       {/* Product Details */}
       <ProductDetails product={product} onAddToCart={handleAddToCart} />
 

@@ -401,6 +401,19 @@ export const usersAPI = {
     return this._mapUserFromDB(data);
   },
 
+  // Update user cart
+  async updateCart(userId, cart) {
+    const { data, error } = await supabase
+      .from('users')
+      .update({ cart: cart })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return this._mapUserFromDB(data);
+  },
+
   // Get all users (admin)
   async getAll() {
     const { data, error } = await supabase

@@ -1,16 +1,20 @@
 import { useState, useContext } from 'react';
-import { ArrowLeft, Copy, Upload, CheckCircle } from 'lucide-react';
+import { Copy, Upload, CheckCircle } from 'lucide-react';
 import { formatPrice, copyToClipboard, generateOrderNumber, calculateBonusPoints } from '../../utils/helpers';
 import { useCart } from '../../hooks/useCart';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
 import { storageAPI } from '../../services/api';
 import { notifyAdminNewOrder, notifyUserNewOrder } from '../../services/telegram';
+import { useBackButton } from '../../hooks/useBackButton';
 
 const PaymentPage = ({ checkoutData, onNavigate }) => {
   const { cartItems, clearCart } = useCart();
   const { user, updateBonusPoints } = useContext(UserContext);
   const { addOrder } = useContext(AdminContext);
+
+  // Use native Telegram BackButton
+  useBackButton(() => onNavigate('checkout'));
 
   const [screenshot, setScreenshot] = useState(null);
   const [uploading, setUploading] = useState(false);
@@ -146,17 +150,6 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
 
   return (
     <div className="pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white shadow-sm">
-        <button
-          onClick={() => onNavigate('checkout')}
-          className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="font-semibold">Back to Checkout</span>
-        </button>
-      </div>
-
       <div className="p-4 space-y-6">
         <h2 className="text-2xl font-bold">Payment</h2>
 

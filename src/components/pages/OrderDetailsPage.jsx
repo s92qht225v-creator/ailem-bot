@@ -1,10 +1,13 @@
-import { ArrowLeft } from 'lucide-react';
 import { useOrders } from '../../hooks/useOrders';
 import { formatPrice, formatDate, getStatusColor } from '../../utils/helpers';
+import { useBackButton } from '../../hooks/useBackButton';
 
 const OrderDetailsPage = ({ orderId, onNavigate }) => {
   const { getOrderById } = useOrders();
   const order = getOrderById(orderId);
+
+  // Use native Telegram BackButton
+  useBackButton(() => onNavigate('profile'));
 
   if (!order) {
     return (
@@ -22,17 +25,6 @@ const OrderDetailsPage = ({ orderId, onNavigate }) => {
 
   return (
     <div className="pb-20 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white shadow-sm">
-        <button
-          onClick={() => onNavigate('profile')}
-          className="flex items-center gap-2 px-4 py-3 hover:bg-gray-50 transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span className="font-semibold">Back to Profile</span>
-        </button>
-      </div>
-
       <div className="p-4">
         {/* Order Header */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-4">

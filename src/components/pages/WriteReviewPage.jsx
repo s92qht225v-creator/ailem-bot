@@ -1,11 +1,15 @@
 import { useState, useContext } from 'react';
-import { ChevronLeft, Star, Camera, X } from 'lucide-react';
+import { Star, Camera, X } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
+import { useBackButton } from '../../hooks/useBackButton';
 
 const WriteReviewPage = ({ onNavigate, pageData }) => {
   const { user } = useContext(UserContext);
   const { addReview } = useContext(AdminContext);
+
+  // Use native Telegram BackButton
+  useBackButton(() => onNavigate('myReviews'));
 
   const { productId, orderId, productName, productImage } = pageData || {};
 
@@ -119,15 +123,7 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
     <div className="pb-20 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="bg-white p-4 border-b border-gray-200 sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onNavigate('myReviews')}
-            className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ChevronLeft className="w-6 h-6 text-gray-700" />
-          </button>
-          <h1 className="text-xl font-bold text-gray-900">Write a Review</h1>
-        </div>
+        <h1 className="text-xl font-bold text-gray-900">Write a Review</h1>
       </div>
 
       {/* Content */}
