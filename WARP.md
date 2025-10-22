@@ -203,9 +203,14 @@ PAYME_KEY=your_payme_merchant_key
 - Test mode active by default (`VITE_PAYME_TEST_MODE=true`)
 - Switch to production: Set test mode to false and update `PAYME_KEY` to production password
 
-### Current Issues
-- None - all React errors and payment integration issues resolved
-- See `PROJECT_STATUS.md` for detailed status and testing instructions
+### Current Status & Next Actions
+- ✅ **All development complete** - Payment system, admin features, Telegram integration working
+- ⚠️ **Pending**: Configure webhook URL in Payme test cabinet at `test.paycom.uz`
+  - Webhook endpoint: `https://www.ailem.uz/api/payme-webhook`
+  - Required for automatic order approval after payment
+- 📋 **Next**: Test complete payment flow end-to-end with test card
+- 🚀 **Before Production**: Switch `VITE_PAYME_TEST_MODE` to false and update `PAYME_KEY`
+- See `PROJECT_STATUS.md` for detailed testing instructions and configuration
 
 ## Complete Change Log (Recent Session)
 
