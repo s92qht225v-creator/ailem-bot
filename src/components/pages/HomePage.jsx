@@ -32,19 +32,9 @@ const HomePage = ({ onNavigate }) => {
     );
   }
 
-  // Load sale banner settings from localStorage (managed in Admin Settings)
-  const [saleBanner, setSaleBanner] = useState({
-    title: 'Summer Sale',
-    subtitle: 'Up to 50% Off on Selected Items',
-    imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
-    enabled: true
-  });
-
-  // Load sale timer from localStorage (managed in Admin Settings)
-  const [saleTimer, setSaleTimer] = useState({
-    endDate: '2025-12-31T23:59:59',
-    enabled: true
-  });
+  const [saleBanner, setSaleBanner] = useState(null);
+  const [saleTimer, setSaleTimer] = useState(null);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   // Load settings from Supabase
   useEffect(() => {
@@ -52,25 +42,42 @@ const HomePage = ({ onNavigate }) => {
       try {
         const settings = await settingsAPI.getSettings();
         console.log('\ud83c\udfe0 HomePage loading settings from Supabase:', settings);
-        if (settings.sale_banner) {
-          setSaleBanner(settings.sale_banner);
-        }
-        if (settings.sale_timer) {
-          setSaleTimer(settings.sale_timer);
-        }
+        setSaleBanner(settings.sale_banner || {
+          title: 'Summer Sale',
+          subtitle: 'Up to 50% Off on Selected Items',
+          imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
+          enabled: true
+        });
+        setSaleTimer(settings.sale_timer || {
+          endDate: '2025-12-31T23:59:59',
+          enabled: true
+        });
       } catch (error) {
         console.error('Failed to load settings:', error);
+        // Set defaults on error
+        setSaleBanner({
+          title: 'Summer Sale',
+          subtitle: 'Up to 50% Off on Selected Items',
+          imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
+          enabled: true
+        });
+        setSaleTimer({
+          endDate: '2025-12-31T23:59:59',
+          enabled: true
+        });
+      } finally {
+        setSettingsLoaded(true);
       }
     };
     loadSettings();
   }, []);
 
-  const saleEndDate = new Date(saleTimer.endDate);
+  const saleEndDate = saleTimer ? new Date(saleTimer.endDate) : null;
 
   return (
     <div className="pb-20">
       {/* Hero Banner - Only show if enabled in settings */}
-      {saleBanner.enabled && (
+      {settingsLoaded && saleBanner && saleBanner.enabled && (
         <div className="relative h-64 bg-gradient-to-r from-primary to-gray-700">
           <img
             src={saleBanner.imageUrl}
@@ -85,7 +92,7 @@ const HomePage = ({ onNavigate }) => {
       )}
 
       {/* Countdown Timer - Only show if timer is enabled */}
-      {saleTimer.enabled && (
+      {settingsLoaded && saleTimer && saleTimer.enabled && saleEndDate && (
         <div className="bg-white shadow-md py-6 px-4 mb-6">
           <h3 className="text-center font-semibold text-gray-700 mb-3">Sale Ends In</h3>
           <CountdownTimer endDate={saleEndDate} />
