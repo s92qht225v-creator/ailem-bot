@@ -12,7 +12,7 @@ import { ShippingRatesContext } from '../../context/ShippingRatesContext';
 import { formatPrice, formatDate, loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { calculateAnalytics, getRevenueChartData } from '../../utils/analytics';
 import { generateVariants, updateVariantStock, getTotalVariantStock } from '../../utils/variants';
-import { settingsAPI } from '../../services/api';
+import { settingsAPI, storageAPI } from '../../services/api';
 
 const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -2552,6 +2552,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
     });
 
     const [loading, setLoading] = useState(true);
+    const [uploadingImage, setUploadingImage] = useState(false);
 
     // Load from Supabase
     useEffect(() => {
@@ -2587,6 +2588,37 @@ const DesktopAdminPanel = ({ onLogout }) => {
         console.log('\u2705 Timer saved to Supabase:', newTimer);
       } catch (error) {
         console.error('Failed to save timer:', error);
+      }
+    };
+
+    const handleImageUpload = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('Image size must be less than 5MB');
+        return;
+      }
+
+      // Check file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file');
+        return;
+      }
+
+      setUploadingImage(true);
+
+      try {
+        const result = await storageAPI.uploadImage(file, 'banners');
+        const newBanner = { ...saleBanner, imageUrl: result.url };
+        await saveSaleBanner(newBanner);
+        alert('Banner image uploaded successfully!');
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('Failed to upload image: ' + error.message);
+      } finally {
+        setUploadingImage(false);
       }
     };
 
@@ -2644,14 +2676,41 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Image URL</label>
-                <input
-                  type="text"
-                  value={saleBanner.imageUrl}
-                  onChange={(e) => saveSaleBanner({ ...saleBanner, imageUrl: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="https://..."
-                />
+                <label className="block text-sm font-semibold mb-2">Banner Image</label>
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                      className="hidden"
+                      id="banner-upload"
+                    />
+                    <label
+                      htmlFor="banner-upload"
+                      className={`flex-1 px-4 py-2 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors ${
+                        uploadingImage
+                          ? 'bg-gray-100 cursor-not-allowed'
+                          : 'hover:border-accent hover:bg-blue-50'
+                      }`}
+                    >
+                      <Upload className="w-5 h-5 mx-auto mb-1" />
+                      <span className="text-sm font-medium">
+                        {uploadingImage ? 'Uploading...' : 'Upload Image'}
+                      </span>
+                    </label>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={saleBanner.imageUrl}
+                      onChange={(e) => saveSaleBanner({ ...saleBanner, imageUrl: e.target.value })}
+                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-sm"
+                      placeholder="Or paste image URL"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
