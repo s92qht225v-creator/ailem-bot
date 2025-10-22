@@ -328,7 +328,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
   // Other content components would be implemented similarly...
   function OrdersContent() {
-    const { approveOrder, rejectOrder } = useContext(AdminContext);
+    const { approveOrder, rejectOrder, updateOrderStatus } = useContext(AdminContext);
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -361,6 +361,30 @@ const DesktopAdminPanel = ({ onLogout }) => {
       }
     };
 
+    const handleMarkShipped = async (orderId) => {
+      if (confirm('Mark this order as shipped? Customer will be notified.')) {
+        try {
+          await updateOrderStatus(orderId, 'shipped');
+          console.log('✅ Order marked as shipped');
+        } catch (error) {
+          console.error('❌ Failed to mark as shipped:', error);
+          alert('Failed to update order status. Please try again.');
+        }
+      }
+    };
+
+    const handleMarkDelivered = async (orderId) => {
+      if (confirm('Mark this order as delivered? Customer will be notified.')) {
+        try {
+          await updateOrderStatus(orderId, 'delivered');
+          console.log('✅ Order marked as delivered');
+        } catch (error) {
+          console.error('❌ Failed to mark as delivered:', error);
+          alert('Failed to update order status. Please try again.');
+        }
+      }
+    };
+
     const handleViewOrder = (order) => {
       setSelectedOrder(order);
     };
@@ -380,6 +404,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <option value="pending">Pending ({orders.filter(o => o.status === 'pending').length})</option>
                 <option value="approved">Approved ({orders.filter(o => o.status === 'approved').length})</option>
                 <option value="shipped">Shipped ({orders.filter(o => o.status === 'shipped').length})</option>
+                <option value="delivered">Delivered ({orders.filter(o => o.status === 'delivered').length})</option>
                 <option value="rejected">Rejected ({orders.filter(o => o.status === 'rejected').length})</option>
               </select>
             </div>
@@ -416,6 +441,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                         order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                         order.status === 'approved' ? 'bg-green-100 text-green-800' :
                         order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                        order.status === 'delivered' ? 'bg-purple-100 text-purple-800' :
                         order.status === 'rejected' ? 'bg-red-100 text-red-800' :
                         'bg-gray-100 text-gray-800'
                       }`}>
@@ -423,10 +449,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm">
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <button 
                           onClick={() => handleViewOrder(order)}
-                          className="text-blue-600 hover:text-blue-800 font-medium"
+                          className="text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
                         >
                           View
                         </button>
@@ -434,17 +460,33 @@ const DesktopAdminPanel = ({ onLogout }) => {
                           <>
                             <button 
                               onClick={() => handleApprove(order.id)}
-                              className="text-green-600 hover:text-green-800 font-medium"
+                              className="text-green-600 hover:text-green-800 font-medium whitespace-nowrap"
                             >
                               Approve
                             </button>
                             <button 
                               onClick={() => handleReject(order.id)}
-                              className="text-red-600 hover:text-red-800 font-medium"
+                              className="text-red-600 hover:text-red-800 font-medium whitespace-nowrap"
                             >
                               Reject
                             </button>
                           </>
+                        )}
+                        {order.status === 'approved' && (
+                          <button 
+                            onClick={() => handleMarkShipped(order.id)}
+                            className="text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+                          >
+                            Mark Shipped
+                          </button>
+                        )}
+                        {order.status === 'shipped' && (
+                          <button 
+                            onClick={() => handleMarkDelivered(order.id)}
+                            className="text-purple-600 hover:text-purple-800 font-medium whitespace-nowrap"
+                          >
+                            Mark Delivered
+                          </button>
                         )}
                       </div>
                     </td>
@@ -654,6 +696,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       selectedOrder.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                       selectedOrder.status === 'approved' ? 'bg-green-100 text-green-800' :
                       selectedOrder.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                      selectedOrder.status === 'delivered' ? 'bg-purple-100 text-purple-800' :
                       selectedOrder.status === 'rejected' ? 'bg-red-100 text-red-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>

@@ -107,13 +107,28 @@ export const AdminProvider = ({ children }) => {
 
   const updateOrderStatus = async (orderId, status) => {
     try {
+      const order = orders.find(o => o.id === orderId || o.dbId === orderId);
       const updatedOrder = await ordersAPI.updateStatus(orderId, status);
+      
       setOrders(prev =>
         prev.map(order =>
           // Match by id (order_number) or dbId (UUID)
           (order.id === orderId || order.dbId === orderId) ? updatedOrder : order
         )
       );
+
+      // Send notification to customer for shipped and delivered status
+      if (order && (status === 'shipped' || status === 'delivered')) {
+        try {
+          const { notifyUserOrderStatus } = await import('../services/telegram');
+          await notifyUserOrderStatus(updatedOrder, status);
+          console.log(`✅ Customer notified about order ${status}`);
+        } catch (notifError) {
+          console.error('❌ Failed to send customer notification:', notifError);
+          // Don't fail the status update if notification fails
+        }
+      }
+
       return updatedOrder;
     } catch (err) {
       console.error('Failed to update order status:', err);
