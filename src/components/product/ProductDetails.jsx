@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
-import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock } from '../../utils/variants';
+import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant } from '../../utils/variants';
 
 const ProductDetails = ({ product, onAddToCart }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -11,7 +11,15 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  const images = product.images || [product.image];
+  // Get current variant if both color and size are selected
+  const currentVariant = hasVariants && selectedColor && selectedSize
+    ? findVariant(product.variants, selectedColor, selectedSize)
+    : null;
+
+  // Use variant image if available, otherwise use product images
+  const images = currentVariant?.image 
+    ? [currentVariant.image, ...(product.images || [product.image])]
+    : (product.images || [product.image]);
 
   // Check if product uses variant tracking
   const hasVariants = product.variants && product.variants.length > 0;
@@ -39,6 +47,11 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const availableSizes = hasVariants && selectedColor
     ? getAvailableSizesForColor(product.variants, selectedColor)
     : (product.sizes || []);
+
+  // Reset to first image when variant changes
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [selectedColor, selectedSize]);
 
   // Reset quantity if it exceeds current stock
   useEffect(() => {

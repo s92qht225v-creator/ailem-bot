@@ -23,7 +23,8 @@ export const generateVariants = (colors = [], sizes = [], defaultStock = 0) => {
         color: color.trim(),
         size: size.trim(),
         stock: defaultStock,
-        sku: generateSKU(color, size)
+        sku: generateSKU(color, size),
+        image: null // Optional: URL to variant-specific image
       });
     });
   });
@@ -86,6 +87,24 @@ export const updateVariantStock = (variants = [], color, size, newStock) => {
     if (v.color?.toLowerCase() === color.toLowerCase() &&
         v.size?.toLowerCase() === size.toLowerCase()) {
       return { ...v, stock: newStock };
+    }
+    return v;
+  });
+};
+
+/**
+ * Update image for a specific variant
+ * @param {Array} variants - Array of variants
+ * @param {string} color - Color
+ * @param {string} size - Size
+ * @param {string} imageUrl - New image URL
+ * @returns {Array} Updated variants array
+ */
+export const updateVariantImage = (variants = [], color, size, imageUrl) => {
+  return variants.map(v => {
+    if (v.color?.toLowerCase() === color.toLowerCase() &&
+        v.size?.toLowerCase() === size.toLowerCase()) {
+      return { ...v, image: imageUrl };
     }
     return v;
   });
@@ -207,7 +226,7 @@ export const mergeVariants = (oldVariants = [], newColors = [], newSizes = []) =
 
   return newVariants.map(newV => {
     const existing = findVariant(oldVariants, newV.color, newV.size);
-    return existing ? { ...newV, stock: existing.stock } : newV;
+    return existing ? { ...newV, stock: existing.stock, image: existing.image || null } : newV;
   });
 };
 

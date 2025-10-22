@@ -4,14 +4,14 @@ import {
   Edit, Trash2, Plus, ChevronRight, Edit2, ShoppingBag, Truck, Gift, 
   Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload, 
   TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle, AlertCircle,
-  Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff
+  Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff, ImagePlus
 } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
 import { ShippingRatesContext } from '../../context/ShippingRatesContext';
 import { formatPrice, formatDate, loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { calculateAnalytics, getRevenueChartData } from '../../utils/analytics';
-import { generateVariants, updateVariantStock, getTotalVariantStock } from '../../utils/variants';
+import { generateVariants, updateVariantStock, updateVariantImage, getTotalVariantStock } from '../../utils/variants';
 import { settingsAPI, storageAPI } from '../../services/api';
 
 const DesktopAdminPanel = ({ onLogout }) => {
@@ -1018,13 +1018,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
       if (colors.length > 0 && sizes.length > 0) {
         const newVariants = generateVariants(colors, sizes, 0);
 
-        // Merge with existing variants to preserve stock
+        // Merge with existing variants to preserve stock and images
         const mergedVariants = newVariants.map(newV => {
           const existing = formData.variants.find(v =>
             v.color?.toLowerCase() === newV.color.toLowerCase() &&
             v.size?.toLowerCase() === newV.size.toLowerCase()
           );
-          return existing ? { ...newV, stock: existing.stock } : newV;
+          return existing ? { ...newV, stock: existing.stock, image: existing.image || null } : newV;
         });
 
         updatedFormData.variants = mergedVariants;
@@ -1039,6 +1039,26 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const handleVariantStockChange = (color, size, newStock) => {
       const updatedVariants = updateVariantStock(formData.variants, color, size, parseInt(newStock) || 0);
       setFormData({ ...formData, variants: updatedVariants });
+    };
+
+    // Update variant image
+    const handleVariantImageChange = (color, size, imageUrl) => {
+      const updatedVariants = updateVariantImage(formData.variants, color, size, imageUrl);
+      setFormData({ ...formData, variants: updatedVariants });
+    };
+
+    // Upload variant image
+    const handleVariantImageUpload = async (color, size, file) => {
+      if (!file) return;
+      
+      try {
+        const result = await storageAPI.uploadProductImage(file);
+        handleVariantImageChange(color, size, result.url);
+        console.log(`✅ Variant image uploaded for ${color} - ${size}:`, result.url);
+      } catch (error) {
+        console.error('Upload error:', error);
+        alert('❌ Failed to upload variant image: ' + error.message);
+      }
     };
 
     return (
@@ -1220,26 +1240,69 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     Set stock quantity for each color + size combination
                   </p>
 
-                  {/* Variant Grid */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                  {/* Variant Grid with Images */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 max-h-96 overflow-y-auto">
                     {formData.variants.map((variant, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-2 bg-white p-2 rounded border"
+                        className="flex items-start gap-3 bg-white p-3 rounded border hover:border-blue-300 transition-colors"
                       >
-                        <div className="flex-1 text-sm">
-                          <span className="font-medium">{variant.color}</span>
-                          <span className="text-gray-500 mx-1">•</span>
-                          <span className="font-medium">{variant.size}</span>
+                        {/* Variant Image Preview */}
+                        <div className="flex-shrink-0">
+                          {variant.image ? (
+                            <div className="relative w-16 h-16 rounded overflow-hidden border-2 border-blue-300">
+                              <img
+                                src={variant.image}
+                                alt={`${variant.color} - ${variant.size}`}
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleVariantImageChange(variant.color, variant.size, null)}
+                                className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl hover:bg-red-600"
+                                title="Remove image"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <label className="w-16 h-16 flex items-center justify-center border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                              <ImagePlus className="w-6 h-6 text-gray-400" />
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => e.target.files[0] && handleVariantImageUpload(variant.color, variant.size, e.target.files[0])}
+                                className="hidden"
+                              />
+                            </label>
+                          )}
                         </div>
-                        <input
-                          type="number"
-                          min="0"
-                          value={variant.stock}
-                          onChange={(e) => handleVariantStockChange(variant.color, variant.size, e.target.value)}
-                          className="w-20 px-2 py-1 border rounded text-sm"
-                          placeholder="0"
-                        />
+
+                        {/* Variant Info & Stock */}
+                        <div className="flex-1">
+                          <div className="text-sm font-medium mb-2">
+                            <span className="text-gray-900">{variant.color}</span>
+                            <span className="text-gray-400 mx-1">•</span>
+                            <span className="text-gray-900">{variant.size}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-600">Stock:</span>
+                            <input
+                              type="number"
+                              min="0"
+                              value={variant.stock}
+                              onChange={(e) => handleVariantStockChange(variant.color, variant.size, e.target.value)}
+                              className="w-20 px-2 py-1 border rounded text-sm"
+                              placeholder="0"
+                            />
+                          </div>
+                          {variant.image && (
+                            <div className="mt-1 text-xs text-green-600 flex items-center gap-1">
+                              <ImagePlus className="w-3 h-3" />
+                              Custom image set
+                            </div>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
