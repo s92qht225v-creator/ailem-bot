@@ -2561,11 +2561,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const saveSaleBanner = (newBanner) => {
       setSaleBanner(newBanner);
       saveToLocalStorage('saleBanner', newBanner);
+      console.log('✅ Banner saved:', newBanner);
     };
 
     const saveSaleTimer = (newTimer) => {
       setSaleTimer(newTimer);
       saveToLocalStorage('saleTimer', newTimer);
+      console.log('✅ Timer saved:', newTimer);
     };
 
     return (
