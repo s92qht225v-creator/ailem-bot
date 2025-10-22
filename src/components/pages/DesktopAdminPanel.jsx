@@ -2553,15 +2553,25 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
     const [loading, setLoading] = useState(true);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [savedBanner, setSavedBanner] = useState(null);
+    const [savedTimer, setSavedTimer] = useState(null);
 
     // Load from Supabase
     useEffect(() => {
       const loadSettings = async () => {
         try {
           const settings = await settingsAPI.getSettings();
-          if (settings.sale_banner) setSaleBanner(settings.sale_banner);
-          if (settings.sale_timer) setSaleTimer(settings.sale_timer);
-          console.log('\u2705 Settings loaded from Supabase');
+          if (settings.sale_banner) {
+            setSaleBanner(settings.sale_banner);
+            setSavedBanner(settings.sale_banner);
+          }
+          if (settings.sale_timer) {
+            setSaleTimer(settings.sale_timer);
+            setSavedTimer(settings.sale_timer);
+          }
+          console.log('✅ Settings loaded from Supabase');
         } catch (error) {
           console.error('Failed to load settings:', error);
         } finally {
@@ -2571,23 +2581,40 @@ const DesktopAdminPanel = ({ onLogout }) => {
       loadSettings();
     }, []);
 
-    const saveSaleBanner = async (newBanner) => {
-      setSaleBanner(newBanner);
+    // Track unsaved changes
+    useEffect(() => {
+      if (!savedBanner || !savedTimer) return;
+      const bannerChanged = JSON.stringify(saleBanner) !== JSON.stringify(savedBanner);
+      const timerChanged = JSON.stringify(saleTimer) !== JSON.stringify(savedTimer);
+      setHasUnsavedChanges(bannerChanged || timerChanged);
+    }, [saleBanner, saleTimer, savedBanner, savedTimer]);
+
+    const handleSaveAll = async () => {
+      setSaving(true);
       try {
-        await settingsAPI.updateBanner(newBanner);
-        console.log('\u2705 Banner saved to Supabase:', newBanner);
+        await Promise.all([
+          settingsAPI.updateBanner(saleBanner),
+          settingsAPI.updateTimer(saleTimer)
+        ]);
+        setSavedBanner(saleBanner);
+        setSavedTimer(saleTimer);
+        setHasUnsavedChanges(false);
+        console.log('✅ All settings saved to Supabase');
+        // Visual feedback
+        alert('✅ Promotions saved successfully!');
       } catch (error) {
-        console.error('Failed to save banner:', error);
+        console.error('Failed to save settings:', error);
+        alert('❌ Failed to save settings. Please try again.');
+      } finally {
+        setSaving(false);
       }
     };
 
-    const saveSaleTimer = async (newTimer) => {
-      setSaleTimer(newTimer);
-      try {
-        await settingsAPI.updateTimer(newTimer);
-        console.log('\u2705 Timer saved to Supabase:', newTimer);
-      } catch (error) {
-        console.error('Failed to save timer:', error);
+    const handleDiscardChanges = () => {
+      if (confirm('Discard all unsaved changes?')) {
+        setSaleBanner(savedBanner);
+        setSaleTimer(savedTimer);
+        setHasUnsavedChanges(false);
       }
     };
 
@@ -2611,12 +2638,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
       try {
         const result = await storageAPI.uploadImage(file, 'banners');
-        const newBanner = { ...saleBanner, imageUrl: result.url };
-        await saveSaleBanner(newBanner);
-        alert('Banner image uploaded successfully!');
+        setSaleBanner(prev => ({ ...prev, imageUrl: result.url }));
+        console.log('✅ Banner image uploaded:', result.url);
       } catch (error) {
         console.error('Upload error:', error);
-        alert('Failed to upload image: ' + error.message);
+        alert('❌ Failed to upload image: ' + error.message);
       } finally {
         setUploadingImage(false);
       }
@@ -2631,54 +2657,113 @@ const DesktopAdminPanel = ({ onLogout }) => {
     }
 
     return (
-      <div className="max-w-6xl grid gap-6">
+      <div className="max-w-6xl space-y-6">
+        {/* Save Bar - Sticky at top */}
+        {hasUnsavedChanges && (
+          <div className="bg-orange-50 border-l-4 border-orange-500 rounded-lg p-4 flex items-center justify-between shadow-md sticky top-4 z-10">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-orange-500" />
+              <div>
+                <p className="font-semibold text-gray-900">You have unsaved changes</p>
+                <p className="text-sm text-gray-600">Don't forget to save your changes before leaving</p>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleDiscardChanges}
+                className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+              >
+                Discard
+              </button>
+              <button
+                onClick={handleSaveAll}
+                disabled={saving}
+                className="bg-primary hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Sales Banner */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Image className="w-6 h-6 text-primary" />
-            Sales Banner
-          </h3>
+        <div className="bg-white rounded-lg shadow-md p-6 border-2 border-transparent hover:border-blue-100 transition-colors">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold flex items-center gap-2">
+              <Image className="w-6 h-6 text-primary" />
+              Sales Banner
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Status:</span>
+              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                saleBanner.enabled
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-gray-100 text-gray-600'
+              }`}>
+                {saleBanner.enabled ? '● Active' : '○ Inactive'}
+              </span>
+            </div>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="font-semibold">Enable Banner</label>
-                <button
-                  onClick={() => saveSaleBanner({ ...saleBanner, enabled: !saleBanner.enabled })}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                    saleBanner.enabled
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-300 text-gray-700'
-                  }`}
-                >
-                  {saleBanner.enabled ? 'Enabled' : 'Disabled'}
-                </button>
+            <div className="space-y-5">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="font-semibold text-gray-900">Banner Status</label>
+                    <p className="text-sm text-gray-500 mt-1">Show banner on homepage</p>
+                  </div>
+                  <button
+                    onClick={() => setSaleBanner({ ...saleBanner, enabled: !saleBanner.enabled })}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                      saleBanner.enabled ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        saleBanner.enabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Title</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Banner Title</label>
                 <input
                   type="text"
                   value={saleBanner.title}
-                  onChange={(e) => saveSaleBanner({ ...saleBanner, title: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  onChange={(e) => setSaleBanner({ ...saleBanner, title: e.target.value })}
+                  placeholder="e.g., Summer Sale"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-shadow"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Subtitle</label>
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Banner Subtitle</label>
                 <input
                   type="text"
                   value={saleBanner.subtitle}
-                  onChange={(e) => saveSaleBanner({ ...saleBanner, subtitle: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  onChange={(e) => setSaleBanner({ ...saleBanner, subtitle: e.target.value })}
+                  placeholder="e.g., Up to 50% Off on Selected Items"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-shadow"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">Banner Image</label>
-                <div className="space-y-2">
-                  <div className="flex gap-2">
+                <label className="block text-sm font-semibold mb-2 text-gray-700">Banner Image</label>
+                <div className="space-y-3">
+                  <div>
                     <input
                       type="file"
                       accept="image/*"
@@ -2689,35 +2774,44 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     />
                     <label
                       htmlFor="banner-upload"
-                      className={`flex-1 px-4 py-2 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors ${
+                      className={`flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed rounded-lg text-center cursor-pointer transition-all ${
                         uploadingImage
-                          ? 'bg-gray-100 cursor-not-allowed'
-                          : 'hover:border-accent hover:bg-blue-50'
+                          ? 'bg-gray-100 cursor-not-allowed border-gray-300'
+                          : 'hover:border-accent hover:bg-blue-50 border-gray-300'
                       }`}
                     >
-                      <Upload className="w-5 h-5 mx-auto mb-1" />
-                      <span className="text-sm font-medium">
-                        {uploadingImage ? 'Uploading...' : 'Upload Image'}
-                      </span>
+                      {uploadingImage ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-accent border-t-transparent"></div>
+                          <span className="text-sm font-medium text-gray-600">Uploading...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-5 h-5 text-accent" />
+                          <span className="text-sm font-medium text-gray-700">Click to upload image</span>
+                          <span className="text-xs text-gray-500">(Max 5MB)</span>
+                        </>
+                      )}
                     </label>
                   </div>
                   <div className="relative">
+                    <div className="text-center text-xs text-gray-500 mb-2">OR</div>
                     <input
                       type="text"
                       value={saleBanner.imageUrl}
-                      onChange={(e) => saveSaleBanner({ ...saleBanner, imageUrl: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-sm"
-                      placeholder="Or paste image URL"
+                      onChange={(e) => setSaleBanner({ ...saleBanner, imageUrl: e.target.value })}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-sm transition-shadow"
+                      placeholder="Paste image URL here"
                     />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Preview */}
+            {/* Live Preview */}
             <div>
-              <label className="block text-sm font-semibold mb-2">Preview</label>
-              <div className="relative h-64 rounded-lg overflow-hidden shadow-lg">
+              <label className="block text-sm font-semibold mb-2 text-gray-700">Live Preview</label>
+              <div className="relative h-64 rounded-xl overflow-hidden shadow-xl border-2 border-gray-200">
                 <img
                   src={saleBanner.imageUrl}
                   alt="Banner preview"
@@ -2726,40 +2820,65 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     e.target.src = 'https://via.placeholder.com/800x400?text=Banner+Image';
                   }}
                 />
-                <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white p-4">
-                  <h2 className="text-3xl font-bold mb-2 text-center">{saleBanner.title}</h2>
-                  <p className="text-lg text-center">{saleBanner.subtitle}</p>
+                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/60 flex flex-col items-center justify-center text-white p-6">
+                  <h2 className="text-3xl font-bold mb-2 text-center drop-shadow-lg">{saleBanner.title}</h2>
+                  <p className="text-lg text-center drop-shadow-md">{saleBanner.subtitle}</p>
                 </div>
+                {!saleBanner.enabled && (
+                  <div className="absolute top-3 right-3 bg-gray-900/80 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                    Disabled
+                  </div>
+                )}
               </div>
+              <p className="text-xs text-gray-500 mt-2 text-center">This is how your banner will appear to customers</p>
             </div>
           </div>
         </div>
 
         {/* Sale Timer */}
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <Clock className="w-6 h-6 text-primary" />
-            Sale Timer
-          </h3>
+        <div className="bg-white rounded-lg shadow-md p-6 border-2 border-transparent hover:border-blue-100 transition-colors">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold flex items-center gap-2">
+              <Clock className="w-6 h-6 text-primary" />
+              Countdown Timer
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Status:</span>
+              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
+                saleTimer.enabled
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-gray-100 text-gray-600'
+              }`}>
+                {saleTimer.enabled ? '● Active' : '○ Inactive'}
+              </span>
+            </div>
+          </div>
 
           <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label className="font-semibold">Enable Timer</label>
-                <button
-                  onClick={() => saveSaleTimer({ ...saleTimer, enabled: !saleTimer.enabled })}
-                  className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
-                    saleTimer.enabled
-                      ? 'bg-green-500 text-white'
-                      : 'bg-gray-300 text-gray-700'
-                  }`}
-                >
-                  {saleTimer.enabled ? 'Enabled' : 'Disabled'}
-                </button>
+            <div className="space-y-5">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="font-semibold text-gray-900">Timer Status</label>
+                    <p className="text-sm text-gray-500 mt-1">Show countdown on homepage</p>
+                  </div>
+                  <button
+                    onClick={() => setSaleTimer({ ...saleTimer, enabled: !saleTimer.enabled })}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                      saleTimer.enabled ? 'bg-green-500' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        saleTimer.enabled ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2">
+                <label className="block text-sm font-semibold mb-2 text-gray-700">
                   Sale End Date & Time
                 </label>
                 <input
@@ -2767,23 +2886,39 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   value={saleTimer.endDate.replace(' ', 'T').slice(0, 16)}
                   onChange={(e) => {
                     const newValue = e.target.value.replace('T', ' ') + ':00';
-                    saveSaleTimer({ ...saleTimer, endDate: newValue });
+                    setSaleTimer({ ...saleTimer, endDate: newValue });
                   }}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-shadow"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  Current: {new Date(saleTimer.endDate).toLocaleString()}
-                </p>
+                <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-xs text-blue-800 font-medium">📅 Selected date:</p>
+                  <p className="text-sm text-blue-900 font-semibold">
+                    {new Date(saleTimer.endDate).toLocaleString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-center bg-gradient-to-br from-orange-50 to-red-50 rounded-lg p-8">
+            <div className="flex items-center justify-center bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 rounded-xl p-8 border-2 border-orange-200">
               <div className="text-center">
-                <Calendar className="w-16 h-16 text-orange-500 mx-auto mb-4" />
-                <p className="text-sm text-gray-600 mb-2">Sale ends in</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {Math.ceil((new Date(saleTimer.endDate) - new Date()) / (1000 * 60 * 60 * 24))} days
+                <div className="relative inline-block mb-4">
+                  <Calendar className="w-16 h-16 text-orange-500" />
+                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold animate-pulse">
+                    !
+                  </div>
+                </div>
+                <p className="text-sm text-gray-600 mb-2 font-medium">Sale ends in</p>
+                <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
+                  {Math.ceil((new Date(saleTimer.endDate) - new Date()) / (1000 * 60 * 60 * 24))}
                 </p>
+                <p className="text-lg font-semibold text-gray-700 mt-1">days remaining</p>
               </div>
             </div>
           </div>
