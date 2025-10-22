@@ -206,3 +206,60 @@ PAYME_KEY=your_payme_merchant_key
 ### Current Issues
 - None - all React errors and payment integration issues resolved
 - See `PROJECT_STATUS.md` for detailed status and testing instructions
+
+## Complete Change Log (Recent Session)
+
+### Payment System Overhaul
+- Replaced manual payment screenshot upload with Payme gateway
+- Attempted Telegram Payments with Paycom (deprecated due to PAYMENT_PROVIDER_INVALID errors)
+- Implemented Payme Merchant API webhook for automatic order approval
+- Created serverless function `/api/payme-webhook` for payment verification
+- Added database fields: `payme_transaction_id`, `payme_transaction_time`, `payme_cancel_time`
+- Fixed payment link format to match Payme base64 encoding specification
+
+### Telegram Native Integration
+- Created `useBackButton` hook with null safety checks
+- Created `useMainButton` hook for CTAs ("Pay with Payme", etc.)
+- Integrated BackButton in: ProductPage, CheckoutPage, OrderDetailsPage, PaymentPage, WriteReviewPage
+- Fixed "Minified React error #310" by adding proper Telegram WebApp availability checks
+
+### Cart System Enhancement
+- Added cart syncing to Supabase (`users.cart` JSONB column)
+- Enables cross-device cart persistence
+- Database migration: `add-cart-column.sql`
+
+### Admin Panel Features
+- **Analytics Dashboard**: Revenue, order stats, top products
+- **User Management**: View all users, bonus points, referral tracking
+- **Order Management**: 
+  - Bulk actions (select multiple orders)
+  - Status updates with Telegram notifications
+  - CSV export with full delivery info
+  - Order details modal with payment screenshots
+  - Mark as Shipped/Delivered functions
+- **Product Management**:
+  - Variant-specific images support
+  - Smart product recommendation engine
+  - Variant inventory tracking
+- **Promotions**:
+  - Multi-banner carousel with admin upload
+  - Sale timer with localStorage caching
+  - Banner management (upload, reorder, delete)
+- **Reviews Management**: Admin approval system with image uploads
+- **Shipping**: Pickup points and shipping rates configuration
+
+### Bug Fixes
+- Fixed Temporal Dead Zone error in ProductDetails
+- Fixed courier reference error in PaymentPage
+- Fixed multiple hydration errors across pages
+- Fixed order creation: Generate proper UUID for `id` field
+- Fixed order updates: Support both UUID and order_number lookup
+- Fixed null user error in ProfilePage with proper loading states
+- Fixed Telegram invoice parameter validation
+- Fixed Vercel config: Updated to v3 format with proper API routing
+
+### Deployment & Configuration
+- Multiple Vercel redeployments with environment variable updates
+- Cache busting with version bump (1.0.1)
+- Added comprehensive error handling for Telegram WebApp APIs
+- Updated `.env.example` with all required Payme variables
