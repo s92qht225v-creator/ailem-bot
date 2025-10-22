@@ -478,11 +478,38 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 </div>
                 <div>
                   <h4 className="font-semibold mb-2">Order Items</h4>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {selectedOrder.items?.map((item, idx) => (
-                      <div key={idx} className="flex justify-between text-sm">
-                        <span>{item.name} x{item.quantity}</span>
-                        <span>{formatPrice(item.price * item.quantity)}</span>
+                      <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                        {item.image && (
+                          <img 
+                            src={item.image} 
+                            alt={item.productName || item.name}
+                            className="w-16 h-16 object-cover rounded"
+                            onError={(e) => e.target.style.display = 'none'}
+                          />
+                        )}
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">
+                            {item.productName || item.name || 'Unknown Product'}
+                          </p>
+                          {(item.color || item.size) && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              {item.color && <span>{item.color}</span>}
+                              {item.color && item.size && <span> • </span>}
+                              {item.size && <span>{item.size}</span>}
+                            </p>
+                          )}
+                          <p className="text-sm text-gray-600 mt-1">Qty: {item.quantity}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-gray-900">
+                            {formatPrice(item.price * item.quantity)}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatPrice(item.price)} each
+                          </p>
+                        </div>
                       </div>
                     ))}
                   </div>
