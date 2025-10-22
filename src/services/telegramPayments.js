@@ -169,41 +169,17 @@ export const payWithTelegram = async (order) => {
   } = order;
 
   // Build price breakdown
-  const prices = [];
-
-  // Add items
-  items.forEach(item => {
-    prices.push({
-      label: `${item.productName} (x${item.quantity})`,
-      amount: item.price * item.quantity
-    });
-  });
-
-  // Add delivery fee if applicable
-  if (deliveryFee > 0) {
-    prices.push({
-      label: 'Delivery Fee',
-      amount: deliveryFee
-    });
-  }
-
-  // Add discount if applicable
-  if (bonusDiscount > 0) {
-    prices.push({
-      label: 'Bonus Discount',
-      amount: -bonusDiscount // Negative for discount
-    });
-  }
+  // Telegram requires non-negative amounts; pass final total as a single line
+  const prices = [
+    { label: 'Order Total', amount: Math.round(total) }
+  ];
 
   // Create invoice
   return await createTelegramInvoice({
     title: `Order #${orderId}`,
     description: `${items.length} item(s) from Ailem Store`,
-    payload: JSON.stringify({
-      orderId,
-      userId: order.userId,
-      timestamp: Date.now()
-    }),
+    // Keep payload short (<128 bytes)
+    payload: `order:${orderId}`,
     currency: 'UZS',
     prices,
     providerData: {

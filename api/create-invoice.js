@@ -35,6 +35,22 @@ export default async function handler(req, res) {
     }
 
     // Call Telegram Bot API to create invoice link
+    // Build request body and include optional fields only when provided
+    const body = {
+      title,
+      description,
+      payload,
+      currency,
+      prices,
+      need_name,
+      need_phone_number,
+      need_email,
+      need_shipping_address,
+    };
+
+    if (provider_token) body.provider_token = provider_token;
+    if (photo_url) body.photo_url = photo_url;
+
     const response = await fetch(
       `https://api.telegram.org/bot${BOT_TOKEN}/createInvoiceLink`,
       {
@@ -42,19 +58,7 @@ export default async function handler(req, res) {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          title,
-          description,
-          payload,
-          provider_token,
-          currency,
-          prices,
-          photo_url,
-          need_name,
-          need_phone_number,
-          need_email,
-          need_shipping_address,
-        }),
+        body: JSON.stringify(body),
       }
     );
 
