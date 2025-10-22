@@ -89,20 +89,27 @@ export const exportOrders = (orders, filename = 'orders') => {
     { key: 'id', label: 'Order ID' },
     { key: 'createdAt', label: 'Date', formatter: (date) => new Date(date).toLocaleString() },
     { key: 'status', label: 'Status' },
-    { key: 'userName', label: 'Customer' },
-    { key: 'userPhone', label: 'Phone' },
-    { key: 'items', label: 'Items', formatter: (items) => items?.length || 0 },
+    { key: 'userName', label: 'Customer Name' },
+    { key: 'userPhone', label: 'Customer Phone' },
+    { key: 'items', label: 'Items Count', formatter: (items) => items?.length || 0 },
     { key: 'subtotal', label: 'Subtotal', formatter: (val) => val.toLocaleString() },
-    { key: 'shippingFee', label: 'Shipping', formatter: (val) => val.toLocaleString() },
-    { key: 'bonusDiscount', label: 'Bonus Used', formatter: (val) => val.toLocaleString() },
+    { key: 'deliveryFee', label: 'Delivery Fee', formatter: (val) => val?.toLocaleString() || 0 },
+    { key: 'bonusDiscount', label: 'Bonus Used', formatter: (val) => val?.toLocaleString() || 0 },
     { key: 'total', label: 'Total', formatter: (val) => val.toLocaleString() },
-    { key: 'deliveryMethod', label: 'Delivery' },
-    { key: 'courierName', label: 'Courier' },
-    { key: 'recipientName', label: 'Recipient' },
-    { key: 'recipientPhone', label: 'Recipient Phone' },
-    { key: 'address', label: 'Address' },
-    { key: 'state', label: 'State' },
-    { key: 'city', label: 'City' }
+    // Delivery Information
+    { key: 'deliveryMethod', label: 'Delivery Method', formatter: (_, order) => order.deliveryInfo?.method || order.deliveryMethod || '' },
+    { key: 'courier', label: 'Courier Service', formatter: (_, order) => order.courier || order.courierName || '' },
+    // Recipient Information
+    { key: 'recipientName', label: 'Recipient Name', formatter: (_, order) => order.deliveryInfo?.recipientName || order.recipientName || '' },
+    { key: 'recipientPhone', label: 'Recipient Phone', formatter: (_, order) => order.deliveryInfo?.recipientPhone || order.recipientPhone || '' },
+    // Address Information (Home Delivery)
+    { key: 'region', label: 'Region/State', formatter: (_, order) => order.deliveryInfo?.state || order.state || '' },
+    { key: 'city', label: 'City', formatter: (_, order) => order.deliveryInfo?.city || order.city || '' },
+    { key: 'address', label: 'Full Address', formatter: (_, order) => order.deliveryInfo?.address || order.address || '' },
+    // Pickup Point Information (Courier Pickup)
+    { key: 'pickupPointAddress', label: 'Pickup Point Address', formatter: (_, order) => order.deliveryInfo?.pickupPointAddress || '' },
+    { key: 'pickupPointCity', label: 'Pickup Point City', formatter: (_, order) => order.deliveryInfo?.pickupPointCity || '' },
+    { key: 'pickupPointState', label: 'Pickup Point State', formatter: (_, order) => order.deliveryInfo?.pickupPointState || '' }
   ];
   
   const csv = arrayToCSV(orders, columns);
