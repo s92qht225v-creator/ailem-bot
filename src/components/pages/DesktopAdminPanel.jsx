@@ -68,12 +68,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
       icon: UsersIcon,
       color: 'text-indigo-600'
     },
-    {
-      id: 'bonus-settings',
-      label: 'Bonus Settings',
-      icon: Gift,
-      color: 'text-rose-600'
-    },
+    // Temporarily disabled for debugging
+    // {
+    //   id: 'bonus-settings',
+    //   label: 'Bonus Settings',
+    //   icon: Gift,
+    //   color: 'text-rose-600'
+    // },
     {
       id: 'pickup-points',
       label: 'Pickup Points',
