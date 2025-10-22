@@ -3,6 +3,7 @@ import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
 import ProductCard from '../product/ProductCard';
 import CountdownTimer from '../common/CountdownTimer';
+import Carousel from '../common/Carousel';
 import { settingsAPI } from '../../services/api';
 import { loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { useProducts } from '../../hooks/useProducts';
@@ -34,9 +35,15 @@ const HomePage = ({ onNavigate }) => {
   }
 
   // Load cached settings immediately for instant display
-  const [saleBanner, setSaleBanner] = useState(() => {
-    const cached = loadFromLocalStorage('cachedSaleBanner');
-    return cached || null;
+  const [banners, setBanners] = useState(() => {
+    const cached = loadFromLocalStorage('cachedBanners');
+    // Support both old single banner format and new array format
+    if (cached) {
+      return Array.isArray(cached) ? cached : [cached];
+    }
+    // Fallback to old single banner cache if exists
+    const oldBanner = loadFromLocalStorage('cachedSaleBanner');
+    return oldBanner ? [oldBanner] : [];
   });
   const [saleTimer, setSaleTimer] = useState(() => {
     const cached = loadFromLocalStorage('cachedSaleTimer');
@@ -48,11 +55,17 @@ const HomePage = ({ onNavigate }) => {
     const loadSettings = async () => {
       try {
         const settings = await settingsAPI.getSettings();
-        console.log('\ud83c\udfe0 HomePage loading settings from Supabase:', settings);
+        console.log('🏠 HomePage loading settings from Supabase:', settings);
         
-        if (settings.sale_banner) {
-          setSaleBanner(settings.sale_banner);
-          saveToLocalStorage('cachedSaleBanner', settings.sale_banner);
+        // Handle both array (new) and single banner (old) format
+        if (settings.banners) {
+          // New array format
+          setBanners(settings.banners);
+          saveToLocalStorage('cachedBanners', settings.banners);
+        } else if (settings.sale_banner) {
+          // Old single banner format - convert to array
+          setBanners([settings.sale_banner]);
+          saveToLocalStorage('cachedBanners', [settings.sale_banner]);
         }
         
         if (settings.sale_timer) {
@@ -71,20 +84,8 @@ const HomePage = ({ onNavigate }) => {
 
   return (
     <div className="pb-20">
-      {/* Hero Banner - Only show if enabled in settings */}
-      {saleBanner && saleBanner.enabled && (
-        <div className="relative h-64 bg-gradient-to-r from-primary to-gray-700 mx-4 mb-6 rounded-lg overflow-hidden">
-          <img
-            src={saleBanner.imageUrl}
-            alt="Hero Banner"
-            className="w-full h-full object-cover opacity-40"
-          />
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-4">
-            <h2 className="text-3xl font-bold mb-2 text-center">{saleBanner.title}</h2>
-            <p className="text-lg mb-4">{saleBanner.subtitle}</p>
-          </div>
-        </div>
-      )}
+      {/* Hero Banner Carousel - Only show if there are enabled banners */}
+      <Carousel banners={banners} autoSlideInterval={5000} />
 
       {/* Countdown Timer - Only show if timer is enabled */}
       {saleTimer && saleTimer.enabled && saleEndDate && (

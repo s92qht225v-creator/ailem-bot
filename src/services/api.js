@@ -1010,6 +1010,12 @@ export const settingsAPI = {
       console.error('Failed to fetch settings:', error);
       // Return defaults if table doesn't exist yet
       return {
+        banners: [{
+          title: 'Summer Sale',
+          subtitle: 'Up to 50% Off on Selected Items',
+          imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
+          enabled: true
+        }],
         sale_banner: {
           title: 'Summer Sale',
           subtitle: 'Up to 50% Off on Selected Items',
@@ -1024,12 +1030,26 @@ export const settingsAPI = {
     }
 
     return {
+      banners: data.banners || (data.sale_banner ? [data.sale_banner] : []),
       sale_banner: data.sale_banner,
       sale_timer: data.sale_timer
     };
   },
 
-  // Update banner settings
+  // Update banners array (new format)
+  async updateBanners(banners) {
+    const { data, error } = await supabase
+      .from('app_settings')
+      .update({ banners })
+      .eq('id', 1)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data.banners;
+  },
+
+  // Update single banner settings (legacy support)
   async updateBanner(banner) {
     const { data, error } = await supabase
       .from('app_settings')

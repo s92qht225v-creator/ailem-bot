@@ -4,7 +4,7 @@ import {
   Edit, Trash2, Plus, ChevronRight, Edit2, ShoppingBag, Truck, Gift, 
   Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload, 
   TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle, AlertCircle,
-  Menu, X, Home, Settings, Bell, Save
+  Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff
 } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
@@ -2981,34 +2981,28 @@ const DesktopAdminPanel = ({ onLogout }) => {
   }
 
   function PromotionsContent() {
-    const [saleBanner, setSaleBanner] = useState({
-      title: 'Summer Sale',
-      subtitle: 'Up to 50% Off on Selected Items',
-      imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
-      enabled: true
-    });
-
+    const [banners, setBanners] = useState([]);
     const [saleTimer, setSaleTimer] = useState({
       endDate: '2025-12-31T23:59:59',
       enabled: true
     });
 
     const [loading, setLoading] = useState(true);
-    const [uploadingImage, setUploadingImage] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(null);
     const [saving, setSaving] = useState(false);
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-    const [savedBanner, setSavedBanner] = useState(null);
+    const [savedBanners, setSavedBanners] = useState(null);
     const [savedTimer, setSavedTimer] = useState(null);
+    const [editingBannerIndex, setEditingBannerIndex] = useState(null);
 
     // Load from Supabase
     useEffect(() => {
       const loadSettings = async () => {
         try {
           const settings = await settingsAPI.getSettings();
-          if (settings.sale_banner) {
-            setSaleBanner(settings.sale_banner);
-            setSavedBanner(settings.sale_banner);
-          }
+          const loadedBanners = settings.banners || (settings.sale_banner ? [settings.sale_banner] : []);
+          setBanners(loadedBanners);
+          setSavedBanners(loadedBanners);
           if (settings.sale_timer) {
             setSaleTimer(settings.sale_timer);
             setSavedTimer(settings.sale_timer);
@@ -3025,24 +3019,23 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
     // Track unsaved changes
     useEffect(() => {
-      if (!savedBanner || !savedTimer) return;
-      const bannerChanged = JSON.stringify(saleBanner) !== JSON.stringify(savedBanner);
+      if (!savedBanners || !savedTimer) return;
+      const bannersChanged = JSON.stringify(banners) !== JSON.stringify(savedBanners);
       const timerChanged = JSON.stringify(saleTimer) !== JSON.stringify(savedTimer);
-      setHasUnsavedChanges(bannerChanged || timerChanged);
-    }, [saleBanner, saleTimer, savedBanner, savedTimer]);
+      setHasUnsavedChanges(bannersChanged || timerChanged);
+    }, [banners, saleTimer, savedBanners, savedTimer]);
 
     const handleSaveAll = async () => {
       setSaving(true);
       try {
         await Promise.all([
-          settingsAPI.updateBanner(saleBanner),
+          settingsAPI.updateBanners(banners),
           settingsAPI.updateTimer(saleTimer)
         ]);
-        setSavedBanner(saleBanner);
+        setSavedBanners(banners);
         setSavedTimer(saleTimer);
         setHasUnsavedChanges(false);
         console.log('✅ All settings saved to Supabase');
-        // Visual feedback
         alert('✅ Promotions saved successfully!');
       } catch (error) {
         console.error('Failed to save settings:', error);
@@ -3054,13 +3047,46 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
     const handleDiscardChanges = () => {
       if (confirm('Discard all unsaved changes?')) {
-        setSaleBanner(savedBanner);
+        setBanners(savedBanners);
         setSaleTimer(savedTimer);
         setHasUnsavedChanges(false);
       }
     };
 
-    const handleImageUpload = async (e) => {
+    const handleAddBanner = () => {
+      setBanners([...banners, {
+        title: 'New Banner',
+        subtitle: 'Add your promotional message',
+        imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
+        enabled: true
+      }]);
+      setEditingBannerIndex(banners.length);
+    };
+
+    const handleUpdateBanner = (index, updates) => {
+      const newBanners = [...banners];
+      newBanners[index] = { ...newBanners[index], ...updates };
+      setBanners(newBanners);
+    };
+
+    const handleDeleteBanner = (index) => {
+      if (confirm('Delete this banner?')) {
+        setBanners(banners.filter((_, i) => i !== index));
+        if (editingBannerIndex === index) {
+          setEditingBannerIndex(null);
+        }
+      }
+    };
+
+    const handleMoveBanner = (index, direction) => {
+      const newBanners = [...banners];
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= banners.length) return;
+      [newBanners[index], newBanners[targetIndex]] = [newBanners[targetIndex], newBanners[index]];
+      setBanners(newBanners);
+    };
+
+    const handleImageUpload = async (e, bannerIndex) => {
       const file = e.target.files[0];
       if (!file) return;
 
@@ -3076,17 +3102,17 @@ const DesktopAdminPanel = ({ onLogout }) => {
         return;
       }
 
-      setUploadingImage(true);
+      setUploadingImage(bannerIndex);
 
       try {
         const result = await storageAPI.uploadImage(file, 'banners');
-        setSaleBanner(prev => ({ ...prev, imageUrl: result.url }));
+        handleUpdateBanner(bannerIndex, { imageUrl: result.url });
         console.log('✅ Banner image uploaded:', result.url);
       } catch (error) {
         console.error('Upload error:', error);
         alert('❌ Failed to upload image: ' + error.message);
       } finally {
-        setUploadingImage(false);
+        setUploadingImage(null);
       }
     };
 
@@ -3138,143 +3164,213 @@ const DesktopAdminPanel = ({ onLogout }) => {
           </div>
         )}
 
-        {/* Sales Banner */}
+        {/* Homepage Banners Carousel */}
         <div className="bg-white rounded-lg shadow-md p-6 border-2 border-transparent hover:border-blue-100 transition-colors">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold flex items-center gap-2">
-              <Image className="w-6 h-6 text-primary" />
-              Sales Banner
-            </h3>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Status:</span>
-              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                saleBanner.enabled
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-gray-100 text-gray-600'
-              }`}>
-                {saleBanner.enabled ? '● Active' : '○ Inactive'}
-              </span>
+            <div>
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <Image className="w-6 h-6 text-primary" />
+                Homepage Banner Carousel
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">Manage promotional banners that slide automatically</p>
             </div>
+            <button
+              onClick={handleAddBanner}
+              className="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              Add Banner
+            </button>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="space-y-5">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="font-semibold text-gray-900">Banner Status</label>
-                    <p className="text-sm text-gray-500 mt-1">Show banner on homepage</p>
-                  </div>
-                  <button
-                    onClick={() => setSaleBanner({ ...saleBanner, enabled: !saleBanner.enabled })}
-                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-                      saleBanner.enabled ? 'bg-green-500' : 'bg-gray-300'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
-                        saleBanner.enabled ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
+          {banners.length === 0 ? (
+            <div className="bg-gray-50 rounded-lg p-12 text-center">
+              <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg mb-4">No banners configured</p>
+              <button
+                onClick={handleAddBanner}
+                className="bg-primary hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Create Your First Banner
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {banners.map((banner, index) => (
+                <div key={index} className="bg-gray-50 rounded-lg p-5 border-2 border-gray-200 hover:border-blue-200 transition-colors">
+                  <div className="flex items-start gap-4">
+                    {/* Banner Preview Thumbnail */}
+                    <div className="flex-shrink-0 w-40 h-24 rounded-lg overflow-hidden border-2 border-gray-300">
+                      <div className="relative w-full h-full">
+                        <img
+                          src={banner.imageUrl}
+                          alt={banner.title}
+                          className="w-full h-full object-cover"
+                          onError={(e) => e.target.src = 'https://via.placeholder.com/300x150?text=Banner'}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 flex items-end p-2">
+                          <p className="text-white text-xs font-semibold truncate">{banner.title}</p>
+                        </div>
+                        {!banner.enabled && (
+                          <div className="absolute top-1 right-1 bg-gray-900/80 text-white px-2 py-0.5 rounded text-xs">
+                            Disabled
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Banner Title</label>
-                <input
-                  type="text"
-                  value={saleBanner.title}
-                  onChange={(e) => setSaleBanner({ ...saleBanner, title: e.target.value })}
-                  placeholder="e.g., Summer Sale"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-shadow"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Banner Subtitle</label>
-                <input
-                  type="text"
-                  value={saleBanner.subtitle}
-                  onChange={(e) => setSaleBanner({ ...saleBanner, subtitle: e.target.value })}
-                  placeholder="e.g., Up to 50% Off on Selected Items"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-shadow"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">Banner Image</label>
-                <div className="space-y-3">
-                  <div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      disabled={uploadingImage}
-                      className="hidden"
-                      id="banner-upload"
-                    />
-                    <label
-                      htmlFor="banner-upload"
-                      className={`flex items-center justify-center gap-2 w-full px-4 py-3 border-2 border-dashed rounded-lg text-center cursor-pointer transition-all ${
-                        uploadingImage
-                          ? 'bg-gray-100 cursor-not-allowed border-gray-300'
-                          : 'hover:border-accent hover:bg-blue-50 border-gray-300'
-                      }`}
-                    >
-                      {uploadingImage ? (
+                    {/* Banner Details & Controls */}
+                    <div className="flex-1 space-y-3">
+                      {editingBannerIndex === index ? (
                         <>
-                          <div className="animate-spin rounded-full h-5 w-5 border-2 border-accent border-t-transparent"></div>
-                          <span className="text-sm font-medium text-gray-600">Uploading...</span>
+                          {/* Edit Mode */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="block text-xs font-semibold mb-1 text-gray-700">Title</label>
+                              <input
+                                type="text"
+                                value={banner.title}
+                                onChange={(e) => handleUpdateBanner(index, { title: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+                                placeholder="Banner title"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold mb-1 text-gray-700">Subtitle</label>
+                              <input
+                                type="text"
+                                value={banner.subtitle}
+                                onChange={(e) => handleUpdateBanner(index, { subtitle: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+                                placeholder="Banner subtitle"
+                              />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-semibold mb-1 text-gray-700">Image URL</label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                value={banner.imageUrl}
+                                onChange={(e) => handleUpdateBanner(index, { imageUrl: e.target.value })}
+                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+                                placeholder="Paste image URL"
+                              />
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={(e) => handleImageUpload(e, index)}
+                                disabled={uploadingImage === index}
+                                className="hidden"
+                                id={`banner-upload-${index}`}
+                              />
+                              <label
+                                htmlFor={`banner-upload-${index}`}
+                                className={`px-3 py-2 border-2 border-dashed rounded-lg cursor-pointer text-sm font-medium inline-flex items-center gap-2 ${
+                                  uploadingImage === index
+                                    ? 'bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500'
+                                    : 'hover:border-accent hover:bg-blue-50 border-gray-300 text-gray-700'
+                                }`}
+                              >
+                                {uploadingImage === index ? (
+                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-accent border-t-transparent"></div>
+                                ) : (
+                                  <Upload className="w-4 h-4" />
+                                )}
+                              </label>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setEditingBannerIndex(null)}
+                              className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                            >
+                              Done Editing
+                            </button>
+                          </div>
                         </>
                       ) : (
                         <>
-                          <Upload className="w-5 h-5 text-accent" />
-                          <span className="text-sm font-medium text-gray-700">Click to upload image</span>
-                          <span className="text-xs text-gray-500">(Max 5MB)</span>
+                          {/* View Mode */}
+                          <div>
+                            <h4 className="font-bold text-gray-900">{banner.title}</h4>
+                            <p className="text-sm text-gray-600">{banner.subtitle}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => handleUpdateBanner(index, { enabled: !banner.enabled })}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                banner.enabled ? 'bg-green-500' : 'bg-gray-300'
+                              }`}
+                            >
+                              <span
+                                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                  banner.enabled ? 'translate-x-6' : 'translate-x-1'
+                                }`}
+                              />
+                            </button>
+                            <span className="text-xs text-gray-600">
+                              {banner.enabled ? 'Enabled' : 'Disabled'}
+                            </span>
+                          </div>
                         </>
                       )}
-                    </label>
-                  </div>
-                  <div className="relative">
-                    <div className="text-center text-xs text-gray-500 mb-2">OR</div>
-                    <input
-                      type="text"
-                      value={saleBanner.imageUrl}
-                      onChange={(e) => setSaleBanner({ ...saleBanner, imageUrl: e.target.value })}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent text-sm transition-shadow"
-                      placeholder="Paste image URL here"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+                    </div>
 
-            {/* Live Preview */}
-            <div>
-              <label className="block text-sm font-semibold mb-2 text-gray-700">Live Preview</label>
-              <div className="relative h-64 rounded-xl overflow-hidden shadow-xl border-2 border-gray-200">
-                <img
-                  src={saleBanner.imageUrl}
-                  alt="Banner preview"
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/800x400?text=Banner+Image';
-                  }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/60 flex flex-col items-center justify-center text-white p-6">
-                  <h2 className="text-3xl font-bold mb-2 text-center drop-shadow-lg">{saleBanner.title}</h2>
-                  <p className="text-lg text-center drop-shadow-md">{saleBanner.subtitle}</p>
-                </div>
-                {!saleBanner.enabled && (
-                  <div className="absolute top-3 right-3 bg-gray-900/80 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                    Disabled
+                    {/* Action Buttons */}
+                    <div className="flex flex-col gap-1">
+                      {editingBannerIndex !== index && (
+                        <button
+                          onClick={() => setEditingBannerIndex(index)}
+                          className="p-2 text-accent hover:bg-blue-50 rounded transition-colors"
+                          title="Edit banner"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      )}
+                      {index > 0 && (
+                        <button
+                          onClick={() => handleMoveBanner(index, 'up')}
+                          className="p-2 text-gray-600 hover:bg-gray-200 rounded transition-colors"
+                          title="Move up"
+                        >
+                          <MoveUp className="w-4 h-4" />
+                        </button>
+                      )}
+                      {index < banners.length - 1 && (
+                        <button
+                          onClick={() => handleMoveBanner(index, 'down')}
+                          className="p-2 text-gray-600 hover:bg-gray-200 rounded transition-colors"
+                          title="Move down"
+                        >
+                          <MoveDown className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDeleteBanner(index)}
+                        className="p-2 text-error hover:bg-red-50 rounded transition-colors"
+                        title="Delete banner"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                )}
-              </div>
-              <p className="text-xs text-gray-500 mt-2 text-center">This is how your banner will appear to customers</p>
+                </div>
+              ))}
             </div>
-          </div>
+          )}
+
+          {banners.length > 0 && (
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+              <p className="text-xs text-blue-800 font-medium mb-1">💡 Carousel Preview</p>
+              <p className="text-sm text-blue-900">
+                {banners.filter(b => b.enabled).length === 0 && 'No banners enabled. Enable at least one banner to display the carousel.'}
+                {banners.filter(b => b.enabled).length === 1 && 'One banner enabled. It will display as a static banner.'}
+                {banners.filter(b => b.enabled).length > 1 && `${banners.filter(b => b.enabled).length} banners enabled. They will auto-slide every 5 seconds with swipe support.`}
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Sale Timer */}
