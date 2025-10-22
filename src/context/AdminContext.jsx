@@ -110,7 +110,8 @@ export const AdminProvider = ({ children }) => {
       const updatedOrder = await ordersAPI.updateStatus(orderId, status);
       setOrders(prev =>
         prev.map(order =>
-          order.id === orderId ? updatedOrder : order
+          // Match by id (order_number) or dbId (UUID)
+          (order.id === orderId || order.dbId === orderId) ? updatedOrder : order
         )
       );
       return updatedOrder;

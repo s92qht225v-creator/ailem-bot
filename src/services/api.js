@@ -493,7 +493,9 @@ export const ordersAPI = {
   _mapOrderFromDB(order) {
     return {
       ...order,
-      // Map order_number to id for backward compatibility
+      // Keep database UUID as dbId for updates
+      dbId: order.id,
+      // Map order_number to id for display
       id: order.order_number || order.id,
       orderNumber: order.order_number,
       userId: order.user_id,
@@ -592,15 +594,24 @@ export const ordersAPI = {
 
   // Update order status
   async updateStatus(id, status) {
-    const { data, error } = await supabase
+    // Try to find by database UUID first, fallback to order_number
+    let query = supabase
       .from('orders')
       .update({ status })
-      .eq('id', id)
-      .select()
-      .single();
+      .select();
+    
+    // If id looks like a UUID, use it directly
+    if (id.includes('-') && id.length > 20) {
+      query = query.eq('id', id);
+    } else {
+      // Otherwise assume it's an order_number
+      query = query.eq('order_number', id);
+    }
+    
+    const { data, error } = await query.single();
 
     if (error) throw error;
-    return this._mapOrderFromDB(data); // Map fields including userTelegramId
+    return this._mapOrderFromDB(data);
   },
 
   // Delete order
