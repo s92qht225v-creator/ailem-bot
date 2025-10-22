@@ -8,7 +8,7 @@ import { storageAPI } from '../../services/api';
 import { notifyAdminNewOrder, notifyUserNewOrder } from '../../services/telegram';
 import { useBackButton } from '../../hooks/useBackButton';
 import { useMainButton } from '../../hooks/useMainButton';
-import { payWithTelegram, isTelegramPaymentsAvailable } from '../../services/telegramPayments';
+import { generatePaymeLink } from '../../services/payme';
 
 const PaymentPage = ({ checkoutData, onNavigate }) => {
   const { cartItems, clearCart } = useCart();
@@ -23,8 +23,8 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
   const [uploading, setUploading] = useState(false);
   const [processingPayment, setProcessingPayment] = useState(false);
 
-  // Check if Telegram Payments is available
-  const telegramPaymentsEnabled = isTelegramPaymentsAvailable();
+  // Always show Payme as primary payment method
+  const paymeEnabled = true;
 
   const adminCardNumber = '4532 1234 5678 9012';
 
@@ -55,38 +55,16 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
     }
   };
 
-  // Handler for Telegram Payments
-  const handleTelegramPayment = async () => {
+  // Handler for Payme payment
+  const handlePaymePayment = async () => {
     try {
       setProcessingPayment(true);
 
       const orderId = generateOrderNumber();
 
-      console.log('💳 Opening Telegram payment form...');
+      console.log('💳 Creating order and generating payment link...');
 
-      // Open Telegram payment form
-      const paymentResult = await payWithTelegram({
-        orderId,
-        userId: user.id,
-        items: cartItems.map(item => ({
-          productId: item.id,
-          productName: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          color: item.selectedColor,
-          size: item.selectedSize,
-          image: item.image
-        })),
-        total: checkoutData.total,
-        deliveryFee: checkoutData.deliveryFee,
-        bonusDiscount: checkoutData.bonusDiscount,
-        customerName: checkoutData.fullName,
-        customerPhone: checkoutData.phone,
-      });
-
-      console.log('✅ Payment successful:', paymentResult);
-
-      // Create order after successful payment
+      // Create pending order first
       const order = {
         id: orderId,
         userId: user.id,
@@ -114,42 +92,45 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         bonusPointsUsed: checkoutData.bonusPointsUsed,
         deliveryFee: checkoutData.deliveryFee,
         total: checkoutData.total,
-        paymentMethod: 'telegram',
-        status: 'approved', // Telegram payments are auto-approved
+        paymentMethod: 'payme',
+        status: 'pending', // Will be approved by webhook
         date: new Date().toISOString().split('T')[0],
         createdAt: new Date().toISOString()
       };
 
       // Save order
       await addOrder(order);
+      console.log('✅ Order created:', orderId);
 
-      // Send notifications
-      await Promise.all([
-        notifyAdminNewOrder(order),
-        notifyUserNewOrder(order)
-      ]);
+      // Generate Payme payment link
+      const paymentUrl = generatePaymeLink({
+        orderId,
+        amount: checkoutData.total,
+        description: `Order #${orderId} - ${cartItems.length} items`,
+        account: {
+          order_id: orderId,
+          user_id: user.id
+        }
+      });
 
-      // Update bonus points
-      if (checkoutData.useBonusPoints && checkoutData.bonusPointsUsed > 0) {
-        await updateBonusPoints(-checkoutData.bonusPointsUsed);
+      console.log('🔗 Payment URL:', paymentUrl);
+
+      // Open in Telegram browser
+      if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.openLink(paymentUrl);
+        alert('Payment page opened in browser.\n\nComplete the payment and return to the app.\n\nYour order will be approved automatically.');
+      } else {
+        window.open(paymentUrl, '_blank');
       }
 
-      const earnedPoints = calculateBonusPoints(checkoutData.total);
-      await updateBonusPoints(earnedPoints);
-
-      // Clear cart
+      // Clear cart after opening payment
       clearCart();
-
+      
       // Navigate to profile
-      alert(`Payment successful! \u2705\n\nOrder ID: ${order.id}\nBonus Points Earned: ${earnedPoints}\n\nYour order is being processed.`);
       onNavigate('profile');
     } catch (error) {
       console.error('❌ Payment failed:', error);
-      if (error.status === 'cancelled') {
-        alert('Payment was cancelled.');
-      } else {
-        alert(`Payment failed: ${error.message || 'Please try again.'}`);
-      }
+      alert(`Failed to create order: ${error.message || 'Please try again.'}`);
     } finally {
       setProcessingPayment(false);
     }
@@ -257,10 +238,10 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
     );
   }
 
-  // Use MainButton for Telegram Payment
+  // Use MainButton for Payme/Manual Payment
   useMainButton(
-    paymentMethod === 'telegram' ? 'Pay with Telegram' : 'Submit Order',
-    paymentMethod === 'telegram' ? handleTelegramPayment : handleSubmitOrder,
+    paymentMethod === 'telegram' ? 'Pay with Payme' : 'Submit Order',
+    paymentMethod === 'telegram' ? handlePaymePayment : handleSubmitOrder,
     {
       enabled: paymentMethod === 'telegram' || screenshot !== null,
       progress: processingPayment || uploading,
@@ -279,7 +260,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         </div>
 
         {/* Payment Method Selection */}
-        {telegramPaymentsEnabled && (
+        {paymeEnabled && (
           <div className="bg-white rounded-lg shadow-md p-4">
             <h3 className="text-lg font-semibold mb-4">Select Payment Method</h3>
             <div className="space-y-3">
@@ -293,8 +274,8 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
               >
                 <CreditCard className="w-6 h-6 text-accent" />
                 <div className="flex-1 text-left">
-                  <p className="font-semibold text-gray-900">Telegram Payment</p>
-                  <p className="text-sm text-gray-600">Pay securely with Paycom</p>
+                  <p className="font-semibold text-gray-900">Payme Payment</p>
+                  <p className="text-sm text-gray-600">Pay securely with Payme</p>
                 </div>
                 {paymentMethod === 'telegram' && (
                   <CheckCircle className="w-5 h-5 text-accent" />
@@ -418,22 +399,22 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
           </>
         )}
 
-        {/* Telegram Payment Info */}
+        {/* Payme Payment Info */}
         {paymentMethod === 'telegram' && (
           <div className="bg-white rounded-lg shadow-md p-4">
-            <h3 className="text-lg font-semibold mb-3">Telegram Payment</h3>
+            <h3 className="text-lg font-semibold mb-3">Payme Payment</h3>
             <div className="bg-blue-50 border-l-4 border-accent p-4 rounded">
               <p className="text-sm text-gray-700 mb-2">
                 <strong className="text-accent">✅ Secure Payment</strong>
               </p>
               <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                <li>Powered by Paycom</li>
-                <li>Payment processed by Telegram</li>
-                <li>No card details stored</li>
-                <li>Instant confirmation</li>
+                <li>Powered by Payme</li>
+                <li>Supports cards, HUMO, and Payme app</li>
+                <li>Secure payment gateway</li>
+                <li>Opens in Telegram browser</li>
               </ul>
               <p className="text-sm text-gray-600 mt-3">
-                Click the <strong>"Pay with Telegram"</strong> button below to proceed
+                Click the <strong>"Pay with Payme"</strong> button below to proceed
               </p>
             </div>
           </div>
