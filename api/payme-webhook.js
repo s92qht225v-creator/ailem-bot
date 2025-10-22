@@ -1,7 +1,13 @@
-// Payme Webhook Handler
+// Payme Merchant API Webhook Handler
+// JSON-RPC 2.0 Protocol
 // https://developer.help.paycom.uz/protokol-merchant-api
 
-import { supabase } from '../src/lib/supabase.js';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL,
+  process.env.VITE_SUPABASE_ANON_KEY
+);
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -102,8 +108,33 @@ async function createTransaction(params, res) {
   const { id, time, amount, account } = params;
   const orderId = account.order_id;
 
-  // Save transaction to database (you should create a payme_transactions table)
-  // For now, just return success
+  // Check if transaction already exists
+  const { data: existing } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('order_number', orderId)
+    .eq('payme_transaction_id', id)
+    .single();
+
+  if (existing) {
+    return res.json({
+      result: {
+        create_time: existing.payme_create_time || time,
+        transaction: id,
+        state: existing.payme_state || 1
+      }
+    });
+  }
+
+  // Save transaction info to order
+  await supabase
+    .from('orders')
+    .update({
+      payme_transaction_id: id,
+      payme_create_time: time,
+      payme_state: 1 // Created
+    })
+    .eq('order_number', orderId);
   
   return res.json({
     result: {
@@ -117,14 +148,38 @@ async function createTransaction(params, res) {
 // Perform (complete) transaction
 async function performTransaction(params, res) {
   const { id } = params;
+  const performTime = Date.now();
 
-  // Update order status to approved
-  // Extract order_id from transaction (you'd store this in createTransaction)
+  // Find order by transaction ID and approve it
+  const { data: order } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('payme_transaction_id', id)
+    .single();
+
+  if (!order) {
+    return res.json({
+      error: {
+        code: -31003,
+        message: 'Transaction not found'
+      }
+    });
+  }
+
+  // Update order: approve and mark as completed
+  await supabase
+    .from('orders')
+    .update({
+      status: 'approved',
+      payme_perform_time: performTime,
+      payme_state: 2 // Completed
+    })
+    .eq('payme_transaction_id', id);
   
   return res.json({
     result: {
       transaction: id,
-      perform_time: Date.now(),
+      perform_time: performTime,
       state: 2 // 2 = completed
     }
   });
@@ -133,11 +188,23 @@ async function performTransaction(params, res) {
 // Cancel transaction
 async function cancelTransaction(params, res) {
   const { id, reason } = params;
+  const cancelTime = Date.now();
+
+  // Cancel order
+  await supabase
+    .from('orders')
+    .update({
+      status: 'rejected',
+      payme_cancel_time: cancelTime,
+      payme_state: -1, // Cancelled
+      payme_cancel_reason: reason
+    })
+    .eq('payme_transaction_id', id);
 
   return res.json({
     result: {
       transaction: id,
-      cancel_time: Date.now(),
+      cancel_time: cancelTime,
       state: -1 // -1 = cancelled
     }
   });
@@ -147,15 +214,30 @@ async function cancelTransaction(params, res) {
 async function checkTransaction(params, res) {
   const { id } = params;
 
-  // Look up transaction in your database
+  // Look up transaction in database
+  const { data: order } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('payme_transaction_id', id)
+    .single();
+
+  if (!order) {
+    return res.json({
+      error: {
+        code: -31003,
+        message: 'Transaction not found'
+      }
+    });
+  }
+
   return res.json({
     result: {
-      create_time: Date.now(),
-      perform_time: 0,
-      cancel_time: 0,
+      create_time: order.payme_create_time || 0,
+      perform_time: order.payme_perform_time || 0,
+      cancel_time: order.payme_cancel_time || 0,
       transaction: id,
-      state: 1,
-      reason: null
+      state: order.payme_state || 1,
+      reason: order.payme_cancel_reason || null
     }
   });
 }
