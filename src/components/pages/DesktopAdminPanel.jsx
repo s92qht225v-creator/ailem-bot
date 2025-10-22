@@ -467,17 +467,108 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   </button>
                 </div>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-6">
+                {/* Customer Information */}
                 <div>
-                  <h4 className="font-semibold mb-2">Customer Information</h4>
-                  <p className="text-sm text-gray-600">Name: {selectedOrder.userName}</p>
-                  <p className="text-sm text-gray-600">Phone: {selectedOrder.userPhone}</p>
-                  {selectedOrder.deliveryAddress && (
-                    <p className="text-sm text-gray-600">Address: {selectedOrder.deliveryAddress}</p>
-                  )}
+                  <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                    <UsersIcon className="w-5 h-5 text-primary" />
+                    Customer Information
+                  </h4>
+                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Name:</span>
+                      <span className="text-sm font-medium text-gray-900">{selectedOrder.userName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Phone:</span>
+                      <span className="text-sm font-medium text-gray-900">{selectedOrder.userPhone}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">User ID:</span>
+                      <span className="text-sm font-medium text-gray-900">{selectedOrder.userId}</span>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Delivery Information */}
+                {selectedOrder.deliveryInfo && (
+                  <div>
+                    <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                      <Truck className="w-5 h-5 text-primary" />
+                      Delivery Details
+                    </h4>
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                      {selectedOrder.deliveryInfo.fullName && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Recipient:</span>
+                          <span className="text-sm font-medium text-gray-900">{selectedOrder.deliveryInfo.fullName}</span>
+                        </div>
+                      )}
+                      {selectedOrder.deliveryInfo.phone && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Contact:</span>
+                          <span className="text-sm font-medium text-gray-900">{selectedOrder.deliveryInfo.phone}</span>
+                        </div>
+                      )}
+                      {selectedOrder.deliveryInfo.city && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">City:</span>
+                          <span className="text-sm font-medium text-gray-900">{selectedOrder.deliveryInfo.city}</span>
+                        </div>
+                      )}
+                      {selectedOrder.deliveryInfo.address && (
+                        <div>
+                          <span className="text-sm text-gray-600 block mb-1">Address:</span>
+                          <span className="text-sm font-medium text-gray-900">{selectedOrder.deliveryInfo.address}</span>
+                        </div>
+                      )}
+                      {selectedOrder.courier && (
+                        <div className="pt-2 border-t border-gray-200">
+                          <div className="flex justify-between">
+                            <span className="text-sm text-gray-600">Courier Service:</span>
+                            <span className="text-sm font-semibold text-primary">{selectedOrder.courier}</span>
+                          </div>
+                        </div>
+                      )}
+                      {selectedOrder.deliveryFee > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-gray-600">Delivery Fee:</span>
+                          <span className="text-sm font-medium text-gray-900">{formatPrice(selectedOrder.deliveryFee)}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Payment Information */}
+                {selectedOrder.paymentScreenshot && (
+                  <div>
+                    <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                      <Image className="w-5 h-5 text-primary" />
+                      Payment Screenshot
+                    </h4>
+                    <a 
+                      href={selectedOrder.paymentScreenshot} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="block"
+                    >
+                      <img 
+                        src={selectedOrder.paymentScreenshot} 
+                        alt="Payment screenshot"
+                        className="w-full max-h-64 object-contain rounded-lg border-2 border-gray-200 hover:border-primary transition-colors cursor-pointer"
+                      />
+                      <p className="text-xs text-center text-gray-500 mt-2">Click to view full size</p>
+                    </a>
+                  </div>
+                )}
+
+                {/* Order Items */}
                 <div>
-                  <h4 className="font-semibold mb-2">Order Items</h4>
+                  <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                    <ShoppingBag className="w-5 h-5 text-primary" />
+                    Order Items
+                  </h4>
                   <div className="space-y-3">
                     {selectedOrder.items?.map((item, idx) => (
                       <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
@@ -514,10 +605,64 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     ))}
                   </div>
                 </div>
-                <div className="border-t pt-4">
-                  <div className="flex justify-between font-bold">
-                    <span>Total:</span>
-                    <span>{formatPrice(selectedOrder.total)}</span>
+
+                {/* Order Summary */}
+                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-primary" />
+                    Order Summary
+                  </h4>
+                  <div className="space-y-2">
+                    {selectedOrder.subtotal && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Subtotal:</span>
+                        <span className="font-medium text-gray-900">{formatPrice(selectedOrder.subtotal)}</span>
+                      </div>
+                    )}
+                    {selectedOrder.deliveryFee > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Delivery Fee:</span>
+                        <span className="font-medium text-gray-900">{formatPrice(selectedOrder.deliveryFee)}</span>
+                      </div>
+                    )}
+                    {selectedOrder.bonusDiscount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-green-600">Bonus Discount:</span>
+                        <span className="font-medium text-green-600">-{formatPrice(selectedOrder.bonusDiscount)}</span>
+                      </div>
+                    )}
+                    {selectedOrder.bonusPointsUsed > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Bonus Points Used:</span>
+                        <span className="font-medium text-gray-900">{selectedOrder.bonusPointsUsed} pts</span>
+                      </div>
+                    )}
+                    <div className="border-t border-gray-300 pt-2 mt-2">
+                      <div className="flex justify-between">
+                        <span className="text-lg font-bold text-gray-900">Total:</span>
+                        <span className="text-lg font-bold text-primary">{formatPrice(selectedOrder.total)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Order Status & Date */}
+                <div className="flex items-center justify-between pt-4 border-t">
+                  <div>
+                    <p className="text-sm text-gray-600">Order Status</p>
+                    <span className={`inline-block mt-1 px-3 py-1 text-sm font-semibold rounded-full ${
+                      selectedOrder.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                      selectedOrder.status === 'approved' ? 'bg-green-100 text-green-800' :
+                      selectedOrder.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
+                      selectedOrder.status === 'rejected' ? 'bg-red-100 text-red-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {selectedOrder.status.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600">Order Date</p>
+                    <p className="text-sm font-medium text-gray-900 mt-1">{formatDate(selectedOrder.createdAt || selectedOrder.date)}</p>
                   </div>
                 </div>
               </div>
