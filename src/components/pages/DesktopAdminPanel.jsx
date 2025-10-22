@@ -76,10 +76,16 @@ const DesktopAdminPanel = ({ onLogout }) => {
     //   color: 'text-rose-600'
     // },
     {
+      id: 'promotions',
+      label: 'Promotions',
+      icon: Image,
+      color: 'text-pink-600'
+    },
+    {
       id: 'pickup-points',
       label: 'Pickup Points',
       icon: MapPin,
-      color: 'text-pink-600'
+      color: 'text-blue-600'
     },
     {
       id: 'shipping-rates',
@@ -179,6 +185,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 {activeSection === 'reviews' && `${reviews?.length || 0} customer reviews`}
                 {activeSection === 'users' && 'Manage customers and administrators'}
                 {activeSection === 'bonus-settings' && 'Configure referral and purchase rewards'}
+                {activeSection === 'promotions' && 'Manage banners and app settings'}
                 {activeSection === 'pickup-points' && 'Manage courier pickup locations'}
                 {activeSection === 'shipping-rates' && 'Configure delivery pricing by region'}
                 {activeSection === 'analytics' && 'Detailed business insights'}
@@ -215,6 +222,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           {activeSection === 'reviews' && <ReviewsContent />}
           {activeSection === 'users' && <UsersContent />}
           {activeSection === 'bonus-settings' && <BonusSettingsContent />}
+          {activeSection === 'promotions' && <PromotionsContent />}
           {activeSection === 'pickup-points' && <PickupPointsContent />}
           {activeSection === 'shipping-rates' && <ShippingRatesContent />}
           {activeSection === 'analytics' && <AnalyticsContent />}
@@ -2524,6 +2532,172 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
             ))
           )}
+        </div>
+      </div>
+    );
+  }
+
+  function PromotionsContent() {
+    const [saleBanner, setSaleBanner] = useState({
+      title: 'Summer Sale',
+      subtitle: 'Up to 50% Off on Selected Items',
+      imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
+      enabled: true
+    });
+
+    const [saleTimer, setSaleTimer] = useState({
+      endDate: '2025-12-31T23:59:59',
+      enabled: true
+    });
+
+    // Load from localStorage
+    useEffect(() => {
+      const savedBanner = loadFromLocalStorage('saleBanner');
+      const savedTimer = loadFromLocalStorage('saleTimer');
+      if (savedBanner) setSaleBanner(savedBanner);
+      if (savedTimer) setSaleTimer(savedTimer);
+    }, []);
+
+    const saveSaleBanner = (newBanner) => {
+      setSaleBanner(newBanner);
+      saveToLocalStorage('saleBanner', newBanner);
+    };
+
+    const saveSaleTimer = (newTimer) => {
+      setSaleTimer(newTimer);
+      saveToLocalStorage('saleTimer', newTimer);
+    };
+
+    return (
+      <div className="max-w-6xl grid gap-6">
+        {/* Sales Banner */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <Image className="w-6 h-6 text-primary" />
+            Sales Banner
+          </h3>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="font-semibold">Enable Banner</label>
+                <button
+                  onClick={() => saveSaleBanner({ ...saleBanner, enabled: !saleBanner.enabled })}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                    saleBanner.enabled
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-300 text-gray-700'
+                  }`}
+                >
+                  {saleBanner.enabled ? 'Enabled' : 'Disabled'}
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Title</label>
+                <input
+                  type="text"
+                  value={saleBanner.title}
+                  onChange={(e) => saveSaleBanner({ ...saleBanner, title: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Subtitle</label>
+                <input
+                  type="text"
+                  value={saleBanner.subtitle}
+                  onChange={(e) => saveSaleBanner({ ...saleBanner, subtitle: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">Image URL</label>
+                <input
+                  type="text"
+                  value={saleBanner.imageUrl}
+                  onChange={(e) => saveSaleBanner({ ...saleBanner, imageUrl: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  placeholder="https://..."
+                />
+              </div>
+            </div>
+
+            {/* Preview */}
+            <div>
+              <label className="block text-sm font-semibold mb-2">Preview</label>
+              <div className="relative h-64 rounded-lg overflow-hidden shadow-lg">
+                <img
+                  src={saleBanner.imageUrl}
+                  alt="Banner preview"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = 'https://via.placeholder.com/800x400?text=Banner+Image';
+                  }}
+                />
+                <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center text-white p-4">
+                  <h2 className="text-3xl font-bold mb-2 text-center">{saleBanner.title}</h2>
+                  <p className="text-lg text-center">{saleBanner.subtitle}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Sale Timer */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <Clock className="w-6 h-6 text-primary" />
+            Sale Timer
+          </h3>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <label className="font-semibold">Enable Timer</label>
+                <button
+                  onClick={() => saveSaleTimer({ ...saleTimer, enabled: !saleTimer.enabled })}
+                  className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+                    saleTimer.enabled
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-300 text-gray-700'
+                  }`}
+                >
+                  {saleTimer.enabled ? 'Enabled' : 'Disabled'}
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold mb-2">
+                  Sale End Date & Time
+                </label>
+                <input
+                  type="datetime-local"
+                  value={saleTimer.endDate.replace(' ', 'T').slice(0, 16)}
+                  onChange={(e) => {
+                    const newValue = e.target.value.replace('T', ' ') + ':00';
+                    saveSaleTimer({ ...saleTimer, endDate: newValue });
+                  }}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Current: {new Date(saleTimer.endDate).toLocaleString()}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-center bg-gradient-to-br from-orange-50 to-red-50 rounded-lg p-8">
+              <div className="text-center">
+                <Calendar className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+                <p className="text-sm text-gray-600 mb-2">Sale ends in</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {Math.ceil((new Date(saleTimer.endDate) - new Date()) / (1000 * 60 * 60 * 24))} days
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
