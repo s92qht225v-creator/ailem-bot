@@ -10,9 +10,14 @@ const RelatedProducts = ({ currentProduct, onNavigate }) => {
 
   // Get related products using recommendation engine
   const relatedProducts = useMemo(() => {
+    // Safety check: ensure all required data is available
+    if (!currentProduct || !products || products.length === 0) {
+      return [];
+    }
     return getSmartRecommendations(currentProduct, products, 6);
   }, [currentProduct, products]);
 
+  // Don't render if no recommendations
   if (!relatedProducts || relatedProducts.length === 0) {
     return null;
   }

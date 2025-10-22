@@ -213,6 +213,11 @@ export const getBestSellerProducts = (allProducts, currentProduct, limit = 6) =>
  * @returns {Array} Array of recommended products
  */
 export const getSmartRecommendations = (currentProduct, allProducts, limit = 6) => {
+  // Safety check: ensure required data is available
+  if (!currentProduct || !allProducts || !Array.isArray(allProducts) || allProducts.length === 0) {
+    return [];
+  }
+  
   // Try primary strategy: similarity-based
   let recommendations = getRelatedProducts(currentProduct, allProducts, limit);
   
