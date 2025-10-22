@@ -4,7 +4,8 @@ import {
   Edit, Trash2, Plus, ChevronRight, Edit2, ShoppingBag, Truck, Gift, 
   Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload, 
   TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle, AlertCircle,
-  Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff, ImagePlus
+  Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff, ImagePlus,
+  Download, FileDown
 } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
@@ -13,6 +14,7 @@ import { formatPrice, formatDate, loadFromLocalStorage, saveToLocalStorage } fro
 import { calculateAnalytics, getRevenueChartData } from '../../utils/analytics';
 import { generateVariants, updateVariantStock, updateVariantImage, getTotalVariantStock } from '../../utils/variants';
 import { settingsAPI, storageAPI } from '../../services/api';
+import { exportOrders, exportOrderItems, exportProducts, exportUsers, exportReviews } from '../../utils/csvExport';
 
 const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -465,6 +467,30 @@ const DesktopAdminPanel = ({ onLogout }) => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Orders Management</h3>
             <div className="flex gap-2">
+              {/* Export Dropdown */}
+              <div className="relative group">
+                <button className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
+                  <Download className="w-4 h-4" />
+                  Export CSV
+                </button>
+                <div className="absolute right-0 mt-1 w-48 bg-white border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+                  <button
+                    onClick={() => exportOrders(filteredOrders, `orders_${statusFilter}`)}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                  >
+                    <FileDown className="w-4 h-4" />
+                    Orders Summary
+                  </button>
+                  <button
+                    onClick={() => exportOrderItems(filteredOrders, `order_items_${statusFilter}`)}
+                    className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 border-t"
+                  >
+                    <FileDown className="w-4 h-4" />
+                    Order Items Detail
+                  </button>
+                </div>
+              </div>
+
               <select 
                 className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
                 value={statusFilter}
@@ -1069,13 +1095,22 @@ const DesktopAdminPanel = ({ onLogout }) => {
             <h3 className="text-lg font-semibold text-gray-900">Product Management</h3>
             <p className="text-gray-600">{products.length} products in catalog</p>
           </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Add Product
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => exportProducts(products)}
+              className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 flex items-center gap-2 transition-colors"
+            >
+              <Download className="w-4 h-4" />
+              Export CSV
+            </button>
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            >
+              <Plus className="w-5 h-5" />
+              Add Product
+            </button>
+          </div>
         </div>
 
         {/* Add/Edit Form */}
@@ -1814,6 +1849,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
     return (
       <div className="space-y-6">
+        {/* Header with Export */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Reviews Management</h3>
+          <button
+            onClick={() => exportReviews(filteredReviews, `reviews_${filter}`)}
+            className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 flex items-center gap-2 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
+        </div>
+
         {/* Filter Tabs */}
         <div className="bg-white rounded-lg shadow">
           <div className="border-b">
@@ -1968,6 +2015,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
     return (
       <div>
+        {/* Header with Export */}
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-gray-900">Users Management</h3>
+          <button
+            onClick={() => exportUsers(users)}
+            className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 flex items-center gap-2 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
+        </div>
+
         {/* Search Bar */}
         <div className="mb-6">
           <input
