@@ -154,6 +154,18 @@ export const AdminProvider = ({ children }) => {
         }
       }
 
+      // Send notification to customer
+      if (order) {
+        try {
+          const { notifyUserOrderStatus } = await import('../services/telegram');
+          await notifyUserOrderStatus(order, 'approved');
+          console.log('✅ Customer notified about order approval');
+        } catch (notifError) {
+          console.error('❌ Failed to send customer notification:', notifError);
+          // Don't fail the approval if notification fails
+        }
+      }
+
       // Call referral reward callback if provided
       if (onReferralReward && order) {
         onReferralReward(order);
@@ -200,6 +212,18 @@ export const AdminProvider = ({ children }) => {
       }
 
       await updateOrderStatus(orderId, 'rejected');
+
+      // Send notification to customer
+      if (order) {
+        try {
+          const { notifyUserOrderStatus } = await import('../services/telegram');
+          await notifyUserOrderStatus(order, 'rejected');
+          console.log('✅ Customer notified about order rejection');
+        } catch (notifError) {
+          console.error('❌ Failed to send customer notification:', notifError);
+          // Don't fail the rejection if notification fails
+        }
+      }
 
       // Refund bonus points if callback provided
       if (onRefundBonus && order) {
