@@ -115,13 +115,8 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
 
       console.log('🔗 Payment URL:', paymentUrl);
 
-      // Open in external browser (better for payment pages)
-      if (window.Telegram?.WebApp) {
-        // Force open in external browser for payments
-        window.Telegram.WebApp.openLink(paymentUrl, { try_instant_view: false });
-      } else {
-        window.open(paymentUrl, '_blank');
-      }
+      // Redirect to payment page directly
+      window.location.href = paymentUrl;
 
       // Clear cart after opening payment
       clearCart();
