@@ -106,10 +106,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       await addOrder(order);
       console.log('✅ Order created:', orderId);
 
-      // Generate Payme payment link
-      // Extract numeric part for Payme (e.g., ORD-1761225947932-397 -> 1761225947932397)
-      const numericOrderId = orderId.replace(/\D/g, '');
-      
+      // Generate Payme payment link using numeric order ID
       const paymentUrl = generatePaymeLink({
         orderId: numericOrderId,
         amount: checkoutData.total,
