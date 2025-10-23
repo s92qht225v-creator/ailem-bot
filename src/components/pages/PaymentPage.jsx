@@ -73,6 +73,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       // Create pending order first
       const order = {
         id: orderId,
+        paymeOrderId,
         userId: user.id,
         userTelegramId: user.telegramId || user.id,
         userName: user.name,
@@ -90,8 +91,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
           fullName: checkoutData.fullName,
           phone: checkoutData.phone,
           address: checkoutData.address,
-          city: checkoutData.city,
-          payme_order_id: paymeOrderId // Store numeric ID for Payme webhook lookup
+          city: checkoutData.city
         },
         courier: checkoutData.courier,
         subtotal: checkoutData.subtotal,
@@ -115,8 +115,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         amount: checkoutData.total,
         description: `Order #${orderId} - ${cartItems.length} items`,
         account: {
-          order_id: paymeOrderId,
-          user_id: user.id
+          order_id: paymeOrderId
         }
       });
 

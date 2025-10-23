@@ -80,7 +80,7 @@ async function checkPerformTransaction(params, res, requestId) {
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .select('*')
-    .eq('delivery_info->>payme_order_id', paymeOrderId)
+    .eq('payme_order_id', paymeOrderId)
     .single();
 
   if (orderError || !order) {
@@ -138,7 +138,7 @@ async function createTransaction(params, res, requestId) {
     .from('orders')
     .select('*')
     .eq('payme_transaction_id', id)
-    .eq('delivery_info->>payme_order_id', paymeOrderId)
+    .eq('payme_order_id', paymeOrderId)
     .maybeSingle();
 
   if (existingOrder) {
@@ -157,7 +157,7 @@ async function createTransaction(params, res, requestId) {
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .select('*')
-    .eq('delivery_info->>payme_order_id', paymeOrderId)
+    .eq('payme_order_id', paymeOrderId)
     .single();
   
   if (orderError || !order) {
