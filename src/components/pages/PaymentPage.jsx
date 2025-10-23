@@ -119,13 +119,6 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       if (window.Telegram?.WebApp) {
         // Force open in external browser for payments
         window.Telegram.WebApp.openLink(paymentUrl, { try_instant_view: false });
-        
-        // Show Telegram native alert
-        setTimeout(() => {
-          if (window.Telegram?.WebApp?.showAlert) {
-            window.Telegram.WebApp.showAlert('Payment page opened in browser!\n\nComplete the payment and your order will be approved automatically.');
-          }
-        }, 500);
       } else {
         window.open(paymentUrl, '_blank');
       }
