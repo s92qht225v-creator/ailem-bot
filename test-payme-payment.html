@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Payme Payment</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .info {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    .test-data {
+      background: #fff3e0;
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .secondary {
+      background: #2196F3;
+    }
+    .secondary:hover {
+      background: #0b7dda;
+    }
+    .payment-link {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 5px;
+      word-break: break-all;
+      margin-top: 20px;
+      display: none;
+    }
+    code {
+      background: #f5f5f5;
+      padding: 2px 5px;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧪 Test Payme Payment Flow</h1>
+    
+    <div class="info">
+      <strong>📋 Test Order:</strong><br>
+      Order ID: <code id="orderId">TEST-001</code><br>
+      Amount: <code id="amount">50,000</code> so'm<br>
+      Status: <code>pending</code>
+    </div>
+
+    <div class="test-data">
+      <strong>💳 Test Card Details:</strong><br>
+      Card: <code>8600 0000 0000 0000</code><br>
+      Expiry: <code>03/99</code><br>
+      SMS Code: <code>666666</code>
+    </div>
+
+    <button onclick="generatePaymentLink()">
+      🔗 Generate Payment Link
+    </button>
+
+    <button class="secondary" onclick="openPayment()">
+      💳 Open Payment Page
+    </button>
+
+    <div class="payment-link" id="paymentLinkContainer">
+      <strong>Payment Link:</strong><br>
+      <a id="paymentLink" href="#" target="_blank"></a>
+    </div>
+
+    <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 5px;">
+      <strong>✅ Expected Flow:</strong><br>
+      1. Click "Open Payment Page"<br>
+      2. Enter test card details<br>
+      3. Payme calls your webhook<br>
+      4. Order status → "approved"<br>
+      5. Check admin panel for updated order
+    </div>
+  </div>
+
+  <script>
+    const MERCHANT_ID = '68ad7cf18f3347fe865948ca'; // From your .env
+    const TEST_MODE = true;
+
+    function generatePaymentLink() {
+      const orderId = document.getElementById('orderId').textContent;
+      const amount = 50000; // 50,000 so'm
+
+      // Build params string
+      const amountInTiyin = amount * 100; // Convert to tiyin
+      const paramsString = `m=${MERCHANT_ID};ac.order_id=${orderId};a=${amountInTiyin}`;
+      
+      // Base64 encode
+      const paramsBase64 = btoa(paramsString);
+      
+      // Generate URL
+      const baseUrl = TEST_MODE 
+        ? 'https://checkout.test.paycom.uz'
+        : 'https://checkout.paycom.uz';
+      
+      const paymentUrl = `${baseUrl}/${paramsBase64}`;
+      
+      // Display link
+      document.getElementById('paymentLink').href = paymentUrl;
+      document.getElementById('paymentLink').textContent = paymentUrl;
+      document.getElementById('paymentLinkContainer').style.display = 'block';
+      
+      console.log('✅ Payment link generated:', paymentUrl);
+      console.log('📋 Params:', paramsString);
+      console.log('🔐 Base64:', paramsBase64);
+    }
+
+    function openPayment() {
+      generatePaymentLink();
+      const paymentUrl = document.getElementById('paymentLink').href;
+      
+      if (paymentUrl && paymentUrl !== '#') {
+        window.open(paymentUrl, '_blank');
+        alert('✅ Payment page opened!\n\nUse test card:\n8600 0000 0000 0000\nExp: 03/99\nSMS: 666666');
+      }
+    }
+
+    // Auto-generate link on page load
+    window.onload = generatePaymentLink;
+  </script>
+</body>
+</html>
