@@ -115,14 +115,10 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
 
       console.log('🔗 Payment URL:', paymentUrl);
 
-      // Redirect to payment page directly
+      // Redirect to payment page
+      // Note: Cart will be cleared by webhook after successful payment
+      // This prevents losing cart if user cancels payment
       window.location.href = paymentUrl;
-
-      // Clear cart after opening payment
-      clearCart();
-      
-      // Navigate to profile
-      onNavigate('profile');
     } catch (error) {
       console.error('❌ Payment failed:', error);
       alert(`Failed to create order: ${error.message || 'Please try again.'}`);
