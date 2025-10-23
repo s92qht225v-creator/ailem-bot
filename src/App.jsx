@@ -86,10 +86,6 @@ function App() {
         setCurrentPage((prev) => {
           if (prev !== 'admin') {
             console.log('🔍 Admin access detected - switching to admin page');
-            // Enable admin mode in user context if not already enabled
-            if (user && !user.isAdmin) {
-              toggleAdminMode();
-            }
             return 'admin';
           }
           return prev;
@@ -98,10 +94,6 @@ function App() {
         setCurrentPage((prev) => {
           if (prev === 'admin') {
             console.log('🏠 Admin param removed - returning to home');
-            // Disable admin mode in user context if enabled
-            if (user && user.isAdmin) {
-              toggleAdminMode();
-            }
             return 'home';
           }
           return prev;
@@ -135,7 +127,7 @@ function App() {
       window.removeEventListener('hashchange', handleURLChange);
       window.removeEventListener('popstate', handleURLChange);
     };
-  }, [user, toggleAdminMode]);
+  }, []);
 
   // Save current page and data to localStorage whenever they change
   useEffect(() => {
