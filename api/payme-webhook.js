@@ -74,22 +74,34 @@ export default async function handler(req, res) {
 // Check if order exists and can be paid
 async function checkPerformTransaction(params, res, requestId) {
   const { account, amount } = params;
-  const orderId = account.order_id;
+  const numericOrderId = account.order_id;
 
-  // Check if order exists in database
-  const { data: order, error } = await supabase
+  // Look up order by numeric Payme order ID (stored in delivery_info.payme_order_id)
+  const { data: orders, error: searchError } = await supabase
     .from('orders')
-    .select('*')
-    .eq('order_number', orderId)
-    .single();
+    .select('*');
+  
+  if (searchError) {
+    return res.json({
+      jsonrpc: '2.0',
+      id: requestId,
+      error: {
+        code: -32400,
+        message: 'Database error'
+      }
+    });
+  }
+  
+  // Find order with matching payme_order_id in delivery_info JSONB
+  const order = orders?.find(o => o.delivery_info?.payme_order_id === numericOrderId);
 
-  if (error || !order) {
+  if (!order) {
     return res.json({
       jsonrpc: '2.0',
       id: requestId,
       error: {
         code: -31050,
-        message: 'Order not found'
+        message: `Order not found for Payme ID: ${numericOrderId}`
       }
     });
   }
@@ -131,15 +143,15 @@ async function checkPerformTransaction(params, res, requestId) {
 // Create transaction
 async function createTransaction(params, res, requestId) {
   const { id, time, amount, account } = params;
-  const orderId = account.order_id;
+  const numericOrderId = account.order_id;
 
   // Check if transaction already exists
-  const { data: existing } = await supabase
+  const { data: allOrders } = await supabase
     .from('orders')
     .select('*')
-    .eq('order_number', orderId)
-    .eq('payme_transaction_id', id)
-    .single();
+    .eq('payme_transaction_id', id);
+  
+  const existing = allOrders?.find(o => o.delivery_info?.payme_order_id === numericOrderId);
 
   if (existing) {
     return res.json({
@@ -153,6 +165,21 @@ async function createTransaction(params, res, requestId) {
     });
   }
 
+  // Find order by numeric Payme ID
+  const { data: allOrders } = await supabase.from('orders').select('*');
+  const order = allOrders?.find(o => o.delivery_info?.payme_order_id === numericOrderId);
+  
+  if (!order) {
+    return res.json({
+      jsonrpc: '2.0',
+      id: requestId,
+      error: {
+        code: -31050,
+        message: 'Order not found'
+      }
+    });
+  }
+  
   // Save transaction info to order
   const { data, error } = await supabase
     .from('orders')
@@ -161,7 +188,7 @@ async function createTransaction(params, res, requestId) {
       payme_create_time: time,
       payme_state: 1
     })
-    .eq('order_number', orderId)
+    .eq('id', order.id)
     .select()
     .single();
   
