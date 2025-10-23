@@ -61,11 +61,14 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       setProcessingPayment(true);
 
       const orderId = generateOrderNumber();
+      const paymeOrderId = `${Date.now()}${Math.floor(Math.random() * 1000)
+        .toString()
+        .padStart(3, '0')}`;
 
-      console.log('💳 Creating order and generating payment link...');
-
-      // Extract numeric order ID for Payme
-      const numericOrderId = orderId.replace(/\D/g, '');
+      console.log('💳 Creating order and generating payment link...', {
+        orderId,
+        paymeOrderId
+      });
       
       // Create pending order first
       const order = {
@@ -88,7 +91,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
           phone: checkoutData.phone,
           address: checkoutData.address,
           city: checkoutData.city,
-          payme_order_id: numericOrderId // Store numeric ID for Payme webhook lookup
+          payme_order_id: paymeOrderId // Store numeric ID for Payme webhook lookup
         },
         courier: checkoutData.courier,
         subtotal: checkoutData.subtotal,
@@ -108,11 +111,11 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
 
       // Generate Payme payment link using numeric order ID
       const paymentUrl = generatePaymeLink({
-        orderId: numericOrderId,
+        orderId: paymeOrderId,
         amount: checkoutData.total,
         description: `Order #${orderId} - ${cartItems.length} items`,
         account: {
-          order_id: numericOrderId,
+          order_id: paymeOrderId,
           user_id: user.id
         }
       });
