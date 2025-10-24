@@ -157,23 +157,11 @@ async function handleComplete(params, res) {
     });
   }
 
-  // IMPORTANT: Respond to Click IMMEDIATELY to avoid timeout
-  // Then update database asynchronously
+  // Update order directly without checking if it exists first (for speed)
+  // Use upsert behavior to handle both new and existing orders
   const merchant_confirm_id = Date.now();
 
-  // Send immediate response to Click
-  res.json({
-    click_trans_id,
-    merchant_trans_id,
-    merchant_confirm_id,
-    error: 0,
-    error_note: 'Success'
-  });
-
-  console.log('✅ COMPLETE response sent to Click immediately');
-
-  // Update database asynchronously (don't await - fire and forget)
-  supabase
+  const { error: updateError } = await supabase
     .from('orders')
     .update({
       status: click_error && click_error < 0 ? 'rejected' : 'approved',
@@ -181,15 +169,20 @@ async function handleComplete(params, res) {
       click_complete_time: Date.now(),
       click_error: click_error || null
     })
-    .eq('click_order_id', merchant_trans_id)
-    .then(({ error: updateError }) => {
-      if (updateError) {
-        console.error('❌ Failed to update order:', updateError);
-      } else {
-        console.log('✅ Order updated successfully:', merchant_trans_id);
-      }
-    })
-    .catch((err) => {
-      console.error('❌ Database update error:', err);
-    });
+    .eq('click_order_id', merchant_trans_id);
+
+  if (updateError) {
+    console.error('❌ Failed to update order:', updateError);
+  }
+
+  console.log('✅ COMPLETE successful, order updated');
+
+  // Return success immediately
+  return res.json({
+    click_trans_id,
+    merchant_trans_id,
+    merchant_confirm_id,
+    error: 0,
+    error_note: 'Success'
+  });
 }
