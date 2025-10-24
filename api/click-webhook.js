@@ -157,76 +157,39 @@ async function handleComplete(params, res) {
     });
   }
 
-  // Find order
-  const { data: order, error: orderError } = await supabase
-    .from('orders')
-    .select('*')
-    .eq('click_order_id', merchant_trans_id)
-    .single();
+  // IMPORTANT: Respond to Click IMMEDIATELY to avoid timeout
+  // Then update database asynchronously
+  const merchant_confirm_id = Date.now();
 
-  if (orderError || !order) {
-    console.log('❌ Order not found:', merchant_trans_id);
-    return res.json({
-      click_trans_id,
-      merchant_trans_id,
-      merchant_confirm_id: 0,
-      error: -6,
-      error_note: 'Transaction not found'
-    });
-  }
-
-  // Check if Click reported an error
-  if (click_error && click_error < 0) {
-    console.log('❌ Click error:', click_error);
-
-    // Update order status to rejected
-    await supabase
-      .from('orders')
-      .update({
-        status: 'rejected',
-        click_trans_id,
-        click_error: click_error
-      })
-      .eq('id', order.id);
-
-    return res.json({
-      click_trans_id,
-      merchant_trans_id,
-      merchant_confirm_id: 0,
-      error: click_error,
-      error_note: 'Payment failed'
-    });
-  }
-
-  // Update order: approve and save Click transaction ID
-  const { error: updateError } = await supabase
-    .from('orders')
-    .update({
-      status: 'approved',
-      click_trans_id,
-      click_complete_time: Date.now()
-    })
-    .eq('id', order.id);
-
-  if (updateError) {
-    console.error('❌ Failed to update order:', updateError);
-    return res.json({
-      click_trans_id,
-      merchant_trans_id,
-      merchant_confirm_id: 0,
-      error: -9,
-      error_note: 'Failed to update order'
-    });
-  }
-
-  console.log('✅ COMPLETE successful, order approved');
-
-  // Return success
-  return res.json({
+  // Send immediate response to Click
+  res.json({
     click_trans_id,
     merchant_trans_id,
-    merchant_confirm_id: Date.now(), // Use timestamp as confirm ID
+    merchant_confirm_id,
     error: 0,
     error_note: 'Success'
   });
+
+  console.log('✅ COMPLETE response sent to Click immediately');
+
+  // Update database asynchronously (don't await - fire and forget)
+  supabase
+    .from('orders')
+    .update({
+      status: click_error && click_error < 0 ? 'rejected' : 'approved',
+      click_trans_id,
+      click_complete_time: Date.now(),
+      click_error: click_error || null
+    })
+    .eq('click_order_id', merchant_trans_id)
+    .then(({ error: updateError }) => {
+      if (updateError) {
+        console.error('❌ Failed to update order:', updateError);
+      } else {
+        console.log('✅ Order updated successfully:', merchant_trans_id);
+      }
+    })
+    .catch((err) => {
+      console.error('❌ Database update error:', err);
+    });
 }
