@@ -27,6 +27,28 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
   // Always show Payme as primary payment method
   const paymeEnabled = true;
 
+  // Use MainButton for payment methods
+  const getButtonText = () => {
+    if (paymentMethod === 'telegram') return 'Pay with Payme';
+    if (paymentMethod === 'click') return 'Pay with Click';
+    return 'Submit Order';
+  };
+
+  const getButtonHandler = () => {
+    if (paymentMethod === 'telegram') return handlePaymePayment;
+    if (paymentMethod === 'click') return handleClickPayment;
+    return handleSubmitOrder;
+  };
+
+  useMainButton(
+    getButtonText(),
+    getButtonHandler(),
+    {
+      enabled: paymentMethod === 'telegram' || paymentMethod === 'click' || screenshot !== null,
+      progress: processingPayment || uploading,
+    }
+  );
+
   const adminCardNumber = '4532 1234 5678 9012';
 
   const handleCopyCardNumber = async () => {
@@ -336,28 +358,6 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       </div>
     );
   }
-
-  // Use MainButton for payment methods
-  const getButtonText = () => {
-    if (paymentMethod === 'telegram') return 'Pay with Payme';
-    if (paymentMethod === 'click') return 'Pay with Click';
-    return 'Submit Order';
-  };
-
-  const getButtonHandler = () => {
-    if (paymentMethod === 'telegram') return handlePaymePayment;
-    if (paymentMethod === 'click') return handleClickPayment;
-    return handleSubmitOrder;
-  };
-
-  useMainButton(
-    getButtonText(),
-    getButtonHandler(),
-    {
-      enabled: paymentMethod === 'telegram' || paymentMethod === 'click' || screenshot !== null,
-      progress: processingPayment || uploading,
-    }
-  );
 
   return (
     <div className="pb-20">
