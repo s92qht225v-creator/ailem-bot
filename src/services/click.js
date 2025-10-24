@@ -11,12 +11,15 @@ import { loadFromLocalStorage } from '../utils/helpers';
 
 // Get Click credentials from environment or localStorage
 const getClickConfig = () => {
+  // Use production URL for Telegram Mini App
+  const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';
+  
   return {
     merchantId: import.meta.env.VITE_CLICK_MERCHANT_ID || loadFromLocalStorage('clickMerchantId'),
     serviceId: import.meta.env.VITE_CLICK_SERVICE_ID || loadFromLocalStorage('clickServiceId'),
     secretKey: import.meta.env.VITE_CLICK_SECRET_KEY || loadFromLocalStorage('clickSecretKey'),
     testMode: import.meta.env.VITE_CLICK_TEST_MODE !== 'false', // Default to test mode
-    returnUrl: import.meta.env.VITE_APP_URL || window.location.origin,
+    returnUrl: appUrl,
   };
 };
 
@@ -45,12 +48,11 @@ export const generateClickLink = ({ orderId, amount, description = '' }) => {
     service_id: config.serviceId,
     merchant_id: config.merchantId,
     amount: amountInUZS,
-    transaction_param: orderId, // Your order ID
-    return_url: `${config.returnUrl}/payment-success`,
-    card_type: '0', // 0 = any card type
+    transaction_param: orderId, // Your order ID (merchant_trans_id)
+    return_url: `${config.returnUrl}/#/profile`,
   });
 
-  // Add optional description
+  // merchant_trans_id is same as transaction_param
   if (description) {
     params.append('merchant_trans_id', orderId);
   }
