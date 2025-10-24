@@ -15,10 +15,11 @@ export default async function handler(req, res) {
   }
 
   const isTestMode = process.env.VITE_PAYME_TEST_MODE !== 'false';
+  // Accept both test and production passwords for flexibility
   const candidateKeys = [
     process.env.PAYME_KEY,
-    isTestMode ? process.env.PAYME_TEST_KEY : undefined,
-  ];
+    process.env.PAYME_TEST_KEY,
+  ].filter(Boolean);
 
   if (process.env.PAYME_ADDITIONAL_KEYS) {
     candidateKeys.push(
