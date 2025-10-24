@@ -135,6 +135,7 @@ async function handleComplete(params, res) {
   const {
     click_trans_id,
     service_id,
+    click_paydoc_id, // Required in response
     merchant_trans_id, // Our order ID
     merchant_prepare_id,
     amount,
@@ -178,11 +179,13 @@ async function handleComplete(params, res) {
   console.log('✅ COMPLETE successful, order updated');
 
   // Return success immediately
+  // IMPORTANT: Must include click_paydoc_id in response for Click to recognize completion
   return res.json({
     click_trans_id,
     merchant_trans_id,
     merchant_confirm_id,
     error: 0,
-    error_note: 'Success'
+    error_note: 'Success',
+    click_paydoc_id // Required field for Click to process response correctly
   });
 }

@@ -48,14 +48,10 @@ export const generateClickLink = ({ orderId, amount, description = '' }) => {
     service_id: config.serviceId,
     merchant_id: config.merchantId,
     amount: amountInUZS,
-    transaction_param: orderId, // Your order ID (merchant_trans_id)
+    transaction_param: orderId, // Your order ID
+    merchant_trans_id: orderId, // Same as transaction_param - used in webhook
     return_url: `${config.returnUrl}/#/profile`,
   });
-
-  // merchant_trans_id is same as transaction_param
-  if (description) {
-    params.append('merchant_trans_id', orderId);
-  }
 
   // Return full payment URL
   const baseUrl = config.testMode

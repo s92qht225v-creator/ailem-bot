@@ -145,9 +145,11 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       console.log('   a=<amount_in_tiyin>');
       console.log('═══════════════════════════════════════════════');
 
+      // Clear cart immediately before redirect
+      // Order is already saved, user can't lose it
+      clearCart();
+      
       // Redirect to payment page
-      // Note: Cart will be cleared by webhook after successful payment
-      // This prevents losing cart if user cancels payment
       window.location.href = paymentUrl;
     } catch (error) {
       console.error('❌ Payment failed:', error);
@@ -224,6 +226,10 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       console.log('Amount (UZS):', checkoutData.total);
       console.log('Payment URL:', paymentUrl);
       console.log('═══════════════════════════════════════════════');
+
+      // Clear cart immediately before redirect
+      // Order is already saved, user can't lose it
+      clearCart();
 
       // Open payment in Telegram WebView or external browser
       if (window.Telegram?.WebApp) {
