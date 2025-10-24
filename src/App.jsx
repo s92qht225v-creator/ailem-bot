@@ -9,6 +9,7 @@ import ProductPage from './components/pages/ProductPage';
 import CartPage from './components/pages/CartPage';
 import CheckoutPage from './components/pages/CheckoutPage';
 import PaymentPage from './components/pages/PaymentPage';
+import PaymentStatusPage from './components/pages/PaymentStatusPage';
 import AccountPage from './components/pages/AccountPage';
 import ProfilePage from './components/pages/ProfilePage';
 import OrderHistoryPage from './components/pages/OrderHistoryPage';
@@ -172,6 +173,33 @@ function App() {
     initApp();
   }, [user, setReferredBy]);
 
+  // Check for pending payment when app loads
+  useEffect(() => {
+    const pendingPayment = loadFromLocalStorage('pendingPayment');
+    
+    if (pendingPayment) {
+      const { orderId, paymentMethod, timestamp } = pendingPayment;
+      
+      // Only check if payment was initiated recently (within 1 hour)
+      const oneHourAgo = Date.now() - 60 * 60 * 1000;
+      if (timestamp > oneHourAgo) {
+        console.log('💳 Pending payment detected, navigating to status page:', {
+          orderId,
+          paymentMethod
+        });
+        
+        // Clear the pending payment flag
+        removeFromLocalStorage('pendingPayment');
+        
+        // Navigate to payment status page
+        navigate('paymentStatus', { orderId, paymentMethod });
+      } else {
+        // Payment too old, clear it
+        removeFromLocalStorage('pendingPayment');
+      }
+    }
+  }, []); // Run only once on mount
+
   const getPageTitle = () => {
     switch (currentPage) {
       case 'home':
@@ -186,6 +214,8 @@ function App() {
         return 'Checkout';
       case 'payment':
         return 'Payment';
+      case 'paymentStatus':
+        return 'Payment Status';
       case 'account':
         return 'Account';
       case 'profile':
@@ -289,6 +319,14 @@ function App() {
         {currentPage === 'payment' && (
           <PaymentPage
             checkoutData={pageData.checkoutData}
+            onNavigate={navigate}
+          />
+        )}
+
+        {currentPage === 'paymentStatus' && (
+          <PaymentStatusPage
+            orderId={pageData.orderId}
+            paymentMethod={pageData.paymentMethod}
             onNavigate={navigate}
           />
         )}

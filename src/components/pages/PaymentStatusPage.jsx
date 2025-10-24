@@ -7,8 +7,16 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
   const [order, setOrder] = useState(null);
   const [attempts, setAttempts] = useState(0);
   const maxAttempts = 30; // 30 attempts = 30 seconds
+  const [intervalId, setIntervalId] = useState(null);
+
+  const resetAndRetry = () => {
+    setStatus('checking');
+    setAttempts(0);
+  };
 
   useEffect(() => {
+    if (status !== 'checking') return; // Only poll when checking
+
     // Poll for order status every 1 second
     const interval = setInterval(async () => {
       try {
@@ -19,9 +27,9 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
           setOrder(orderData);
           clearInterval(interval);
           
-          // Auto-redirect to orders page after 2 seconds
+          // Auto-redirect to order details page after 2 seconds
           setTimeout(() => {
-            onNavigate('orders');
+            onNavigate('orderDetails', { orderId });
           }, 2000);
         } else if (attempts >= maxAttempts) {
           setStatus('timeout');
@@ -40,8 +48,9 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
       }
     }, 1000);
 
+    setIntervalId(interval);
     return () => clearInterval(interval);
-  }, [orderId, attempts, maxAttempts, onNavigate]);
+  }, [orderId, attempts, maxAttempts, onNavigate, status]);
 
   if (status === 'checking') {
     return (
@@ -95,7 +104,7 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
           </div>
         )}
         <p className="text-sm text-gray-500 mt-6">
-          Redirecting to your orders...
+          Redirecting to order details...
         </p>
       </div>
     );
@@ -114,12 +123,20 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
           <p className="text-sm text-gray-600 mb-6">
             Your order will be updated automatically. You can check your orders page to see the status.
           </p>
-          <button
-            onClick={() => onNavigate('orders')}
-            className="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition"
-          >
-            View My Orders
-          </button>
+          <div className="space-y-3">
+            <button
+              onClick={resetAndRetry}
+              className="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition"
+            >
+              Check Again
+            </button>
+            <button
+              onClick={() => onNavigate('orderHistory')}
+              className="w-full bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
+            >
+              View My Orders
+            </button>
+          </div>
         </div>
       </div>
     );

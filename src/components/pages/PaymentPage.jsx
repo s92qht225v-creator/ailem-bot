@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { Copy, Upload, CheckCircle, CreditCard } from 'lucide-react';
-import { formatPrice, copyToClipboard, generateOrderNumber, calculateBonusPoints } from '../../utils/helpers';
+import { formatPrice, copyToClipboard, generateOrderNumber, calculateBonusPoints, saveToLocalStorage } from '../../utils/helpers';
 import { useCart } from '../../hooks/useCart';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
@@ -145,9 +145,15 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       console.log('   a=<amount_in_tiyin>');
       console.log('═══════════════════════════════════════════════');
 
-      // Clear cart immediately before redirect
-      // Order is already saved, user can't lose it
+      // Clear cart immediately
       clearCart();
+
+      // Store pending payment info for status check when user returns
+      saveToLocalStorage('pendingPayment', {
+        orderId,
+        paymentMethod: 'payme',
+        timestamp: Date.now()
+      });
       
       // Redirect to payment page
       window.location.href = paymentUrl;
@@ -227,9 +233,15 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       console.log('Payment URL:', paymentUrl);
       console.log('═══════════════════════════════════════════════');
 
-      // Clear cart immediately before redirect
-      // Order is already saved, user can't lose it
+      // Clear cart immediately
       clearCart();
+
+      // Store pending payment info for status check when user returns
+      saveToLocalStorage('pendingPayment', {
+        orderId,
+        paymentMethod: 'click',
+        timestamp: Date.now()
+      });
 
       // Open payment in Telegram WebView or external browser
       if (window.Telegram?.WebApp) {
