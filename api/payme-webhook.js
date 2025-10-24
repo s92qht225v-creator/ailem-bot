@@ -29,12 +29,29 @@ export default async function handler(req, res) {
     );
   }
 
-  const validAuthHeaders = candidateKeys
-    .filter(Boolean)
-    .map(key => `Basic ${Buffer.from(`Paycom:${key}`).toString('base64')}`);
+  // Payme sends auth as: Basic base64(MerchantID:KEY)
+  // But they also accept: Basic base64(Paycom:KEY)
+  // We'll check both formats
+  const merchantId = process.env.VITE_PAYME_MERCHANT_ID;
+  const validAuthHeaders = [];
+
+  candidateKeys.filter(Boolean).forEach(key => {
+    // Format 1: Paycom:KEY (standard)
+    validAuthHeaders.push(`Basic ${Buffer.from(`Paycom:${key}`).toString('base64')}`);
+    // Format 2: MerchantID:KEY (alternative)
+    if (merchantId) {
+      validAuthHeaders.push(`Basic ${Buffer.from(`${merchantId}:${key}`).toString('base64')}`);
+    }
+  });
 
   if (!validAuthHeaders.length) {
     console.error('Payme webhook misconfiguration: PAYME_KEY / PAYME_TEST_KEY not set');
+    console.error('Environment check:', {
+      hasPaymeKey: !!process.env.PAYME_KEY,
+      hasTestKey: !!process.env.PAYME_TEST_KEY,
+      isTestMode,
+      hasAdditionalKeys: !!process.env.PAYME_ADDITIONAL_KEYS
+    });
     return res.json({
       jsonrpc: '2.0',
       id: req.body?.id || null,
@@ -47,7 +64,22 @@ export default async function handler(req, res) {
 
   // Check authorization
   const authHeader = req.headers.authorization?.trim();
+
+  console.log('=== PAYME AUTH DEBUG ===');
+  console.log('Received auth:', authHeader);
+  console.log('Valid auth headers:', validAuthHeaders);
+  console.log('Match found:', validAuthHeaders.includes(authHeader));
+  console.log('========================');
+
   if (!authHeader || !validAuthHeaders.includes(authHeader)) {
+    console.error('Payme auth failed:', {
+      receivedAuth: authHeader ? `${authHeader.substring(0, 20)}...` : 'none',
+      receivedFull: authHeader,
+      expectedCount: validAuthHeaders.length,
+      expectedHeaders: validAuthHeaders,
+      isTestMode,
+      method: req.body?.method
+    });
     return res.json({
       jsonrpc: '2.0',
       id: req.body?.id || null,

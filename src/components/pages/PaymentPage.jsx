@@ -9,6 +9,7 @@ import { notifyAdminNewOrder, notifyUserNewOrder } from '../../services/telegram
 import { useBackButton } from '../../hooks/useBackButton';
 import { useMainButton } from '../../hooks/useMainButton';
 import { generatePaymeLink } from '../../services/payme';
+import { generateClickLink } from '../../services/click';
 
 const PaymentPage = ({ checkoutData, onNavigate }) => {
   const { cartItems, clearCart } = useCart();
@@ -73,7 +74,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       // Create pending order first
       const order = {
         id: orderId,
-        paymeOrderId,
+        paymeOrderId: paymeOrderId, // Payme numeric order ID for webhook
         userId: user.id,
         userTelegramId: user.telegramId || user.id,
         userName: user.name,
@@ -91,7 +92,8 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
           fullName: checkoutData.fullName,
           phone: checkoutData.phone,
           address: checkoutData.address,
-          city: checkoutData.city
+          city: checkoutData.city,
+          payme_order_id: paymeOrderId // Also store for webhook compatibility
         },
         courier: checkoutData.courier,
         subtotal: checkoutData.subtotal,
@@ -119,7 +121,29 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         }
       });
 
-      console.log('🔗 Payment URL:', paymentUrl);
+      // Extract and decode the base64 parameters for debugging
+      const base64Params = paymentUrl.split('/').pop();
+      const decodedParams = atob(base64Params);
+
+      console.log('═══════════════════════════════════════════════');
+      console.log('🔗 PAYME PAYMENT DEBUG');
+      console.log('═══════════════════════════════════════════════');
+      console.log('Order Number:', orderId);
+      console.log('Payme Order ID:', paymeOrderId);
+      console.log('Amount (UZS):', checkoutData.total);
+      console.log('Amount (tiyin):', checkoutData.total * 100);
+      console.log('');
+      console.log('Payment URL:', paymentUrl);
+      console.log('');
+      console.log('Base64 Params:', base64Params);
+      console.log('');
+      console.log('Decoded Params:', decodedParams);
+      console.log('═══════════════════════════════════════════════');
+      console.log('💡 Copy the decoded params above to verify:');
+      console.log('   m=<merchant_id>');
+      console.log('   ac.order_id=<numeric_id>');
+      console.log('   a=<amount_in_tiyin>');
+      console.log('═══════════════════════════════════════════════');
 
       // Redirect to payment page
       // Note: Cart will be cleared by webhook after successful payment
@@ -127,6 +151,84 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       window.location.href = paymentUrl;
     } catch (error) {
       console.error('❌ Payment failed:', error);
+      alert(`Failed to create order: ${error.message || 'Please try again.'}`);
+    } finally {
+      setProcessingPayment(false);
+    }
+  };
+
+  // Handler for Click payment
+  const handleClickPayment = async () => {
+    try {
+      setProcessingPayment(true);
+
+      const orderId = generateOrderNumber();
+      const clickOrderId = `${Date.now()}`; // Use timestamp as Click order ID
+
+      console.log('💳 Creating order for Click payment...', {
+        orderId,
+        clickOrderId
+      });
+
+      // Create pending order first
+      const order = {
+        id: orderId,
+        clickOrderId: clickOrderId, // Click order ID for webhook lookup
+        userId: user.id,
+        userTelegramId: user.telegramId || user.id,
+        userName: user.name,
+        userPhone: user.phone || checkoutData.phone,
+        items: cartItems.map(item => ({
+          productId: item.id,
+          productName: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          color: item.selectedColor,
+          size: item.selectedSize,
+          image: item.image
+        })),
+        deliveryInfo: {
+          fullName: checkoutData.fullName,
+          phone: checkoutData.phone,
+          address: checkoutData.address,
+          city: checkoutData.city
+        },
+        courier: checkoutData.courier,
+        subtotal: checkoutData.subtotal,
+        bonusDiscount: checkoutData.bonusDiscount,
+        bonusPointsUsed: checkoutData.bonusPointsUsed,
+        deliveryFee: checkoutData.deliveryFee,
+        total: checkoutData.total,
+        paymentMethod: 'click',
+        status: 'pending', // Will be approved by webhook
+        date: new Date().toISOString().split('T')[0],
+        createdAt: new Date().toISOString()
+      };
+
+      // Save order
+      await addOrder(order);
+      console.log('✅ Order created:', orderId);
+
+      // Generate Click payment link
+      const paymentUrl = generateClickLink({
+        orderId: clickOrderId,
+        amount: checkoutData.total,
+        description: `Order #${orderId} - ${cartItems.length} items`
+      });
+
+      console.log('═══════════════════════════════════════════════');
+      console.log('🔗 CLICK PAYMENT DEBUG');
+      console.log('═══════════════════════════════════════════════');
+      console.log('Order Number:', orderId);
+      console.log('Click Order ID:', clickOrderId);
+      console.log('Amount (UZS):', checkoutData.total);
+      console.log('Payment URL:', paymentUrl);
+      console.log('═══════════════════════════════════════════════');
+
+      // Redirect to payment page
+      window.location.href = paymentUrl;
+    } catch (error) {
+      console.error('❌ Click payment failed:', error);
       alert(`Failed to create order: ${error.message || 'Please try again.'}`);
     } finally {
       setProcessingPayment(false);
@@ -235,12 +337,24 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
     );
   }
 
-  // Use MainButton for Payme/Manual Payment
+  // Use MainButton for payment methods
+  const getButtonText = () => {
+    if (paymentMethod === 'telegram') return 'Pay with Payme';
+    if (paymentMethod === 'click') return 'Pay with Click';
+    return 'Submit Order';
+  };
+
+  const getButtonHandler = () => {
+    if (paymentMethod === 'telegram') return handlePaymePayment;
+    if (paymentMethod === 'click') return handleClickPayment;
+    return handleSubmitOrder;
+  };
+
   useMainButton(
-    paymentMethod === 'telegram' ? 'Pay with Payme' : 'Submit Order',
-    paymentMethod === 'telegram' ? handlePaymePayment : handleSubmitOrder,
+    getButtonText(),
+    getButtonHandler(),
     {
-      enabled: paymentMethod === 'telegram' || screenshot !== null,
+      enabled: paymentMethod === 'telegram' || paymentMethod === 'click' || screenshot !== null,
       progress: processingPayment || uploading,
     }
   );
@@ -275,6 +389,23 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
                   <p className="text-sm text-gray-600">Pay securely with Payme</p>
                 </div>
                 {paymentMethod === 'telegram' && (
+                  <CheckCircle className="w-5 h-5 text-accent" />
+                )}
+              </button>
+              <button
+                onClick={() => setPaymentMethod('click')}
+                className={`w-full p-4 border-2 rounded-lg flex items-center gap-3 transition-all ${
+                  paymentMethod === 'click'
+                    ? 'border-accent bg-blue-50'
+                    : 'border-gray-300 hover:border-accent'
+                }`}
+              >
+                <CreditCard className="w-6 h-6 text-accent" />
+                <div className="flex-1 text-left">
+                  <p className="font-semibold text-gray-900">Click Payment</p>
+                  <p className="text-sm text-gray-600">Pay securely with Click</p>
+                </div>
+                {paymentMethod === 'click' && (
                   <CheckCircle className="w-5 h-5 text-accent" />
                 )}
               </button>
@@ -406,12 +537,33 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
               </p>
               <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
                 <li>Powered by Payme</li>
-                <li>Supports cards, HUMO, and Payme app</li>
+                <li>Supports Uzcard, HUMO, and Payme app</li>
                 <li>Secure payment gateway</li>
                 <li>Opens in Telegram browser</li>
               </ul>
               <p className="text-sm text-gray-600 mt-3">
                 Click the <strong>"Pay with Payme"</strong> button below to proceed
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Click Payment Info */}
+        {paymentMethod === 'click' && (
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <h3 className="text-lg font-semibold mb-3">Click Payment</h3>
+            <div className="bg-blue-50 border-l-4 border-accent p-4 rounded">
+              <p className="text-sm text-gray-700 mb-2">
+                <strong className="text-accent">✅ Secure Payment</strong>
+              </p>
+              <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
+                <li>Powered by Click.uz</li>
+                <li>Supports Uzcard, HUMO, Visa, and Mastercard</li>
+                <li>Secure payment gateway</li>
+                <li>Fast and reliable</li>
+              </ul>
+              <p className="text-sm text-gray-600 mt-3">
+                Click the <strong>"Pay with Click"</strong> button below to proceed
               </p>
             </div>
           </div>
