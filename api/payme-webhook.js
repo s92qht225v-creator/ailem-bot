@@ -14,12 +14,41 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const PAYME_KEY = process.env.PAYME_KEY;
+  const isTestMode = process.env.VITE_PAYME_TEST_MODE !== 'false';
+  const candidateKeys = [
+    process.env.PAYME_KEY,
+    isTestMode ? process.env.PAYME_TEST_KEY : undefined,
+  ];
+
+  if (process.env.PAYME_ADDITIONAL_KEYS) {
+    candidateKeys.push(
+      ...process.env.PAYME_ADDITIONAL_KEYS
+        .split(',')
+        .map(key => key.trim())
+        .filter(Boolean)
+    );
+  }
+
+  const validAuthHeaders = candidateKeys
+    .filter(Boolean)
+    .map(key => `Basic ${Buffer.from(`Paycom:${key}`).toString('base64')}`);
+
+  if (!validAuthHeaders.length) {
+    console.error('Payme webhook misconfiguration: PAYME_KEY / PAYME_TEST_KEY not set');
+    return res.json({
+      jsonrpc: '2.0',
+      id: req.body?.id || null,
+      error: {
+        code: -32400,
+        message: 'Payme configuration missing'
+      }
+    });
+  }
 
   // Check authorization
-  const authHeader = req.headers.authorization;
-  if (!authHeader || authHeader !== `Basic ${Buffer.from(`Paycom:${PAYME_KEY}`).toString('base64')}`) {
-    return res.status(401).json({
+  const authHeader = req.headers.authorization?.trim();
+  if (!authHeader || !validAuthHeaders.includes(authHeader)) {
+    return res.json({
       jsonrpc: '2.0',
       id: req.body?.id || null,
       error: {
