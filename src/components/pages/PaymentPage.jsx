@@ -155,8 +155,14 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         timestamp: Date.now()
       });
       
-      // Redirect to payment page
-      window.location.href = paymentUrl;
+      // Open payment in Telegram WebView or external browser
+      if (window.Telegram?.WebApp) {
+        console.log('📱 Opening Payme in Telegram WebApp');
+        window.Telegram.WebApp.openLink(paymentUrl);
+      } else {
+        console.log('🌐 Opening Payme in browser');
+        window.location.href = paymentUrl;
+      }
     } catch (error) {
       console.error('❌ Payment failed:', error);
       alert(`Failed to create order: ${error.message || 'Please try again.'}`);
