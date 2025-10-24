@@ -22,6 +22,10 @@ export default async function handler(req, res) {
   const { method } = req.body;
 
   console.log('📥 Click webhook received:', { method, body: req.body });
+  console.log('🔧 Click config:', {
+    serviceId: CLICK_SERVICE_ID,
+    hasSecretKey: !!CLICK_SECRET_KEY
+  });
 
   try {
     switch (method) {
