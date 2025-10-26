@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useRef } from 'react';
 import { UserContext } from '../context/UserContext';
 import { supabase } from '../lib/supabase';
 import DesktopAdminPanel from './pages/DesktopAdminPanel';
@@ -13,6 +13,7 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
   const [loading, setLoading] = useState(true); // Start with true to check existing session
   const [isDesktop, setIsDesktop] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
+  const initialCheckDone = useRef(false);
 
   // Check for existing Supabase session on mount
   useEffect(() => {
@@ -56,10 +57,12 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
         setAdminUser(adminData);
         setIsAuthenticated(true);
         setLoading(false);
+        initialCheckDone.current = true;
       } catch (err) {
         if (!mounted) return;
         console.error('Error checking session:', err);
         setLoading(false);
+        initialCheckDone.current = true;
       }
     };
     
@@ -69,6 +72,11 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       // Skip initial session event to prevent duplicate checks
       if (event === 'INITIAL_SESSION') {
+        return;
+      }
+      
+      // Only process changes after initial check is done
+      if (!initialCheckDone.current) {
         return;
       }
       
