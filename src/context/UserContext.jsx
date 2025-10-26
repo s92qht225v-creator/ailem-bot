@@ -39,7 +39,7 @@ export const UserProvider = ({ children }) => {
     if (user?.id === 'demo-1') {
       saveToLocalStorage('favorites', favorites);
     }
-  }, [favorites, user]);
+  }, [favorites, user?.id]); // Only depend on user.id, not entire user object
 
   const initializeUser = async () => {
     try {
