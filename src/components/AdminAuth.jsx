@@ -1,24 +1,92 @@
 import { useState, useContext, useEffect } from 'react';
 import { UserContext } from '../context/UserContext';
-import { saveToLocalStorage, loadFromLocalStorage } from '../utils/helpers';
+import { supabase } from '../lib/supabase';
 import DesktopAdminPanel from './pages/DesktopAdminPanel';
 import AdminPanel from './pages/AdminPanel';
 
 const AdminAuth = ({ children, onAuthSuccess }) => {
   const { user } = useContext(UserContext);
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with true to check existing session
   const [isDesktop, setIsDesktop] = useState(false);
+  const [adminUser, setAdminUser] = useState(null);
 
-  // Check authentication after component mounts
+  // Check for existing Supabase session on mount
   useEffect(() => {
-    const authData = loadFromLocalStorage('adminAuth');
-    if (authData && authData.expires > Date.now() && authData.userId === user?.id) {
-      setIsAuthenticated(true);
-    }
-  }, [user?.id]);
+    const checkSession = async () => {
+      try {
+        // Get current session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error('Session error:', sessionError);
+          setLoading(false);
+          return;
+        }
+        
+        if (!session) {
+          setLoading(false);
+          return;
+        }
+        
+        // Verify user is in admin_users table
+        const { data: adminData, error: adminError } = await supabase
+          .from('admin_users')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        if (adminError || !adminData) {
+          console.log('User is not an admin');
+          await supabase.auth.signOut();
+          setLoading(false);
+          return;
+        }
+        
+        // User is authenticated and is admin
+        setAdminUser(adminData);
+        setIsAuthenticated(true);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error checking session:', err);
+        setLoading(false);
+      }
+    };
+    
+    checkSession();
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_OUT' || !session) {
+        setIsAuthenticated(false);
+        setAdminUser(null);
+      } else if (event === 'SIGNED_IN' && session) {
+        // Verify admin status
+        const { data: adminData } = await supabase
+          .from('admin_users')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .single();
+        
+        if (adminData) {
+          setAdminUser(adminData);
+          setIsAuthenticated(true);
+        } else {
+          await supabase.auth.signOut();
+          setError('You are not authorized as an admin');
+        }
+      }
+    });
+    
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   // Detect screen size for responsive admin panel after mount
   useEffect(() => {
@@ -35,55 +103,79 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
     }
   }, []);
 
-  // Admin passwords configuration (in production, move to environment variables)
-  const ADMIN_PASSWORDS = {
-    'demo-1': 'admin123',
-    // Add more admin users and their passwords here
-    // For Telegram users, you can use their Telegram ID
-  };
-
-  // Alternative: Use a single master password for all admins
-  const MASTER_ADMIN_PASSWORD = 'ailem2024!';
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      // Check if user is authorized to be admin
-      const userSpecificPassword = ADMIN_PASSWORDS[user?.id];
-      const isValidPassword = password === userSpecificPassword || password === MASTER_ADMIN_PASSWORD;
+      // Sign in with Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password: password
+      });
 
-      if (!isValidPassword) {
-        setError('Invalid admin password');
+      if (authError) {
+        console.error('Login error:', authError);
+        setError(authError.message || 'Invalid email or password');
         setLoading(false);
         return;
       }
 
-      // Set authentication with 24-hour expiry
-      const authData = {
-        userId: user?.id,
-        expires: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
-      };
-      saveToLocalStorage('adminAuth', authData);
-      
+      // Verify user is in admin_users table
+      const { data: adminData, error: adminError } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('user_id', authData.user.id)
+        .single();
+
+      if (adminError || !adminData) {
+        console.error('Not an admin:', adminError);
+        setError('You are not authorized as an admin');
+        // Sign out if not admin
+        await supabase.auth.signOut();
+        setLoading(false);
+        return;
+      }
+
+      // Success - user is authenticated and is an admin
+      setAdminUser(adminData);
       setIsAuthenticated(true);
+      
       if (onAuthSuccess) {
         onAuthSuccess();
       }
     } catch (err) {
-      setError('Authentication failed');
+      console.error('Login exception:', err);
+      setError('Authentication failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setPassword('');
-    localStorage.removeItem('adminAuth');
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setIsAuthenticated(false);
+      setAdminUser(null);
+      setEmail('');
+      setPassword('');
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
   };
+
+  // Show loading spinner while checking session
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   // If already authenticated, render appropriate admin panel
   if (isAuthenticated) {
@@ -124,8 +216,25 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+              placeholder="admin@ailem.uz"
+              required
+              disabled={loading}
+              autoComplete="email"
+            />
+          </div>
+
+          <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Admin Password
+              Password
             </label>
             <input
               type="password"
@@ -133,9 +242,10 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-              placeholder="Enter admin password"
+              placeholder="Enter your password"
               required
               disabled={loading}
+              autoComplete="current-password"
             />
           </div>
 
@@ -147,7 +257,7 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
 
           <button
             type="submit"
-            disabled={loading || !password}
+            disabled={loading || !email || !password}
             className="w-full bg-primary hover:bg-gray-800 disabled:bg-gray-400 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
           >
             {loading ? 'Authenticating...' : 'Login to Admin Panel'}
@@ -156,11 +266,14 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
 
         <div className="mt-6 text-center">
           <div className="text-xs text-gray-500">
-            Current User: <span className="font-medium">{user?.name || 'Unknown'}</span>
+            Secure authentication powered by Supabase Auth
           </div>
           {process.env.NODE_ENV === 'development' && (
-            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs text-yellow-700">
-              <strong>Dev Mode:</strong> Demo user password: "admin123" | Master password: "ailem2024!"
+            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+              <strong>ℹ️ Setup Required:</strong><br />
+              1. Run add-admin-auth.sql in Supabase<br />
+              2. Create admin user in Supabase Dashboard<br />
+              3. Login with admin credentials
             </div>
           )}
         </div>
