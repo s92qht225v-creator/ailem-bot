@@ -16,10 +16,14 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
 
   // Check for existing Supabase session on mount
   useEffect(() => {
+    let mounted = true;
+    
     const checkSession = async () => {
       try {
         // Get current session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
         
         if (sessionError) {
           console.error('Session error:', sessionError);
@@ -39,6 +43,8 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
           .eq('user_id', session.user.id)
           .single();
         
+        if (!mounted) return;
+        
         if (adminError || !adminData) {
           console.log('User is not an admin');
           await supabase.auth.signOut();
@@ -51,6 +57,7 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
         setIsAuthenticated(true);
         setLoading(false);
       } catch (err) {
+        if (!mounted) return;
         console.error('Error checking session:', err);
         setLoading(false);
       }
@@ -58,9 +65,16 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
     
     checkSession();
     
-    // Listen for auth state changes
+    // Listen for auth state changes (skip INITIAL_SESSION event)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Skip initial session event to prevent duplicate checks
+      if (event === 'INITIAL_SESSION') {
+        return;
+      }
+      
       console.log('Auth state changed:', event, session?.user?.email);
+      
+      if (!mounted) return;
       
       if (event === 'SIGNED_OUT' || !session) {
         setIsAuthenticated(false);
@@ -73,6 +87,8 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
           .eq('user_id', session.user.id)
           .single();
         
+        if (!mounted) return;
+        
         if (adminData) {
           setAdminUser(adminData);
           setIsAuthenticated(true);
@@ -84,6 +100,7 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
     });
     
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);

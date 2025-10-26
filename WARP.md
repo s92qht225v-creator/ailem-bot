@@ -23,10 +23,25 @@ npm run build
 npm run preview
 ```
 
-### Important: No Test Suite
-- This project does **not** have automated tests (Jest, Vitest, Playwright, etc.)
-- Do not attempt to run `npm test` or similar commands
-- Manual testing is done via browser and Telegram Mini App preview
+### Testing
+```bash
+# Run all tests
+npm test
+
+# Watch mode (re-run on changes)
+npm run test:watch
+
+# Interactive UI
+npm run test:ui
+
+# Coverage report
+npm run test:coverage
+```
+
+- **Framework**: Vitest + React Testing Library
+- **Coverage**: Helper functions (~90%), Payment services (~85%)
+- **Test Files**: `src/utils/helpers.test.js`, `src/services/payment.test.js`
+- **Documentation**: See `TESTING.md` for complete guide
 - Test payment flow using Payme test cards: 8600 0000 0000 0000 (exp: 03/99, SMS: 666666)
 
 ### Development Server Configuration
