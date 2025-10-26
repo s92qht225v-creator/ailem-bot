@@ -145,7 +145,10 @@ function App() {
   }, []);
 
   // Save current page and data to localStorage whenever they change
+  // Skip on initial mount to avoid triggering when loading from localStorage
   useEffect(() => {
+    if (!initialLoadDone.current) return; // Don't save during initial load
+
     saveToLocalStorage('currentPage', currentPage);
     saveToLocalStorage('pageData', pageData);
   }, [currentPage, pageData]);
@@ -194,7 +197,7 @@ function App() {
     if (user) {
       initApp();
     }
-  }, [user]);
+  }, [user?.id]); // Only depend on user.id, not entire user object
 
   // Check for pending payment when app loads
   useEffect(() => {
