@@ -263,7 +263,7 @@ export const UserProvider = ({ children }) => {
 
       return updatedFavorites;
     });
-  }, [user]);
+  }, [user?.id]); // Only depend on user.id, not entire user object
 
   const favoritesSet = useMemo(() => new Set(normalizeFavorites(favorites)), [favorites]);
 
