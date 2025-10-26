@@ -85,21 +85,13 @@ export const UserProvider = ({ children }) => {
 
           setUser(appUser);
 
-          // Load user's favorites - prioritize localStorage, fallback to database
-          const localFavorites = normalizeFavorites(loadFromLocalStorage('favorites', []));
+          // Load user's favorites - prioritize database (source of truth for real users)
           const dbFavorites = normalizeFavorites(dbUser.favorites || []);
+          console.log('📥 Loading favorites from database:', dbFavorites);
+          setFavorites(dbFavorites);
           
-          // Use localStorage if it has data, otherwise use database
-          const userFavorites = localFavorites.length > 0 ? localFavorites : dbFavorites;
-          console.log('📥 Loading favorites:', { local: localFavorites, db: dbFavorites, using: userFavorites });
-          setFavorites(userFavorites);
-          
-          // If we used localStorage, sync it back to database
-          if (localFavorites.length > 0 && JSON.stringify(localFavorites) !== JSON.stringify(dbFavorites)) {
-            usersAPI.updateFavorites(dbUser.id, localFavorites)
-              .then(() => console.log('🔄 Synced localStorage favorites to Supabase'))
-              .catch(err => console.error('❌ Failed to sync favorites to Supabase:', err));
-          }
+          // Clear any stale localStorage favorites to avoid confusion
+          removeFromLocalStorage('favorites');
 
           // Cache the user locally for faster subsequent loads
           saveToLocalStorage('cachedUser', appUser);
