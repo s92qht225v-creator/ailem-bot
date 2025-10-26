@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, lazy, Suspense } from 'react';
+import { useState, useContext, useEffect, lazy, Suspense, useRef } from 'react';
 import { UserContext } from './context/UserContext';
 import { AdminContext } from './context/AdminContext';
 import Header from './components/layout/Header';
@@ -37,6 +37,9 @@ function App() {
   const [pageData, setPageData] = useState({});
 
   const { user, setReferredBy, toggleAdminMode } = useContext(UserContext);
+  
+  // Track if Telegram has been initialized to prevent duplicate runs
+  const telegramInitialized = useRef(false);
 
   // Load pageData from localStorage after mount to avoid hydration mismatch
   useEffect(() => {
@@ -142,12 +145,18 @@ function App() {
 
   // Initialize Telegram WebApp and handle referral codes
   useEffect(() => {
+    // Only run once
+    if (telegramInitialized.current) {
+      return;
+    }
+    
     const initApp = async () => {
       try {
         const tg = await initTelegramWebApp();
 
         if (tg) {
           console.log('✅ Telegram WebApp initialized');
+          telegramInitialized.current = true;
 
           // Check for referral code
           const refCode = getReferralCode();
@@ -174,8 +183,11 @@ function App() {
       }
     };
 
-    initApp();
-  }, [user, setReferredBy]);
+    // Only init if user is available
+    if (user) {
+      initApp();
+    }
+  }, [user]);
 
   // Check for pending payment when app loads
   useEffect(() => {
