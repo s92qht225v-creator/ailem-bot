@@ -42,11 +42,18 @@ function App() {
   const telegramInitialized = useRef(false);
 
   // Load pageData from localStorage after mount to avoid hydration mismatch
+  // Use a ref to track if we've already loaded from localStorage
+  const initialLoadDone = useRef(false);
+
   useEffect(() => {
+    if (initialLoadDone.current) return;
+
     const savedPageData = loadFromLocalStorage('pageData', {});
     if (savedPageData && Object.keys(savedPageData).length > 0) {
       setPageData(savedPageData);
     }
+
+    initialLoadDone.current = true;
   }, []);
 
   const navigate = (page, data = {}) => {

@@ -42,37 +42,49 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
   useEffect(() => {
     if (status !== 'checking') return;
 
+    let cancelled = false;
+    const timeouts = [];
+
     // Check immediately on mount
     const checkNow = async () => {
+      if (cancelled) return;
       const isComplete = await checkOrderStatus();
-      if (isComplete) return;
+      if (cancelled || isComplete) return;
 
       setCheckCount(1);
 
       // Check again after 2 seconds
       const timeout1 = setTimeout(async () => {
+        if (cancelled) return;
         const isComplete = await checkOrderStatus();
-        if (isComplete) return;
+        if (cancelled || isComplete) return;
 
         setCheckCount(2);
 
         // Final check after 4 seconds
         const timeout2 = setTimeout(async () => {
+          if (cancelled) return;
           const isComplete = await checkOrderStatus();
-          if (!isComplete) {
+          if (!cancelled && !isComplete) {
             // After 3 checks, show timeout message
             setStatus('timeout');
           }
         }, 2000);
 
-        return () => clearTimeout(timeout2);
+        timeouts.push(timeout2);
       }, 2000);
 
-      return () => clearTimeout(timeout1);
+      timeouts.push(timeout1);
     };
 
     checkNow();
-  }, [orderId, status]);
+
+    // Cleanup function
+    return () => {
+      cancelled = true;
+      timeouts.forEach(timeout => clearTimeout(timeout));
+    };
+  }, [orderId]); // Remove status from deps to prevent re-triggering
 
   if (status === 'checking') {
     return (
