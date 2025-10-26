@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useContext } from 'react';
-import { Search } from 'lucide-react';
+import { useEffect, useMemo, useContext, useState, useRef } from 'react';
+import { Search, X } from 'lucide-react';
 import CategoryFilter from '../common/CategoryFilter';
 import ProductCard from '../product/ProductCard';
 import CustomDropdown from '../common/CustomDropdown';
@@ -29,6 +29,12 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
     sortBy,
     setSortBy
   } = useProducts();
+
+  // Autocomplete state
+  const [showAutocomplete, setShowAutocomplete] = useState(false);
+  const [autocompleteSuggestions, setAutocompleteSuggestions] = useState([]);
+  const searchInputRef = useRef(null);
+  const autocompleteRef = useRef(null);
 
   // Create a favorites lookup map to avoid calling isFavorite in render
   const favoritesMap = useMemo(() => {
@@ -70,11 +76,96 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
     return ['All', ...Array.from(sizes)];
   }, [allProducts]);
 
+  // Generate autocomplete suggestions based on search query
+  useEffect(() => {
+    if (!searchQuery || searchQuery.length < 2) {
+      setAutocompleteSuggestions([]);
+      setShowAutocomplete(false);
+      return;
+    }
+
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      const query = searchQuery.toLowerCase();
+      const suggestions = new Set();
+
+      // Extract matching tags, product names, and categories
+      allProducts.forEach(product => {
+        // Match product name
+        if (product.name.toLowerCase().includes(query)) {
+          suggestions.add(product.name);
+        }
+
+        // Match tags
+        if (product.tags) {
+          product.tags.forEach(tag => {
+            if (tag.toLowerCase().includes(query)) {
+              suggestions.add(tag);
+            }
+          });
+        }
+
+        // Match category
+        if (product.category && product.category.toLowerCase().includes(query)) {
+          suggestions.add(product.category);
+        }
+
+        // Match material
+        if (product.material && product.material.toLowerCase().includes(query)) {
+          suggestions.add(product.material);
+        }
+      });
+
+      const sortedSuggestions = Array.from(suggestions)
+        .slice(0, 8) // Limit to 8 suggestions
+        .sort((a, b) => {
+          // Prioritize exact matches
+          const aStarts = a.toLowerCase().startsWith(query);
+          const bStarts = b.toLowerCase().startsWith(query);
+          if (aStarts && !bStarts) return -1;
+          if (!aStarts && bStarts) return 1;
+          return a.localeCompare(b);
+        });
+
+      setAutocompleteSuggestions(sortedSuggestions);
+      setShowAutocomplete(sortedSuggestions.length > 0);
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, allProducts]);
+
+  // Close autocomplete when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        autocompleteRef.current &&
+        !autocompleteRef.current.contains(event.target) &&
+        !searchInputRef.current.contains(event.target)
+      ) {
+        setShowAutocomplete(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   useEffect(() => {
     if (initialCategory) {
       setSelectedCategory(initialCategory);
     }
   }, [initialCategory, setSelectedCategory]);
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion);
+    setShowAutocomplete(false);
+    searchInputRef.current?.blur();
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setShowAutocomplete(false);
+  };
 
   const categoryNames = useMemo(() =>
     categories?.map(c => c.name) || [],
@@ -84,16 +175,60 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
   return (
     <div className="pb-20">
       <div className="px-4 py-4 space-y-4">
-        {/* Search Bar */}
+        {/* Search Bar with Autocomplete */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
+            ref={searchInputRef}
             type="text"
-            placeholder="Search by tags (e.g., towel, cotton, luxury)..."
+            placeholder="Search products, tags, categories..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
+            onFocus={() => {
+              if (autocompleteSuggestions.length > 0) {
+                setShowAutocomplete(true);
+              }
+            }}
+            className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent"
           />
+          {searchQuery && (
+            <button
+              onClick={clearSearch}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              aria-label="Clear search"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+
+          {/* Autocomplete Dropdown */}
+          {showAutocomplete && autocompleteSuggestions.length > 0 && (
+            <div
+              ref={autocompleteRef}
+              className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto"
+            >
+              {autocompleteSuggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  className="w-full px-4 py-2 text-left hover:bg-gray-50 focus:bg-gray-50 focus:outline-none border-b border-gray-100 last:border-b-0"
+                >
+                  <div className="flex items-center gap-2">
+                    <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                    <span className="text-gray-700">
+                      {suggestion.split(new RegExp(`(${searchQuery})`, 'gi')).map((part, i) =>
+                        part.toLowerCase() === searchQuery.toLowerCase() ? (
+                          <strong key={i} className="text-accent font-semibold">{part}</strong>
+                        ) : (
+                          <span key={i}>{part}</span>
+                        )
+                      )}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Category Filter */}

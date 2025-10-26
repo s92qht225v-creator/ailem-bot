@@ -1096,6 +1096,103 @@ export const settingsAPI = {
 };
 
 // ============================================
+// SHIPPING RATES API
+// ============================================
+
+export const shippingRatesAPI = {
+  // Get all shipping rates
+  async getAll() {
+    const { data, error } = await supabase
+      .from('shipping_rates')
+      .select('*')
+      .order('courier', { ascending: true });
+
+    if (error) {
+      console.error('Failed to fetch shipping rates:', error);
+      // Return defaults if table doesn't exist
+      return [
+        { id: 1, courier: 'BTS', state: 'Tashkent Region', firstKg: 15000, additionalKg: 5000 },
+        { id: 2, courier: 'BTS', state: 'Samarkand Region', firstKg: 20000, additionalKg: 7000 },
+        { id: 3, courier: 'Starex', state: 'Tashkent Region', firstKg: 18000, additionalKg: 6000 },
+        { id: 4, courier: 'EMU', state: 'Tashkent Region', firstKg: 12000, additionalKg: 4000 },
+        { id: 5, courier: 'UzPost', state: 'Tashkent Region', firstKg: 10000, additionalKg: 3000 },
+        { id: 6, courier: 'Yandex', state: 'Tashkent', firstKg: 25000, additionalKg: 0 }
+      ];
+    }
+
+    return data.map(rate => ({
+      id: rate.id,
+      courier: rate.courier,
+      state: rate.state,
+      firstKg: rate.first_kg,
+      additionalKg: rate.additional_kg
+    }));
+  },
+
+  // Create shipping rate
+  async create(rate) {
+    const dbRate = {
+      courier: rate.courier,
+      state: rate.state,
+      first_kg: rate.firstKg,
+      additional_kg: rate.additionalKg
+    };
+
+    const { data, error } = await supabase
+      .from('shipping_rates')
+      .insert([dbRate])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      courier: data.courier,
+      state: data.state,
+      firstKg: data.first_kg,
+      additionalKg: data.additional_kg
+    };
+  },
+
+  // Update shipping rate
+  async update(id, updates) {
+    const dbUpdates = {};
+    if (updates.courier !== undefined) dbUpdates.courier = updates.courier;
+    if (updates.state !== undefined) dbUpdates.state = updates.state;
+    if (updates.firstKg !== undefined) dbUpdates.first_kg = updates.firstKg;
+    if (updates.additionalKg !== undefined) dbUpdates.additional_kg = updates.additionalKg;
+
+    const { data, error } = await supabase
+      .from('shipping_rates')
+      .update(dbUpdates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      id: data.id,
+      courier: data.courier,
+      state: data.state,
+      firstKg: data.first_kg,
+      additionalKg: data.additional_kg
+    };
+  },
+
+  // Delete shipping rate
+  async delete(id) {
+    const { error } = await supabase
+      .from('shipping_rates')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  }
+};
+
+// ============================================
 // MIGRATION HELPERS
 // ============================================
 

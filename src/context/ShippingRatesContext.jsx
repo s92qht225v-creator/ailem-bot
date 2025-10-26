@@ -1,49 +1,69 @@
 import { createContext, useState, useEffect } from 'react';
-import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
+import { shippingRatesAPI } from '../services/api';
 
 export const ShippingRatesContext = createContext();
 
 export const ShippingRatesProvider = ({ children }) => {
   const [shippingRates, setShippingRates] = useState([
-    // Sample rates structure:
-    // { courier: 'BTS', state: 'Tashkent Region', firstKg: 15000, additionalKg: 5000 }
+    // Default rates (used as fallback)
     { id: 1, courier: 'BTS', state: 'Tashkent Region', firstKg: 15000, additionalKg: 5000 },
     { id: 2, courier: 'BTS', state: 'Samarkand Region', firstKg: 20000, additionalKg: 7000 },
     { id: 3, courier: 'Starex', state: 'Tashkent Region', firstKg: 18000, additionalKg: 6000 },
     { id: 4, courier: 'EMU', state: 'Tashkent Region', firstKg: 12000, additionalKg: 4000 },
     { id: 5, courier: 'UzPost', state: 'Tashkent Region', firstKg: 10000, additionalKg: 3000 },
-    { id: 6, courier: 'Yandex', state: 'Tashkent', firstKg: 25000, additionalKg: 0 }, // Flat rate for Yandex
+    { id: 6, courier: 'Yandex', state: 'Tashkent', firstKg: 25000, additionalKg: 0 },
   ]);
+  const [loading, setLoading] = useState(true);
 
-  // Load shipping rates from localStorage after mount
+  // Load shipping rates from database on mount
   useEffect(() => {
-    const savedRates = loadFromLocalStorage('shippingRates');
-    if (savedRates && savedRates.length > 0) {
-      setShippingRates(savedRates);
-    }
+    loadShippingRates();
   }, []);
 
-  // Save shipping rates to localStorage whenever they change
-  useEffect(() => {
-    saveToLocalStorage('shippingRates', shippingRates);
-  }, [shippingRates]);
-
-  const addShippingRate = (rate) => {
-    const newRate = {
-      ...rate,
-      id: Date.now()
-    };
-    setShippingRates([...shippingRates, newRate]);
+  const loadShippingRates = async () => {
+    try {
+      const rates = await shippingRatesAPI.getAll();
+      setShippingRates(rates);
+    } catch (error) {
+      console.error('Failed to load shipping rates:', error);
+      // Keep default rates on error
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const updateShippingRate = (id, updatedData) => {
-    setShippingRates(shippingRates.map(rate =>
-      rate.id === id ? { ...rate, ...updatedData } : rate
-    ));
+  const addShippingRate = async (rate) => {
+    try {
+      const newRate = await shippingRatesAPI.create(rate);
+      setShippingRates([...shippingRates, newRate]);
+      return newRate;
+    } catch (error) {
+      console.error('Failed to add shipping rate:', error);
+      throw error;
+    }
   };
 
-  const deleteShippingRate = (id) => {
-    setShippingRates(shippingRates.filter(rate => rate.id !== id));
+  const updateShippingRate = async (id, updatedData) => {
+    try {
+      const updated = await shippingRatesAPI.update(id, updatedData);
+      setShippingRates(shippingRates.map(rate =>
+        rate.id === id ? updated : rate
+      ));
+      return updated;
+    } catch (error) {
+      console.error('Failed to update shipping rate:', error);
+      throw error;
+    }
+  };
+
+  const deleteShippingRate = async (id) => {
+    try {
+      await shippingRatesAPI.delete(id);
+      setShippingRates(shippingRates.filter(rate => rate.id !== id));
+    } catch (error) {
+      console.error('Failed to delete shipping rate:', error);
+      throw error;
+    }
   };
 
   // Calculate shipping cost based on courier, state, and total weight
@@ -88,12 +108,14 @@ export const ShippingRatesProvider = ({ children }) => {
     <ShippingRatesContext.Provider
       value={{
         shippingRates,
+        loading,
         addShippingRate,
         updateShippingRate,
         deleteShippingRate,
         calculateShippingCost,
         getRatesByCourier,
-        getRate
+        getRate,
+        reload: loadShippingRates
       }}
     >
       {children}
