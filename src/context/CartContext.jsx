@@ -54,7 +54,7 @@ export const CartProvider = ({ children }) => {
     };
 
     loadCart();
-  }, [user]);
+  }, [user?.id]); // Only depend on user.id, not entire user object
 
   // Save cart to localStorage and Supabase whenever it changes
   useEffect(() => {
@@ -72,7 +72,7 @@ export const CartProvider = ({ children }) => {
           console.log('💾 Cart saved to localStorage as fallback');
         });
     }
-  }, [cartItems, user, cartLoaded]);
+  }, [cartItems, user?.id, cartLoaded]); // Only depend on user.id, not entire user object
 
   const addToCart = (product, quantity = 1, selectedColor = null, selectedSize = null) => {
     setCartItems(prev => {
