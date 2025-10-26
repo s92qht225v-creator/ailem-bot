@@ -9,6 +9,58 @@ const supabase = createClient(
   process.env.VITE_SUPABASE_ANON_KEY
 );
 
+// Send Telegram notification to user
+async function sendTelegramNotification(order, status) {
+  const botToken = process.env.VITE_TELEGRAM_BOT_TOKEN;
+  const userChatId = order.user_telegram_id || order.userId;
+
+  if (!botToken || !userChatId) {
+    console.log('⚠️ Cannot send notification: missing bot token or chat ID');
+    return;
+  }
+
+  // Skip demo users
+  const chatIdStr = String(userChatId);
+  if (chatIdStr.startsWith('demo-') || isNaN(Number(userChatId))) {
+    console.log('⚠️ Skipping notification for demo user');
+    return;
+  }
+
+  let message = '';
+  if (status === 'approved') {
+    message = `✅ <b>Payment Successful!</b>\n\n` +
+      `Order: <b>#${order.id}</b>\n` +
+      `Amount: <b>${order.total} so'm</b>\n` +
+      `Payment: Payme\n\n` +
+      `Your order has been confirmed and will be processed shortly.`;
+  } else if (status === 'rejected') {
+    message = `❌ <b>Payment Cancelled</b>\n\n` +
+      `Order: <b>#${order.id}</b>\n` +
+      `Amount: <b>${order.total} so'm</b>\n\n` +
+      `Your payment was cancelled or declined.`;
+  }
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: userChatId,
+        text: message,
+        parse_mode: 'HTML'
+      })
+    });
+
+    if (response.ok) {
+      console.log('✅ Telegram notification sent to user:', userChatId);
+    } else {
+      console.error('❌ Failed to send Telegram notification:', await response.text());
+    }
+  } catch (error) {
+    console.error('❌ Error sending Telegram notification:', error);
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -299,7 +351,7 @@ async function performTransaction(params, res, requestId) {
       payme_state: 2
     })
     .eq('payme_transaction_id', id);
-  
+
   if (error) {
     return res.json({
       jsonrpc: '2.0',
@@ -310,7 +362,15 @@ async function performTransaction(params, res, requestId) {
       }
     });
   }
-  
+
+  // Send Telegram notification to user
+  try {
+    await sendTelegramNotification(order, 'approved');
+  } catch (notifError) {
+    console.error('Failed to send Telegram notification:', notifError);
+    // Don't fail the transaction if notification fails
+  }
+
   return res.json({
     jsonrpc: '2.0',
     id: requestId,
@@ -327,6 +387,13 @@ async function cancelTransaction(params, res, requestId) {
   const { id, reason } = params;
   const cancelTime = Date.now();
 
+  // Get order before cancelling
+  const { data: order } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('payme_transaction_id', id)
+    .single();
+
   // Cancel order
   await supabase
     .from('orders')
@@ -337,6 +404,15 @@ async function cancelTransaction(params, res, requestId) {
       payme_cancel_reason: reason
     })
     .eq('payme_transaction_id', id);
+
+  // Send Telegram notification
+  if (order) {
+    try {
+      await sendTelegramNotification(order, 'rejected');
+    } catch (notifError) {
+      console.error('Failed to send Telegram notification:', notifError);
+    }
+  }
 
   return res.json({
     jsonrpc: '2.0',

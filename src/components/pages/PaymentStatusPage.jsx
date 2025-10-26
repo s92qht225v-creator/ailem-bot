@@ -3,54 +3,76 @@ import { CheckCircle, Loader } from 'lucide-react';
 import { ordersAPI } from '../../services/api';
 
 const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
-  const [status, setStatus] = useState('checking'); // checking, success, timeout
+  const [status, setStatus] = useState('checking'); // checking, success, failed, timeout
   const [order, setOrder] = useState(null);
-  const [attempts, setAttempts] = useState(0);
-  const maxAttempts = 30; // 30 attempts = 30 seconds
-  const [intervalId, setIntervalId] = useState(null);
+  const [checkCount, setCheckCount] = useState(0);
+  const maxChecks = 3; // Only check 3 times total
+
+  const checkOrderStatus = async () => {
+    try {
+      const orderData = await ordersAPI.getById(orderId);
+
+      if (orderData.status === 'approved') {
+        setStatus('success');
+        setOrder(orderData);
+
+        // Auto-redirect to order details page after 2 seconds
+        setTimeout(() => {
+          onNavigate('orderDetails', { orderId });
+        }, 2000);
+        return true; // Payment confirmed
+      } else if (orderData.status === 'rejected' || orderData.status === 'failed') {
+        setStatus('failed');
+        setOrder(orderData);
+        return true; // Payment failed
+      }
+
+      return false; // Still pending
+    } catch (error) {
+      console.error('Failed to check order status:', error);
+      return false;
+    }
+  };
 
   const resetAndRetry = () => {
     setStatus('checking');
-    setAttempts(0);
+    setCheckCount(0);
   };
 
   useEffect(() => {
-    if (status !== 'checking') return; // Only poll when checking
+    if (status !== 'checking') return;
 
-    // Poll for order status every 1 second
-    const interval = setInterval(async () => {
-      try {
-        const orderData = await ordersAPI.getById(orderId);
-        
-        if (orderData.status === 'approved') {
-          setStatus('success');
-          setOrder(orderData);
-          clearInterval(interval);
-          
-          // Auto-redirect to order details page after 2 seconds
-          setTimeout(() => {
-            onNavigate('orderDetails', { orderId });
-          }, 2000);
-        } else if (attempts >= maxAttempts) {
-          setStatus('timeout');
-          clearInterval(interval);
-        } else {
-          setAttempts(prev => prev + 1);
-        }
-      } catch (error) {
-        console.error('Failed to check order status:', error);
-        if (attempts >= maxAttempts) {
-          setStatus('timeout');
-          clearInterval(interval);
-        } else {
-          setAttempts(prev => prev + 1);
-        }
-      }
-    }, 1000);
+    // Check immediately on mount
+    const checkNow = async () => {
+      const isComplete = await checkOrderStatus();
+      if (isComplete) return;
 
-    setIntervalId(interval);
-    return () => clearInterval(interval);
-  }, [orderId, attempts, maxAttempts, onNavigate, status]);
+      setCheckCount(1);
+
+      // Check again after 2 seconds
+      const timeout1 = setTimeout(async () => {
+        const isComplete = await checkOrderStatus();
+        if (isComplete) return;
+
+        setCheckCount(2);
+
+        // Final check after 4 seconds
+        const timeout2 = setTimeout(async () => {
+          const isComplete = await checkOrderStatus();
+          if (!isComplete) {
+            // After 3 checks, show timeout message
+            setStatus('timeout');
+          }
+        }, 2000);
+
+        return () => clearTimeout(timeout2);
+      }, 2000);
+
+      return () => clearTimeout(timeout1);
+    };
+
+    checkNow();
+  }, [orderId, status]);
 
   if (status === 'checking') {
     return (
@@ -60,11 +82,55 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
           Checking payment status...
         </h2>
         <p className="text-gray-600 text-center mb-4">
-          Please wait while we confirm your payment
+          Please wait while we confirm your {paymentMethod === 'payme' ? 'Payme' : 'Click'} payment
         </p>
         <p className="text-sm text-gray-500">
-          Attempt {attempts} of {maxAttempts}
+          Check {checkCount} of {maxChecks}
         </p>
+      </div>
+    );
+  }
+
+  if (status === 'failed') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
+          <div className="text-center mb-4">
+            <div className="text-6xl mb-2">❌</div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              Payment Failed
+            </h2>
+          </div>
+          <p className="text-gray-700 mb-4 text-center">
+            Your payment was cancelled or declined.
+          </p>
+          {order && (
+            <div className="bg-white rounded-lg p-4 mb-4 text-sm">
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600">Order:</span>
+                <span className="font-semibold">{order.id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Amount:</span>
+                <span className="font-semibold">{order.total} so'm</span>
+              </div>
+            </div>
+          )}
+          <div className="space-y-3">
+            <button
+              onClick={() => onNavigate('payment', { checkoutData: order })}
+              className="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => onNavigate('home')}
+              className="w-full bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-300 transition"
+            >
+              Back to Home
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -114,21 +180,32 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 max-w-md">
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
-            Payment Confirmation Pending
-          </h2>
-          <p className="text-gray-700 mb-4">
-            We're still waiting for payment confirmation. This can take a few moments.
+          <div className="text-center mb-4">
+            <div className="text-6xl mb-2">⏳</div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              Payment Being Processed
+            </h2>
+          </div>
+          <p className="text-gray-700 mb-4 text-center">
+            Your payment is taking longer than usual to confirm.
           </p>
-          <p className="text-sm text-gray-600 mb-6">
-            Your order will be updated automatically. You can check your orders page to see the status.
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+            <p className="text-sm text-gray-700 mb-2">
+              <strong>📱 Check your Telegram messages!</strong>
+            </p>
+            <p className="text-sm text-gray-600">
+              You'll receive a notification when your payment is confirmed.
+            </p>
+          </div>
+          <p className="text-sm text-gray-600 mb-6 text-center">
+            Your order will be updated automatically. You can also check your orders page anytime.
           </p>
           <div className="space-y-3">
             <button
               onClick={resetAndRetry}
               className="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition"
             >
-              Check Again
+              🔄 Check Again
             </button>
             <button
               onClick={() => onNavigate('orderHistory')}

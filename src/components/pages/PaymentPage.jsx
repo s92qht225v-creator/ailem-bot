@@ -111,6 +111,11 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       await addOrder(order);
       console.log('✅ Order created:', orderId);
 
+      // Build return URL that redirects to payment status page
+      // Using app URL with hash navigation for compatibility
+      const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';
+      const returnUrl = `${appUrl}/#/paymentStatus?order=${orderId}&method=payme`;
+
       // Generate Payme payment link using numeric order ID
       const paymentUrl = generatePaymeLink({
         orderId: paymeOrderId,
@@ -118,7 +123,8 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         description: `Order #${orderId} - ${cartItems.length} items`,
         account: {
           order_id: paymeOrderId
-        }
+        },
+        returnUrl: returnUrl
       });
 
       // Extract and decode the base64 parameters for debugging

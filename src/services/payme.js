@@ -31,9 +31,10 @@ const getPaymeConfig = () => {
  * @param {number} params.amount - Amount in UZS (in tiyin: 1 UZS = 100 tiyin)
  * @param {string} params.description - Payment description
  * @param {Object} params.account - Account details
+ * @param {string} params.returnUrl - Optional return URL after payment (supports :transaction and :account.* placeholders)
  * @returns {string} Payment URL
  */
-export const generatePaymeLink = ({ orderId, amount, description, account = {} }) => {
+export const generatePaymeLink = ({ orderId, amount, description, account = {}, returnUrl = null }) => {
   const config = getPaymeConfig();
 
   if (!config.merchantId) {
@@ -47,7 +48,14 @@ export const generatePaymeLink = ({ orderId, amount, description, account = {} }
   let paramsString = `m=${config.merchantId}`;
   paramsString += `;ac.order_id=${orderId}`;
   paramsString += `;a=${amountInTiyin}`;
-  
+
+  // Add return URL if provided (c = callback parameter)
+  if (returnUrl) {
+    paramsString += `;c=${encodeURIComponent(returnUrl)}`;
+    // Add 2 second delay before redirect to show Payme success screen
+    paramsString += `;ct=2000`;
+  }
+
   // Add custom account parameters
   Object.entries(account).forEach(([key, value]) => {
     if (key !== 'order_id') { // order_id already added

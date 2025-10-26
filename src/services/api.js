@@ -564,8 +564,10 @@ export const ordersAPI = {
 
   // Create order
   async create(order) {
-    // Generate UUID for id field
-    const uuid = crypto.randomUUID();
+    // Generate UUID for id field - with fallback for environments without crypto.randomUUID
+    const uuid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
     
     // Transform app fields to database fields
     const dbOrder = {
