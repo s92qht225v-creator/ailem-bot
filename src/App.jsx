@@ -1,25 +1,29 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, lazy, Suspense } from 'react';
 import { UserContext } from './context/UserContext';
 import { AdminContext } from './context/AdminContext';
 import Header from './components/layout/Header';
 import BottomNav from './components/layout/BottomNav';
+
+// Critical pages - load immediately
 import HomePage from './components/pages/HomePage';
 import ShopPage from './components/pages/ShopPage';
-import ProductPage from './components/pages/ProductPage';
 import CartPage from './components/pages/CartPage';
-import CheckoutPage from './components/pages/CheckoutPage';
-import PaymentPage from './components/pages/PaymentPage';
-import PaymentStatusPage from './components/pages/PaymentStatusPage';
-import AccountPage from './components/pages/AccountPage';
-import ProfilePage from './components/pages/ProfilePage';
-import OrderHistoryPage from './components/pages/OrderHistoryPage';
-import OrderDetailsPage from './components/pages/OrderDetailsPage';
-import MyReviewsPage from './components/pages/MyReviewsPage';
-import WriteReviewPage from './components/pages/WriteReviewPage';
-import FavoritesPage from './components/pages/FavoritesPage';
-import ReferralsPage from './components/pages/ReferralsPage';
-import AdminPanel from './components/pages/AdminPanel';
-import AdminAuth from './components/AdminAuth';
+
+// Lazy load less critical pages
+const ProductPage = lazy(() => import('./components/pages/ProductPage'));
+const CheckoutPage = lazy(() => import('./components/pages/CheckoutPage'));
+const PaymentPage = lazy(() => import('./components/pages/PaymentPage'));
+const PaymentStatusPage = lazy(() => import('./components/pages/PaymentStatusPage'));
+const AccountPage = lazy(() => import('./components/pages/AccountPage'));
+const ProfilePage = lazy(() => import('./components/pages/ProfilePage'));
+const OrderHistoryPage = lazy(() => import('./components/pages/OrderHistoryPage'));
+const OrderDetailsPage = lazy(() => import('./components/pages/OrderDetailsPage'));
+const MyReviewsPage = lazy(() => import('./components/pages/MyReviewsPage'));
+const WriteReviewPage = lazy(() => import('./components/pages/WriteReviewPage'));
+const FavoritesPage = lazy(() => import('./components/pages/FavoritesPage'));
+const ReferralsPage = lazy(() => import('./components/pages/ReferralsPage'));
+const AdminPanel = lazy(() => import('./components/pages/AdminPanel'));
+const AdminAuth = lazy(() => import('./components/AdminAuth'));
 import { loadFromLocalStorage, saveToLocalStorage, removeFromLocalStorage } from './utils/helpers';
 import { initTelegramWebApp, getReferralCode } from './utils/telegram';
 
@@ -296,67 +300,73 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto bg-white min-h-screen">
-        {currentPage === 'home' && <HomePage onNavigate={navigate} />}
+        <Suspense fallback={
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        }>
+          {currentPage === 'home' && <HomePage onNavigate={navigate} />}
 
-        {currentPage === 'shop' && (
-          <ShopPage
-            onNavigate={navigate}
-            initialCategory={pageData.category}
-          />
-        )}
+          {currentPage === 'shop' && (
+            <ShopPage
+              onNavigate={navigate}
+              initialCategory={pageData.category}
+            />
+          )}
 
-        {currentPage === 'product' && (
-          <ProductPage
-            productId={pageData.productId}
-            onNavigate={navigate}
-          />
-        )}
+          {currentPage === 'product' && (
+            <ProductPage
+              productId={pageData.productId}
+              onNavigate={navigate}
+            />
+          )}
 
-        {currentPage === 'cart' && <CartPage onNavigate={navigate} />}
+          {currentPage === 'cart' && <CartPage onNavigate={navigate} />}
 
-        {currentPage === 'checkout' && <CheckoutPage onNavigate={navigate} />}
+          {currentPage === 'checkout' && <CheckoutPage onNavigate={navigate} />}
 
-        {currentPage === 'payment' && (
-          <PaymentPage
-            checkoutData={pageData.checkoutData}
-            onNavigate={navigate}
-          />
-        )}
+          {currentPage === 'payment' && (
+            <PaymentPage
+              checkoutData={pageData.checkoutData}
+              onNavigate={navigate}
+            />
+          )}
 
-        {currentPage === 'paymentStatus' && (
-          <PaymentStatusPage
-            orderId={pageData.orderId}
-            paymentMethod={pageData.paymentMethod}
-            onNavigate={navigate}
-          />
-        )}
+          {currentPage === 'paymentStatus' && (
+            <PaymentStatusPage
+              orderId={pageData.orderId}
+              paymentMethod={pageData.paymentMethod}
+              onNavigate={navigate}
+            />
+          )}
 
-        {currentPage === 'account' && <AccountPage onNavigate={navigate} />}
+          {currentPage === 'account' && <AccountPage onNavigate={navigate} />}
 
-        {currentPage === 'profile' && <ProfilePage onNavigate={navigate} />}
+          {currentPage === 'profile' && <ProfilePage onNavigate={navigate} />}
 
-        {currentPage === 'orderHistory' && <OrderHistoryPage onNavigate={navigate} />}
+          {currentPage === 'orderHistory' && <OrderHistoryPage onNavigate={navigate} />}
 
-        {currentPage === 'orderDetails' && (
-          <OrderDetailsPage
-            orderId={pageData.orderId}
-            onNavigate={navigate}
-          />
-        )}
+          {currentPage === 'orderDetails' && (
+            <OrderDetailsPage
+              orderId={pageData.orderId}
+              onNavigate={navigate}
+            />
+          )}
 
-        {currentPage === 'myReviews' && <MyReviewsPage onNavigate={navigate} />}
+          {currentPage === 'myReviews' && <MyReviewsPage onNavigate={navigate} />}
 
-        {currentPage === 'writeReview' && <WriteReviewPage onNavigate={navigate} pageData={pageData} />}
+          {currentPage === 'writeReview' && <WriteReviewPage onNavigate={navigate} pageData={pageData} />}
 
-        {currentPage === 'favorites' && <FavoritesPage onNavigate={navigate} />}
+          {currentPage === 'favorites' && <FavoritesPage onNavigate={navigate} />}
 
-        {currentPage === 'referrals' && <ReferralsPage />}
+          {currentPage === 'referrals' && <ReferralsPage />}
 
-        {currentPage === 'admin' && (
-          <AdminAuth>
-            <AdminPanel />
-          </AdminAuth>
-        )}
+          {currentPage === 'admin' && (
+            <AdminAuth>
+              <AdminPanel />
+            </AdminAuth>
+          )}
+        </Suspense>
       </main>
 
       {/* Bottom Navigation - hidden only on admin page */}
