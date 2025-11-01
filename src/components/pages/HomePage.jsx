@@ -101,29 +101,31 @@ const HomePage = ({ onNavigate }) => {
       {/* Categories */}
       <div className="px-4 mb-6 pt-6">
         <h3 className="text-xl font-bold mb-4">Shop by Category</h3>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           {categories && categories.length > 0 ? categories.map((category) => (
             <button
               key={category.id}
               onClick={() => {
                 onNavigate('shop', { category: category.name });
               }}
-              className="relative h-32 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+              className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
-              <img
-                src={category.image}
-                alt={category.name}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-              <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
-                <span className="text-white font-bold text-lg">{category.name}</span>
+              <div className="w-16 h-16 flex items-center justify-center">
+                <img
+                  src={category.image}
+                  alt={category.name}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
               </div>
+              <span className="text-xs font-medium text-gray-800 text-center uppercase leading-tight">
+                {category.name}
+              </span>
             </button>
           )) : (
-            <div className="col-span-2 text-center py-8">
+            <div className="col-span-3 text-center py-8">
               <p className="text-gray-500 mb-4">Loading categories...</p>
               <button
                 onClick={() => onNavigate('shop')}
