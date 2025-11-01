@@ -1565,11 +1565,40 @@ const CategoriesTab = ({ initialFormOpen = false }) => {
   const [showForm, setShowForm] = useState(initialFormOpen);
   const [editingCategory, setEditingCategory] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
     image: ''
   });
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type (accept images and SVG)
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/svg+xml'];
+    if (!validTypes.includes(file.type)) {
+      alert('Please upload a valid image file (JPG, PNG, WEBP, or SVG)');
+      return;
+    }
+
+    try {
+      setUploading(true);
+      console.log('📤 Uploading category image:', file.name);
+
+      // Upload to Supabase Storage in 'categories' folder
+      const imageUrl = await storageAPI.uploadImage(file, 'categories', 'product-images');
+
+      setFormData({ ...formData, image: imageUrl });
+      console.log('✅ Category image uploaded:', imageUrl);
+    } catch (error) {
+      console.error('❌ Failed to upload category image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -1641,16 +1670,48 @@ const CategoriesTab = ({ initialFormOpen = false }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold mb-1">Image URL *</label>
+              <label className="block text-sm font-semibold mb-1">Category Icon/Image *</label>
+
+              {/* Image Preview */}
+              {formData.image && (
+                <div className="mb-2 p-2 border rounded-lg bg-gray-50">
+                  <img
+                    src={formData.image}
+                    alt="Preview"
+                    className="w-16 h-16 object-contain mx-auto"
+                  />
+                </div>
+              )}
+
+              {/* Upload Button */}
+              <div className="mb-2">
+                <label className="block">
+                  <span className={`w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                    uploading ? 'bg-gray-100 cursor-wait' : 'hover:bg-gray-50 hover:border-accent'
+                  }`}>
+                    <Upload className="w-5 h-5" />
+                    {uploading ? 'Uploading...' : 'Upload SVG/Image'}
+                  </span>
+                  <input
+                    type="file"
+                    onChange={handleImageUpload}
+                    accept="image/*,.svg"
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </label>
+                <p className="text-xs text-gray-500 mt-1">SVG, PNG, JPG, or WEBP (recommended: SVG for icons)</p>
+              </div>
+
+              {/* Or paste URL */}
+              <div className="text-center text-xs text-gray-500 my-2">- OR -</div>
               <input
                 type="text"
                 value={formData.image}
                 onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                 className="w-full px-3 py-2 border rounded-lg"
-                placeholder="https://..."
-                required
+                placeholder="Paste image URL here..."
               />
-              <p className="text-xs text-gray-500 mt-1">Category banner image for homepage</p>
             </div>
 
             <div className="flex gap-2">
