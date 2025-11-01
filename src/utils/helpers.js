@@ -98,8 +98,9 @@ export const calculateBonusPoints = (amount) => {
 // Calculate max bonus points that can be used (20% of order)
 export const calculateMaxBonusUsage = (orderTotal) => {
   // Get configured point value from localStorage
-  const bonusConfig = JSON.parse(safeLocalStorage.getItem('bonusConfig') || '{"pointValue": 1000}');
-  const pointValue = bonusConfig.pointValue || 1000;
+  // Default: 1 point = 1 UZS (so 100 points = 100 UZS discount)
+  const bonusConfig = JSON.parse(safeLocalStorage.getItem('bonusConfig') || '{"pointValue": 1}');
+  const pointValue = bonusConfig.pointValue || 1;
 
   const maxDiscount = orderTotal * 0.2; // 20% of order
   return Math.floor(maxDiscount / pointValue); // Convert currency to points
@@ -108,8 +109,9 @@ export const calculateMaxBonusUsage = (orderTotal) => {
 // Convert bonus points to currency value
 export const bonusPointsToDollars = (points) => {
   // Get configured point value from localStorage
-  const bonusConfig = JSON.parse(safeLocalStorage.getItem('bonusConfig') || '{"pointValue": 1000}');
-  const pointValue = bonusConfig.pointValue || 1000;
+  // Default: 1 point = 1 UZS (so 100 points = 100 UZS discount)
+  const bonusConfig = JSON.parse(safeLocalStorage.getItem('bonusConfig') || '{"pointValue": 1}');
+  const pointValue = bonusConfig.pointValue || 1;
 
   return points * pointValue;
 };

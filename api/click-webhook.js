@@ -14,6 +14,63 @@ const supabase = createClient(
 const CLICK_SERVICE_ID = process.env.CLICK_SERVICE_ID;
 const CLICK_SECRET_KEY = process.env.CLICK_SECRET_KEY;
 
+// Award bonus points to user for approved order
+async function awardBonusPoints(order) {
+  const userId = order.user_id || order.userId;
+  if (!userId) {
+    console.log('⚠️ No userId found in order, skipping bonus points');
+    return;
+  }
+
+  try {
+    // Fetch bonus configuration from database
+    const { data: settings, error: settingsError } = await supabase
+      .from('app_settings')
+      .select('bonus_config')
+      .eq('id', 1)
+      .single();
+
+    if (settingsError) {
+      console.error('❌ Failed to fetch bonus config:', settingsError);
+    }
+
+    // Use configured percentage or default to 10%
+    const purchaseBonusPercentage = settings?.bonus_config?.purchaseBonus || 10;
+    const purchaseBonusPoints = Math.round((order.total * purchaseBonusPercentage) / 100);
+
+    console.log(`💰 Awarding bonus: ${purchaseBonusPoints} points to user ${userId} (${purchaseBonusPercentage}% of ${order.total})`);
+
+    // Get current user bonus points
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('bonus_points')
+      .eq('id', userId)
+      .single();
+
+    if (userError) {
+      console.error('❌ Failed to fetch user:', userError);
+      return;
+    }
+
+    if (user) {
+      const newBonusPoints = (user.bonus_points || 0) + purchaseBonusPoints;
+
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ bonus_points: newBonusPoints })
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error('❌ Failed to update bonus points:', updateError);
+      } else {
+        console.log(`✅ Purchase bonus awarded: User ${userId} now has ${newBonusPoints} points`);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Failed to award bonus points:', error);
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -161,11 +218,12 @@ async function handleComplete(params, res) {
   // Update order directly without checking if it exists first (for speed)
   // Use upsert behavior to handle both new and existing orders
   const merchant_confirm_id = Date.now();
+  const isApproved = !click_error || click_error >= 0;
 
   const { error: updateError } = await supabase
     .from('orders')
     .update({
-      status: click_error && click_error < 0 ? 'rejected' : 'approved',
+      status: isApproved ? 'approved' : 'rejected',
       click_trans_id,
       click_complete_time: Date.now(),
       click_error: click_error || null
@@ -178,14 +236,28 @@ async function handleComplete(params, res) {
 
   console.log('✅ COMPLETE successful, order updated');
 
-  // Return success immediately
-  // IMPORTANT: Must include click_paydoc_id in response for Click to recognize completion
-  return res.json({
+  // Return success immediately to Click (they need fast response < 3 seconds)
+  // IMPORTANT: Click expects these exact fields in the response
+  res.json({
     click_trans_id,
     merchant_trans_id,
     merchant_confirm_id,
     error: 0,
-    error_note: 'Success',
-    click_paydoc_id // Required field for Click to process response correctly
+    error_note: 'Success'
   });
+
+  // Award bonus points asynchronously AFTER sending response
+  // This prevents timeout issues with Click's webhook
+  if (isApproved) {
+    // Fetch the order to get user_id and total
+    const { data: order } = await supabase
+      .from('orders')
+      .select('user_id, total')
+      .eq('click_order_id', merchant_trans_id)
+      .single();
+
+    if (order) {
+      await awardBonusPoints(order);
+    }
+  }
 }

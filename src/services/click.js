@@ -31,9 +31,10 @@ const getClickConfig = () => {
  * @param {string} params.orderId - Unique order ID (merchant_trans_id)
  * @param {number} params.amount - Amount in UZS
  * @param {string} params.description - Payment description (optional)
+ * @param {string} params.returnUrl - Custom return URL (optional)
  * @returns {string} Payment URL
  */
-export const generateClickLink = ({ orderId, amount, description = '' }) => {
+export const generateClickLink = ({ orderId, amount, description = '', returnUrl }) => {
   const config = getClickConfig();
 
   if (!config.merchantId || !config.serviceId) {
@@ -43,6 +44,9 @@ export const generateClickLink = ({ orderId, amount, description = '' }) => {
   // Click expects amount in UZS (not tiyin like Payme)
   const amountInUZS = Math.round(amount);
 
+  // Use custom return URL or default to profile page
+  const finalReturnUrl = returnUrl || `${config.returnUrl}/#/profile`;
+
   // Build payment URL parameters
   const params = new URLSearchParams({
     service_id: config.serviceId,
@@ -50,7 +54,7 @@ export const generateClickLink = ({ orderId, amount, description = '' }) => {
     amount: amountInUZS,
     transaction_param: orderId, // Your order ID
     merchant_trans_id: orderId, // Same as transaction_param - used in webhook
-    return_url: `${config.returnUrl}/#/profile`,
+    return_url: finalReturnUrl,
   });
 
   // Return full payment URL

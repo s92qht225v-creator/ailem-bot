@@ -1,11 +1,9 @@
 import { useState, useContext, useEffect } from 'react';
-import { Copy, Upload, CheckCircle, CreditCard } from 'lucide-react';
-import { formatPrice, copyToClipboard, generateOrderNumber, calculateBonusPoints, saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage } from '../../utils/helpers';
+import { CheckCircle, CreditCard } from 'lucide-react';
+import { formatPrice, generateOrderNumber, saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage } from '../../utils/helpers';
 import { useCart } from '../../hooks/useCart';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
-import { storageAPI } from '../../services/api';
-import { notifyAdminNewOrder, notifyUserNewOrder } from '../../services/telegram';
 import { useBackButton } from '../../hooks/useBackButton';
 import { useMainButton } from '../../hooks/useMainButton';
 import { generatePaymeLink } from '../../services/payme';
@@ -46,42 +44,8 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
     }
   }, [cartItems.length, onNavigate]);
 
-  const [paymentMethod, setPaymentMethod] = useState('telegram'); // 'telegram' or 'manual'
-  const [screenshot, setScreenshot] = useState(null);
-  const [uploading, setUploading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('telegram'); // 'telegram' or 'click'
   const [processingPayment, setProcessingPayment] = useState(false);
-
-  // Always show Payme as primary payment method
-  const paymeEnabled = true;
-
-  const adminCardNumber = '4532 1234 5678 9012';
-
-  const handleCopyCardNumber = async () => {
-    const success = await copyToClipboard(adminCardNumber);
-    if (success) {
-      alert('Card number copied to clipboard!');
-    }
-  };
-
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      if (!file.type.startsWith('image/')) {
-        alert('Please upload an image file');
-        return;
-      }
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        alert('File size must be less than 5MB');
-        return;
-      }
-      setUploading(true);
-      // Simulate upload delay
-      setTimeout(() => {
-        setScreenshot(file);
-        setUploading(false);
-      }, 1000);
-    }
-  };
 
   // Handler for Payme payment
   const handlePaymePayment = async () => {
@@ -137,6 +101,18 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       // Save order
       await addOrder(order);
       console.log('✅ Order created:', orderId);
+
+      // Deduct bonus points from user if they used any
+      if (checkoutData.bonusPointsUsed > 0) {
+        try {
+          // updateBonusPoints takes a delta (negative value to deduct)
+          await updateBonusPoints(-checkoutData.bonusPointsUsed);
+          console.log(`✅ Deducted ${checkoutData.bonusPointsUsed} bonus points from user`);
+        } catch (err) {
+          console.error('❌ Failed to deduct bonus points:', err);
+          // Don't fail the order creation if bonus deduction fails
+        }
+      }
 
       // Build return URL that redirects to payment status page
       // Using app URL with hash navigation for compatibility
@@ -256,11 +232,28 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       await addOrder(order);
       console.log('✅ Order created:', orderId);
 
+      // Deduct bonus points from user if they used any
+      if (checkoutData.bonusPointsUsed > 0) {
+        try {
+          // updateBonusPoints takes a delta (negative value to deduct)
+          await updateBonusPoints(-checkoutData.bonusPointsUsed);
+          console.log(`✅ Deducted ${checkoutData.bonusPointsUsed} bonus points from user`);
+        } catch (err) {
+          console.error('❌ Failed to deduct bonus points:', err);
+          // Don't fail the order creation if bonus deduction fails
+        }
+      }
+
+      // Build return URL that redirects to payment status page
+      const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';
+      const returnUrl = `${appUrl}/#/paymentStatus?order=${orderId}&method=click`;
+
       // Generate Click payment link
       const paymentUrl = generateClickLink({
         orderId: clickOrderId,
         amount: checkoutData.total,
-        description: `Order #${orderId} - ${cartItems.length} items`
+        description: `Order #${orderId} - ${cartItems.length} items`,
+        returnUrl: returnUrl
       });
 
       console.log('═══════════════════════════════════════════════');
@@ -298,113 +291,26 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
     }
   };
 
-  // Handler for manual payment (screenshot upload)
-  const handleSubmitOrder = async () => {
-    if (!screenshot) {
-      alert('Please upload payment screenshot');
-      return;
-    }
-
-    try {
-      setUploading(true);
-
-      // Upload payment screenshot to PRIVATE Supabase Storage bucket
-      console.log('📤 Uploading payment screenshot to secure private bucket...');
-      const uploadResult = await storageAPI.uploadPaymentScreenshot(screenshot);
-      console.log('✅ Payment screenshot uploaded securely:', uploadResult.url);
-
-      // Create order with permanent screenshot URL
-      const order = {
-        id: generateOrderNumber(),
-        userId: user.id,
-        userTelegramId: user.telegramId || user.id, // Include Telegram ID for notifications
-        userName: user.name,
-        userPhone: user.phone || checkoutData.phone,
-        items: cartItems.map(item => ({
-          productId: item.id,
-          productName: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          color: item.selectedColor,
-          size: item.selectedSize,
-          image: item.image
-        })),
-        deliveryInfo: {
-          fullName: checkoutData.fullName,
-          phone: checkoutData.phone,
-          address: checkoutData.address,
-          city: checkoutData.city
-        },
-        courier: checkoutData.courier,
-        subtotal: checkoutData.subtotal,
-        bonusDiscount: checkoutData.bonusDiscount,
-        bonusPointsUsed: checkoutData.bonusPointsUsed,
-        deliveryFee: checkoutData.deliveryFee,
-        total: checkoutData.total,
-        paymentScreenshot: uploadResult.url, // Use permanent Supabase URL
-        paymentMethod: 'manual',
-        status: 'pending',
-        date: new Date().toISOString().split('T')[0],
-        createdAt: new Date().toISOString()
-      };
-
-      console.log('📦 Submitting order:', order);
-
-      // Add order to admin context (AWAIT this!)
-      await addOrder(order);
-
-      console.log('✅ Order saved to Supabase');
-
-      // Send notifications about new order
-      console.log('📤 Sending notifications...');
-      await Promise.all([
-        notifyAdminNewOrder(order),
-        notifyUserNewOrder(order)
-      ]);
-      console.log('✅ Admin and customer notified about new order');
-
-      // Update user bonus points
-      if (checkoutData.useBonusPoints && checkoutData.bonusPointsUsed > 0) {
-        await updateBonusPoints(-checkoutData.bonusPointsUsed);
-      }
-
-      // Calculate and add bonus points for this purchase (10% of total)
-      const earnedPoints = calculateBonusPoints(checkoutData.total);
-      await updateBonusPoints(earnedPoints);
-
-      // Clear cart
-      clearCart();
-
-      // Navigate to profile with success message
-      alert(`Order submitted successfully! You earned ${earnedPoints} bonus points.\n\nOrder ID: ${order.id}\n\nYour order is pending approval.`);
-      onNavigate('profile');
-    } catch (error) {
-      console.error('❌ Failed to submit order:', error);
-      alert(`Failed to submit order: ${error.message}\n\nPlease try again or contact support.`);
-    } finally {
-      setUploading(false);
-    }
-  };
 
   // Use MainButton for payment methods
   const getButtonText = () => {
     if (paymentMethod === 'telegram') return 'Pay with Payme';
     if (paymentMethod === 'click') return 'Pay with Click';
-    return 'Submit Order';
+    return 'Continue';
   };
 
   const getButtonHandler = () => {
     if (paymentMethod === 'telegram') return handlePaymePayment;
     if (paymentMethod === 'click') return handleClickPayment;
-    return handleSubmitOrder;
+    return () => {};
   };
 
   useMainButton(
     getButtonText(),
     getButtonHandler(),
     {
-      enabled: paymentMethod === 'telegram' || paymentMethod === 'click' || screenshot !== null,
-      progress: processingPayment || uploading,
+      enabled: true,
+      progress: processingPayment,
     }
   );
 
@@ -434,161 +340,46 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         </div>
 
         {/* Payment Method Selection */}
-        {paymeEnabled && (
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <h3 className="text-lg font-semibold mb-4">Select Payment Method</h3>
-            <div className="space-y-3">
-              <button
-                onClick={() => setPaymentMethod('telegram')}
-                className={`w-full p-4 border-2 rounded-lg flex items-center gap-3 transition-all ${
-                  paymentMethod === 'telegram'
-                    ? 'border-accent bg-blue-50'
-                    : 'border-gray-300 hover:border-accent'
-                }`}
-              >
-                <CreditCard className="w-6 h-6 text-accent" />
-                <div className="flex-1 text-left">
-                  <p className="font-semibold text-gray-900">Payme Payment</p>
-                  <p className="text-sm text-gray-600">Pay securely with Payme</p>
-                </div>
-                {paymentMethod === 'telegram' && (
-                  <CheckCircle className="w-5 h-5 text-accent" />
-                )}
-              </button>
-              <button
-                onClick={() => setPaymentMethod('click')}
-                className={`w-full p-4 border-2 rounded-lg flex items-center gap-3 transition-all ${
-                  paymentMethod === 'click'
-                    ? 'border-accent bg-blue-50'
-                    : 'border-gray-300 hover:border-accent'
-                }`}
-              >
-                <CreditCard className="w-6 h-6 text-accent" />
-                <div className="flex-1 text-left">
-                  <p className="font-semibold text-gray-900">Click Payment</p>
-                  <p className="text-sm text-gray-600">Pay securely with Click</p>
-                </div>
-                {paymentMethod === 'click' && (
-                  <CheckCircle className="w-5 h-5 text-accent" />
-                )}
-              </button>
-              <button
-                onClick={() => setPaymentMethod('manual')}
-                className={`w-full p-4 border-2 rounded-lg flex items-center gap-3 transition-all ${
-                  paymentMethod === 'manual'
-                    ? 'border-accent bg-blue-50'
-                    : 'border-gray-300 hover:border-accent'
-                }`}
-              >
-                <Upload className="w-6 h-6 text-accent" />
-                <div className="flex-1 text-left">
-                  <p className="font-semibold text-gray-900">Manual Payment</p>
-                  <p className="text-sm text-gray-600">Pay via bank transfer</p>
-                </div>
-                {paymentMethod === 'manual' && (
-                  <CheckCircle className="w-5 h-5 text-accent" />
-                )}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Manual Payment Instructions */}
-        {paymentMethod === 'manual' && (
-          <>
-            {/* Admin Card Number */}
-            <div className="bg-white rounded-lg shadow-md p-4">
-              <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
-
-          <div className="mb-4">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Card Number
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={adminCardNumber}
-                readOnly
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg bg-gray-50"
-              />
-              <button
-                onClick={handleCopyCardNumber}
-                className="bg-accent text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
-              >
-                <Copy className="w-4 h-4" />
-                Copy
-              </button>
-            </div>
-          </div>
-
-          <div className="bg-blue-50 border-l-4 border-accent p-4 rounded">
-            <p className="text-sm text-gray-700 font-semibold mb-2">Payment Instructions:</p>
-            <ol className="text-sm text-gray-700 space-y-1 list-decimal list-inside">
-              <li>Copy the card number above</li>
-              <li>Open your banking app and make the payment</li>
-              <li>Take a screenshot of the successful transaction</li>
-              <li>Upload the screenshot below</li>
-            </ol>
+        <div className="bg-white rounded-lg shadow-md p-4">
+          <h3 className="text-lg font-semibold mb-4">Select Payment Method</h3>
+          <div className="space-y-3">
+            <button
+              onClick={() => setPaymentMethod('telegram')}
+              className={`w-full p-4 border-2 rounded-lg flex items-center gap-3 transition-all ${
+                paymentMethod === 'telegram'
+                  ? 'border-accent bg-blue-50'
+                  : 'border-gray-300 hover:border-accent'
+              }`}
+            >
+              <CreditCard className="w-6 h-6 text-accent" />
+              <div className="flex-1 text-left">
+                <p className="font-semibold text-gray-900">Payme Payment</p>
+                <p className="text-sm text-gray-600">Pay securely with Payme</p>
+              </div>
+              {paymentMethod === 'telegram' && (
+                <CheckCircle className="w-5 h-5 text-accent" />
+              )}
+            </button>
+            <button
+              onClick={() => setPaymentMethod('click')}
+              className={`w-full p-4 border-2 rounded-lg flex items-center gap-3 transition-all ${
+                paymentMethod === 'click'
+                  ? 'border-accent bg-blue-50'
+                  : 'border-gray-300 hover:border-accent'
+              }`}
+            >
+              <CreditCard className="w-6 h-6 text-accent" />
+              <div className="flex-1 text-left">
+                <p className="font-semibold text-gray-900">Click Payment</p>
+                <p className="text-sm text-gray-600">Pay securely with Click</p>
+              </div>
+              {paymentMethod === 'click' && (
+                <CheckCircle className="w-5 h-5 text-accent" />
+              )}
+            </button>
           </div>
         </div>
 
-            {/* Screenshot Upload */}
-            <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold mb-4">Upload Payment Screenshot</h3>
-
-          <label className="block">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="hidden"
-              id="screenshot-upload"
-            />
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
-                screenshot
-                  ? 'border-success bg-green-50'
-                  : 'border-gray-300 hover:border-accent hover:bg-gray-50'
-              }`}
-            >
-              {uploading ? (
-                <div className="flex flex-col items-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-accent mb-3"></div>
-                  <p className="text-gray-600">Uploading...</p>
-                </div>
-              ) : screenshot ? (
-                <div className="flex flex-col items-center">
-                  <CheckCircle className="w-12 h-12 text-success mb-3" />
-                  <p className="text-success font-semibold mb-1">Screenshot Uploaded</p>
-                  <p className="text-sm text-gray-600 mb-3">{screenshot.name}</p>
-                  <img
-                    src={URL.createObjectURL(screenshot)}
-                    alt="Payment screenshot"
-                    className="max-h-48 rounded-lg shadow-md mb-3"
-                  />
-                  <label
-                    htmlFor="screenshot-upload"
-                    className="text-accent font-semibold hover:underline cursor-pointer"
-                  >
-                    Change Screenshot
-                  </label>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center">
-                  <Upload className="w-12 h-12 text-gray-400 mb-3" />
-                  <p className="text-gray-700 font-semibold mb-1">
-                    Click to upload screenshot
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    PNG, JPG up to 5MB
-                  </p>
-                </div>
-              )}
-            </div>
-            </label>
-            </div>
-          </>
-        )}
 
         {/* Payme Payment Info */}
         {paymentMethod === 'telegram' && (

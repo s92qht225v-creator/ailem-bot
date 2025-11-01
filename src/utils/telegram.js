@@ -265,7 +265,7 @@ export const generateReferralLink = (referralCode, botUsername = 'ailemuz_bot') 
 // Share referral link via Telegram
 export const shareReferralLink = (referralCode, botUsername = 'ailemuz_bot', userName = 'someone') => {
   const referralLink = generateReferralLink(referralCode, botUsername);
-  const message = `🎁 Join Ailem and get 10% off your first order!\n\n👉 ${referralLink}\n\nUse my referral code: ${referralCode}`;
+  const message = `🎁 Join Ailem and start earning bonus points!\n\n👉 ${referralLink}\n\nUse my referral code: ${referralCode}`;
 
   const tg = getTelegramWebApp();
   if (tg) {

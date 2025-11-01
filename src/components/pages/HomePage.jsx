@@ -84,6 +84,9 @@ const HomePage = ({ onNavigate }) => {
 
   return (
     <div className="pb-20">
+      {/* Logo Space */}
+      <div className="pt-16"></div>
+
       {/* Hero Banner Carousel - Only show if there are enabled banners */}
       <Carousel banners={banners} autoSlideInterval={5000} />
 

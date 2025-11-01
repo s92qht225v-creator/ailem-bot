@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { CheckCircle, Loader } from 'lucide-react';
 import { ordersAPI } from '../../services/api';
 
@@ -8,7 +8,32 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
   const [checkCount, setCheckCount] = useState(0);
   const maxChecks = 3; // Only check 3 times total
 
-  const checkOrderStatus = async () => {
+  // Safety check - if no orderId provided, show error
+  if (!orderId) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
+          <div className="text-center mb-4">
+            <div className="text-6xl mb-2">❌</div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              Invalid Payment Link
+            </h2>
+          </div>
+          <p className="text-gray-700 mb-4 text-center">
+            No order ID found. Please check your payment link or try again.
+          </p>
+          <button
+            onClick={() => onNavigate('home')}
+            className="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition"
+          >
+            Back to Home
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const checkOrderStatus = useCallback(async () => {
     try {
       const orderData = await ordersAPI.getById(orderId);
 
@@ -16,10 +41,10 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
         setStatus('success');
         setOrder(orderData);
 
-        // Auto-redirect to order details page after 2 seconds
+        // Auto-redirect to order details page after 4 seconds
         setTimeout(() => {
           onNavigate('orderDetails', { orderId });
-        }, 2000);
+        }, 4000);
         return true; // Payment confirmed
       } else if (orderData.status === 'rejected' || orderData.status === 'failed') {
         setStatus('failed');
@@ -32,7 +57,7 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
       console.error('Failed to check order status:', error);
       return false;
     }
-  };
+  }, [orderId, onNavigate]);
 
   const resetAndRetry = () => {
     setStatus('checking');
@@ -84,7 +109,7 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
       cancelled = true;
       timeouts.forEach(timeout => clearTimeout(timeout));
     };
-  }, [orderId]); // Remove status from deps to prevent re-triggering
+  }, [status, checkOrderStatus]); // Only depend on status and memoized checkOrderStatus
 
   if (status === 'checking') {
     return (

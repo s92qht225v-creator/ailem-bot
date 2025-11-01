@@ -552,13 +552,36 @@ export const ordersAPI = {
 
   // Get single order
   async getById(id) {
-    const { data, error } = await supabase
-      .from('orders')
-      .select('*')
-      .eq('id', id)
-      .single();
+    // Check if ID looks like a UUID (contains dashes in UUID pattern)
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+    let data, error;
+
+    if (isUUID) {
+      // Query by UUID id field
+      const result = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      data = result.data;
+      error = result.error;
+    } else {
+      // Query by order_number field (human-readable ID like "ORD-123-456")
+      const result = await supabase
+        .from('orders')
+        .select('*')
+        .eq('order_number', id)
+        .maybeSingle();
+
+      data = result.data;
+      error = result.error;
+    }
 
     if (error) throw error;
+    if (!data) throw new Error(`Order not found: ${id}`);
+
     return this._mapOrderFromDB(data);
   },
 
@@ -937,43 +960,9 @@ export const storageAPI = {
     }
   },
 
-  // Upload payment screenshot to private bucket
-  async uploadPaymentScreenshot(file) {
-    const result = await this.uploadImage(file, 'payments', 'payment-screenshots');
-
-    // Generate signed URL that expires in 1 year (for private bucket access)
-    const { data, error } = await supabase.storage
-      .from('payment-screenshots')
-      .createSignedUrl(result.path, 31536000); // 1 year in seconds
-
-    if (error) {
-      console.error('Failed to create signed URL:', error);
-      return result; // Fallback to public URL
-    }
-
-    return {
-      ...result,
-      url: data.signedUrl // Use signed URL instead of public URL
-    };
-  },
-
   // Upload product image to public bucket
   async uploadProductImage(file) {
     return await this.uploadImage(file, 'products', 'product-images');
-  },
-
-  // Get signed URL for private payment screenshot
-  async getPaymentScreenshotUrl(path) {
-    const { data, error } = await supabase.storage
-      .from('payment-screenshots')
-      .createSignedUrl(path, 31536000); // 1 year
-
-    if (error) {
-      console.error('Failed to create signed URL:', error);
-      return null;
-    }
-
-    return data.signedUrl;
   },
 
   // Upload multiple images
@@ -1051,7 +1040,8 @@ export const settingsAPI = {
     return {
       banners: data.banners || (data.sale_banner ? [data.sale_banner] : []),
       sale_banner: data.sale_banner,
-      sale_timer: data.sale_timer
+      sale_timer: data.sale_timer,
+      bonus_config: data.bonus_config || { purchaseBonus: 10, referralCommission: 10 }
     };
   },
 
@@ -1092,6 +1082,19 @@ export const settingsAPI = {
 
     if (error) throw error;
     return data.sale_timer;
+  },
+
+  // Update bonus configuration
+  async updateBonusConfig(bonusConfig) {
+    const { data, error } = await supabase
+      .from('app_settings')
+      .update({ bonus_config: bonusConfig })
+      .eq('id', 1)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data.bonus_config;
   }
 };
 

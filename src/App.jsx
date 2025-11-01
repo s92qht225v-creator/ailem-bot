@@ -201,22 +201,35 @@ function App() {
 
   // Check for pending payment when app loads
   useEffect(() => {
+    // First check if we have URL parameters (coming back from Payme)
+    const urlParams = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+
+    // Check both URL and hash for parameters (Payme uses hash)
+    const urlOrderId = urlParams.get('order') || hashParams.get('order');
+    const urlPaymentMethod = urlParams.get('method') || hashParams.get('method');
+
+    if (urlOrderId && urlPaymentMethod) {
+      // Clear the pending payment flag
+      removeFromLocalStorage('pendingPayment');
+
+      // Navigate to payment status page with URL params
+      navigate('paymentStatus', { orderId: urlOrderId, paymentMethod: urlPaymentMethod });
+      return;
+    }
+
+    // Otherwise check localStorage for pending payment
     const pendingPayment = loadFromLocalStorage('pendingPayment');
-    
+
     if (pendingPayment) {
       const { orderId, paymentMethod, timestamp } = pendingPayment;
-      
+
       // Only check if payment was initiated recently (within 1 hour)
       const oneHourAgo = Date.now() - 60 * 60 * 1000;
       if (timestamp > oneHourAgo) {
-        console.log('💳 Pending payment detected, navigating to status page:', {
-          orderId,
-          paymentMethod
-        });
-        
         // Clear the pending payment flag
         removeFromLocalStorage('pendingPayment');
-        
+
         // Navigate to payment status page
         navigate('paymentStatus', { orderId, paymentMethod });
       } else {

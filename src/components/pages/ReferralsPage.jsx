@@ -102,8 +102,8 @@ const ReferralsPage = ({ hideHeader = false }) => {
             <Step
               number={2}
               icon={Gift}
-              title="Friend Gets Discount"
-              description="Your friend gets 10% off their first purchase"
+              title="Friend Makes Purchase"
+              description={`Your friend earns ${commissionRate}% bonus on their purchase`}
               color="bg-warning"
             />
             <Step
@@ -131,7 +131,7 @@ const ReferralsPage = ({ hideHeader = false }) => {
             />
             <Benefit
               icon={Gift}
-              text="Your friends get 10% off their first order"
+              text={`Your friends earn ${commissionRate}% bonus points on their purchases`}
             />
           </div>
         </div>

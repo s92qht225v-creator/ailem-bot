@@ -12,13 +12,15 @@ export const CartProvider = ({ children }) => {
 
   // Load cart from Supabase or localStorage on user change
   useEffect(() => {
-    if (!user) return;
+    if (!user?.id) return;
+
+    const userId = user.id; // Capture ID to avoid closure issues
 
     const loadCart = async () => {
       try {
         // For real Telegram users, load from Supabase
-        if (user.id !== 'demo-1') {
-          const userData = await usersAPI.getById(user.id);
+        if (userId !== 'demo-1') {
+          const userData = await usersAPI.getById(userId);
           const dbCart = userData.cart || [];
           const localCart = loadFromLocalStorage('cart', []);
 
@@ -29,7 +31,7 @@ export const CartProvider = ({ children }) => {
 
           // If we used localStorage, sync it back to database
           if (localCart.length > 0 && JSON.stringify(localCart) !== JSON.stringify(dbCart)) {
-            usersAPI.updateCart(user.id, localCart)
+            usersAPI.updateCart(userId, localCart)
               .then(() => {
                 console.log('🔄 Synced localStorage cart to Supabase');
                 // Clear localStorage after successful sync
@@ -58,14 +60,16 @@ export const CartProvider = ({ children }) => {
 
   // Save cart to localStorage and Supabase whenever it changes
   useEffect(() => {
-    if (!cartLoaded || !user) return;
+    if (!cartLoaded || !user?.id) return;
+
+    const userId = user.id; // Capture ID to avoid closure issues
 
     // Save to localStorage for all users (fallback)
     saveToLocalStorage('cart', cartItems);
 
     // Sync to Supabase for real users
-    if (user.id !== 'demo-1') {
-      usersAPI.updateCart(user.id, cartItems)
+    if (userId !== 'demo-1') {
+      usersAPI.updateCart(userId, cartItems)
         .then(() => console.log('💾 Cart synced to Supabase'))
         .catch(err => {
           console.error('❌ Failed to sync cart to Supabase:', err);

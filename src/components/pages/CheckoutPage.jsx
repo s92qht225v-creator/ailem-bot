@@ -205,17 +205,21 @@ const CheckoutPage = ({ onNavigate }) => {
           courier: pickupCourier,
           district: yandexDistrict,
           address: yandexAddress,
-          city: 'Tashkent', // Yandex is Tashkent-only
+          city: 'Tashkent', // Yandex is Tashkat-only
           state: 'Tashkent Region',
-          type: 'home_delivery'
+          type: 'home_delivery',
+          fullName: formData.fullName,
+          phone: formData.phone
         }
       : {
           courier: pickupCourier,
           pickupPoint: selectedPickupPoint,
           address: selectedPickupPoint?.address || '',
-          city: selectedPickupPoint?.city || '',
-          state: selectedPickupPoint?.state || pickupState || '',
-          type: 'pickup'
+          city: selectedPickupPoint?.city || pickupCity || '',
+          state: selectedPickupPoint?.state || pickupState || 'N/A',
+          type: 'pickup',
+          fullName: formData.fullName,
+          phone: formData.phone
         };
 
     // Pass checkout data to payment page

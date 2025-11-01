@@ -7,7 +7,7 @@ import { formatPrice, formatDate, loadFromLocalStorage, saveToLocalStorage } fro
 import { calculateAnalytics, getRevenueChartData } from '../../utils/analytics';
 import { generateVariants, updateVariantStock, getTotalVariantStock, getLowStockVariants, getOutOfStockVariants } from '../../utils/variants';
 import ImageModal from '../common/ImageModal';
-import { storageAPI, usersAPI } from '../../services/api';
+import { storageAPI, usersAPI, settingsAPI } from '../../services/api';
 import { notifyUserOrderStatus, notifyReferrerReward, notifyAdminLowStock } from '../../services/telegram';
 
 const AdminPanel = () => {
@@ -381,11 +381,19 @@ const OrdersTab = ({ statusFilter = 'all' }) => {
     // Approve the order
     await approveOrder(orderId);
 
-    // Check if this user was referred by someone and reward the referrer
+    // Award purchase bonus points to the customer
     if (order.userId) {
       try {
-        const customer = await usersAPI.getById(order.userId);
+        const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 10, referralCommission: 10 });
+        const purchaseBonusPercentage = bonusConfig?.purchaseBonus || 10;
+        const purchaseBonusPoints = Math.round((order.total * purchaseBonusPercentage) / 100);
 
+        // Award bonus points to customer
+        await updateUserBonusPoints(order.userId, purchaseBonusPoints);
+        console.log(`💰 Purchase bonus: Customer earned ${purchaseBonusPoints} points (${purchaseBonusPercentage}% of ${order.total})`);
+
+        // Check if this user was referred by someone and reward the referrer
+        const customer = await usersAPI.getById(order.userId);
         console.log('🔍 Checking referral for customer:', customer);
 
         if (customer && customer.referred_by) {
@@ -398,7 +406,6 @@ const OrdersTab = ({ statusFilter = 'all' }) => {
             console.log('✅ Found referrer:', referrer.name);
 
             // Calculate referral commission (10% of order total)
-            const bonusConfig = loadFromLocalStorage('bonusConfig', { referralCommission: 10 });
             const commissionPercentage = bonusConfig?.referralCommission || 10;
             const commissionAmount = Math.round((order.total * commissionPercentage) / 100);
 
@@ -423,7 +430,7 @@ const OrdersTab = ({ statusFilter = 'all' }) => {
           console.log('ℹ️ Customer was not referred by anyone');
         }
       } catch (err) {
-        console.error('❌ Failed to process referral reward:', err);
+        console.error('❌ Failed to process bonus rewards:', err);
       }
     }
 
@@ -583,7 +590,7 @@ const OrdersTab = ({ statusFilter = 'all' }) => {
 
   const filteredOrders = statusFilter === 'all'
     ? orders
-    : orders.filter(order => order.status === statusFilter);
+    : orders.filter(order => order.status?.toLowerCase() === statusFilter.toLowerCase());
 
   const sortedOrders = [...filteredOrders].sort((a, b) =>
     new Date(b.createdAt) - new Date(a.createdAt)
@@ -764,23 +771,6 @@ const OrdersTab = ({ statusFilter = 'all' }) => {
                 </div>
               )}
 
-              {/* Payment Screenshot */}
-              {order.paymentScreenshot && (
-                <div className="mb-3 pb-3 border-b">
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Payment Screenshot:</p>
-                  <img
-                    src={order.paymentScreenshot}
-                    alt="Payment Screenshot"
-                    className="w-full max-w-xs rounded-lg border-2 border-gray-200 cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => setSelectedImage(order.paymentScreenshot)}
-                    onError={(e) => {
-                      console.error('Failed to load payment screenshot:', order.paymentScreenshot);
-                      e.target.src = 'https://via.placeholder.com/400x300?text=Screenshot+Not+Found';
-                    }}
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Click to view full size</p>
-                </div>
-              )}
 
               <div className="flex items-center justify-between mb-3 pt-3 border-t">
                 <span className="font-bold text-gray-700">Total:</span>
@@ -1891,18 +1881,52 @@ const BonusSettingsTab = () => {
     purchaseBonus: 10,
     currency: 'UZS'
   });
+  const [loading, setLoading] = useState(false);
 
-  // Load from localStorage after mount
+  // Load from database after mount
   useEffect(() => {
-    const saved = loadFromLocalStorage('bonusConfig');
-    if (saved) {
-      setBonusConfig(saved);
-    }
+    const loadBonusConfig = async () => {
+      try {
+        const settings = await settingsAPI.getSettings();
+        if (settings?.bonus_config) {
+          setBonusConfig({
+            ...bonusConfig,
+            ...settings.bonus_config
+          });
+        }
+      } catch (error) {
+        console.error('Failed to load bonus config:', error);
+        // Fallback to localStorage
+        const saved = loadFromLocalStorage('bonusConfig');
+        if (saved) {
+          setBonusConfig(saved);
+        }
+      }
+    };
+    loadBonusConfig();
   }, []);
 
-  const saveBonusConfig = (newConfig) => {
+  const saveBonusConfig = async (newConfig) => {
     setBonusConfig(newConfig);
-    saveToLocalStorage('bonusConfig', newConfig);
+    setLoading(true);
+
+    try {
+      // Save to database
+      await settingsAPI.updateBonusConfig({
+        purchaseBonus: newConfig.purchaseBonus,
+        referralCommission: newConfig.referralCommission
+      });
+
+      // Also save to localStorage as backup
+      saveToLocalStorage('bonusConfig', newConfig);
+
+      console.log('✅ Bonus config saved to database');
+    } catch (error) {
+      console.error('❌ Failed to save bonus config:', error);
+      alert('Failed to save bonus configuration. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

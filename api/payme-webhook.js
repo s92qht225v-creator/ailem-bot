@@ -9,6 +9,63 @@ const supabase = createClient(
   process.env.VITE_SUPABASE_ANON_KEY
 );
 
+// Award bonus points to user for approved order
+async function awardBonusPoints(order) {
+  const userId = order.user_id || order.userId;
+  if (!userId) {
+    console.log('⚠️ No userId found in order, skipping bonus points');
+    return;
+  }
+
+  try {
+    // Fetch bonus configuration from database
+    const { data: settings, error: settingsError } = await supabase
+      .from('app_settings')
+      .select('bonus_config')
+      .eq('id', 1)
+      .single();
+
+    if (settingsError) {
+      console.error('❌ Failed to fetch bonus config:', settingsError);
+    }
+
+    // Use configured percentage or default to 10%
+    const purchaseBonusPercentage = settings?.bonus_config?.purchaseBonus || 10;
+    const purchaseBonusPoints = Math.round((order.total * purchaseBonusPercentage) / 100);
+
+    console.log(`💰 Awarding bonus: ${purchaseBonusPoints} points to user ${userId} (${purchaseBonusPercentage}% of ${order.total})`);
+
+    // Get current user bonus points
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('bonus_points')
+      .eq('id', userId)
+      .single();
+
+    if (userError) {
+      console.error('❌ Failed to fetch user:', userError);
+      return;
+    }
+
+    if (user) {
+      const newBonusPoints = (user.bonus_points || 0) + purchaseBonusPoints;
+
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ bonus_points: newBonusPoints })
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error('❌ Failed to update bonus points:', updateError);
+      } else {
+        console.log(`✅ Purchase bonus awarded: User ${userId} now has ${newBonusPoints} points`);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Failed to award bonus points:', error);
+  }
+}
+
 // Send Telegram notification to user
 async function sendTelegramNotification(order, status) {
   const botToken = process.env.VITE_TELEGRAM_BOT_TOKEN;
@@ -363,15 +420,8 @@ async function performTransaction(params, res, requestId) {
     });
   }
 
-  // Send Telegram notification to user
-  try {
-    await sendTelegramNotification(order, 'approved');
-  } catch (notifError) {
-    console.error('Failed to send Telegram notification:', notifError);
-    // Don't fail the transaction if notification fails
-  }
-
-  return res.json({
+  // Send response immediately to Payme (they need fast response < 3 seconds)
+  res.json({
     jsonrpc: '2.0',
     id: requestId,
     result: {
@@ -380,6 +430,16 @@ async function performTransaction(params, res, requestId) {
       state: 2
     }
   });
+
+  // Award bonus points and send notifications asynchronously AFTER sending response
+  // This prevents timeout issues with Payme's webhook
+  try {
+    await awardBonusPoints(order);
+    await sendTelegramNotification(order, 'approved');
+  } catch (asyncError) {
+    console.error('Failed to process post-payment tasks:', asyncError);
+    // Don't fail the transaction if these fail
+  }
 }
 
 // Cancel transaction
