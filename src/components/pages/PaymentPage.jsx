@@ -1,6 +1,6 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { Copy, Upload, CheckCircle, CreditCard } from 'lucide-react';
-import { formatPrice, copyToClipboard, generateOrderNumber, calculateBonusPoints, saveToLocalStorage } from '../../utils/helpers';
+import { formatPrice, copyToClipboard, generateOrderNumber, calculateBonusPoints, saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage } from '../../utils/helpers';
 import { useCart } from '../../hooks/useCart';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
@@ -18,6 +18,33 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
 
   // Use native Telegram BackButton
   useBackButton(() => onNavigate('checkout'));
+
+  // Check if user just returned from a payment and redirect to status page
+  useEffect(() => {
+    const pendingPayment = loadFromLocalStorage('pendingPayment');
+
+    if (pendingPayment && cartItems.length === 0) {
+      const { orderId, paymentMethod, timestamp } = pendingPayment;
+
+      // Only redirect if payment was initiated recently (within 1 hour)
+      const oneHourAgo = Date.now() - 60 * 60 * 1000;
+      if (timestamp > oneHourAgo) {
+        console.log('💳 Returning from payment, redirecting to status page:', {
+          orderId,
+          paymentMethod
+        });
+
+        // Clear the pending payment flag
+        removeFromLocalStorage('pendingPayment');
+
+        // Navigate to payment status page
+        onNavigate('paymentStatus', { orderId, paymentMethod });
+      } else {
+        // Payment too old, clear it
+        removeFromLocalStorage('pendingPayment');
+      }
+    }
+  }, [cartItems.length, onNavigate]);
 
   const [paymentMethod, setPaymentMethod] = useState('telegram'); // 'telegram' or 'manual'
   const [screenshot, setScreenshot] = useState(null);
