@@ -10,34 +10,40 @@ export const LanguageProvider = ({ children }) => {
 
   // Initialize language on mount
   useEffect(() => {
-    // Check localStorage first
-    const savedLanguage = loadFromLocalStorage('language');
-    if (savedLanguage && translations[savedLanguage]) {
-      setLanguageState(savedLanguage);
-      return;
-    }
+    try {
+      // Check localStorage first
+      const savedLanguage = loadFromLocalStorage('language');
+      if (savedLanguage && translations[savedLanguage]) {
+        setLanguageState(savedLanguage);
+        return;
+      }
 
-    // Try to detect from Telegram
-    const telegramUser = getTelegramUser();
-    if (telegramUser?.languageCode) {
-      const langCode = telegramUser.languageCode.toLowerCase();
-      
-      // Map Telegram language codes to our supported languages
-      if (langCode === 'ru' || langCode.startsWith('ru')) {
-        setLanguageState('ru');
-        saveToLocalStorage('language', 'ru');
-      } else if (langCode === 'uz' || langCode.startsWith('uz')) {
-        setLanguageState('uz');
-        saveToLocalStorage('language', 'uz');
+      // Try to detect from Telegram
+      const telegramUser = getTelegramUser();
+      if (telegramUser?.languageCode) {
+        const langCode = telegramUser.languageCode.toLowerCase();
+        
+        // Map Telegram language codes to our supported languages
+        if (langCode === 'ru' || langCode.startsWith('ru')) {
+          setLanguageState('ru');
+          saveToLocalStorage('language', 'ru');
+        } else if (langCode === 'uz' || langCode.startsWith('uz')) {
+          setLanguageState('uz');
+          saveToLocalStorage('language', 'uz');
+        } else {
+          // Default to Uzbek for any other language
+          setLanguageState('uz');
+          saveToLocalStorage('language', 'uz');
+        }
       } else {
-        // Default to Uzbek for any other language
+        // Default to Uzbek if can't detect
         setLanguageState('uz');
         saveToLocalStorage('language', 'uz');
       }
-    } else {
-      // Default to Uzbek if can't detect
+    } catch (error) {
+      console.error('Error initializing language:', error);
+      // Fallback to Uzbek on any error
       setLanguageState('uz');
-      saveToLocalStorage('language', 'uz');
     }
   }, []);
 
