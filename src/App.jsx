@@ -88,14 +88,6 @@ function App() {
       const adminParam = urlParams.get('admin');
       const isAdminParam = adminParam === 'true';
 
-      console.log('🔎 URL Check:', {
-        url: window.location.href,
-        adminParam,
-        isAdminParam,
-        currentPage,
-        userIsAdmin: user?.isAdmin
-      });
-
       // Use callback form to avoid dependency on currentPage
       if (isAdminParam) {
         setCurrentPage((prev) => {
@@ -144,25 +136,8 @@ function App() {
     };
   }, []);
 
-  // Save current page and data to localStorage whenever they change
-  // Skip on initial mount to avoid triggering when loading from localStorage
-  // Use a ref to track previous values to prevent infinite loops
-  const prevPageRef = useRef({ page: '', data: {} });
-
-  useEffect(() => {
-    if (!initialLoadDone.current) return; // Don't save during initial load
-
-    // Only save if values actually changed
-    const prev = prevPageRef.current;
-    const pageChanged = prev.page !== currentPage;
-    const dataChanged = JSON.stringify(prev.data) !== JSON.stringify(pageData);
-
-    if (pageChanged || dataChanged) {
-      saveToLocalStorage('currentPage', currentPage);
-      saveToLocalStorage('pageData', pageData);
-      prevPageRef.current = { page: currentPage, data: pageData };
-    }
-  }, [currentPage, pageData]);
+  // Note: localStorage saving is handled in the navigate() function
+  // No need for a separate useEffect that watches currentPage/pageData changes
 
   // Initialize Telegram WebApp and handle referral codes
   useEffect(() => {
