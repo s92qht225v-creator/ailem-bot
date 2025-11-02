@@ -322,26 +322,28 @@ async function handleComplete(params, res) {
     error_note: 'Success'
   });
 
-  // Deduct stock and award bonus points AFTER response
-  // Response is already sent, function will stay alive to complete this
+  // Deduct stock and award bonus points AFTER response (fire-and-forget)
+  // Use setImmediate to ensure response is fully sent before starting async work
   if (isApproved) {
-    try {
-      // Fetch the order to get full details including items
-      const { data: order } = await supabase
-        .from('orders')
-        .select('*')
-        .eq('click_order_id', merchant_trans_id)
-        .single();
+    setImmediate(async () => {
+      try {
+        // Fetch the order to get full details including items
+        const { data: order } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('click_order_id', merchant_trans_id)
+          .single();
 
-      if (order) {
-        await deductStock(order);
-        console.log('✅ Stock deducted successfully');
-        
-        await awardBonusPoints(order);
-        console.log('✅ Bonus points awarded successfully');
+        if (order) {
+          await deductStock(order);
+          console.log('✅ Stock deducted successfully');
+          
+          await awardBonusPoints(order);
+          console.log('✅ Bonus points awarded successfully');
+        }
+      } catch (error) {
+        console.error('❌ Failed to deduct stock or award bonus points:', error);
       }
-    } catch (error) {
-      console.error('❌ Failed to deduct stock or award bonus points:', error);
-    }
+    });
   }
 }
