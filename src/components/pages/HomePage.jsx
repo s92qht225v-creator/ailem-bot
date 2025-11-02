@@ -81,8 +81,7 @@ const HomePage = ({ onNavigate }) => {
       <div className="pt-16"></div>
 
       {/* Hero Banner Carousel - Only show if there are enabled banners */}
-      {/* TEMPORARILY DISABLED FOR TESTING */}
-      {/* <Carousel banners={banners} autoSlideInterval={5000} /> */}
+      <Carousel banners={banners} autoSlideInterval={5000} />
 
       {/* Countdown Timer - Only show if timer is enabled */}
       {saleTimer && saleTimer.enabled && saleEndDate && (
