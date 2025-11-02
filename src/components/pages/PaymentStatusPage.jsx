@@ -6,7 +6,7 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
   const [status, setStatus] = useState('checking'); // checking, success, failed, timeout
   const [order, setOrder] = useState(null);
   const [checkCount, setCheckCount] = useState(0);
-  const maxChecks = 3; // Only check 3 times total
+  const maxChecks = 6; // Check 6 times over ~20 seconds
 
   // Safety check - if no orderId provided, show error
   if (!orderId) {
@@ -70,36 +70,32 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
     let cancelled = false;
     const timeouts = [];
 
-    // Check immediately on mount
+    // Check immediately on mount, then every 3 seconds up to 6 times (18 seconds total)
     const checkNow = async () => {
       if (cancelled) return;
+
+      // First check immediately
       const isComplete = await checkOrderStatus();
       if (cancelled || isComplete) return;
-
       setCheckCount(1);
 
-      // Check again after 2 seconds
-      const timeout1 = setTimeout(async () => {
-        if (cancelled) return;
-        const isComplete = await checkOrderStatus();
-        if (cancelled || isComplete) return;
-
-        setCheckCount(2);
-
-        // Final check after 4 seconds
-        const timeout2 = setTimeout(async () => {
+      // Schedule remaining checks
+      for (let i = 1; i < maxChecks; i++) {
+        const timeout = setTimeout(async () => {
           if (cancelled) return;
           const isComplete = await checkOrderStatus();
-          if (!cancelled && !isComplete) {
-            // After 3 checks, show timeout message
+          if (cancelled || isComplete) return;
+
+          setCheckCount(i + 1);
+
+          // If this was the last check, show timeout
+          if (i === maxChecks - 1) {
             setStatus('timeout');
           }
-        }, 2000);
+        }, i * 3000); // 3 seconds, 6 seconds, 9 seconds, etc.
 
-        timeouts.push(timeout2);
-      }, 2000);
-
-      timeouts.push(timeout1);
+        timeouts.push(timeout);
+      }
     };
 
     checkNow();

@@ -19,6 +19,9 @@ async function awardBonusPoints(order) {
 
   try {
     // Fetch bonus configuration from database
+    // If bonus_config column doesn't exist yet, we'll use localStorage config or default
+    let purchaseBonusPercentage = 10; // Default fallback
+
     const { data: settings, error: settingsError } = await supabase
       .from('app_settings')
       .select('bonus_config')
@@ -26,11 +29,12 @@ async function awardBonusPoints(order) {
       .single();
 
     if (settingsError) {
-      console.error('❌ Failed to fetch bonus config:', settingsError);
+      console.error('❌ Failed to fetch bonus config (column may not exist yet):', settingsError);
+      console.log('ℹ️ Using default 10% bonus percentage');
+    } else if (settings?.bonus_config?.purchaseBonus) {
+      purchaseBonusPercentage = settings.bonus_config.purchaseBonus;
+      console.log(`ℹ️ Using configured bonus: ${purchaseBonusPercentage}%`);
     }
-
-    // Use configured percentage or default to 10%
-    const purchaseBonusPercentage = settings?.bonus_config?.purchaseBonus || 10;
     const purchaseBonusPoints = Math.round((order.total * purchaseBonusPercentage) / 100);
 
     console.log(`💰 Awarding bonus: ${purchaseBonusPoints} points to user ${userId} (${purchaseBonusPercentage}% of ${order.total})`);
@@ -43,23 +47,31 @@ async function awardBonusPoints(order) {
       .single();
 
     if (userError) {
-      console.error('❌ Failed to fetch user:', userError);
+      console.error('❌ Failed to fetch user for bonus points:', userError);
+      console.error('User ID:', userId, 'Type:', typeof userId);
       return;
     }
 
-    if (user) {
-      const newBonusPoints = (user.bonus_points || 0) + purchaseBonusPoints;
+    if (!user) {
+      console.error('❌ User not found for bonus points:', userId);
+      return;
+    }
 
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ bonus_points: newBonusPoints })
-        .eq('id', userId);
+    const currentBonus = user.bonus_points || 0;
+    const newBonusPoints = currentBonus + purchaseBonusPoints;
 
-      if (updateError) {
-        console.error('❌ Failed to update bonus points:', updateError);
-      } else {
-        console.log(`✅ Purchase bonus awarded: User ${userId} now has ${newBonusPoints} points`);
-      }
+    console.log(`💰 Updating bonus: ${currentBonus} + ${purchaseBonusPoints} = ${newBonusPoints}`);
+
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ bonus_points: newBonusPoints })
+      .eq('id', userId);
+
+    if (updateError) {
+      console.error('❌ Failed to update bonus points:', updateError);
+      console.error('Update details:', { userId, currentBonus, purchaseBonusPoints, newBonusPoints });
+    } else {
+      console.log(`✅ Purchase bonus awarded: User ${userId} now has ${newBonusPoints} points (was ${currentBonus})`);
     }
   } catch (error) {
     console.error('❌ Failed to award bonus points:', error);
