@@ -1621,20 +1621,38 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        product.stock > 10 ? 'bg-green-100 text-green-800' :
-                        product.stock > 0 ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {product.stock} units
-                      </span>
+                      {(() => {
+                        // Use variant stock if product has variants, otherwise use regular stock
+                        const displayStock = product.variants && product.variants.length > 0
+                          ? getTotalVariantStock(product.variants)
+                          : (product.stock || 0);
+                        
+                        return (
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            displayStock > 10 ? 'bg-green-100 text-green-800' :
+                            displayStock > 0 ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                          }`}>
+                            {displayStock} units
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        product.stock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
-                        {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
-                      </span>
+                      {(() => {
+                        // Use variant stock if product has variants, otherwise use regular stock
+                        const displayStock = product.variants && product.variants.length > 0
+                          ? getTotalVariantStock(product.variants)
+                          : (product.stock || 0);
+                        
+                        return (
+                          <span className={`px-2 py-1 text-xs rounded-full ${
+                            displayStock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                          }`}>
+                            {displayStock > 0 ? 'In Stock' : 'Out of Stock'}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <div className="flex gap-2">
