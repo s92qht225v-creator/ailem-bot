@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
@@ -8,13 +8,12 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
   const [touchEnd, setTouchEnd] = useState(0);
   const autoSlideRef = useRef(null);
 
-  // Filter enabled banners - only recalculate when banners array length or enabled status changes
-  const activeBanners = useMemo(() => {
-    return banners.filter(banner => banner.enabled);
-  }, [banners.length, banners.map(b => b.enabled).join(',')]);
+  // Filter enabled banners - calculate once per render, don't memoize
+  const activeBanners = banners.filter(banner => banner.enabled);
+  const activeBannersCount = activeBanners.length;
 
   // Don't render if no active banners
-  if (activeBanners.length === 0) {
+  if (activeBannersCount === 0) {
     return null;
   }
 
@@ -23,16 +22,16 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
   }, []);
 
   const goToPrevious = useCallback(() => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? activeBanners.length - 1 : prevIndex - 1
+    setCurrentIndex((prevIndex) =>
+      prevIndex === 0 ? activeBannersCount - 1 : prevIndex - 1
     );
-  }, [activeBanners.length]);
+  }, [activeBannersCount]);
 
   const goToNext = useCallback(() => {
-    setCurrentIndex((prevIndex) => 
-      prevIndex === activeBanners.length - 1 ? 0 : prevIndex + 1
+    setCurrentIndex((prevIndex) =>
+      prevIndex === activeBannersCount - 1 ? 0 : prevIndex + 1
     );
-  }, [activeBanners.length]);
+  }, [activeBannersCount]);
 
   // Auto-slide functionality
   useEffect(() => {
