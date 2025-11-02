@@ -146,11 +146,22 @@ function App() {
 
   // Save current page and data to localStorage whenever they change
   // Skip on initial mount to avoid triggering when loading from localStorage
+  // Use a ref to track previous values to prevent infinite loops
+  const prevPageRef = useRef({ page: currentPage, data: pageData });
+
   useEffect(() => {
     if (!initialLoadDone.current) return; // Don't save during initial load
 
-    saveToLocalStorage('currentPage', currentPage);
-    saveToLocalStorage('pageData', pageData);
+    // Only save if values actually changed
+    const prev = prevPageRef.current;
+    const pageChanged = prev.page !== currentPage;
+    const dataChanged = JSON.stringify(prev.data) !== JSON.stringify(pageData);
+
+    if (pageChanged || dataChanged) {
+      saveToLocalStorage('currentPage', currentPage);
+      saveToLocalStorage('pageData', pageData);
+      prevPageRef.current = { page: currentPage, data: pageData };
+    }
   }, [currentPage, pageData]);
 
   // Initialize Telegram WebApp and handle referral codes
