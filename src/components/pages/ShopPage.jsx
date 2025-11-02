@@ -175,7 +175,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
   );
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 pt-4">
       <div className="px-4 py-4 space-y-4">
         {/* Search Bar with Autocomplete */}
         <div className="relative">
