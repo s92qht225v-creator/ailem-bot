@@ -22,7 +22,6 @@ const MyReviewsPage = lazy(() => import('./components/pages/MyReviewsPage'));
 const WriteReviewPage = lazy(() => import('./components/pages/WriteReviewPage'));
 const FavoritesPage = lazy(() => import('./components/pages/FavoritesPage'));
 const ReferralsPage = lazy(() => import('./components/pages/ReferralsPage'));
-const AdminPanel = lazy(() => import('./components/pages/AdminPanel'));
 const AdminAuth = lazy(() => import('./components/AdminAuth'));
 import { loadFromLocalStorage, saveToLocalStorage, removeFromLocalStorage } from './utils/helpers';
 import { initTelegramWebApp, getReferralCode } from './utils/telegram';
@@ -382,11 +381,7 @@ function App() {
 
           {currentPage === 'referrals' && <ReferralsPage />}
 
-          {currentPage === 'admin' && (
-            <AdminAuth>
-              <AdminPanel />
-            </AdminAuth>
-          )}
+          {currentPage === 'admin' && <AdminAuth />}
         </Suspense>
       </main>
 

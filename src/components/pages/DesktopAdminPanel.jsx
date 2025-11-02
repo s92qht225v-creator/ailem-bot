@@ -12,13 +12,16 @@ import { PickupPointsContext } from '../../context/PickupPointsContext';
 import { ShippingRatesContext } from '../../context/ShippingRatesContext';
 import { formatPrice, formatDate, loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { calculateAnalytics, getRevenueChartData } from '../../utils/analytics';
-import { generateVariants, updateVariantStock, updateVariantImage, getTotalVariantStock } from '../../utils/variants';
-import { settingsAPI, storageAPI } from '../../services/api';
+import { generateVariants, updateVariantStock, updateVariantImage, getTotalVariantStock, getLowStockVariants, getOutOfStockVariants } from '../../utils/variants';
+import { settingsAPI, storageAPI, usersAPI } from '../../services/api';
 import { exportOrders, exportOrderItems, exportProducts, exportUsers, exportReviews } from '../../utils/csvExport';
+import { notifyUserOrderStatus, notifyReferrerReward, notifyAdminLowStock } from '../../services/telegram';
+import ImageModal from '../common/ImageModal';
 
 const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
   const { products, categories, orders, reviews, users, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, approveReview, deleteReview } = useContext(AdminContext);
 
   // Calculate stats
@@ -232,6 +235,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
           {activeSection === 'settings' && <SettingsContent />}
         </main>
       </div>
+
+      {/* Image Modal for viewing payment screenshots and product images */}
+      {selectedImage && (
+        <ImageModal
+          imageUrl={selectedImage}
+          onClose={() => setSelectedImage(null)}
+        />
+      )}
     </div>
   );
 
@@ -342,10 +353,71 @@ const DesktopAdminPanel = ({ onLogout }) => {
     }, [orders, statusFilter]);
 
     const handleApprove = async (orderId) => {
-      if (confirm('Approve this order? This will deduct stock from inventory.')) {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+
+      if (confirm('Approve this order? This will deduct stock from inventory and award bonus points.')) {
         try {
+          // Approve the order
           await approveOrder(orderId);
           console.log('✅ Order approved');
+
+          // Award purchase bonus points to the customer
+          if (order.userId) {
+            try {
+              const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 3, referralCommission: 10 });
+              const purchaseBonusPercentage = bonusConfig?.purchaseBonus || 3;
+              const purchaseBonusPoints = Math.round((order.total * purchaseBonusPercentage) / 100);
+
+              // Award bonus points to customer
+              await updateUserBonusPoints(order.userId, purchaseBonusPoints);
+              console.log(`💰 Purchase bonus: Customer earned ${purchaseBonusPoints} points (${purchaseBonusPercentage}% of ${order.total})`);
+
+              // Check if this user was referred by someone and reward the referrer
+              const customer = await usersAPI.getById(order.userId);
+              console.log('🔍 Checking referral for customer:', customer);
+
+              if (customer && customer.referred_by) {
+                console.log('🎁 Customer was referred by:', customer.referred_by);
+
+                // Find the referrer by referral code
+                const referrer = await usersAPI.getByReferralCode(customer.referred_by);
+
+                if (referrer) {
+                  console.log('✅ Found referrer:', referrer.name);
+
+                  // Calculate referral commission
+                  const commissionPercentage = bonusConfig?.referralCommission || 10;
+                  const commissionAmount = Math.round((order.total * commissionPercentage) / 100);
+
+                  // Reward the referrer
+                  const newReferrals = (referrer.referrals || 0) + 1;
+                  const newBonusPoints = (referrer.bonus_points || 0) + commissionAmount;
+
+                  await usersAPI.update(referrer.id, {
+                    referrals: newReferrals,
+                    bonus_points: newBonusPoints
+                  });
+
+                  console.log(`🎉 Referral reward: ${referrer.name} earned ${commissionAmount} points (${commissionPercentage}% of ${order.total})`);
+
+                  // Send notification to referrer
+                  await notifyReferrerReward(referrer, commissionAmount, newReferrals);
+                  console.log('✅ Referrer notification sent');
+                } else {
+                  console.log('⚠️ Referrer not found with code:', customer.referred_by);
+                }
+              }
+            } catch (bonusError) {
+              console.error('❌ Failed to award bonus points:', bonusError);
+            }
+          }
+
+          // Send notification to customer
+          console.log('📤 Sending user notification: Order approved');
+          await notifyUserOrderStatus(order, 'approved');
+          console.log('✅ User notified: Order approved');
+
         } catch (error) {
           console.error('❌ Failed to approve order:', error);
           alert('Failed to approve order. Please try again.');
@@ -354,10 +426,36 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     const handleReject = async (orderId) => {
-      if (confirm('Reject this order? If previously approved, stock will be restored.')) {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+
+      if (confirm('Reject this order? If previously approved, stock will be restored and bonus points refunded.')) {
         try {
-          await rejectOrder(orderId);
+          // Calculate bonus points that were awarded
+          const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 3 });
+          const bonusPercentage = bonusConfig?.purchaseBonus || 3;
+          const earnedPoints = Math.round((order.total * bonusPercentage) / 100);
+
+          // Reject the order and refund bonus points
+          await rejectOrder(orderId, async (rejectedOrder) => {
+            if (rejectedOrder.userId && earnedPoints > 0) {
+              // Deduct the bonus points that were awarded
+              try {
+                await updateUserBonusPoints(rejectedOrder.userId, -earnedPoints);
+                console.log(`✅ Refunded ${earnedPoints} bonus points from user ${rejectedOrder.userId}`);
+              } catch (err) {
+                console.error('Failed to refund bonus points:', err);
+              }
+            }
+          });
+
           console.log('✅ Order rejected');
+
+          // Send notification to user
+          console.log('📤 Sending user notification: Order rejected');
+          await notifyUserOrderStatus(order, 'rejected');
+          console.log('✅ User notified: Order rejected');
+
         } catch (error) {
           console.error('❌ Failed to reject order:', error);
           alert('Failed to reject order. Please try again.');
@@ -366,10 +464,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     const handleMarkShipped = async (orderId) => {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+
       if (confirm('Mark this order as shipped? Customer will be notified.')) {
         try {
           await updateOrderStatus(orderId, 'shipped');
           console.log('✅ Order marked as shipped');
+
+          // Send notification to customer
+          console.log('📤 Sending user notification: Order shipped');
+          await notifyUserOrderStatus(order, 'shipped');
+          console.log('✅ User notified: Order shipped');
         } catch (error) {
           console.error('❌ Failed to mark as shipped:', error);
           alert('Failed to update order status. Please try again.');
@@ -378,10 +484,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     const handleMarkDelivered = async (orderId) => {
+      const order = orders.find(o => o.id === orderId);
+      if (!order) return;
+
       if (confirm('Mark this order as delivered? Customer will be notified.')) {
         try {
           await updateOrderStatus(orderId, 'delivered');
           console.log('✅ Order marked as delivered');
+
+          // Send notification to customer
+          console.log('📤 Sending user notification: Order delivered');
+          await notifyUserOrderStatus(order, 'delivered');
+          console.log('✅ User notified: Order delivered');
         } catch (error) {
           console.error('❌ Failed to mark as delivered:', error);
           alert('Failed to update order status. Please try again.');
@@ -734,19 +848,17 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       <Image className="w-5 h-5 text-primary" />
                       Payment Screenshot
                     </h4>
-                    <a 
-                      href={selectedOrder.paymentScreenshot} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="block"
+                    <div
+                      onClick={() => setSelectedImage(selectedOrder.paymentScreenshot)}
+                      className="block cursor-pointer"
                     >
-                      <img 
-                        src={selectedOrder.paymentScreenshot} 
+                      <img
+                        src={selectedOrder.paymentScreenshot}
                         alt="Payment screenshot"
-                        className="w-full max-h-64 object-contain rounded-lg border-2 border-gray-200 hover:border-primary transition-colors cursor-pointer"
+                        className="w-full max-h-64 object-contain rounded-lg border-2 border-gray-200 hover:border-primary transition-colors"
                       />
                       <p className="text-xs text-center text-gray-500 mt-2">Click to view full size</p>
-                    </a>
+                    </div>
                   </div>
                 )}
 

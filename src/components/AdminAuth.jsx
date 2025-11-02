@@ -2,7 +2,6 @@ import { useState, useContext, useEffect, useRef } from 'react';
 import { UserContext } from '../context/UserContext';
 import { supabase } from '../lib/supabase';
 import DesktopAdminPanel from './pages/DesktopAdminPanel';
-import AdminPanel from './pages/AdminPanel';
 
 const AdminAuth = ({ children, onAuthSuccess }) => {
   const { user } = useContext(UserContext);
@@ -11,7 +10,6 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true); // Start with true to check existing session
-  const [isDesktop, setIsDesktop] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
   const initialCheckDone = useRef(false);
 
@@ -113,21 +111,6 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
     };
   }, []);
 
-  // Detect screen size for responsive admin panel after mount
-  useEffect(() => {
-    const checkScreenSize = () => {
-      if (typeof window !== 'undefined') {
-        setIsDesktop(window.innerWidth >= 1024); // lg breakpoint
-      }
-    };
-    
-    checkScreenSize();
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', checkScreenSize);
-      return () => window.removeEventListener('resize', checkScreenSize);
-    }
-  }, []);
-
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -202,29 +185,9 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
     );
   }
 
-  // If already authenticated, render appropriate admin panel
+  // If already authenticated, render admin panel
   if (isAuthenticated) {
-    if (isDesktop) {
-      // Desktop version with built-in logout
-      return <DesktopAdminPanel onLogout={handleLogout} />;
-    } else {
-      // Mobile version with logout button
-      return (
-        <div>
-          {/* Admin logout button */}
-          <div className="fixed top-16 right-4 z-50">
-            <button
-              onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg"
-              title="Logout from admin panel"
-            >
-              🚪 Logout
-            </button>
-          </div>
-          {children || <AdminPanel />}
-        </div>
-      );
-    }
+    return <DesktopAdminPanel onLogout={handleLogout} />;
   }
 
   // Show login form
