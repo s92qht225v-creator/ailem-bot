@@ -432,8 +432,23 @@ async function performTransaction(params, res, requestId) {
     });
   }
 
-  // Send response immediately to Payme (they need fast response < 3 seconds)
-  res.json({
+  // Award bonus points BEFORE sending response (critical!)
+  // In serverless functions, code after res.json() may not execute
+  try {
+    await awardBonusPoints(order);
+    console.log('✅ Bonus points awarded successfully');
+  } catch (bonusError) {
+    console.error('❌ Failed to award bonus points:', bonusError);
+    // Continue anyway - don't fail the transaction
+  }
+
+  // Send Telegram notification (non-critical, fire-and-forget)
+  sendTelegramNotification(order, 'approved').catch(err => {
+    console.error('❌ Failed to send notification:', err);
+  });
+
+  // Send response to Payme
+  return res.json({
     jsonrpc: '2.0',
     id: requestId,
     result: {
@@ -442,16 +457,6 @@ async function performTransaction(params, res, requestId) {
       state: 2
     }
   });
-
-  // Award bonus points and send notifications asynchronously AFTER sending response
-  // This prevents timeout issues with Payme's webhook
-  try {
-    await awardBonusPoints(order);
-    await sendTelegramNotification(order, 'approved');
-  } catch (asyncError) {
-    console.error('Failed to process post-payment tasks:', asyncError);
-    // Don't fail the transaction if these fail
-  }
 }
 
 // Cancel transaction

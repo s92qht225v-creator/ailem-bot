@@ -248,28 +248,34 @@ async function handleComplete(params, res) {
 
   console.log('✅ COMPLETE successful, order updated');
 
-  // Return success immediately to Click (they need fast response < 3 seconds)
+  // Award bonus points BEFORE sending response (critical!)
+  // In serverless functions, code after res.json() may not execute
+  if (isApproved) {
+    try {
+      // Fetch the order to get user_id and total
+      const { data: order } = await supabase
+        .from('orders')
+        .select('user_id, total')
+        .eq('click_order_id', merchant_trans_id)
+        .single();
+
+      if (order) {
+        await awardBonusPoints(order);
+        console.log('✅ Bonus points awarded successfully');
+      }
+    } catch (bonusError) {
+      console.error('❌ Failed to award bonus points:', bonusError);
+      // Continue anyway - don't fail the transaction
+    }
+  }
+
+  // Return success to Click
   // IMPORTANT: Click expects these exact fields in the response
-  res.json({
+  return res.json({
     click_trans_id,
     merchant_trans_id,
     merchant_confirm_id,
     error: 0,
     error_note: 'Success'
   });
-
-  // Award bonus points asynchronously AFTER sending response
-  // This prevents timeout issues with Click's webhook
-  if (isApproved) {
-    // Fetch the order to get user_id and total
-    const { data: order } = await supabase
-      .from('orders')
-      .select('user_id, total')
-      .eq('click_order_id', merchant_trans_id)
-      .single();
-
-    if (order) {
-      await awardBonusPoints(order);
-    }
-  }
 }
