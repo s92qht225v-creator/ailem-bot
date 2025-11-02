@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useCallback } from 'react';
 import { pickupPointsAPI } from '../services/api';
 
 export const PickupPointsContext = createContext();
@@ -100,21 +100,21 @@ export const PickupPointsProvider = ({ children }) => {
   };
 
   // Get unique courier services
-  const getCourierServices = () => {
+  const getCourierServices = useCallback(() => {
     return [...new Set(pickupPoints.map(point => point.courierService))].sort();
-  };
+  }, [pickupPoints]);
 
   // Get states by courier service
-  const getStatesByCourier = (courierService) => {
+  const getStatesByCourier = useCallback((courierService) => {
     return [...new Set(
       pickupPoints
         .filter(point => point.courierService === courierService && point.active)
         .map(point => point.state)
     )].sort();
-  };
+  }, [pickupPoints]);
 
   // Get cities by courier and state
-  const getCitiesByCourierAndState = (courierService, state) => {
+  const getCitiesByCourierAndState = useCallback((courierService, state) => {
     return [...new Set(
       pickupPoints
         .filter(point =>
@@ -124,17 +124,17 @@ export const PickupPointsProvider = ({ children }) => {
         )
         .map(point => point.city)
     )].sort();
-  };
+  }, [pickupPoints]);
 
   // Get pickup points by courier, state, and city
-  const getPickupPointsByCourierStateCity = (courierService, state, city) => {
+  const getPickupPointsByCourierStateCity = useCallback((courierService, state, city) => {
     return pickupPoints.filter(point =>
       point.courierService === courierService &&
       point.state === state &&
       point.city === city &&
       point.active
     );
-  };
+  }, [pickupPoints]);
 
   return (
     <PickupPointsContext.Provider
