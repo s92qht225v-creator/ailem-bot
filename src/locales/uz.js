@@ -1,0 +1,420 @@
+// Uzbek translations
+export default {
+  // Common
+  common: {
+    loading: 'Yuklanmoqda...',
+    error: 'Xatolik',
+    success: 'Muvaffaqiyat',
+    cancel: 'Bekor qilish',
+    confirm: 'Tasdiqlash',
+    save: 'Saqlash',
+    delete: 'O\'chirish',
+    edit: 'Tahrirlash',
+    add: 'Qo\'shish',
+    search: 'Qidirish',
+    filter: 'Filtrlash',
+    sort: 'Saralash',
+    close: 'Yopish',
+    back: 'Orqaga',
+    next: 'Keyingi',
+    previous: 'Oldingi',
+    submit: 'Yuborish',
+    apply: 'Qo\'llash',
+    clear: 'Tozalash',
+    select: 'Tanlash',
+    upload: 'Yuklash',
+    download: 'Yuklab olish',
+    copy: 'Nusxa olish',
+    share: 'Ulashish',
+    yes: 'Ha',
+    no: 'Yo\'q',
+    ok: 'OK',
+    currency: 'UZS'
+  },
+
+  // Navigation
+  nav: {
+    home: 'Bosh sahifa',
+    shop: 'Do\'kon',
+    cart: 'Savat',
+    profile: 'Profil',
+    orders: 'Buyurtmalar',
+    favorites: 'Sevimlilar',
+    categories: 'Kategoriyalar',
+    admin: 'Admin panel'
+  },
+
+  // Header
+  header: {
+    searchPlaceholder: 'Mahsulotlarni qidirish...',
+    title: 'Ailem'
+  },
+
+  // Home Page
+  home: {
+    welcome: 'Xush kelibsiz',
+    featuredProducts: 'Maxsus takliflar',
+    newArrivals: 'Yangi mahsulotlar',
+    bestSellers: 'Ko\'p sotilganlar',
+    saleEnds: 'Chegirma tugaydi',
+    shopNow: 'Xarid qilish',
+    viewAll: 'Barchasini ko\'rish'
+  },
+
+  // Shop Page
+  shop: {
+    allProducts: 'Barcha mahsulotlar',
+    searchResults: 'Qidiruv natijalari',
+    noResults: 'Hech narsa topilmadi',
+    noProducts: 'Mahsulotlar yo\'q',
+    filters: 'Filtrlar',
+    category: 'Kategoriya',
+    allCategories: 'Barcha kategoriyalar',
+    priceRange: 'Narx oralig\'i',
+    colors: 'Ranglar',
+    sizes: 'O\'lchamlar',
+    inStock: 'Omborda bor',
+    outOfStock: 'Tugadi',
+    sortBy: 'Saralash',
+    sortNewest: 'Eng yangilari',
+    sortPriceLow: 'Narx: Pastdan yuqoriga',
+    sortPriceHigh: 'Narx: Yuqoridan pastga',
+    sortPopular: 'Mashhur',
+    productsFound: '{count} ta mahsulot topildi'
+  },
+
+  // Product Details
+  product: {
+    details: 'Mahsulot tafsilotlari',
+    description: 'Tavsif',
+    specifications: 'Texnik xususiyatlari',
+    reviews: 'Sharhlar',
+    selectColor: 'Rang tanlash',
+    selectSize: 'O\'lcham tanlash',
+    quantity: 'Miqdor',
+    addToCart: 'Savatga qo\'shish',
+    buyNow: 'Xarid qilish',
+    inStock: 'Omborda: {count} dona',
+    lowStock: 'Faqat {count} dona qoldi',
+    noStock: 'Tugadi',
+    price: 'Narx',
+    originalPrice: 'Eski narx',
+    discount: '{percent}% chegirma',
+    features: 'Xususiyatlari',
+    material: 'Material',
+    weight: 'Og\'irligi',
+    dimensions: 'O\'lchamlari',
+    colors: 'Ranglar',
+    sizes: 'O\'lchamlar',
+    addedToCart: 'Savatga qo\'shildi',
+    addToFavorites: 'Sevimlilarga qo\'shish',
+    removeFromFavorites: 'Sevimlilardan o\'chirish',
+    share: 'Ulashish',
+    similarProducts: 'O\'xshash mahsulotlar'
+  },
+
+  // Cart
+  cart: {
+    title: 'Savat',
+    empty: 'Savatda hech narsa yo\'q',
+    continueShopping: 'Xaridni davom ettirish',
+    items: '{count} ta mahsulot',
+    subtotal: 'Jami',
+    delivery: 'Yetkazib berish',
+    deliveryFree: 'Bepul',
+    bonusDiscount: 'Bonus chegirmasi',
+    total: 'To\'lov uchun',
+    checkout: 'Buyurtma berish',
+    remove: 'O\'chirish',
+    update: 'Yangilash',
+    clear: 'Savatni tozalash',
+    clearConfirm: 'Savatdagi barcha mahsulotlarni o\'chirishni xohlaysizmi?',
+    applyBonus: 'Bonus ishlatish',
+    bonusPoints: 'Bonus ballari',
+    availableBonus: 'Mavjud: {points} ball',
+    maxBonus: 'Maksimal: {points} ball (buyurtmaning 20%)',
+    bonusValue: '{points} ball = {value} UZS'
+  },
+
+  // Checkout
+  checkout: {
+    title: 'Buyurtma berish',
+    deliveryInfo: 'Yetkazib berish ma\'lumotlari',
+    fullName: 'To\'liq ism',
+    phone: 'Telefon raqam',
+    address: 'Manzil',
+    city: 'Shahar',
+    selectCity: 'Shaharni tanlang',
+    deliveryMethod: 'Yetkazib berish usuli',
+    courier: 'Kurerlik xizmat',
+    pickup: 'O\'zim olib ketaman',
+    pickupPoint: 'Olib ketish punkti',
+    selectPickupPoint: 'Punktni tanlang',
+    paymentMethod: 'To\'lov usuli',
+    payme: 'Payme',
+    click: 'Click',
+    cash: 'Naqd pul',
+    orderSummary: 'Buyurtma xulosasi',
+    placeOrder: 'Buyurtmani tasdiqlash',
+    processing: 'Qayta ishlanmoqda...',
+    required: 'Majburiy maydon',
+    invalidPhone: 'Noto\'g\'ri telefon raqam',
+    invalidAddress: 'Noto\'g\'ri manzil',
+    orderCreated: 'Buyurtma yaratildi',
+    orderFailed: 'Xatolik yuz berdi',
+    bonusApplied: '{points} ball ishlatilmoqda (-{value} UZS)'
+  },
+
+  // Payment
+  payment: {
+    title: 'To\'lov',
+    selectMethod: 'To\'lov usulini tanlang',
+    payme: 'Payme orqali to\'lash',
+    click: 'Click orqali to\'lash',
+    cash: 'Naqd pul (yetkazishda)',
+    payNow: 'To\'lash',
+    processing: 'To\'lov qayta ishlanmoqda...',
+    success: 'To\'lov muvaffaqiyatli!',
+    failed: 'To\'lov amalga oshmadi',
+    pending: 'To\'lov kutilmoqda',
+    redirect: 'To\'lov tizimiga yo\'naltirilmoqda...',
+    testCard: 'Test karta',
+    cardNumber: 'Karta raqami',
+    expiry: 'Amal qilish muddati',
+    smsCode: 'SMS kod',
+    orderNumber: 'Buyurtma raqami',
+    amount: 'Summa',
+    paymentInfo: 'To\'lov ma\'lumotlari'
+  },
+
+  // Orders
+  orders: {
+    title: 'Mening buyurtmalarim',
+    empty: 'Buyurtmalar yo\'q',
+    orderNumber: 'Buyurtma raqami',
+    date: 'Sana',
+    status: 'Holat',
+    total: 'Jami',
+    items: 'Mahsulotlar',
+    viewDetails: 'Batafsil',
+    trackOrder: 'Kuzatish',
+    cancelOrder: 'Bekor qilish',
+    repeatOrder: 'Takrorlash',
+    statuses: {
+      pending: 'Kutilmoqda',
+      approved: 'Tasdiqlangan',
+      shipped: 'Yo\'lda',
+      delivered: 'Yetkazildi',
+      rejected: 'Bekor qilingan'
+    },
+    details: {
+      title: 'Buyurtma tafsilotlari',
+      orderInfo: 'Buyurtma ma\'lumotlari',
+      deliveryInfo: 'Yetkazib berish ma\'lumotlari',
+      paymentInfo: 'To\'lov ma\'lumotlari',
+      orderItems: 'Mahsulotlar',
+      summary: 'Xulosa',
+      subtotal: 'Oraliq jami',
+      delivery: 'Yetkazib berish',
+      bonusDiscount: 'Bonus chegirmasi',
+      total: 'Jami',
+      bonusEarned: 'Qo\'shilgan bonus',
+      deliveryAddress: 'Yetkazish manzili',
+      deliveryMethod: 'Yetkazish usuli',
+      paymentMethod: 'To\'lov usuli',
+      paymentStatus: 'To\'lov holati'
+    }
+  },
+
+  // Profile
+  profile: {
+    title: 'Profil',
+    account: 'Akkount',
+    personalInfo: 'Shaxsiy ma\'lumotlar',
+    name: 'Ism',
+    phone: 'Telefon',
+    email: 'Email',
+    edit: 'Tahrirlash',
+    save: 'Saqlash',
+    bonusPoints: 'Bonus ballar',
+    available: 'Mavjud',
+    earned: 'To\'plangan',
+    used: 'Ishlatilgan',
+    referralCode: 'Taklif kodi',
+    referrals: 'Taklif qilinganlar',
+    copyCode: 'Kodni nusxalash',
+    codeCopied: 'Kod nusxalandi',
+    shareLink: 'Havolani ulashish',
+    inviteFriends: 'Do\'stlarni taklif qiling',
+    referralBonus: 'Har bir do\'st uchun bonus qo\'shing',
+    orders: 'Buyurtmalar',
+    totalOrders: 'Jami buyurtmalar',
+    favorites: 'Sevimlilar',
+    settings: 'Sozlamalar',
+    language: 'Til',
+    notifications: 'Bildirishnomalar',
+    logout: 'Chiqish',
+    deleteAccount: 'Akkauntni o\'chirish',
+    deleteConfirm: 'Akkauntni o\'chirishni tasdiqlaysizmi? Bu amalni ortga qaytarib bo\'lmaydi.',
+    support: 'Yordam',
+    about: 'Ilova haqida',
+    terms: 'Foydalanish shartlari',
+    privacy: 'Maxfiylik siyosati'
+  },
+
+  // Reviews
+  reviews: {
+    title: 'Sharhlar',
+    noReviews: 'Hali sharhlar yo\'q',
+    writeReview: 'Sharh yozish',
+    rating: 'Baho',
+    comment: 'Sharh',
+    submit: 'Yuborish',
+    edit: 'Tahrirlash',
+    delete: 'O\'chirish',
+    helpful: 'Foydali',
+    notHelpful: 'Foydali emas',
+    report: 'Shikoyat',
+    photos: 'Rasmlar',
+    addPhotos: 'Rasm qo\'shish',
+    thankYou: 'Sharhingiz uchun rahmat!',
+    pending: 'Sharh moderatsiyadan o\'tmoqda',
+    approved: 'Tasdiqlangan',
+    rejected: 'Rad etilgan'
+  },
+
+  // Favorites
+  favorites: {
+    title: 'Sevimlilar',
+    empty: 'Sevimlilar ro\'yxati bo\'sh',
+    addedToFavorites: 'Sevimlilarga qo\'shildi',
+    removedFromFavorites: 'Sevimlilardan o\'chirildi',
+    moveToCart: 'Savatga ko\'chirish',
+    removeAll: 'Barchasini o\'chirish'
+  },
+
+  // Admin Panel
+  admin: {
+    title: 'Admin Panel',
+    dashboard: 'Boshqaruv paneli',
+    products: 'Mahsulotlar',
+    orders: 'Buyurtmalar',
+    users: 'Foydalanuvchilar',
+    reviews: 'Sharhlar',
+    categories: 'Kategoriyalar',
+    settings: 'Sozlamalar',
+    analytics: 'Analitika',
+    totalRevenue: 'Umumiy daromad',
+    totalOrders: 'Jami buyurtmalar',
+    totalUsers: 'Jami foydalanuvchilar',
+    totalProducts: 'Jami mahsulotlar',
+    recentOrders: 'So\'nggi buyurtmalar',
+    topProducts: 'Top mahsulotlar',
+    lowStock: 'Kam qolganlar',
+    addProduct: 'Mahsulot qo\'shish',
+    editProduct: 'Mahsulotni tahrirlash',
+    deleteProduct: 'Mahsulotni o\'chirish',
+    approveOrder: 'Tasdiqlash',
+    rejectOrder: 'Rad etish',
+    markShipped: 'Yuborildi',
+    markDelivered: 'Yetkazildi',
+    viewOrder: 'Ko\'rish',
+    exportCSV: 'CSV yuklab olish',
+    bulkActions: 'Ommaviy amallar',
+    selectAll: 'Hammasini tanlash',
+    deselectAll: 'Belgilarni olib tashlash',
+    deleteSelected: 'Tanlanganlarni o\'chirish',
+    approveSelected: 'Tanlanganlarni tasdiqlash',
+    uploadImage: 'Rasm yuklash',
+    dragDrop: 'Rasmni sudrab oling yoki tanlang',
+    stock: 'Ombor',
+    inStock: 'Omborda',
+    lowStock: 'Kam qolgan',
+    outOfStock: 'Tugagan',
+    addVariant: 'Variant qo\'shish',
+    variants: 'Variantlar',
+    variantStock: 'Variant ombori'
+  },
+
+  // Notifications
+  notifications: {
+    orderPlaced: 'Buyurtma qabul qilindi',
+    orderApproved: 'Buyurtma tasdiqlandi',
+    orderShipped: 'Buyurtma yuborildi',
+    orderDelivered: 'Buyurtma yetkazildi',
+    orderRejected: 'Buyurtma bekor qilindi',
+    paymentSuccess: 'To\'lov muvaffaqiyatli',
+    paymentFailed: 'To\'lov amalga oshmadi',
+    bonusEarned: '{points} ball qo\'shildi',
+    bonusUsed: '{points} ball ishlatildi',
+    lowStock: '{product} - kam qoldi ({count} dona)',
+    newReview: 'Yangi sharh',
+    reviewApproved: 'Sharhingiz tasdiqlandi'
+  },
+
+  // Errors
+  errors: {
+    general: 'Xatolik yuz berdi',
+    network: 'Tarmoq xatosi',
+    notFound: 'Topilmadi',
+    unauthorized: 'Ruxsat yo\'q',
+    forbidden: 'Ta\'qiqlangan',
+    serverError: 'Server xatosi',
+    tryAgain: 'Qayta urinib ko\'ring',
+    refresh: 'Sahifani yangilang',
+    contact: 'Yordam xizmatiga murojaat qiling',
+    invalidInput: 'Noto\'g\'ri ma\'lumot',
+    required: 'Majburiy maydon',
+    minLength: 'Minimal uzunlik: {length}',
+    maxLength: 'Maksimal uzunlik: {length}',
+    invalidEmail: 'Noto\'g\'ri email',
+    invalidPhone: 'Noto\'g\'ri telefon raqam',
+    invalidPassword: 'Noto\'g\'ri parol',
+    passwordMismatch: 'Parollar mos kelmaydi',
+    uploadFailed: 'Yuklash amalga oshmadi',
+    deleteFailed: 'O\'chirish amalga oshmadi',
+    updateFailed: 'Yangilash amalga oshmadi',
+    createFailed: 'Yaratish amalga oshmadi',
+    loadFailed: 'Yuklash amalga oshmadi'
+  },
+
+  // Success messages
+  success: {
+    saved: 'Saqlandi',
+    updated: 'Yangilandi',
+    deleted: 'O\'chirildi',
+    created: 'Yaratildi',
+    uploaded: 'Yuklandi',
+    sent: 'Yuborildi',
+    copied: 'Nusxalandi',
+    applied: 'Qo\'llanildi',
+    orderPlaced: 'Buyurtma qabul qilindi',
+    paymentSuccess: 'To\'lov muvaffaqiyatli',
+    profileUpdated: 'Profil yangilandi',
+    settingsSaved: 'Sozlamalar saqlandi'
+  },
+
+  // Units
+  units: {
+    piece: 'dona',
+    kg: 'kg',
+    g: 'g',
+    m: 'm',
+    cm: 'sm',
+    mm: 'mm'
+  },
+
+  // Time
+  time: {
+    now: 'Hozir',
+    today: 'Bugun',
+    yesterday: 'Kecha',
+    tomorrow: 'Ertaga',
+    days: '{count} kun',
+    hours: '{count} soat',
+    minutes: '{count} daqiqa',
+    seconds: '{count} soniya',
+    ago: '{time} oldin',
+    in: '{time}dan keyin'
+  }
+};
