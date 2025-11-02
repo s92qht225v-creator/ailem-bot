@@ -20,7 +20,7 @@ const HomePage = ({ onNavigate }) => {
       map[product.id] = isFavorite(product.id);
     });
     return map;
-  }, [featuredProducts, favorites, isFavorite]);
+  }, [featuredProducts, favorites]);
 
   // Show loading state if no data yet
   if (loading && (!categories || categories.length === 0)) {
