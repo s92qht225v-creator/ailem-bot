@@ -25,6 +25,7 @@ const normalizeFavorites = (value) => {
 };
 
 export const UserProvider = ({ children }) => {
+  console.log('👤 UserProvider render');
   const [user, setUser] = useState(null);
   const [favorites, setFavorites] = useState([]); // Start empty, load from Supabase
   const [loading, setLoading] = useState(true);

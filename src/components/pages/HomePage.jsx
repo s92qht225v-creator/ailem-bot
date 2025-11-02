@@ -9,23 +9,13 @@ import { loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { useProducts } from '../../hooks/useProducts';
 
 const HomePage = ({ onNavigate }) => {
+  console.log('🏠 HomePage render');
   const { categories, loading } = useContext(AdminContext);
   const { toggleFavorite, isFavorite } = useContext(UserContext);
   const { featuredProducts } = useProducts();
 
-  // Show loading state if no data yet
-  if (loading && (!categories || categories.length === 0)) {
-    return (
-      <div className="pb-20 px-4 pt-8">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading store...</p>
-        </div>
-      </div>
-    );
-  }
-
   // Load cached settings immediately for instant display
+  // IMPORTANT: ALL hooks must be called before any conditional returns!
   const [banners, setBanners] = useState(() => {
     const cached = loadFromLocalStorage('cachedBanners');
     // Support both old single banner format and new array format
@@ -72,6 +62,18 @@ const HomePage = ({ onNavigate }) => {
   }, []);
 
   const saleEndDate = saleTimer ? new Date(saleTimer.endDate) : null;
+
+  // Show loading state if no data yet (AFTER all hooks are called)
+  if (loading && (!categories || categories.length === 0)) {
+    return (
+      <div className="pb-20 px-4 pt-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading store...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-20">
