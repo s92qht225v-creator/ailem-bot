@@ -3,6 +3,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
   console.log('🎠 Carousel render', { bannersLength: banners.length });
+  
+  // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
@@ -23,11 +25,6 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
   useEffect(() => {
     countRef.current = activeBannersCount;
   }, [activeBannersCount]);
-
-  // Don't render if no active banners
-  if (activeBannersCount === 0) {
-    return null;
-  }
 
   const goToSlide = useCallback((index) => {
     setCurrentIndex(index);
@@ -88,6 +85,11 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
     setTouchStart(0);
     setTouchEnd(0);
   };
+
+  // Don't render if no active banners (AFTER all hooks)
+  if (activeBannersCount === 0) {
+    return null;
+  }
 
   // Single banner - no controls needed
   if (activeBanners.length === 1) {
