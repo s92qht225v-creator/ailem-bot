@@ -82,6 +82,9 @@ export const useProducts = () => {
       case 'cheapest':
         filtered.sort((a, b) => a.price - b.price);
         break;
+      case 'expensive':
+        filtered.sort((a, b) => b.price - a.price);
+        break;
       case 'popular':
         filtered.sort((a, b) => b.reviewCount - a.reviewCount);
         break;

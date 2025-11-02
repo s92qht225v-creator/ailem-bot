@@ -78,8 +78,8 @@ export default {
     outOfStock: 'Tugadi',
     sortBy: 'Saralash',
     sortNewest: 'Eng yangilari',
-    sortPriceLow: 'Narx: Pastdan yuqoriga',
-    sortPriceHigh: 'Narx: Yuqoridan pastga',
+    sortPriceLow: 'Arzonroq',
+    sortPriceHigh: 'Qimmatroq',
     sortPopular: 'Mashhur',
     productsFound: '{count} ta mahsulot topildi'
   },

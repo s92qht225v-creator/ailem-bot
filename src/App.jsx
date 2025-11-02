@@ -1,7 +1,6 @@
 import { useState, useContext, useEffect, lazy, Suspense, useRef, useCallback } from 'react';
 import { UserContext } from './context/UserContext';
 import { AdminContext } from './context/AdminContext';
-import Header from './components/layout/Header';
 import BottomNav from './components/layout/BottomNav';
 
 // Critical pages - load immediately
@@ -224,46 +223,6 @@ function App() {
     }
   }, []); // Run only once on mount
 
-  const getPageTitle = () => {
-    switch (currentPage) {
-      case 'home':
-        return 'Ailem';
-      case 'shop':
-        return 'Shop';
-      case 'product':
-        return 'Product Details';
-      case 'cart':
-        return 'Shopping Cart';
-      case 'checkout':
-        return 'Checkout';
-      case 'payment':
-        return 'Payment';
-      case 'paymentStatus':
-        return 'Payment Status';
-      case 'account':
-        return 'Account';
-      case 'profile':
-        return 'Profile';
-      case 'orderHistory':
-        return 'Order History';
-      case 'orderDetails':
-        return 'Order Details';
-      case 'myReviews':
-        return 'My Reviews';
-      case 'writeReview':
-        return 'Write Review';
-      case 'favorites':
-        return 'Favorites';
-      case 'referrals':
-        return 'Referrals';
-      case 'admin':
-        return 'Admin Panel';
-      default:
-        return 'Ailem';
-    }
-  };
-
-  const showHeader = !['home', 'admin', 'referrals', 'profile', 'favorites', 'orderHistory', 'orderDetails', 'myReviews', 'writeReview', 'account'].includes(currentPage);
 
   // Only show loading for a short time - then show content anyway
   // This prevents blank screen issues in Telegram
@@ -309,15 +268,6 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
-      {/* Header - Search functionality removed, now managed in ShopPage */}
-      {showHeader && (
-        <Header
-          title={getPageTitle()}
-          showSearch={false}
-        />
-      )}
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto bg-white min-h-screen">
         <Suspense fallback={

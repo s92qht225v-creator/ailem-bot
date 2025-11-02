@@ -1,5 +1,5 @@
 import { useContext, useMemo } from 'react';
-import { Heart, ArrowLeft, ShoppingCart } from 'lucide-react';
+import { Heart, ShoppingCart } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { CartContext } from '../../context/CartContext';
 import { useProducts } from '../../hooks/useProducts';
@@ -31,20 +31,7 @@ const FavoritesPage = ({ onNavigate }) => {
   // Show loading state if products not loaded
   if (!products) {
     return (
-      <div className="pb-20 bg-gray-50 min-h-screen">
-        <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-          <div className="max-w-mobile mx-auto px-4 py-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => onNavigate('profile')}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <h1 className="text-xl font-bold">{t('favorites.title')}</h1>
-            </div>
-          </div>
-        </div>
+      <div className="pb-20 bg-gray-50 min-h-screen pt-4">
         <div className="p-4 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">{t('common.loading')}</p>
@@ -54,22 +41,7 @@ const FavoritesPage = ({ onNavigate }) => {
   }
 
   return (
-    <div className="pb-20 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-mobile mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => onNavigate('profile')}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <h1 className="text-xl font-bold">{t('favorites.title')}</h1>
-          </div>
-        </div>
-      </div>
-
+    <div className="pb-20 bg-gray-50 min-h-screen pt-4">
       {/* Content */}
       <div className="p-4">
         {favoriteProducts.length === 0 ? (

@@ -279,10 +279,10 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
         {/* Sort By Section */}
         <div>
           <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('shop.sortBy')}</h3>
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
             <button
               onClick={() => setSortBy('newest')}
-              className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
                 sortBy === 'newest'
                   ? 'bg-gray-900 text-white'
                   : 'bg-white text-gray-700 border border-gray-300'
@@ -292,7 +292,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
             </button>
             <button
               onClick={() => setSortBy('cheapest')}
-              className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
                 sortBy === 'cheapest'
                   ? 'bg-gray-900 text-white'
                   : 'bg-white text-gray-700 border border-gray-300'
@@ -301,8 +301,18 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
               {t('shop.sortPriceLow')}
             </button>
             <button
+              onClick={() => setSortBy('expensive')}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
+                sortBy === 'expensive'
+                  ? 'bg-gray-900 text-white'
+                  : 'bg-white text-gray-700 border border-gray-300'
+              }`}
+            >
+              {t('shop.sortPriceHigh')}
+            </button>
+            <button
               onClick={() => setSortBy('popular')}
-              className={`flex-1 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
                 sortBy === 'popular'
                   ? 'bg-gray-900 text-white'
                   : 'bg-white text-gray-700 border border-gray-300'

@@ -78,8 +78,8 @@ export default {
     outOfStock: 'Нет в наличии',
     sortBy: 'Сортировка',
     sortNewest: 'Новинки',
-    sortPriceLow: 'Цена: По возрастанию',
-    sortPriceHigh: 'Цена: По убыванию',
+    sortPriceLow: 'Подешевле',
+    sortPriceHigh: 'Подороже',
     sortPopular: 'Популярные',
     productsFound: 'Найдено {count} товаров'
   },
