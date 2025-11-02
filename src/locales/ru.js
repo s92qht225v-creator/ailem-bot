@@ -1,0 +1,420 @@
+// Russian translations
+export default {
+  // Common
+  common: {
+    loading: 'Загрузка...',
+    error: 'Ошибка',
+    success: 'Успех',
+    cancel: 'Отмена',
+    confirm: 'Подтвердить',
+    save: 'Сохранить',
+    delete: 'Удалить',
+    edit: 'Редактировать',
+    add: 'Добавить',
+    search: 'Поиск',
+    filter: 'Фильтр',
+    sort: 'Сортировка',
+    close: 'Закрыть',
+    back: 'Назад',
+    next: 'Далее',
+    previous: 'Предыдущий',
+    submit: 'Отправить',
+    apply: 'Применить',
+    clear: 'Очистить',
+    select: 'Выбрать',
+    upload: 'Загрузить',
+    download: 'Скачать',
+    copy: 'Копировать',
+    share: 'Поделиться',
+    yes: 'Да',
+    no: 'Нет',
+    ok: 'ОК',
+    currency: 'UZS'
+  },
+
+  // Navigation
+  nav: {
+    home: 'Главная',
+    shop: 'Магазин',
+    cart: 'Корзина',
+    profile: 'Профиль',
+    orders: 'Заказы',
+    favorites: 'Избранное',
+    categories: 'Категории',
+    admin: 'Админ панель'
+  },
+
+  // Header
+  header: {
+    searchPlaceholder: 'Поиск товаров...',
+    title: 'Ailem'
+  },
+
+  // Home Page
+  home: {
+    welcome: 'Добро пожаловать',
+    featuredProducts: 'Специальные предложения',
+    newArrivals: 'Новинки',
+    bestSellers: 'Хиты продаж',
+    saleEnds: 'Скидка заканчивается',
+    shopNow: 'Купить сейчас',
+    viewAll: 'Смотреть все'
+  },
+
+  // Shop Page
+  shop: {
+    allProducts: 'Все товары',
+    searchResults: 'Результаты поиска',
+    noResults: 'Ничего не найдено',
+    noProducts: 'Нет товаров',
+    filters: 'Фильтры',
+    category: 'Категория',
+    allCategories: 'Все категории',
+    priceRange: 'Диапазон цен',
+    colors: 'Цвета',
+    sizes: 'Размеры',
+    inStock: 'В наличии',
+    outOfStock: 'Нет в наличии',
+    sortBy: 'Сортировка',
+    sortNewest: 'Новинки',
+    sortPriceLow: 'Цена: По возрастанию',
+    sortPriceHigh: 'Цена: По убыванию',
+    sortPopular: 'Популярные',
+    productsFound: 'Найдено {count} товаров'
+  },
+
+  // Product Details
+  product: {
+    details: 'Детали товара',
+    description: 'Описание',
+    specifications: 'Характеристики',
+    reviews: 'Отзывы',
+    selectColor: 'Выберите цвет',
+    selectSize: 'Выберите размер',
+    quantity: 'Количество',
+    addToCart: 'В корзину',
+    buyNow: 'Купить сейчас',
+    inStock: 'В наличии: {count} шт',
+    lowStock: 'Осталось только {count} шт',
+    noStock: 'Нет в наличии',
+    price: 'Цена',
+    originalPrice: 'Старая цена',
+    discount: 'Скидка {percent}%',
+    features: 'Особенности',
+    material: 'Материал',
+    weight: 'Вес',
+    dimensions: 'Размеры',
+    colors: 'Цвета',
+    sizes: 'Размеры',
+    addedToCart: 'Добавлено в корзину',
+    addToFavorites: 'В избранное',
+    removeFromFavorites: 'Удалить из избранного',
+    share: 'Поделиться',
+    similarProducts: 'Похожие товары'
+  },
+
+  // Cart
+  cart: {
+    title: 'Корзина',
+    empty: 'Корзина пуста',
+    continueShopping: 'Продолжить покупки',
+    items: '{count} товаров',
+    subtotal: 'Итого',
+    delivery: 'Доставка',
+    deliveryFree: 'Бесплатно',
+    bonusDiscount: 'Бонусная скидка',
+    total: 'К оплате',
+    checkout: 'Оформить заказ',
+    remove: 'Удалить',
+    update: 'Обновить',
+    clear: 'Очистить корзину',
+    clearConfirm: 'Вы уверены, что хотите очистить корзину?',
+    applyBonus: 'Использовать бонусы',
+    bonusPoints: 'Бонусные баллы',
+    availableBonus: 'Доступно: {points} баллов',
+    maxBonus: 'Максимум: {points} баллов (20% от заказа)',
+    bonusValue: '{points} баллов = {value} UZS'
+  },
+
+  // Checkout
+  checkout: {
+    title: 'Оформление заказа',
+    deliveryInfo: 'Информация о доставке',
+    fullName: 'Полное имя',
+    phone: 'Телефон',
+    address: 'Адрес',
+    city: 'Город',
+    selectCity: 'Выберите город',
+    deliveryMethod: 'Способ доставки',
+    courier: 'Курьерская доставка',
+    pickup: 'Самовывоз',
+    pickupPoint: 'Пункт самовывоза',
+    selectPickupPoint: 'Выберите пункт',
+    paymentMethod: 'Способ оплаты',
+    payme: 'Payme',
+    click: 'Click',
+    cash: 'Наличные',
+    orderSummary: 'Итого по заказу',
+    placeOrder: 'Подтвердить заказ',
+    processing: 'Обработка...',
+    required: 'Обязательное поле',
+    invalidPhone: 'Неверный номер телефона',
+    invalidAddress: 'Неверный адрес',
+    orderCreated: 'Заказ создан',
+    orderFailed: 'Ошибка создания заказа',
+    bonusApplied: 'Использовано {points} баллов (-{value} UZS)'
+  },
+
+  // Payment
+  payment: {
+    title: 'Оплата',
+    selectMethod: 'Выберите способ оплаты',
+    payme: 'Оплатить через Payme',
+    click: 'Оплатить через Click',
+    cash: 'Наличными (при получении)',
+    payNow: 'Оплатить',
+    processing: 'Обработка платежа...',
+    success: 'Оплата успешна!',
+    failed: 'Оплата не прошла',
+    pending: 'Ожидание оплаты',
+    redirect: 'Перенаправление на платёжную систему...',
+    testCard: 'Тестовая карта',
+    cardNumber: 'Номер карты',
+    expiry: 'Срок действия',
+    smsCode: 'SMS код',
+    orderNumber: 'Номер заказа',
+    amount: 'Сумма',
+    paymentInfo: 'Информация об оплате'
+  },
+
+  // Orders
+  orders: {
+    title: 'Мои заказы',
+    empty: 'Нет заказов',
+    orderNumber: 'Номер заказа',
+    date: 'Дата',
+    status: 'Статус',
+    total: 'Итого',
+    items: 'Товары',
+    viewDetails: 'Подробнее',
+    trackOrder: 'Отследить',
+    cancelOrder: 'Отменить',
+    repeatOrder: 'Повторить',
+    statuses: {
+      pending: 'В обработке',
+      approved: 'Подтверждён',
+      shipped: 'В пути',
+      delivered: 'Доставлен',
+      rejected: 'Отменён'
+    },
+    details: {
+      title: 'Детали заказа',
+      orderInfo: 'Информация о заказе',
+      deliveryInfo: 'Информация о доставке',
+      paymentInfo: 'Информация об оплате',
+      orderItems: 'Товары',
+      summary: 'Итого',
+      subtotal: 'Промежуточный итог',
+      delivery: 'Доставка',
+      bonusDiscount: 'Бонусная скидка',
+      total: 'Всего',
+      bonusEarned: 'Начислено бонусов',
+      deliveryAddress: 'Адрес доставки',
+      deliveryMethod: 'Способ доставки',
+      paymentMethod: 'Способ оплаты',
+      paymentStatus: 'Статус оплаты'
+    }
+  },
+
+  // Profile
+  profile: {
+    title: 'Профиль',
+    account: 'Аккаунт',
+    personalInfo: 'Личная информация',
+    name: 'Имя',
+    phone: 'Телефон',
+    email: 'Email',
+    edit: 'Редактировать',
+    save: 'Сохранить',
+    bonusPoints: 'Бонусные баллы',
+    available: 'Доступно',
+    earned: 'Накоплено',
+    used: 'Использовано',
+    referralCode: 'Реферальный код',
+    referrals: 'Приглашённые',
+    copyCode: 'Копировать код',
+    codeCopied: 'Код скопирован',
+    shareLink: 'Поделиться ссылкой',
+    inviteFriends: 'Пригласите друзей',
+    referralBonus: 'Получайте бонусы за каждого друга',
+    orders: 'Заказы',
+    totalOrders: 'Всего заказов',
+    favorites: 'Избранное',
+    settings: 'Настройки',
+    language: 'Язык',
+    notifications: 'Уведомления',
+    logout: 'Выйти',
+    deleteAccount: 'Удалить аккаунт',
+    deleteConfirm: 'Вы уверены, что хотите удалить аккаунт? Это действие необратимо.',
+    support: 'Поддержка',
+    about: 'О приложении',
+    terms: 'Условия использования',
+    privacy: 'Политика конфиденциальности'
+  },
+
+  // Reviews
+  reviews: {
+    title: 'Отзывы',
+    noReviews: 'Пока нет отзывов',
+    writeReview: 'Написать отзыв',
+    rating: 'Оценка',
+    comment: 'Комментарий',
+    submit: 'Отправить',
+    edit: 'Редактировать',
+    delete: 'Удалить',
+    helpful: 'Полезно',
+    notHelpful: 'Не полезно',
+    report: 'Пожаловаться',
+    photos: 'Фото',
+    addPhotos: 'Добавить фото',
+    thankYou: 'Спасибо за отзыв!',
+    pending: 'Отзыв на модерации',
+    approved: 'Одобрен',
+    rejected: 'Отклонён'
+  },
+
+  // Favorites
+  favorites: {
+    title: 'Избранное',
+    empty: 'Список избранного пуст',
+    addedToFavorites: 'Добавлено в избранное',
+    removedFromFavorites: 'Удалено из избранного',
+    moveToCart: 'Переместить в корзину',
+    removeAll: 'Удалить все'
+  },
+
+  // Admin Panel
+  admin: {
+    title: 'Админ панель',
+    dashboard: 'Панель управления',
+    products: 'Товары',
+    orders: 'Заказы',
+    users: 'Пользователи',
+    reviews: 'Отзывы',
+    categories: 'Категории',
+    settings: 'Настройки',
+    analytics: 'Аналитика',
+    totalRevenue: 'Общая выручка',
+    totalOrders: 'Всего заказов',
+    totalUsers: 'Всего пользователей',
+    totalProducts: 'Всего товаров',
+    recentOrders: 'Последние заказы',
+    topProducts: 'Топ товаров',
+    lowStock: 'Заканчивается',
+    addProduct: 'Добавить товар',
+    editProduct: 'Редактировать товар',
+    deleteProduct: 'Удалить товар',
+    approveOrder: 'Подтвердить',
+    rejectOrder: 'Отклонить',
+    markShipped: 'Отправлен',
+    markDelivered: 'Доставлен',
+    viewOrder: 'Просмотр',
+    exportCSV: 'Экспорт CSV',
+    bulkActions: 'Массовые действия',
+    selectAll: 'Выбрать все',
+    deselectAll: 'Снять выделение',
+    deleteSelected: 'Удалить выбранные',
+    approveSelected: 'Подтвердить выбранные',
+    uploadImage: 'Загрузить изображение',
+    dragDrop: 'Перетащите изображение или выберите',
+    stock: 'Склад',
+    inStock: 'В наличии',
+    lowStock: 'Заканчивается',
+    outOfStock: 'Нет в наличии',
+    addVariant: 'Добавить вариант',
+    variants: 'Варианты',
+    variantStock: 'Склад вариантов'
+  },
+
+  // Notifications
+  notifications: {
+    orderPlaced: 'Заказ размещён',
+    orderApproved: 'Заказ подтверждён',
+    orderShipped: 'Заказ отправлен',
+    orderDelivered: 'Заказ доставлен',
+    orderRejected: 'Заказ отменён',
+    paymentSuccess: 'Оплата успешна',
+    paymentFailed: 'Оплата не прошла',
+    bonusEarned: 'Начислено {points} баллов',
+    bonusUsed: 'Использовано {points} баллов',
+    lowStock: '{product} - заканчивается ({count} шт)',
+    newReview: 'Новый отзыв',
+    reviewApproved: 'Ваш отзыв одобрен'
+  },
+
+  // Errors
+  errors: {
+    general: 'Произошла ошибка',
+    network: 'Ошибка сети',
+    notFound: 'Не найдено',
+    unauthorized: 'Не авторизован',
+    forbidden: 'Запрещено',
+    serverError: 'Ошибка сервера',
+    tryAgain: 'Попробуйте ещё раз',
+    refresh: 'Обновите страницу',
+    contact: 'Обратитесь в поддержку',
+    invalidInput: 'Неверные данные',
+    required: 'Обязательное поле',
+    minLength: 'Минимальная длина: {length}',
+    maxLength: 'Максимальная длина: {length}',
+    invalidEmail: 'Неверный email',
+    invalidPhone: 'Неверный номер телефона',
+    invalidPassword: 'Неверный пароль',
+    passwordMismatch: 'Пароли не совпадают',
+    uploadFailed: 'Ошибка загрузки',
+    deleteFailed: 'Ошибка удаления',
+    updateFailed: 'Ошибка обновления',
+    createFailed: 'Ошибка создания',
+    loadFailed: 'Ошибка загрузки'
+  },
+
+  // Success messages
+  success: {
+    saved: 'Сохранено',
+    updated: 'Обновлено',
+    deleted: 'Удалено',
+    created: 'Создано',
+    uploaded: 'Загружено',
+    sent: 'Отправлено',
+    copied: 'Скопировано',
+    applied: 'Применено',
+    orderPlaced: 'Заказ размещён',
+    paymentSuccess: 'Оплата успешна',
+    profileUpdated: 'Профиль обновлён',
+    settingsSaved: 'Настройки сохранены'
+  },
+
+  // Units
+  units: {
+    piece: 'шт',
+    kg: 'кг',
+    g: 'г',
+    m: 'м',
+    cm: 'см',
+    mm: 'мм'
+  },
+
+  // Time
+  time: {
+    now: 'Сейчас',
+    today: 'Сегодня',
+    yesterday: 'Вчера',
+    tomorrow: 'Завтра',
+    days: '{count} дней',
+    hours: '{count} часов',
+    minutes: '{count} минут',
+    seconds: '{count} секунд',
+    ago: '{time} назад',
+    in: 'через {time}'
+  }
+};
