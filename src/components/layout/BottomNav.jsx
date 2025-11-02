@@ -2,19 +2,21 @@ import { Home, ShoppingBag, ShoppingCart, User, Heart } from 'lucide-react';
 import { useContext } from 'react';
 import { UserContext } from '../../context/UserContext';
 import { useCart } from '../../hooks/useCart';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const BottomNav = ({ currentPage, onNavigate }) => {
+  const { t } = useTranslation();
   const { favorites } = useContext(UserContext);
   const { getCartItemsCount } = useCart();
   const cartCount = getCartItemsCount();
   const favoritesCount = favorites?.length || 0;
 
   const navItems = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'shop', label: 'Shop', icon: ShoppingBag },
-    { id: 'favorites', label: 'Favorites', icon: Heart, badge: favoritesCount },
-    { id: 'account', label: 'Account', icon: User },
-    { id: 'cart', label: 'Cart', icon: ShoppingCart, badge: cartCount }
+    { id: 'home', label: t('nav.home'), icon: Home },
+    { id: 'shop', label: t('nav.shop'), icon: ShoppingBag },
+    { id: 'favorites', label: t('nav.favorites'), icon: Heart, badge: favoritesCount },
+    { id: 'account', label: t('nav.profile'), icon: User },
+    { id: 'cart', label: t('nav.cart'), icon: ShoppingCart, badge: cartCount }
   ];
 
   return (

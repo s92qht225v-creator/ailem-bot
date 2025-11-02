@@ -3,9 +3,12 @@ import { Package, Award, Settings, HelpCircle, Heart, ChevronRight, MapPin, Mess
 import { UserContext } from '../../context/UserContext';
 import { useOrders } from '../../hooks/useOrders';
 import { formatPrice } from '../../utils/helpers';
+import { useTranslation } from '../../hooks/useTranslation';
 import AuthModal from '../common/AuthModal';
+import LanguageSwitcher from '../LanguageSwitcher';
 
 const ProfilePage = ({ onNavigate, hideHeader = false }) => {
+  const { t } = useTranslation();
   const { user, login, logout } = useContext(UserContext);
   const { getUserOrders } = useOrders();
   const userOrders = getUserOrders();
@@ -29,7 +32,7 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
       {/* Header */}
       {!hideHeader && (
         <div className="bg-white p-4 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-900 text-center">Profile</h1>
+          <h1 className="text-xl font-bold text-gray-900 text-center">{t('profile.title')}</h1>
         </div>
       )}
 
@@ -53,76 +56,79 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
         >
           {getInitial(user?.name)}
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">{user?.name || 'Guest'}</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-1">{user?.name || t('profile.guest')}</h2>
         <p className="text-sm text-gray-500">
-          {user?.phone || (user?.username && user.username !== 'guest' ? `@${user.username}` : (user?.telegramId ? `ID: ${user.telegramId}` : 'Guest User'))}
+          {user?.phone || (user?.username && user.username !== 'guest' ? `@${user.username}` : (user?.telegramId ? `ID: ${user.telegramId}` : t('profile.guestUser')))}
         </p>
       </div>
 
       {/* Menu Cards */}
       <div className="p-4 space-y-3">
+        {/* Language Switcher */}
+        <LanguageSwitcher />
+
         <MenuCard
           icon={Package}
-          title="Order History"
-          subtitle={userOrders.length > 0 ? `${userOrders.length} orders` : 'No orders yet'}
+          title={t('orders.title')}
+          subtitle={userOrders.length > 0 ? `${userOrders.length} ${t('orders.title').toLowerCase()}` : t('orders.empty')}
           onClick={() => onNavigate('orderHistory')}
         />
 
         <MenuCard
           icon={MapPin}
-          title="Saved Addresses"
-          subtitle="Manage delivery addresses"
-          onClick={() => alert('Saved Addresses coming soon!')}
+          title={t('profile.addresses')}
+          subtitle={t('profile.addressesSubtitle')}
+          onClick={() => alert(t('common.comingSoon'))}
         />
 
         <MenuCard
           icon={MessageSquare}
-          title="My Reviews"
-          subtitle="Reviews for your purchases"
+          title={t('profile.reviews')}
+          subtitle={t('profile.reviewsSubtitle')}
           onClick={() => onNavigate('myReviews')}
         />
 
         <MenuCard
           icon={Heart}
-          title="Favorites"
-          subtitle="Your wishlist items"
+          title={t('profile.favorites')}
+          subtitle={t('profile.favoritesSubtitle')}
           onClick={() => onNavigate('favorites')}
         />
 
         <MenuCard
           icon={Award}
-          title="Bonus Points"
-          subtitle={`${formatPrice(user?.bonusPoints || 0)} earnings`}
+          title={t('profile.bonusPoints')}
+          subtitle={`${formatPrice(user?.bonusPoints || 0)} ${t('profile.earnings')}`}
           onClick={() => onNavigate('referrals')}
         />
 
         <MenuCard
           icon={Settings}
-          title="Settings"
-          subtitle="Account preferences"
-          onClick={() => alert('Settings coming soon!')}
+          title={t('profile.settings')}
+          subtitle={t('profile.settingsSubtitle')}
+          onClick={() => alert(t('common.comingSoon'))}
         />
 
         <MenuCard
           icon={HelpCircle}
-          title="Help & Support"
-          subtitle="Get assistance"
-          onClick={() => alert('Support coming soon!')}
+          title={t('profile.help')}
+          subtitle={t('profile.helpSubtitle')}
+          onClick={() => alert(t('common.comingSoon'))}
         />
 
         {/* Login/Logout Button */}
         {user && user.id === 'guest' ? (
           <MenuCard
             icon={LogIn}
-            title="Login / Sign Up"
-            subtitle="Create an account to save your data"
+            title={t('profile.login')}
+            subtitle={t('profile.loginSubtitle')}
             onClick={() => setShowAuthModal(true)}
           />
         ) : (
           <MenuCard
             icon={LogOut}
-            title="Logout"
-            subtitle="Sign out of your account"
+            title={t('profile.logout')}
+            subtitle={t('profile.logoutSubtitle')}
             onClick={logout}
           />
         )}
