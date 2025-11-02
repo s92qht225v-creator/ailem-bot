@@ -330,6 +330,7 @@ async function handleComplete(params, res) {
     click_trans_id,
     merchant_trans_id,
     merchant_confirm_id,
+    merchant_prepare_id: merchant_prepare_id || 0, // Echo back prepare ID
     error: 0,
     error_note: 'Success'
   });
