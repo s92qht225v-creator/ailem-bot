@@ -14,6 +14,70 @@ const supabase = createClient(
 const CLICK_SERVICE_ID = process.env.CLICK_SERVICE_ID;
 const CLICK_SECRET_KEY = process.env.CLICK_SECRET_KEY;
 
+// Deduct stock for order items
+async function deductStock(order) {
+  if (!order || !order.items || order.items.length === 0) {
+    console.log('⚠️ No items found in order, skipping stock deduction');
+    return;
+  }
+
+  try {
+    for (const item of order.items) {
+      // Fetch the product
+      const { data: product, error: productError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', item.id)
+        .single();
+
+      if (productError || !product) {
+        console.error(`❌ Product not found for ID ${item.id}:`, productError);
+        continue;
+      }
+
+      // Check if product uses variant tracking
+      if (product.variants && product.variants.length > 0 && item.selectedColor && item.selectedSize) {
+        // Deduct variant stock
+        const updatedVariants = product.variants.map(v => {
+          if (v.color?.toLowerCase() === item.selectedColor.toLowerCase() &&
+              v.size?.toLowerCase() === item.selectedSize.toLowerCase()) {
+            return { ...v, stock: Math.max(0, (v.stock || 0) - item.quantity) };
+          }
+          return v;
+        });
+
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({ variants: updatedVariants })
+          .eq('id', product.id);
+
+        if (updateError) {
+          console.error(`❌ Failed to update variant stock for ${product.name}:`, updateError);
+        } else {
+          console.log(`📦 Deducted ${item.quantity} units from ${item.selectedColor} • ${item.selectedSize} variant of ${product.name}`);
+        }
+      } else {
+        // Deduct regular stock
+        const newStock = Math.max(0, (product.stock || 0) - item.quantity);
+        const { error: updateError } = await supabase
+          .from('products')
+          .update({ stock: newStock })
+          .eq('id', product.id);
+
+        if (updateError) {
+          console.error(`❌ Failed to update stock for ${product.name}:`, updateError);
+        } else {
+          console.log(`📦 Deducted ${item.quantity} units from ${product.name} stock (${product.stock} → ${newStock})`);
+        }
+      }
+    }
+
+    console.log('✅ Stock deduction completed');
+  } catch (error) {
+    console.error('❌ Failed to deduct stock:', error);
+  }
+}
+
 // Award bonus points to user for approved order
 async function awardBonusPoints(order) {
   const userId = order.user_id || order.userId;
@@ -258,23 +322,26 @@ async function handleComplete(params, res) {
     error_note: 'Success'
   });
 
-  // Award bonus points AFTER response
+  // Deduct stock and award bonus points AFTER response
   // Response is already sent, function will stay alive to complete this
   if (isApproved) {
     try {
-      // Fetch the order to get user_id and total
+      // Fetch the order to get full details including items
       const { data: order } = await supabase
         .from('orders')
-        .select('user_id, total')
+        .select('*')
         .eq('click_order_id', merchant_trans_id)
         .single();
 
       if (order) {
+        await deductStock(order);
+        console.log('✅ Stock deducted successfully');
+        
         await awardBonusPoints(order);
         console.log('✅ Bonus points awarded successfully');
       }
-    } catch (bonusError) {
-      console.error('❌ Failed to award bonus points:', bonusError);
+    } catch (error) {
+      console.error('❌ Failed to deduct stock or award bonus points:', error);
     }
   }
 }
