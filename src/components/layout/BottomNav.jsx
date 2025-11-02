@@ -2,21 +2,19 @@ import { Home, ShoppingBag, ShoppingCart, User, Heart } from 'lucide-react';
 import { useContext } from 'react';
 import { UserContext } from '../../context/UserContext';
 import { useCart } from '../../hooks/useCart';
-import { useTranslation } from '../../hooks/useTranslation';
 
 const BottomNav = ({ currentPage, onNavigate }) => {
-  const { t } = useTranslation();
   const { favorites } = useContext(UserContext);
   const { getCartItemsCount } = useCart();
   const cartCount = getCartItemsCount();
   const favoritesCount = favorites?.length || 0;
 
   const navItems = [
-    { id: 'home', label: t('nav.home'), icon: Home },
-    { id: 'shop', label: t('nav.shop'), icon: ShoppingBag },
-    { id: 'favorites', label: t('nav.favorites'), icon: Heart, badge: favoritesCount },
-    { id: 'account', label: t('nav.profile'), icon: User },
-    { id: 'cart', label: t('nav.cart'), icon: ShoppingCart, badge: cartCount }
+    { id: 'home', icon: Home },
+    { id: 'shop', icon: ShoppingBag },
+    { id: 'favorites', icon: Heart, badge: favoritesCount },
+    { id: 'account', icon: User },
+    { id: 'cart', icon: ShoppingCart, badge: cartCount }
   ];
 
   return (
@@ -34,23 +32,20 @@ const BottomNav = ({ currentPage, onNavigate }) => {
               <button
                 key={item.id}
                 onClick={() => onNavigate(item.id)}
-                className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-all ${
+                className={`flex items-center justify-center p-3 rounded-lg transition-all ${
                   isActive
                     ? 'text-accent'
                     : 'text-gray-500 hover:text-gray-700'
                 }`}
               >
                 <div className="relative">
-                  <Icon className={`w-6 h-6 ${isActive ? 'stroke-[2.5]' : ''}`} />
+                  <Icon className={`w-7 h-7 ${isActive ? 'stroke-[2.5]' : ''}`} />
                   {item.badge > 0 && (
                     <span className="absolute -top-2 -right-2 bg-error text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
                       {item.badge > 9 ? '9+' : item.badge}
                     </span>
                   )}
                 </div>
-                <span className={`text-xs mt-1 ${isActive ? 'font-semibold' : ''}`}>
-                  {item.label}
-                </span>
               </button>
             );
           })}
