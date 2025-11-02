@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
@@ -8,8 +8,13 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
   const [touchEnd, setTouchEnd] = useState(0);
   const autoSlideRef = useRef(null);
 
-  // Filter enabled banners
-  const activeBanners = banners.filter(banner => banner.enabled);
+  // Memoize activeBanners to prevent it from changing on every render
+  // Only recalculate when banners array length or enabled states change
+  const activeBanners = useMemo(() =>
+    banners.filter(banner => banner.enabled),
+    [banners]
+  );
+
   const activeBannersCount = activeBanners.length;
 
   // Store count in ref for use in interval without triggering re-renders

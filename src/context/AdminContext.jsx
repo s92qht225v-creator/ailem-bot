@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect } from 'react';
+import { createContext, useState, useEffect, useMemo } from 'react';
 import { categoriesAPI, productsAPI, ordersAPI, reviewsAPI, usersAPI } from '../services/api';
 import { decreaseVariantStock, updateVariantStock, getTotalVariantStock } from '../utils/variants';
 
@@ -371,32 +371,35 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
+  // Memoize context value to prevent unnecessary re-renders of consumers
+  const contextValue = useMemo(() => ({
+    products,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    categories,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    orders,
+    addOrder,
+    updateOrderStatus,
+    approveOrder,
+    rejectOrder,
+    deleteOrder,
+    reviews,
+    addReview,
+    approveReview,
+    deleteReview,
+    users,
+    updateUserBonusPoints,
+    loading,
+    error,
+    loadAllData
+  }), [products, categories, orders, reviews, users, loading, error]);
+
   return (
-    <AdminContext.Provider value={{
-      products,
-      addProduct,
-      updateProduct,
-      deleteProduct,
-      categories,
-      addCategory,
-      updateCategory,
-      deleteCategory,
-      orders,
-      addOrder,
-      updateOrderStatus,
-      approveOrder,
-      rejectOrder,
-      deleteOrder,
-      reviews,
-      addReview,
-      approveReview,
-      deleteReview,
-      users,
-      updateUserBonusPoints,
-      loading,
-      error,
-      loadAllData
-    }}>
+    <AdminContext.Provider value={contextValue}>
       {children}
     </AdminContext.Provider>
   );
