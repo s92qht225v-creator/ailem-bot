@@ -1,11 +1,13 @@
-import { createContext, useState, useEffect, useMemo } from 'react';
+import { createContext, useState, useEffect, useMemo, useContext } from 'react';
 import { categoriesAPI, productsAPI, ordersAPI, reviewsAPI, usersAPI } from '../services/api';
 import { decreaseVariantStock, updateVariantStock, getTotalVariantStock } from '../utils/variants';
 import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
+import { LanguageContext } from './LanguageContext';
 
 export const AdminContext = createContext();
 
 export const AdminProvider = ({ children }) => {
+  const { language } = useContext(LanguageContext) || { language: 'uz' };
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -14,10 +16,10 @@ export const AdminProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load all data from Supabase on mount
+  // Load all data from Supabase on mount and when language changes
   useEffect(() => {
     loadAllData();
-  }, []);
+  }, [language]);
 
   const loadAllData = async () => {
     try {
@@ -27,8 +29,8 @@ export const AdminProvider = ({ children }) => {
       console.log('🔄 Loading data from Supabase...');
 
       const [productsData, categoriesData, ordersData, usersData, reviewsData] = await Promise.all([
-        productsAPI.getAll().catch(e => { console.error('Products error:', e); return []; }),
-        categoriesAPI.getAll().catch(e => { console.error('Categories error:', e); return []; }),
+        productsAPI.getAll(language).catch(e => { console.error('Products error:', e); return []; }),
+        categoriesAPI.getAll(language).catch(e => { console.error('Categories error:', e); return []; }),
         ordersAPI.getAll().catch(e => { console.error('Orders error:', e); return []; }),
         usersAPI.getAll().catch(e => { console.error('Users error:', e); return []; }),
         reviewsAPI.getAll().catch(e => { console.error('Reviews error:', e); return []; })

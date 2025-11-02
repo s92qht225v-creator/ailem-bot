@@ -6,14 +6,19 @@ import { supabase } from '../lib/supabase';
 
 export const categoriesAPI = {
   // Get all categories
-  async getAll() {
+  async getAll(language = 'uz') {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
       .order('created_at', { ascending: true });
 
     if (error) throw error;
-    return data;
+    
+    // Map to localized name
+    return data.map(cat => ({
+      ...cat,
+      name: cat[`name_${language}`] || cat.name // Fallback to default
+    }));
   },
 
   // Create category
@@ -58,7 +63,7 @@ export const categoriesAPI = {
 
 export const productsAPI = {
   // Get all products
-  async getAll() {
+  async getAll(language = 'uz') {
     const { data: products, error } = await supabase
       .from('products')
       .select('*')
@@ -80,6 +85,8 @@ export const productsAPI = {
 
       return {
         ...product,
+        name: product[`name_${language}`] || product.name, // Localized name
+        description: product[`description_${language}`] || product.description, // Localized description
         category: product.category_name, // Map category_name to category for compatibility
         originalPrice: product.original_price,
         reviewCount: product.review_count,
@@ -98,7 +105,7 @@ export const productsAPI = {
   },
 
   // Get single product
-  async getById(id) {
+  async getById(id, language = 'uz') {
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -119,6 +126,8 @@ export const productsAPI = {
     // Map database fields to match app expectations
     return {
       ...data,
+      name: data[`name_${language}`] || data.name, // Localized name
+      description: data[`description_${language}`] || data.description, // Localized description
       category: data.category_name,
       originalPrice: data.original_price,
       reviewCount: data.review_count,
