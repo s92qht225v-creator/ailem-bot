@@ -6,8 +6,10 @@ import CustomDropdown from '../common/CustomDropdown';
 import { useProducts } from '../../hooks/useProducts';
 import { AdminContext } from '../../context/AdminContext';
 import { UserContext } from '../../context/UserContext';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const ShopPage = ({ onNavigate, initialCategory }) => {
+  const { t } = useTranslation();
   const { categories } = useContext(AdminContext);
   const { toggleFavorite, isFavorite, favorites } = useContext(UserContext);
 
@@ -181,7 +183,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
           <input
             ref={searchInputRef}
             type="text"
-            placeholder="Search products, tags, categories..."
+            placeholder={t('header.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => {
@@ -240,7 +242,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
 
         {/* Filters Section - Horizontal Scroll */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Filters</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('shop.filters')}</h3>
           <div className="flex gap-3 pb-2">
             {/* Material Dropdown */}
             <div className="flex-1 min-w-[140px] relative z-10">
@@ -248,7 +250,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
                 value={selectedMaterial}
                 onChange={setSelectedMaterial}
                 options={availableMaterials}
-                placeholder="Material"
+                placeholder={t('product.material')}
               />
             </div>
 
@@ -258,7 +260,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
                 value={selectedColor}
                 onChange={setSelectedColor}
                 options={availableColors}
-                placeholder="Colors"
+                placeholder={t('product.colors')}
               />
             </div>
 
@@ -268,7 +270,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
                 value={selectedSize}
                 onChange={setSelectedSize}
                 options={availableSizes}
-                placeholder="Size"
+                placeholder={t('product.sizes')}
               />
             </div>
           </div>
@@ -276,7 +278,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
 
         {/* Sort By Section */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Sort by</h3>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('shop.sortBy')}</h3>
           <div className="flex gap-2">
             <button
               onClick={() => setSortBy('newest')}
@@ -286,7 +288,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
                   : 'bg-white text-gray-700 border border-gray-300'
               }`}
             >
-              New Arrivals
+              {t('shop.sortNewest')}
             </button>
             <button
               onClick={() => setSortBy('cheapest')}
@@ -296,7 +298,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
                   : 'bg-white text-gray-700 border border-gray-300'
               }`}
             >
-              Cheapest
+              {t('shop.sortPriceLow')}
             </button>
             <button
               onClick={() => setSortBy('popular')}
@@ -306,21 +308,21 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
                   : 'bg-white text-gray-700 border border-gray-300'
               }`}
             >
-              Most Popular
+              {t('shop.sortPopular')}
             </button>
           </div>
         </div>
 
         {/* Results Count */}
         <div className="text-sm text-gray-600">
-          {products.length} product{products.length !== 1 ? 's' : ''} found
+          {t('shop.productsFound', { count: products.length })}
         </div>
 
         {/* Products Grid */}
         {products.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">No products found</p>
-            <p className="text-gray-400 text-sm mt-2">Try adjusting your filters</p>
+            <p className="text-gray-500 text-lg">{t('shop.noProducts')}</p>
+            <p className="text-gray-400 text-sm mt-2">{t('shop.noResults')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">

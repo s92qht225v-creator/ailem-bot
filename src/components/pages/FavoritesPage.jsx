@@ -4,8 +4,10 @@ import { UserContext } from '../../context/UserContext';
 import { CartContext } from '../../context/CartContext';
 import { useProducts } from '../../hooks/useProducts';
 import { formatPrice, calculateDiscountedPrice } from '../../utils/helpers';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const FavoritesPage = ({ onNavigate }) => {
+  const { t } = useTranslation();
   const { toggleFavorite, favorites } = useContext(UserContext);
   const { addToCart } = useContext(CartContext);
   const { products } = useProducts();
@@ -39,13 +41,13 @@ const FavoritesPage = ({ onNavigate }) => {
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <h1 className="text-xl font-bold">Favorites</h1>
+              <h1 className="text-xl font-bold">{t('favorites.title')}</h1>
             </div>
           </div>
         </div>
         <div className="p-4 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading favorites...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -63,7 +65,7 @@ const FavoritesPage = ({ onNavigate }) => {
             >
               <ArrowLeft className="w-5 h-5" />
             </button>
-            <h1 className="text-xl font-bold">Favorites</h1>
+            <h1 className="text-xl font-bold">{t('favorites.title')}</h1>
           </div>
         </div>
       </div>
@@ -73,15 +75,15 @@ const FavoritesPage = ({ onNavigate }) => {
         {favoriteProducts.length === 0 ? (
           <div className="bg-white rounded-lg shadow-md p-8 text-center">
             <Heart className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 mb-2">No favorites yet</p>
+            <p className="text-gray-500 mb-2">{t('favorites.empty')}</p>
             <p className="text-sm text-gray-400 mb-4">
-              Start adding products you love to your favorites
+              {t('favorites.addedToFavorites')}
             </p>
             <button
               onClick={() => onNavigate('shop')}
               className="bg-accent text-white px-6 py-2 rounded-lg font-semibold hover:bg-accent/90 transition-colors"
             >
-              Browse Products
+              {t('shop.allProducts')}
             </button>
           </div>
         ) : (
@@ -162,7 +164,7 @@ const FavoritesPage = ({ onNavigate }) => {
                       className="w-full flex items-center justify-center gap-2 bg-accent text-white py-2 rounded-lg font-semibold hover:bg-accent/90 transition-colors text-sm mt-auto"
                     >
                       <ShoppingCart className="w-4 h-4" />
-                      Add to Cart
+                      {t('product.addToCart')}
                     </button>
                   </div>
                 </div>
