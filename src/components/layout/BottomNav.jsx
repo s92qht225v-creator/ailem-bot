@@ -39,7 +39,7 @@ const BottomNav = ({ currentPage, onNavigate }) => {
                 }`}
               >
                 <div className="relative">
-                  <Icon className={`w-7 h-7 ${isActive ? 'stroke-[2.5]' : ''}`} />
+                  <Icon className={`w-8 h-8 ${isActive ? 'stroke-[2.5]' : ''}`} />
                   {item.badge > 0 && (
                     <span className="absolute -top-2 -right-2 bg-error text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
                       {item.badge > 9 ? '9+' : item.badge}
