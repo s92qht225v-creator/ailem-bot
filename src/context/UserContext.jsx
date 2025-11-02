@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { createContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { usersAPI } from '../services/api';
 import { generateReferralCode, saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage } from '../utils/helpers';
 import { getTelegramUser, isInTelegram } from '../utils/telegram';
@@ -29,6 +29,12 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [favorites, setFavorites] = useState([]); // Start empty, load from Supabase
   const [loading, setLoading] = useState(true);
+  
+  // Use ref to avoid recreating callbacks when user changes
+  const userRef = useRef(user);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   // Initialize user from Telegram WebApp or create demo user
   useEffect(() => {
@@ -141,15 +147,16 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  const updateBonusPoints = async (points) => {
-    if (!user) return;
+  const updateBonusPoints = useCallback(async (points) => {
+    const currentUser = userRef.current;
+    if (!currentUser) return;
 
     try {
-      const newPoints = user.bonusPoints + points;
+      const newPoints = currentUser.bonusPoints + points;
 
       // Update in Supabase if real user
-      if (user.id !== 'demo-1') {
-        await usersAPI.updateBonusPoints(user.id, newPoints);
+      if (currentUser.id !== 'demo-1') {
+        await usersAPI.updateBonusPoints(currentUser.id, newPoints);
       }
 
       // Update local state
@@ -159,21 +166,22 @@ export const UserProvider = ({ children }) => {
       }));
 
       // Save demo user to localStorage
-      if (user.id === 'demo-1') {
-        saveToLocalStorage('demoUser', { ...user, bonusPoints: newPoints });
+      if (currentUser.id === 'demo-1') {
+        saveToLocalStorage('demoUser', { ...currentUser, bonusPoints: newPoints });
       }
     } catch (err) {
       console.error('Failed to update bonus points:', err);
     }
-  };
+  }, []);
 
-  const setReferredBy = async (referralCode) => {
+  const setReferredBy = useCallback(async (referralCode) => {
+    const currentUser = userRef.current;
     // Only set if user hasn't been referred before
-    if (!user?.referredBy) {
+    if (!currentUser?.referredBy) {
       // Update in Supabase if real user
-      if (user?.id && user.id !== 'demo-1') {
+      if (currentUser?.id && currentUser.id !== 'demo-1') {
         try {
-          await usersAPI.update(user.id, { referred_by: referralCode });
+          await usersAPI.update(currentUser.id, { referred_by: referralCode });
           console.log('✅ Referred by saved to Supabase:', referralCode);
         } catch (err) {
           console.error('❌ Failed to save referred_by to Supabase:', err);
@@ -186,14 +194,15 @@ export const UserProvider = ({ children }) => {
       }));
 
       // Save to localStorage for demo user
-      if (user?.id === 'demo-1') {
-        saveToLocalStorage('demoUser', { ...user, referredBy: referralCode });
+      if (currentUser?.id === 'demo-1') {
+        saveToLocalStorage('demoUser', { ...currentUser, referredBy: referralCode });
       }
     }
-  };
+  }, []);
 
-  const addReferral = async (referredUserId, referredUserName, orderTotal = 0) => {
-    if (!user) return;
+  const addReferral = useCallback(async (referredUserId, referredUserName, orderTotal = 0) => {
+    const currentUser = userRef.current;
+    if (!currentUser) return;
 
     try {
       // Get configured commission percentage from localStorage
@@ -201,13 +210,13 @@ export const UserProvider = ({ children }) => {
       const commissionPercentage = bonusConfig?.referralCommission || 10;
       const commissionAmount = Math.round((orderTotal * commissionPercentage) / 100);
 
-      const newReferrals = user.referrals + 1;
-      const newBonusPoints = user.bonusPoints + commissionAmount;
+      const newReferrals = currentUser.referrals + 1;
+      const newBonusPoints = currentUser.bonusPoints + commissionAmount;
 
       // Update in Supabase if real user
-      if (user.id !== 'demo-1') {
-        await usersAPI.incrementReferrals(user.id);
-        await usersAPI.updateBonusPoints(user.id, newBonusPoints);
+      if (currentUser.id !== 'demo-1') {
+        await usersAPI.incrementReferrals(currentUser.id);
+        await usersAPI.updateBonusPoints(currentUser.id, newBonusPoints);
         console.log('✅ Referral synced with Supabase');
       }
 
@@ -219,9 +228,9 @@ export const UserProvider = ({ children }) => {
       }));
 
       // Save to localStorage for demo user
-      if (user.id === 'demo-1') {
+      if (currentUser.id === 'demo-1') {
         saveToLocalStorage('demoUser', {
-          ...user,
+          ...currentUser,
           referrals: newReferrals,
           bonusPoints: newBonusPoints
         });
@@ -229,7 +238,7 @@ export const UserProvider = ({ children }) => {
     } catch (err) {
       console.error('❌ Failed to add referral:', err);
     }
-  };
+  }, []);
 
   const toggleFavorite = useCallback(async (productId) => {
     const normalizedId = normalizeId(productId);
@@ -247,8 +256,9 @@ export const UserProvider = ({ children }) => {
       console.log('✅ Local favorites updated:', updatedFavorites);
 
       // Sync to Supabase for real users, localStorage for demo users
-      if (user?.id && user.id !== 'demo-1') {
-        usersAPI.updateFavorites(user.id, updatedFavorites)
+      const currentUser = userRef.current;
+      if (currentUser?.id && currentUser.id !== 'demo-1') {
+        usersAPI.updateFavorites(currentUser.id, updatedFavorites)
           .then(() => console.log('💾 Favorites synced to Supabase'))
           .catch(err => {
             console.error('❌ Failed to sync favorites to Supabase:', err);
@@ -264,7 +274,7 @@ export const UserProvider = ({ children }) => {
 
       return updatedFavorites;
     });
-  }, [user?.id]); // Only depend on user.id, not entire user object
+  }, []); // No dependencies - use ref
 
   const favoritesSet = useMemo(() => new Set(normalizeFavorites(favorites)), [favorites]);
 
@@ -281,19 +291,23 @@ export const UserProvider = ({ children }) => {
   }, []);
 
 
+  // Don't memoize - causes infinite loops in dev mode
+  // Functions are already stable via useCallback
+  const contextValue = {
+    user,
+    setUser,
+    updateBonusPoints,
+    setReferredBy,
+    addReferral,
+    favorites,
+    toggleFavorite,
+    isFavorite,
+    loading,
+    clearUserData
+  };
+
   return (
-    <UserContext.Provider value={{
-      user,
-      setUser,
-      updateBonusPoints,
-      setReferredBy,
-      addReferral,
-      favorites,
-      toggleFavorite,
-      isFavorite,
-      loading,
-      clearUserData
-    }}>
+    <UserContext.Provider value={contextValue}>
       {children}
     </UserContext.Provider>
   );
