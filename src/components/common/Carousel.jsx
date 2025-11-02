@@ -2,8 +2,6 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
-  console.log('🎠 Carousel render', { bannersLength: banners.length });
-  
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);

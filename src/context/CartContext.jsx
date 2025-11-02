@@ -6,7 +6,6 @@ import { UserContext } from './UserContext';
 export const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-  console.log('🛒 CartProvider render');
   const { user } = useContext(UserContext);
   const [cartItems, setCartItems] = useState([]);
   const [cartLoaded, setCartLoaded] = useState(false);

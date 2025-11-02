@@ -9,7 +9,6 @@ import { loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { useProducts } from '../../hooks/useProducts';
 
 const HomePage = ({ onNavigate }) => {
-  console.log('🏠 HomePage render');
   const { categories, loading } = useContext(AdminContext);
   const { toggleFavorite, isFavorite } = useContext(UserContext);
   const { featuredProducts } = useProducts();

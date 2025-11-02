@@ -5,7 +5,6 @@ import { decreaseVariantStock, updateVariantStock, getTotalVariantStock } from '
 export const AdminContext = createContext();
 
 export const AdminProvider = ({ children }) => {
-  console.log('⚙️ AdminProvider render');
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [orders, setOrders] = useState([]);
