@@ -8,8 +8,10 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
   const [touchEnd, setTouchEnd] = useState(0);
   const autoSlideRef = useRef(null);
 
-  // Filter only enabled banners - memoized to prevent infinite loops
-  const activeBanners = useMemo(() => banners.filter(banner => banner.enabled), [banners]);
+  // Filter enabled banners - only recalculate when banners array length or enabled status changes
+  const activeBanners = useMemo(() => {
+    return banners.filter(banner => banner.enabled);
+  }, [banners.length, banners.map(b => b.enabled).join(',')]);
 
   // Don't render if no active banners
   if (activeBanners.length === 0) {

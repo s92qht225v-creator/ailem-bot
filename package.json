@@ -1,7 +1,7 @@
 {
   "name": "ailem-bot",
   "private": true,
-  "version": "1.0.9",
+  "version": "1.0.10",
   "type": "module",
   "description": "Telegram Mini App for home textiles e-commerce store",
   "author": "Your Name",
