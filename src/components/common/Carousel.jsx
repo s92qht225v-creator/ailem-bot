@@ -8,9 +8,15 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
   const [touchEnd, setTouchEnd] = useState(0);
   const autoSlideRef = useRef(null);
 
-  // Filter enabled banners - calculate once per render, don't memoize
+  // Filter enabled banners
   const activeBanners = banners.filter(banner => banner.enabled);
   const activeBannersCount = activeBanners.length;
+
+  // Store count in ref for use in interval without triggering re-renders
+  const countRef = useRef(activeBannersCount);
+  useEffect(() => {
+    countRef.current = activeBannersCount;
+  }, [activeBannersCount]);
 
   // Don't render if no active banners
   if (activeBannersCount === 0) {
@@ -23,22 +29,24 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
 
   const goToPrevious = useCallback(() => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === 0 ? activeBannersCount - 1 : prevIndex - 1
+      prevIndex === 0 ? countRef.current - 1 : prevIndex - 1
     );
-  }, [activeBannersCount]);
+  }, []);
 
   const goToNext = useCallback(() => {
     setCurrentIndex((prevIndex) =>
-      prevIndex === activeBannersCount - 1 ? 0 : prevIndex + 1
+      prevIndex === countRef.current - 1 ? 0 : prevIndex + 1
     );
-  }, [activeBannersCount]);
+  }, []);
 
   // Auto-slide functionality
   useEffect(() => {
-    if (activeBanners.length <= 1 || isPaused) return;
+    if (activeBannersCount <= 1 || isPaused) return;
 
     autoSlideRef.current = setInterval(() => {
-      goToNext();
+      setCurrentIndex((prevIndex) =>
+        prevIndex === countRef.current - 1 ? 0 : prevIndex + 1
+      );
     }, autoSlideInterval);
 
     return () => {
@@ -46,7 +54,7 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
         clearInterval(autoSlideRef.current);
       }
     };
-  }, [activeBanners.length, isPaused, autoSlideInterval, goToNext]);
+  }, [activeBannersCount, isPaused, autoSlideInterval]);
 
   // Touch handlers for swipe support
   const handleTouchStart = (e) => {
