@@ -11,8 +11,15 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('ErrorBoundary caught:', error, errorInfo);
+    console.error('❌ ErrorBoundary caught:', error, errorInfo);
+    console.error('❌ Error stack:', error.stack);
+    console.error('❌ Component stack:', errorInfo.componentStack);
     this.setState({ hasError: true, error, errorInfo });
+    
+    // Prevent infinite reload loop
+    if (error.message && error.message.includes('Too many re-renders')) {
+      console.error('❌ INFINITE LOOP DETECTED - Check hooks order in components');
+    }
   }
 
   render() {

@@ -372,8 +372,8 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
-  // Memoize context value to prevent unnecessary re-renders of consumers
-  const contextValue = useMemo(() => ({
+  // Don't memoize - functions are stable and memoization causes issues
+  const contextValue = {
     products,
     addProduct,
     updateProduct,
@@ -397,7 +397,7 @@ export const AdminProvider = ({ children }) => {
     loading,
     error,
     loadAllData
-  }), [products, categories, orders, reviews, users, loading, error]);
+  };
 
   return (
     <AdminContext.Provider value={contextValue}>
