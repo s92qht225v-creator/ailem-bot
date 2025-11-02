@@ -147,7 +147,7 @@ function App() {
   // Save current page and data to localStorage whenever they change
   // Skip on initial mount to avoid triggering when loading from localStorage
   // Use a ref to track previous values to prevent infinite loops
-  const prevPageRef = useRef({ page: currentPage, data: pageData });
+  const prevPageRef = useRef({ page: '', data: {} });
 
   useEffect(() => {
     if (!initialLoadDone.current) return; // Don't save during initial load
