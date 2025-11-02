@@ -1,11 +1,11 @@
 import { useState, useContext, useEffect, useMemo } from 'react';
-import { 
-  Shield, Package, Star, Users as UsersIcon, CheckCircle, XCircle, 
-  Edit, Trash2, Plus, ChevronRight, Edit2, ShoppingBag, Truck, Gift, 
-  Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload, 
+import {
+  Shield, Package, Star, Users as UsersIcon, CheckCircle, XCircle,
+  Edit, Trash2, Plus, ChevronRight, Edit2, ShoppingBag, Truck, Gift,
+  Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload,
   TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle, AlertCircle,
   Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff, ImagePlus,
-  Download, FileDown
+  Download, FileDown, ChevronUp, ChevronDown
 } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
@@ -22,7 +22,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const { products, categories, orders, reviews, users, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, approveReview, deleteReview } = useContext(AdminContext);
+  const { products, categories, orders, reviews, users, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, reorderCategories, approveReview, deleteReview } = useContext(AdminContext);
 
   // Calculate stats
   const pendingOrders = orders.filter(o => o.status === 'pending').length;
@@ -1758,6 +1758,21 @@ const DesktopAdminPanel = ({ onLogout }) => {
       }
     };
 
+    const handleMoveCategory = (index, direction) => {
+      const newIndex = direction === 'up' ? index - 1 : index + 1;
+      if (newIndex < 0 || newIndex >= categories.length) return;
+
+      // Create a copy of categories array
+      const reorderedCategoriesArray = [...categories];
+
+      // Swap the categories
+      [reorderedCategoriesArray[index], reorderedCategoriesArray[newIndex]] =
+      [reorderedCategoriesArray[newIndex], reorderedCategoriesArray[index]];
+
+      // Update the order in AdminContext (which also saves to localStorage)
+      reorderCategories(reorderedCategoriesArray);
+    };
+
     return (
       <div className="space-y-6">
         {/* Header Actions */}
@@ -1873,14 +1888,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((category) => (
+          {categories.map((category, index) => (
             <div key={category.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
-              <div className="aspect-video relative overflow-hidden rounded-t-lg bg-gray-100">
+              <div className="aspect-square relative overflow-hidden rounded-t-lg bg-gray-50">
                 {category.image ? (
                   <img
                     src={category.image}
                     alt={category.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain p-4"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-6xl text-gray-400">
@@ -1890,7 +1905,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
               <div className="p-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">{category.name}</h3>
-                <div className="flex gap-2">
+                <div className="flex gap-2 mb-2">
                   <button
                     onClick={() => handleEdit(category)}
                     className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
@@ -1904,6 +1919,24 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleMoveCategory(index, 'up')}
+                    disabled={index === 0}
+                    className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                    Move Up
+                  </button>
+                  <button
+                    onClick={() => handleMoveCategory(index, 'down')}
+                    disabled={index === categories.length - 1}
+                    className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                    Move Down
                   </button>
                 </div>
               </div>

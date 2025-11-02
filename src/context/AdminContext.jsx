@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useMemo } from 'react';
 import { categoriesAPI, productsAPI, ordersAPI, reviewsAPI, usersAPI } from '../services/api';
 import { decreaseVariantStock, updateVariantStock, getTotalVariantStock } from '../utils/variants';
+import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
 
 export const AdminContext = createContext();
 
@@ -42,7 +43,30 @@ export const AdminProvider = ({ children }) => {
       });
 
       setProducts(productsData || []);
-      setCategories(categoriesData || []);
+
+      // Apply saved category order from localStorage
+      const savedOrder = loadFromLocalStorage('categoryOrder');
+      if (savedOrder && Array.isArray(savedOrder)) {
+        const orderedCategories = [];
+        const categoryMap = new Map(categoriesData.map(cat => [cat.id, cat]));
+
+        // Add categories in saved order
+        savedOrder.forEach(id => {
+          const cat = categoryMap.get(id);
+          if (cat) {
+            orderedCategories.push(cat);
+            categoryMap.delete(id);
+          }
+        });
+
+        // Add any new categories that weren't in saved order
+        categoryMap.forEach(cat => orderedCategories.push(cat));
+
+        setCategories(orderedCategories);
+      } else {
+        setCategories(categoriesData || []);
+      }
+
       setOrders(ordersData || []);
       setUsers(usersData || []);
       setReviews(reviewsData || []);
@@ -338,7 +362,12 @@ export const AdminProvider = ({ children }) => {
   const addCategory = async (category) => {
     try {
       const newCategory = await categoriesAPI.create(category);
-      setCategories(prev => [...prev, newCategory]);
+      setCategories(prev => {
+        const updated = [...prev, newCategory];
+        // Update saved order
+        saveToLocalStorage('categoryOrder', updated.map(cat => cat.id));
+        return updated;
+      });
       return newCategory;
     } catch (err) {
       console.error('Failed to add category:', err);
@@ -364,11 +393,21 @@ export const AdminProvider = ({ children }) => {
   const deleteCategory = async (categoryId) => {
     try {
       await categoriesAPI.delete(categoryId);
-      setCategories(prev => prev.filter(category => category.id !== categoryId));
+      setCategories(prev => {
+        const updated = prev.filter(category => category.id !== categoryId);
+        // Update saved order
+        saveToLocalStorage('categoryOrder', updated.map(cat => cat.id));
+        return updated;
+      });
     } catch (err) {
       console.error('Failed to delete category:', err);
       throw err;
     }
+  };
+
+  const reorderCategories = (reorderedCategories) => {
+    setCategories(reorderedCategories);
+    saveToLocalStorage('categoryOrder', reorderedCategories.map(cat => cat.id));
   };
 
   // Don't memoize - functions are stable and memoization causes issues
@@ -381,6 +420,7 @@ export const AdminProvider = ({ children }) => {
     addCategory,
     updateCategory,
     deleteCategory,
+    reorderCategories,
     orders,
     addOrder,
     updateOrderStatus,

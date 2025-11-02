@@ -7,8 +7,10 @@ import Carousel from '../common/Carousel';
 import { settingsAPI } from '../../services/api';
 import { loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { useProducts } from '../../hooks/useProducts';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const HomePage = ({ onNavigate }) => {
+  const { t } = useTranslation();
   const { categories, loading } = useContext(AdminContext);
   const { toggleFavorite, isFavorite } = useContext(UserContext);
   const { featuredProducts } = useProducts();
@@ -68,7 +70,7 @@ const HomePage = ({ onNavigate }) => {
       <div className="pb-20 px-4 pt-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading store...</p>
+          <p className="text-gray-600">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -85,14 +87,14 @@ const HomePage = ({ onNavigate }) => {
       {/* Countdown Timer - Only show if timer is enabled */}
       {saleTimer && saleTimer.enabled && saleEndDate && (
         <div className="bg-white shadow-md py-6 px-4 mb-6">
-          <h3 className="text-center font-semibold text-gray-700 mb-3">Sale Ends In</h3>
+          <h3 className="text-center font-semibold text-gray-700 mb-3">{t('home.saleEnds')}</h3>
           <CountdownTimer endDate={saleEndDate} />
         </div>
       )}
 
       {/* Categories */}
       <div className="px-4 mb-6 pt-6">
-        <h3 className="text-xl font-bold mb-4">Shop by Category</h3>
+        <h3 className="text-xl font-bold mb-4">{t('nav.categories')}</h3>
         <div className="grid grid-cols-3 gap-4">
           {categories && categories.length > 0 ? categories.map((category) => (
             <button
@@ -118,12 +120,12 @@ const HomePage = ({ onNavigate }) => {
             </button>
           )) : (
             <div className="col-span-3 text-center py-8">
-              <p className="text-gray-500 mb-4">Loading categories...</p>
+              <p className="text-gray-500 mb-4">{t('common.loading')}</p>
               <button
                 onClick={() => onNavigate('shop')}
                 className="bg-accent text-white px-6 py-2 rounded-lg font-semibold"
               >
-                Browse All Products
+                {t('shop.allProducts')}
               </button>
             </div>
           )}
@@ -133,12 +135,12 @@ const HomePage = ({ onNavigate }) => {
       {/* Featured Products */}
       <div className="px-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold">Best Sellers</h3>
+          <h3 className="text-xl font-bold">{t('home.bestSellers')}</h3>
           <button
             onClick={() => onNavigate('shop')}
             className="text-accent font-semibold hover:underline"
           >
-            View All
+            {t('home.viewAll')}
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">

@@ -927,20 +927,31 @@ export const storageAPI = {
   async uploadImage(file, folder = 'products', bucket = 'product-images') {
     try {
       // Generate unique filename
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop().toLowerCase();
       const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
       console.log(`📤 Uploading to Supabase Storage: ${bucket}/${fileName}`);
+      console.log(`📄 File type: ${file.type}, Extension: ${fileExt}`);
+
+      // Determine content type
+      let contentType = file.type;
+      if (fileExt === 'svg') {
+        contentType = 'image/svg+xml';
+      }
 
       // Upload file
       const { data, error } = await supabase.storage
         .from(bucket)
         .upload(fileName, file, {
           cacheControl: '3600',
-          upsert: false
+          upsert: false,
+          contentType: contentType
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Supabase upload error:', error);
+        throw error;
+      }
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
