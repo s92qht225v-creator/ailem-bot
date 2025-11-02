@@ -3602,9 +3602,20 @@ const DesktopAdminPanel = ({ onLogout }) => {
       }
     }, []);
 
-    const saveBonusConfig = (newConfig) => {
+    const saveBonusConfig = async (newConfig) => {
       setBonusConfig(newConfig);
       saveToLocalStorage('bonusConfig', newConfig);
+
+      // ALSO save to Supabase database so webhooks can read it
+      try {
+        await settingsAPI.updateBonusConfig({
+          purchaseBonus: newConfig.purchaseBonus,
+          referralCommission: newConfig.referralCommission
+        });
+        console.log('✅ Bonus config saved to database');
+      } catch (error) {
+        console.error('❌ Failed to save bonus config to database:', error);
+      }
     };
 
     return (
