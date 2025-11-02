@@ -248,8 +248,18 @@ async function handleComplete(params, res) {
 
   console.log('✅ COMPLETE successful, order updated');
 
-  // Award bonus points BEFORE sending response (critical!)
-  // In serverless functions, code after res.json() may not execute
+  // Return success to Click IMMEDIATELY (they timeout after 3 seconds)
+  // IMPORTANT: Click expects these exact fields in the response  
+  res.json({
+    click_trans_id,
+    merchant_trans_id,
+    merchant_confirm_id,
+    error: 0,
+    error_note: 'Success'
+  });
+
+  // Award bonus points AFTER response
+  // Response is already sent, function will stay alive to complete this
   if (isApproved) {
     try {
       // Fetch the order to get user_id and total
@@ -265,17 +275,6 @@ async function handleComplete(params, res) {
       }
     } catch (bonusError) {
       console.error('❌ Failed to award bonus points:', bonusError);
-      // Continue anyway - don't fail the transaction
     }
   }
-
-  // Return success to Click
-  // IMPORTANT: Click expects these exact fields in the response
-  return res.json({
-    click_trans_id,
-    merchant_trans_id,
-    merchant_confirm_id,
-    error: 0,
-    error_note: 'Success'
-  });
 }
