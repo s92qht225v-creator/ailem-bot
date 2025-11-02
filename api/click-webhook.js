@@ -303,11 +303,28 @@ async function handleComplete(params, res) {
     });
   }
 
-  // Update order directly without checking if it exists first (for speed)
-  // Use upsert behavior to handle both new and existing orders
+  // Fetch order FIRST to get items for stock deduction
+  const { data: order, error: fetchError } = await supabase
+    .from('orders')
+    .select('*')
+    .eq('click_order_id', merchant_trans_id)
+    .single();
+
+  if (fetchError || !order) {
+    console.error('❌ Order not found for complete:', merchant_trans_id);
+    return res.json({
+      click_trans_id,
+      merchant_trans_id,
+      merchant_confirm_id: Date.now(),
+      error: -5,
+      error_note: 'Order not found'
+    });
+  }
+
   const merchant_confirm_id = Date.now();
   const isApproved = !click_error || click_error >= 0;
 
+  // Update order status
   const { error: updateError } = await supabase
     .from('orders')
     .update({
@@ -322,41 +339,35 @@ async function handleComplete(params, res) {
     console.error('❌ Failed to update order:', updateError);
   }
 
+  // Deduct stock and award bonus BEFORE response (critical for serverless)
+  if (isApproved) {
+    try {
+      await deductStock(order);
+      console.log('✅ Stock deducted successfully');
+    } catch (stockError) {
+      console.error('❌ Failed to deduct stock:', stockError);
+      // Continue anyway - don't fail the transaction
+    }
+
+    try {
+      await awardBonusPoints(order);
+      console.log('✅ Bonus points awarded successfully');
+    } catch (bonusError) {
+      console.error('❌ Failed to award bonus points:', bonusError);
+      // Continue anyway - don't fail the transaction
+    }
+  }
+
   console.log('✅ COMPLETE successful, order updated');
 
-  // Return success to Click IMMEDIATELY (they timeout after 3 seconds)
+  // Return success to Click (they timeout after 3 seconds)
   // IMPORTANT: Click expects these exact fields in the response  
-  res.json({
+  return res.json({
     click_trans_id,
     merchant_trans_id,
     merchant_confirm_id,
-    merchant_prepare_id: merchant_prepare_id || 0, // Echo back prepare ID
+    merchant_prepare_id: merchant_prepare_id || 0,
     error: 0,
     error_note: 'Success'
   });
-
-  // Deduct stock and award bonus points AFTER response (fire-and-forget)
-  // Use setImmediate to ensure response is fully sent before starting async work
-  if (isApproved) {
-    setImmediate(async () => {
-      try {
-        // Fetch the order to get full details including items
-        const { data: order } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('click_order_id', merchant_trans_id)
-          .single();
-
-        if (order) {
-          await deductStock(order);
-          console.log('✅ Stock deducted successfully');
-          
-          await awardBonusPoints(order);
-          console.log('✅ Bonus points awarded successfully');
-        }
-      } catch (error) {
-        console.error('❌ Failed to deduct stock or award bonus points:', error);
-      }
-    });
-  }
 }
