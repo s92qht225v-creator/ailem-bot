@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, useMemo } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
 import ProductCard from '../product/ProductCard';
@@ -10,17 +10,8 @@ import { useProducts } from '../../hooks/useProducts';
 
 const HomePage = ({ onNavigate }) => {
   const { categories, loading } = useContext(AdminContext);
-  const { toggleFavorite, isFavorite, favorites } = useContext(UserContext);
+  const { toggleFavorite, isFavorite } = useContext(UserContext);
   const { featuredProducts } = useProducts();
-
-  // Create a favorites lookup map to avoid calling isFavorite in render
-  const favoritesMap = useMemo(() => {
-    const map = {};
-    featuredProducts.forEach(product => {
-      map[product.id] = isFavorite(product.id);
-    });
-    return map;
-  }, [featuredProducts, favorites]);
 
   // Show loading state if no data yet
   if (loading && (!categories || categories.length === 0)) {
@@ -155,7 +146,7 @@ const HomePage = ({ onNavigate }) => {
               key={product.id}
               product={product}
               onView={(id) => onNavigate('product', { productId: id })}
-              isFavorite={favoritesMap[product.id]}
+              isFavorite={isFavorite(product.id)}
               onToggleFavorite={toggleFavorite}
             />
           ))}
