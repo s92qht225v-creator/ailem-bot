@@ -33,7 +33,7 @@ export default {
     addressesSubtitle: 'Yetkazish manzillarini boshqarish',
     reviews: 'Mening sharhlarim',
     reviewsSubtitle: 'Xaridlaringiz uchun sharhlar',
-    favorites: 'Sevimlilar',
+    favorites: 'Saralangan',
     favoritesSubtitle: 'Sizning istaklar ro'yxati',
     bonusPoints: 'Bonus ballar',
     earnings: 'daromad',

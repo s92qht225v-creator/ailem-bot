@@ -40,7 +40,7 @@ export default {
     cart: 'Savat',
     profile: 'Profil',
     orders: 'Buyurtmalar',
-    favorites: 'Sevimlilar',
+    favorites: 'Saralangan',
     categories: 'Kategoriyalar',
     admin: 'Admin panel'
   },
@@ -108,8 +108,8 @@ export default {
     colors: 'Ranglar',
     sizes: 'O\'lchamlar',
     addedToCart: 'Savatga qo\'shildi',
-    addToFavorites: 'Sevimlilarga qo\'shish',
-    removeFromFavorites: 'Sevimlilardan o\'chirish',
+    addToFavorites: 'Saralanganga qo\'shish',
+    removeFromFavorites: 'Saralanganidan o\'chirish',
     share: 'Ulashish',
     similarProducts: 'O\'xshash mahsulotlar'
   },
@@ -253,7 +253,7 @@ export default {
     referralBonus: 'Har bir do\'st uchun bonus qo\'shing',
     orders: 'Buyurtmalar',
     totalOrders: 'Jami buyurtmalar',
-    favorites: 'Sevimlilar',
+    favorites: 'Saralangan',
     favoritesSubtitle: 'Sizning istaklar ro\'yxati',
     addresses: 'Saqlangan manzillar',
     addressesSubtitle: 'Yetkazish manzillarini boshqarish',
@@ -300,10 +300,10 @@ export default {
 
   // Favorites
   favorites: {
-    title: 'Sevimlilar',
-    empty: 'Sevimlilar ro\'yxati bo\'sh',
-    addedToFavorites: 'Sevimlilarga qo\'shildi',
-    removedFromFavorites: 'Sevimlilardan o\'chirildi',
+    title: 'Saralangan',
+    empty: 'Saralangan ro\'yxati bo\'sh',
+    addedToFavorites: 'Saralanganga qo\'shildi',
+    removedFromFavorites: 'Saralan ganidan o\'chirildi',
     moveToCart: 'Savatga ko\'chirish',
     removeAll: 'Barchasini o\'chirish'
   },
