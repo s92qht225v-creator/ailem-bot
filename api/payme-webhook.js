@@ -18,24 +18,36 @@ async function deductStock(order) {
 
   try {
     for (const item of order.items) {
+      // Get product ID - support both 'id' and 'productId' field names
+      const productId = item.id || item.productId;
+      
+      if (!productId) {
+        console.error('❌ Item missing product ID:', item);
+        continue;
+      }
+
       // Fetch the product
       const { data: product, error: productError } = await supabase
         .from('products')
         .select('*')
-        .eq('id', item.id)
+        .eq('id', productId)
         .single();
 
       if (productError || !product) {
-        console.error(`❌ Product not found for ID ${item.id}:`, productError);
+        console.error(`❌ Product not found for ID ${productId}:`, productError);
         continue;
       }
 
       // Check if product uses variant tracking
-      if (product.variants && product.variants.length > 0 && item.selectedColor && item.selectedSize) {
+      // Support both 'color'/'size' and 'selectedColor'/'selectedSize'
+      const itemColor = item.color || item.selectedColor;
+      const itemSize = item.size || item.selectedSize;
+      
+      if (product.variants && product.variants.length > 0 && itemColor && itemSize) {
         // Deduct variant stock
         const updatedVariants = product.variants.map(v => {
-          if (v.color?.toLowerCase() === item.selectedColor.toLowerCase() &&
-              v.size?.toLowerCase() === item.selectedSize.toLowerCase()) {
+          if (v.color?.toLowerCase() === itemColor.toLowerCase() &&
+              v.size?.toLowerCase() === itemSize.toLowerCase()) {
             return { ...v, stock: Math.max(0, (v.stock || 0) - item.quantity) };
           }
           return v;
@@ -49,7 +61,7 @@ async function deductStock(order) {
         if (updateError) {
           console.error(`❌ Failed to update variant stock for ${product.name}:`, updateError);
         } else {
-          console.log(`📦 Deducted ${item.quantity} units from ${item.selectedColor} • ${item.selectedSize} variant of ${product.name}`);
+          console.log(`📦 Deducted ${item.quantity} units from ${itemColor} • ${itemSize} variant of ${product.name}`);
         }
       } else {
         // Deduct regular stock
