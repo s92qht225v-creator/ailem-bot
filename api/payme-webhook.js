@@ -166,145 +166,6 @@ async function awardBonusPoints(order) {
   }
 }
 
-// Send Telegram notification to admin about new order
-async function sendAdminNotification(order, status) {
-  const botToken = process.env.VITE_TELEGRAM_BOT_TOKEN;
-  const adminChatId = process.env.VITE_ADMIN_CHAT_ID;
-
-  if (!botToken || !adminChatId) {
-    console.log('⚠️ Cannot send admin notification: missing bot token or admin chat ID');
-    return;
-  }
-
-  const orderNumber = order.order_number || order.id;
-  const userName = order.user_name || order.deliveryInfo?.fullName || order.delivery_info?.fullName || 'Customer';
-  const userPhone = order.user_phone || order.deliveryInfo?.phone || order.delivery_info?.phone || 'N/A';
-
-  let message = '';
-  if (status === 'approved') {
-    message = `🔔 <b>NEW ORDER APPROVED</b>\n\n` +
-      `Order: <b>#${orderNumber}</b>\n` +
-      `Customer: ${userName}\n` +
-      `Phone: ${userPhone}\n` +
-      `Amount: <b>${order.total} so'm</b>\n` +
-      `Payment: Payme ✅\n` +
-      `Status: APPROVED\n\n` +
-      `Please process this order.`;
-  } else if (status === 'rejected') {
-    message = `❌ <b>ORDER PAYMENT CANCELLED</b>\n\n` +
-      `Order: <b>#${orderNumber}</b>\n` +
-      `Customer: ${userName}\n` +
-      `Amount: ${order.total} so'm\n` +
-      `Payment was cancelled or declined.`;
-  }
-
-  try {
-    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: adminChatId,
-        text: message,
-        parse_mode: 'HTML'
-      })
-    });
-
-    if (response.ok) {
-      console.log('✅ Admin notification sent to:', adminChatId);
-    } else {
-      console.error('❌ Failed to send admin notification:', await response.text());
-    }
-  } catch (error) {
-    console.error('❌ Error sending admin notification:', error);
-  }
-}
-
-// Send Telegram notification to user
-async function sendTelegramNotification(order, status) {
-  const botToken = process.env.VITE_TELEGRAM_BOT_TOKEN;
-  // Use user_telegram_id which contains the actual Telegram chat ID
-  const userChatId = order.user_telegram_id || order.userTelegramId;
-
-  console.log('📱 Notification attempt:', {
-    orderNumber: order.order_number || order.id,
-    status,
-    hasBotToken: !!botToken,
-    userChatId,
-    user_telegram_id: order.user_telegram_id,
-    userTelegramId: order.userTelegramId
-  });
-
-  if (!botToken) {
-    console.log('⚠️ Cannot send notification: VITE_TELEGRAM_BOT_TOKEN not set');
-    return;
-  }
-
-  if (!userChatId) {
-    console.log('⚠️ Cannot send notification: user_telegram_id not found in order');
-    return;
-  }
-
-  // Skip demo users
-  const chatIdStr = String(userChatId);
-  if (chatIdStr.startsWith('demo-') || isNaN(Number(userChatId))) {
-    console.log('⚠️ Skipping notification for demo user');
-    return;
-  }
-
-  // Get user's preferred language (default to Uzbek)
-  const userLanguage = order.user_language || order.language || 'uz';
-
-  const orderNumber = order.order_number || order.id;
-  
-  let message = '';
-  if (status === 'approved') {
-    if (userLanguage === 'ru') {
-      message = `✅ <b>Оплата успешна!</b>\n\n` +
-        `Заказ: <b>#${orderNumber}</b>\n` +
-        `Сумма: <b>${order.total} сўм</b>\n` +
-        `Оплата: Payme\n\n` +
-        `Ваш заказ подтвержден и будет обработан в ближайшее время.`;
-    } else {
-      message = `✅ <b>To'lov muvaffaqiyatli!</b>\n\n` +
-        `Buyurtma: <b>#${orderNumber}</b>\n` +
-        `Summa: <b>${order.total} so'm</b>\n` +
-        `To'lov: Payme\n\n` +
-        `Buyurtmangiz tasdiqlandi va tez orada qayta ishlanadi.`;
-    }
-  } else if (status === 'rejected') {
-    if (userLanguage === 'ru') {
-      message = `❌ <b>Оплата отменена</b>\n\n` +
-        `Заказ: <b>#${orderNumber}</b>\n` +
-        `Сумма: <b>${order.total} сўм</b>\n\n` +
-        `Ваш платеж был отменен или отклонен.`;
-    } else {
-      message = `❌ <b>To'lov bekor qilindi</b>\n\n` +
-        `Buyurtma: <b>#${orderNumber}</b>\n` +
-        `Summa: <b>${order.total} so'm</b>\n\n` +
-        `To'lovingiz bekor qilindi yoki rad etildi.`;
-    }
-  }
-
-  try {
-    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: userChatId,
-        text: message,
-        parse_mode: 'HTML'
-      })
-    });
-
-    if (response.ok) {
-      console.log('✅ Telegram notification sent to user:', userChatId);
-    } else {
-      console.error('❌ Failed to send Telegram notification:', await response.text());
-    }
-  } catch (error) {
-    console.error('❌ Error sending Telegram notification:', error);
-  }
-}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -626,15 +487,6 @@ async function performTransaction(params, res, requestId) {
     // Continue anyway - don't fail the transaction
   }
 
-  // Send Telegram notifications (non-critical, fire-and-forget)
-  sendTelegramNotification(order, 'approved').catch(err => {
-    console.error('❌ Failed to send user notification:', err);
-  });
-
-  sendAdminNotification(order, 'approved').catch(err => {
-    console.error('❌ Failed to send admin notification:', err);
-  });
-
   // Send response to Payme
   return res.json({
     jsonrpc: '2.0',
@@ -669,16 +521,6 @@ async function cancelTransaction(params, res, requestId) {
       payme_cancel_reason: reason
     })
     .eq('payme_transaction_id', id);
-
-  // Send Telegram notifications
-  if (order) {
-    try {
-      await sendTelegramNotification(order, 'rejected');
-      await sendAdminNotification(order, 'rejected');
-    } catch (notifError) {
-      console.error('Failed to send Telegram notifications:', notifError);
-    }
-  }
 
   return res.json({
     jsonrpc: '2.0',
