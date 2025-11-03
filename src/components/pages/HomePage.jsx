@@ -100,7 +100,7 @@ const HomePage = ({ onNavigate }) => {
             <button
               key={category.id}
               onClick={() => {
-                onNavigate('shop', { category: category.originalName || category.name });
+                onNavigate('shop', { category: category.name });
               }}
               className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >

@@ -14,11 +14,10 @@ export const categoriesAPI = {
 
     if (error) throw error;
     
-    // Map to localized name but keep original for filtering
+    // Map to localized name
     return data.map(cat => ({
       ...cat,
-      name: cat[`name_${language}`] || cat.name, // Localized display name
-      originalName: cat.name // Original name for filtering
+      name: cat.name // Keep original name for filtering consistency
     }));
   },
 
@@ -88,7 +87,7 @@ export const productsAPI = {
         ...product,
         name: product[`name_${language}`] || product.name, // Localized name
         description: product[`description_${language}`] || product.description, // Localized description
-        category: product.category_name, // Map category_name to category for compatibility
+        category: product.category_name, // Original category name for filtering
         originalPrice: product.original_price,
         reviewCount: product.review_count,
         variants: product.variants || [],
@@ -129,7 +128,7 @@ export const productsAPI = {
       ...data,
       name: data[`name_${language}`] || data.name, // Localized name
       description: data[`description_${language}`] || data.description, // Localized description
-      category: data.category_name,
+      category: data.category_name, // Original category name for filtering
       originalPrice: data.original_price,
       reviewCount: data.review_count,
       variants: data.variants || [],
