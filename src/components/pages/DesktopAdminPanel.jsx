@@ -1893,6 +1893,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [uploadingImage, setUploadingImage] = useState(false);
     const [formData, setFormData] = useState({
       name: '',
+      name_uz: '',
+      name_ru: '',
       image: ''
     });
 
@@ -1923,7 +1925,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
       
       try {
         const categoryData = {
-          name: formData.name,
+          name: formData.name_uz || formData.name,
+          name_uz: formData.name_uz || formData.name,
+          name_ru: formData.name_ru,
           image: formData.image || null
         };
 
@@ -1937,7 +1941,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         setShowForm(false);
         setEditingCategory(null);
-        setFormData({ name: '', image: '' });
+        setFormData({ name: '', name_uz: '', name_ru: '', image: '' });
       } catch (error) {
         console.error('❌ Failed to save category:', error);
         alert('Failed to save category. Please try again.');
@@ -1948,6 +1952,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
       setEditingCategory(category);
       setFormData({
         name: category.name,
+        name_uz: category.name_uz || category.name,
+        name_ru: category.name_ru || '',
         image: category.image || ''
       });
       setShowForm(true);
@@ -2017,12 +2023,25 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category Name *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">🇺🇿 Category Name (Uzbek) *</label>
                 <input
                   type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.name_uz}
+                  onChange={(e) => setFormData({ ...formData, name_uz: e.target.value, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  placeholder="e.g., Choyshablar"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">🇷🇺 Category Name (Russian) *</label>
+                <input
+                  type="text"
+                  value={formData.name_ru}
+                  onChange={(e) => setFormData({ ...formData, name_ru: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  placeholder="e.g., Постельное белье"
                   required
                 />
               </div>
