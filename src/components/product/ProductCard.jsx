@@ -1,8 +1,10 @@
 import { Star, Heart } from 'lucide-react';
 import { formatPrice, calculateDiscountPercentage } from '../../utils/helpers';
 import { memo } from 'react';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => {
+  const { t } = useTranslation();
   const discount = calculateDiscountPercentage(product.originalPrice, product.price);
 
   // Calculate actual approved reviews count
@@ -37,7 +39,7 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
         />
         {product.badge && (
           <span className="absolute top-2 left-2 bg-accent text-white text-xs font-semibold px-2 py-1 rounded">
-            {product.badge}
+            {t(`badges.${product.badge}`) || product.badge}
           </span>
         )}
         {discount > 0 && (

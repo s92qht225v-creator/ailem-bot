@@ -217,7 +217,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
         <div className="mb-4">
           {product.badge && (
             <span className="inline-block bg-accent text-white text-xs font-semibold px-2 py-1 rounded mb-2">
-              {product.badge}
+              {t(`badges.${product.badge}`) || product.badge}
             </span>
           )}
           <h1 className="text-2xl font-bold text-gray-800 mb-2">{product.name}</h1>

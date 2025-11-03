@@ -115,6 +115,16 @@ export default {
     relatedProducts: 'Sizga yoqishi mumkin'
   },
 
+  // Product Badges
+  badges: {
+    'SALE': 'CHEGIRMA',
+    'NEW': 'YANGI',
+    'LIMITED': 'CHEKLANGAN',
+    'BEST SELLER': 'TOP SOTILGAN',
+    'HOT': 'ISSIQ',
+    'TRENDING': 'MASHHUR'
+  },
+
   // Cart
   cart: {
     title: 'Savat',

@@ -115,6 +115,16 @@ export default {
     relatedProducts: 'Вам также может понравиться'
   },
 
+  // Product Badges
+  badges: {
+    'SALE': 'РАСПРОДАЖА',
+    'NEW': 'НОВИНКА',
+    'LIMITED': 'ОГРАНИЧЕННО',
+    'BEST SELLER': 'ХИТ ПРОДАЖ',
+    'HOT': 'ГОРЯЧЕЕ',
+    'TRENDING': 'ПОПУЛЯРНОЕ'
+  },
+
   // Cart
   cart: {
     title: 'Корзина',
