@@ -68,10 +68,10 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       const order = {
         id: orderId,
         paymeOrderId: paymeOrderId, // Payme numeric order ID for webhook
-        userId: user.id,
-        userTelegramId: user.telegramId || user.id,
-        userName: user.name,
-        userPhone: user.phone || checkoutData.phone,
+        user_id: user.id, // Use snake_case for Supabase
+        user_telegram_id: user.telegramId || user.id,
+        user_name: user.name,
+        user_phone: user.phone || checkoutData.phone,
         items: cartItems.map(item => ({
           productId: item.id,
           productName: item.name,
@@ -200,10 +200,10 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       const order = {
         id: orderId,
         clickOrderId: clickOrderId, // Click order ID for webhook lookup
-        userId: user.id,
-        userTelegramId: user.telegramId || user.id,
-        userName: user.name,
-        userPhone: user.phone || checkoutData.phone,
+        user_id: user.id, // Use snake_case for Supabase
+        user_telegram_id: user.telegramId || user.id,
+        user_name: user.name,
+        user_phone: user.phone || checkoutData.phone,
         items: cartItems.map(item => ({
           productId: item.id,
           productName: item.name,

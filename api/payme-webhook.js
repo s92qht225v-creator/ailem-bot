@@ -177,8 +177,8 @@ async function sendAdminNotification(order, status) {
   }
 
   const orderNumber = order.order_number || order.id;
-  const userName = order.user_name || order.customer_name || 'Customer';
-  const userPhone = order.user_phone || order.customer_phone || 'N/A';
+  const userName = order.user_name || order.deliveryInfo?.fullName || order.delivery_info?.fullName || 'Customer';
+  const userPhone = order.user_phone || order.deliveryInfo?.phone || order.delivery_info?.phone || 'N/A';
 
   let message = '';
   if (status === 'approved') {
