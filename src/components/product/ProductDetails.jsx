@@ -424,10 +424,10 @@ const ProductDetails = ({ product, onAddToCart }) => {
           className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center"
           onClick={handleCloseZoom}
         >
-          {/* Close Button */}
+          {/* Close Button - Left side to avoid Telegram UI */}
           <button
             onClick={handleCloseZoom}
-            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors z-10 backdrop-blur-sm"
+            className="absolute top-4 left-4 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors z-10 backdrop-blur-sm"
           >
             <X className="w-6 h-6" />
           </button>
