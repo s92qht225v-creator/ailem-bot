@@ -103,6 +103,8 @@ export const productsAPI = {
         name: product[`name_${language}`] || product.name, // Localized name
         description: product[`description_${language}`] || product.description, // Localized description
         material: product[`material_${language}`] || product.material, // Localized material
+        colors: product[`colors_${language}`] || product.colors, // Localized colors
+        sizes: product[`sizes_${language}`] || product.sizes, // Localized sizes
         category: categoryMap[product.category_name] || product.category_name, // Localized category name
         originalPrice: product.original_price,
         reviewCount: product.review_count,
@@ -158,6 +160,8 @@ export const productsAPI = {
       name: data[`name_${language}`] || data.name, // Localized name
       description: data[`description_${language}`] || data.description, // Localized description
       material: data[`material_${language}`] || data.material, // Localized material
+      colors: data[`colors_${language}`] || data.colors, // Localized colors
+      sizes: data[`sizes_${language}`] || data.sizes, // Localized sizes
       category: localizedCategory, // Localized category name
       originalPrice: data.original_price,
       reviewCount: data.review_count,
@@ -196,7 +200,11 @@ export const productsAPI = {
       material_uz: product.material_uz || product.material || null,
       material_ru: product.material_ru || null,
       colors: product.colors || [],
+      colors_uz: product.colors_uz || product.colors || [],
+      colors_ru: product.colors_ru || [],
       sizes: product.sizes || [],
+      sizes_uz: product.sizes_uz || product.sizes || [],
+      sizes_ru: product.sizes_ru || [],
       tags: product.tags || [],
       variants: product.variants || [],
       rating: 0,
@@ -246,7 +254,11 @@ export const productsAPI = {
     if (updates.material_uz !== undefined) dbUpdates.material_uz = updates.material_uz;
     if (updates.material_ru !== undefined) dbUpdates.material_ru = updates.material_ru;
     if (updates.colors !== undefined) dbUpdates.colors = updates.colors;
+    if (updates.colors_uz !== undefined) dbUpdates.colors_uz = updates.colors_uz;
+    if (updates.colors_ru !== undefined) dbUpdates.colors_ru = updates.colors_ru;
     if (updates.sizes !== undefined) dbUpdates.sizes = updates.sizes;
+    if (updates.sizes_uz !== undefined) dbUpdates.sizes_uz = updates.sizes_uz;
+    if (updates.sizes_ru !== undefined) dbUpdates.sizes_ru = updates.sizes_ru;
     if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
     if (updates.variants !== undefined) dbUpdates.variants = updates.variants;
 

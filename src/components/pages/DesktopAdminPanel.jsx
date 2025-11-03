@@ -999,7 +999,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
       material_uz: '',
       material_ru: '',
       colors: '',
+      colors_uz: '',
+      colors_ru: '',
       sizes: '',
+      sizes_uz: '',
+      sizes_ru: '',
       tags: '',
       inStock: true,
       variants: []
@@ -1073,8 +1077,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
           material: formData.material || formData.material_uz,
           material_uz: formData.material_uz || formData.material,
           material_ru: formData.material_ru || null,
-          colors: formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c) : [],
-          sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : [],
+          colors: formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c) : (formData.colors_uz ? formData.colors_uz.split(',').map(c => c.trim()).filter(c => c) : []),
+          colors_uz: formData.colors_uz ? formData.colors_uz.split(',').map(c => c.trim()).filter(c => c) : (formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c) : []),
+          colors_ru: formData.colors_ru ? formData.colors_ru.split(',').map(c => c.trim()).filter(c => c) : [],
+          sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : (formData.sizes_uz ? formData.sizes_uz.split(',').map(s => s.trim()).filter(s => s) : []),
+          sizes_uz: formData.sizes_uz ? formData.sizes_uz.split(',').map(s => s.trim()).filter(s => s) : (formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : []),
+          sizes_ru: formData.sizes_ru ? formData.sizes_ru.split(',').map(s => s.trim()).filter(s => s) : [],
           tags: formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
           variants: formData.variants || []
         };
@@ -1113,7 +1121,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
           material_uz: '',
           material_ru: '',
           colors: '',
+          colors_uz: '',
+          colors_ru: '',
           sizes: '',
+          sizes_uz: '',
+          sizes_ru: '',
           tags: '',
           inStock: true,
           variants: []
@@ -1150,7 +1162,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
         material_uz: product.material_uz || product.material || '',
         material_ru: product.material_ru || '',
         colors: product.colors ? product.colors.join(', ') : '',
+        colors_uz: product.colors_uz ? product.colors_uz.join(', ') : (product.colors ? product.colors.join(', ') : ''),
+        colors_ru: product.colors_ru ? product.colors_ru.join(', ') : '',
         sizes: product.sizes ? product.sizes.join(', ') : '',
+        sizes_uz: product.sizes_uz ? product.sizes_uz.join(', ') : (product.sizes ? product.sizes.join(', ') : ''),
+        sizes_ru: product.sizes_ru ? product.sizes_ru.join(', ') : '',
         tags: product.tags ? product.tags.join(', ') : '',
         inStock: product.inStock !== false,
         variants: product.variants || []
@@ -1336,6 +1352,28 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       placeholder="Masalan: Paxta"
                     />
                   </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Ranglar (O'zbek)</label>
+                    <input
+                      type="text"
+                      value={formData.colors_uz}
+                      onChange={(e) => setFormData({ ...formData, colors_uz: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      placeholder="Oq, Qora, Ko'k (vergul bilan ajratilgan)"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">O'lchamlar (O'zbek)</label>
+                    <input
+                      type="text"
+                      value={formData.sizes_uz}
+                      onChange={(e) => setFormData({ ...formData, sizes_uz: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      placeholder="Kichik, O'rta, Katta (vergul bilan ajratilgan)"
+                    />
+                  </div>
                 </div>
               )}
 
@@ -1374,6 +1412,30 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       onChange={(e) => setFormData({ ...formData, material_ru: e.target.value })}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="Например: Хлопок"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы использовать узбекскую версию</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Цвета (Русский)</label>
+                    <input
+                      type="text"
+                      value={formData.colors_ru}
+                      onChange={(e) => setFormData({ ...formData, colors_ru: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      placeholder="Белый, Черный, Синий (через запятую)"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы использовать узбекскую версию</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Размеры (Русский)</label>
+                    <input
+                      type="text"
+                      value={formData.sizes_ru}
+                      onChange={(e) => setFormData({ ...formData, sizes_ru: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      placeholder="Маленький, Средний, Большой (через запятую)"
                     />
                     <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы использовать узбекскую версию</p>
                   </div>
@@ -1457,27 +1519,6 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Colors</label>
-                <input
-                  type="text"
-                  value={formData.colors}
-                  onChange={(e) => handleColorsOrSizesChange('colors', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="White, Gray, Navy Blue (comma separated)"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sizes</label>
-                <input
-                  type="text"
-                  value={formData.sizes}
-                  onChange={(e) => handleColorsOrSizesChange('sizes', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="Twin, Full, Queen, King (comma separated)"
-                />
-              </div>
 
               {/* Variant Stock Management */}
               {formData.variants.length > 0 && (

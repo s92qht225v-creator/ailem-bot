@@ -11,7 +11,11 @@ ADD COLUMN IF NOT EXISTS name_ru TEXT,
 ADD COLUMN IF NOT EXISTS description_uz TEXT,
 ADD COLUMN IF NOT EXISTS description_ru TEXT,
 ADD COLUMN IF NOT EXISTS material_uz TEXT,
-ADD COLUMN IF NOT EXISTS material_ru TEXT;
+ADD COLUMN IF NOT EXISTS material_ru TEXT,
+ADD COLUMN IF NOT EXISTS colors_uz TEXT[],
+ADD COLUMN IF NOT EXISTS colors_ru TEXT[],
+ADD COLUMN IF NOT EXISTS sizes_uz TEXT[],
+ADD COLUMN IF NOT EXISTS sizes_ru TEXT[];
 
 -- ============================================
 -- 2. MIGRATE EXISTING DATA TO UZBEK COLUMNS
@@ -22,7 +26,9 @@ UPDATE products
 SET 
   name_uz = name,
   description_uz = description,
-  material_uz = material
+  material_uz = material,
+  colors_uz = colors,
+  sizes_uz = sizes
 WHERE name_uz IS NULL;
 
 -- ============================================
@@ -64,6 +70,10 @@ COMMENT ON COLUMN products.description_uz IS 'Product description in Uzbek';
 COMMENT ON COLUMN products.description_ru IS 'Product description in Russian';
 COMMENT ON COLUMN products.material_uz IS 'Product material in Uzbek';
 COMMENT ON COLUMN products.material_ru IS 'Product material in Russian';
+COMMENT ON COLUMN products.colors_uz IS 'Product colors in Uzbek';
+COMMENT ON COLUMN products.colors_ru IS 'Product colors in Russian';
+COMMENT ON COLUMN products.sizes_uz IS 'Product sizes in Uzbek';
+COMMENT ON COLUMN products.sizes_ru IS 'Product sizes in Russian';
 COMMENT ON COLUMN categories.name_uz IS 'Category name in Uzbek';
 COMMENT ON COLUMN categories.name_ru IS 'Category name in Russian';
 
