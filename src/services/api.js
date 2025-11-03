@@ -102,6 +102,7 @@ export const productsAPI = {
         ...product,
         name: product[`name_${language}`] || product.name, // Localized name
         description: product[`description_${language}`] || product.description, // Localized description
+        material: product[`material_${language}`] || product.material, // Localized material
         category: categoryMap[product.category_name] || product.category_name, // Localized category name
         originalPrice: product.original_price,
         reviewCount: product.review_count,
@@ -156,6 +157,7 @@ export const productsAPI = {
       ...data,
       name: data[`name_${language}`] || data.name, // Localized name
       description: data[`description_${language}`] || data.description, // Localized description
+      material: data[`material_${language}`] || data.material, // Localized material
       category: localizedCategory, // Localized category name
       originalPrice: data.original_price,
       reviewCount: data.review_count,

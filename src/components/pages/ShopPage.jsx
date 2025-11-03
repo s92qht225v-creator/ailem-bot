@@ -92,9 +92,10 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
       const suggestions = new Set();
 
       // Extract matching tags, product names, and categories
+      // Note: products are already localized by AdminContext based on current language
       allProducts.forEach(product => {
-        // Match product name
-        if (product.name.toLowerCase().includes(query)) {
+        // Match product name (already localized by API)
+        if (product.name && product.name.toLowerCase().includes(query)) {
           suggestions.add(product.name);
         }
 
@@ -107,12 +108,12 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
           });
         }
 
-        // Match category
+        // Match category (already localized by API)
         if (product.category && product.category.toLowerCase().includes(query)) {
           suggestions.add(product.category);
         }
 
-        // Match material
+        // Match material (already localized by API)
         if (product.material && product.material.toLowerCase().includes(query)) {
           suggestions.add(product.material);
         }
