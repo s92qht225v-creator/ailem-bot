@@ -349,8 +349,16 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const filteredOrders = useMemo(() => {
-      if (statusFilter === 'all') return orders;
-      return orders.filter(order => order.status === statusFilter);
+      let filtered = statusFilter === 'all'
+        ? [...orders]
+        : orders.filter(order => order.status === statusFilter);
+
+      // Sort by creation date (newest first)
+      return filtered.sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.created_at || a.date);
+        const dateB = new Date(b.createdAt || b.created_at || b.date);
+        return dateB - dateA; // Descending order (newest first)
+      });
     }, [orders, statusFilter]);
 
     const handleApprove = async (orderId) => {
