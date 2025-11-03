@@ -222,12 +222,25 @@ async function sendAdminNotification(order, status) {
 // Send Telegram notification to user
 async function sendTelegramNotification(order, status) {
   const botToken = process.env.VITE_TELEGRAM_BOT_TOKEN;
-  // Fix: Use user_id field which contains telegram chat ID
-  const userChatId = order.user_id || order.userId;
+  // Use user_telegram_id which contains the actual Telegram chat ID
+  const userChatId = order.user_telegram_id || order.userTelegramId;
 
-  if (!botToken || !userChatId) {
-    console.log('⚠️ Cannot send notification: missing bot token or chat ID');
-    console.log('Debug:', { botToken: !!botToken, userChatId, order_user_id: order.user_id, order_userId: order.userId });
+  console.log('📱 Notification attempt:', {
+    orderNumber: order.order_number || order.id,
+    status,
+    hasBotToken: !!botToken,
+    userChatId,
+    user_telegram_id: order.user_telegram_id,
+    userTelegramId: order.userTelegramId
+  });
+
+  if (!botToken) {
+    console.log('⚠️ Cannot send notification: VITE_TELEGRAM_BOT_TOKEN not set');
+    return;
+  }
+
+  if (!userChatId) {
+    console.log('⚠️ Cannot send notification: user_telegram_id not found in order');
     return;
   }
 
