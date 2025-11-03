@@ -2111,7 +2111,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 )}
               </div>
               <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">{category.name}</h3>
+                <div className="mb-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-semibold text-gray-500">🇺🇿 UZ:</span>
+                    <h3 className="text-base font-semibold text-gray-900">{category.name_uz || category.name}</h3>
+                  </div>
+                  {category.name_ru && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-gray-500">🇷🇺 RU:</span>
+                      <h3 className="text-base font-semibold text-gray-900">{category.name_ru}</h3>
+                    </div>
+                  )}
+                </div>
                 <div className="flex gap-2 mb-2">
                   <button
                     onClick={() => handleEdit(category)}

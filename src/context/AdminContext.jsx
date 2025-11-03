@@ -19,7 +19,7 @@ export const AdminProvider = ({ children }) => {
   // Load all data from Supabase on mount and when language changes
   useEffect(() => {
     loadAllData();
-  }, [language]);
+  }, [language]); // Reload when language changes for customer-facing pages
 
   const loadAllData = async () => {
     try {
