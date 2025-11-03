@@ -17,7 +17,7 @@ export const categoriesAPI = {
     // Map to localized name
     return data.map(cat => ({
       ...cat,
-      name: cat.name // Keep original name for filtering consistency
+      name: cat[`name_${language}`] || cat.name // Localized category name
     }));
   },
 
@@ -71,6 +71,21 @@ export const productsAPI = {
 
     if (error) throw error;
 
+    // Fetch categories for localized category names
+    const { data: categories, error: categoriesError } = await supabase
+      .from('categories')
+      .select('name, name_uz, name_ru');
+
+    if (categoriesError) console.error('Failed to fetch categories:', categoriesError);
+
+    // Create category name mapping
+    const categoryMap = {};
+    if (categories) {
+      categories.forEach(cat => {
+        categoryMap[cat.name] = cat[`name_${language}`] || cat.name;
+      });
+    }
+
     // Fetch reviews for all products
     const { data: reviews, error: reviewsError } = await supabase
       .from('reviews')
@@ -87,7 +102,7 @@ export const productsAPI = {
         ...product,
         name: product[`name_${language}`] || product.name, // Localized name
         description: product[`description_${language}`] || product.description, // Localized description
-        category: product.category_name, // Original category name for filtering
+        category: categoryMap[product.category_name] || product.category_name, // Localized category name
         originalPrice: product.original_price,
         reviewCount: product.review_count,
         variants: product.variants || [],
@@ -114,6 +129,19 @@ export const productsAPI = {
 
     if (error) throw error;
 
+    // Fetch category for localized name
+    const { data: categoryData, error: categoryError } = await supabase
+      .from('categories')
+      .select('name, name_uz, name_ru')
+      .eq('name', data.category_name)
+      .maybeSingle();
+
+    if (categoryError) console.error('Failed to fetch category:', categoryError);
+
+    const localizedCategory = categoryData
+      ? (categoryData[`name_${language}`] || categoryData.name)
+      : data.category_name;
+
     // Fetch reviews for this product
     const { data: reviews, error: reviewsError } = await supabase
       .from('reviews')
@@ -128,7 +156,7 @@ export const productsAPI = {
       ...data,
       name: data[`name_${language}`] || data.name, // Localized name
       description: data[`description_${language}`] || data.description, // Localized description
-      category: data.category_name, // Original category name for filtering
+      category: localizedCategory, // Localized category name
       originalPrice: data.original_price,
       reviewCount: data.review_count,
       variants: data.variants || [],
