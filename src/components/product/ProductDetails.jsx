@@ -421,17 +421,9 @@ const ProductDetails = ({ product, onAddToCart }) => {
       {/* Zoomed Image Modal */}
       {isZoomed && (
         <div
-          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center"
+          className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center"
           onClick={handleCloseZoom}
         >
-          {/* Close Button - Left side to avoid Telegram UI */}
-          <button
-            onClick={handleCloseZoom}
-            className="absolute top-4 left-4 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors z-10 backdrop-blur-sm"
-          >
-            <X className="w-6 h-6" />
-          </button>
-
           {/* Image Counter & Zoom Info */}
           <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm flex items-center gap-3">
             {images.length > 1 && (
@@ -446,10 +438,19 @@ const ProductDetails = ({ product, onAddToCart }) => {
           </div>
 
           {/* Zoom Controls */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-xs backdrop-blur-sm flex items-center gap-2">
+          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-xs backdrop-blur-sm flex items-center gap-2">
             <ZoomIn className="w-4 h-4" />
             <span>Pinch to zoom • Swipe to navigate</span>
           </div>
+
+          {/* Close Button - Below image in center */}
+          <button
+            onClick={handleCloseZoom}
+            className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-full transition-colors z-10 backdrop-blur-sm flex items-center gap-2 font-medium"
+          >
+            <X className="w-5 h-5" />
+            <span>Close</span>
+          </button>
 
           {/* Zoomed Image Container */}
           <div
