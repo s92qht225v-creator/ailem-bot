@@ -111,7 +111,7 @@ export const PickupPointsProvider = ({ children }) => {
         .filter(point => 
           point.courierService === courierService && 
           point.active &&
-          point.language === language
+          (point.language === language || !point.language) // Fallback: include points without language field
         )
         .map(point => point.state)
     )].sort();
@@ -125,7 +125,7 @@ export const PickupPointsProvider = ({ children }) => {
           point.courierService === courierService &&
           point.state === state &&
           point.active &&
-          point.language === language
+          (point.language === language || !point.language) // Fallback: include points without language field
         )
         .map(point => point.city)
     )].sort();
@@ -138,7 +138,7 @@ export const PickupPointsProvider = ({ children }) => {
       point.state === state &&
       point.city === city &&
       point.active &&
-      point.language === language
+      (point.language === language || !point.language) // Fallback: include points without language field
     );
   }, [pickupPoints]);
 

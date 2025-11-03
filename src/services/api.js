@@ -887,7 +887,8 @@ export const pickupPointsAPI = {
       address: point.address,
       workingHours: point.working_hours,
       phone: point.phone,
-      active: point.active
+      active: point.active,
+      language: point.language || 'uz'
     };
   },
 
@@ -939,7 +940,8 @@ export const pickupPointsAPI = {
       address: pickupPoint.address,
       working_hours: pickupPoint.workingHours,
       phone: pickupPoint.phone,
-      active: pickupPoint.active !== false
+      active: pickupPoint.active !== false,
+      language: pickupPoint.language || 'uz'
     };
 
     const { data, error } = await supabase
@@ -963,6 +965,7 @@ export const pickupPointsAPI = {
     if (updates.workingHours !== undefined) dbUpdates.working_hours = updates.workingHours;
     if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
     if (updates.active !== undefined) dbUpdates.active = updates.active;
+    if (updates.language !== undefined) dbUpdates.language = updates.language;
 
     const { data, error } = await supabase
       .from('pickup_points')

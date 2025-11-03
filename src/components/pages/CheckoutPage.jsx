@@ -126,6 +126,12 @@ const CheckoutPage = ({ onNavigate }) => {
   useEffect(() => {
     if (pickupCourier && pickupCourier !== 'Yandex') {
       const states = getStatesByCourier(pickupCourier, language);
+      console.log('🔍 Checkout Debug:', {
+        pickupCourier,
+        language,
+        availableStates: states,
+        statesCount: states.length
+      });
       setAvailableStates(states);
       setPickupState('');
       setPickupCity('');
