@@ -169,8 +169,12 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
     setShowAutocomplete(false);
   };
 
-  const categoryNames = useMemo(() =>
-    categories?.map(c => c.name) || [],
+  // Map categories with both display name and original name for filtering
+  const categoryList = useMemo(() =>
+    categories?.map(c => ({
+      displayName: c.name,
+      filterName: c.originalName || c.name
+    })) || [],
     [categories]
   );
 
@@ -235,7 +239,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
 
         {/* Category Filter */}
         <CategoryFilter
-          categories={categoryNames}
+          categories={categoryList}
           selectedCategory={selectedCategory}
           onCategoryChange={setSelectedCategory}
         />

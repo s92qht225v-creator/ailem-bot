@@ -14,10 +14,11 @@ export const categoriesAPI = {
 
     if (error) throw error;
     
-    // Map to localized name
+    // Map to localized name but keep original for filtering
     return data.map(cat => ({
       ...cat,
-      name: cat[`name_${language}`] || cat.name // Fallback to default
+      name: cat[`name_${language}`] || cat.name, // Localized display name
+      originalName: cat.name // Original name for filtering
     }));
   },
 
