@@ -1188,12 +1188,16 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     // Auto-generate variants when colors or sizes change
-    const handleColorsOrSizesChange = (field, value) => {
+    const handleColorsOrSizesChange = (field, value, language = 'uz') => {
       const updatedFormData = { ...formData, [field]: value };
 
-      // Parse colors and sizes
-      const colors = updatedFormData.colors ? updatedFormData.colors.split(',').map(c => c.trim()).filter(c => c) : [];
-      const sizes = updatedFormData.sizes ? updatedFormData.sizes.split(',').map(s => s.trim()).filter(s => s) : [];
+      // Determine which color/size fields to use based on current language tab
+      const colorsField = language === 'uz' ? 'colors_uz' : 'colors_ru';
+      const sizesField = language === 'uz' ? 'sizes_uz' : 'sizes_ru';
+
+      // Parse colors and sizes from language-specific fields
+      const colors = updatedFormData[colorsField] ? updatedFormData[colorsField].split(',').map(c => c.trim()).filter(c => c) : [];
+      const sizes = updatedFormData[sizesField] ? updatedFormData[sizesField].split(',').map(s => s.trim()).filter(s => s) : [];
 
       // Generate new variants if both colors and sizes exist
       if (colors.length > 0 && sizes.length > 0) {
@@ -1358,7 +1362,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     <input
                       type="text"
                       value={formData.colors_uz}
-                      onChange={(e) => setFormData({ ...formData, colors_uz: e.target.value })}
+                      onChange={(e) => handleColorsOrSizesChange('colors_uz', e.target.value, 'uz')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="Oq, Qora, Ko'k (vergul bilan ajratilgan)"
                     />
@@ -1369,7 +1373,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     <input
                       type="text"
                       value={formData.sizes_uz}
-                      onChange={(e) => setFormData({ ...formData, sizes_uz: e.target.value })}
+                      onChange={(e) => handleColorsOrSizesChange('sizes_uz', e.target.value, 'uz')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="Kichik, O'rta, Katta (vergul bilan ajratilgan)"
                     />
@@ -1421,7 +1425,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     <input
                       type="text"
                       value={formData.colors_ru}
-                      onChange={(e) => setFormData({ ...formData, colors_ru: e.target.value })}
+                      onChange={(e) => handleColorsOrSizesChange('colors_ru', e.target.value, 'ru')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="Белый, Черный, Синий (через запятую)"
                     />
@@ -1433,7 +1437,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     <input
                       type="text"
                       value={formData.sizes_ru}
-                      onChange={(e) => setFormData({ ...formData, sizes_ru: e.target.value })}
+                      onChange={(e) => handleColorsOrSizesChange('sizes_ru', e.target.value, 'ru')}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                       placeholder="Маленький, Средний, Большой (через запятую)"
                     />
