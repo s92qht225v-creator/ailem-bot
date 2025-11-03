@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant } from '../../utils/variants';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -12,6 +12,11 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const [quantity, setQuantity] = useState(1);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const zoomImageRef = useRef(null);
+  const initialDistanceRef = useRef(0);
 
   // Check if product uses variant tracking (must be declared first)
   const hasVariants = product.variants && product.variants.length > 0;
@@ -96,6 +101,56 @@ const ProductDetails = ({ product, onAddToCart }) => {
     setTouchEnd(0);
   };
 
+  // Pinch to zoom handlers for zoomed view
+  const handleZoomTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      );
+      initialDistanceRef.current = distance;
+    }
+  };
+
+  const handleZoomTouchMove = (e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const touch1 = e.touches[0];
+      const touch2 = e.touches[1];
+      const distance = Math.hypot(
+        touch2.clientX - touch1.clientX,
+        touch2.clientY - touch1.clientY
+      );
+      
+      if (initialDistanceRef.current > 0) {
+        const scale = distance / initialDistanceRef.current;
+        const newScale = Math.min(Math.max(zoomScale * scale, 1), 4);
+        setZoomScale(newScale);
+        initialDistanceRef.current = distance;
+      }
+    }
+  };
+
+  const handleZoomTouchEnd = () => {
+    initialDistanceRef.current = 0;
+  };
+
+  // Reset zoom when closing or changing images
+  const handleCloseZoom = () => {
+    setIsZoomed(false);
+    setZoomScale(1);
+    setZoomPosition({ x: 0, y: 0 });
+  };
+
+  // Reset zoom when image changes
+  useEffect(() => {
+    setZoomScale(1);
+    setZoomPosition({ x: 0, y: 0 });
+  }, [currentImageIndex]);
+
   const handleQuantityChange = (change) => {
     const newQuantity = quantity + change;
     if (newQuantity >= 1 && newQuantity <= currentStock) {
@@ -129,10 +184,11 @@ const ProductDetails = ({ product, onAddToCart }) => {
       <div className="bg-gray-50">
         {/* Main Image */}
         <div
-          className="relative"
+          className="relative cursor-pointer"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onClick={() => setIsZoomed(true)}
         >
           <img
             src={images[currentImageIndex]}
@@ -144,17 +200,29 @@ const ProductDetails = ({ product, onAddToCart }) => {
             }}
           />
 
+          {/* Zoom Icon Indicator */}
+          <div className="absolute bottom-2 right-2 bg-black/60 text-white px-3 py-2 rounded-full flex items-center gap-1 backdrop-blur-sm">
+            <ZoomIn className="w-4 h-4" />
+            <span className="text-xs font-medium">{t('product.tapToZoom', 'Tap to zoom')}</span>
+          </div>
+
           {/* Navigation Arrows */}
           {images.length > 1 && (
             <>
               <button
-                onClick={handlePrevImage}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePrevImage();
+                }}
                 className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-colors"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <button
-                onClick={handleNextImage}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleNextImage();
+                }}
                 className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-colors"
               >
                 <ChevronRight className="w-6 h-6" />
@@ -349,6 +417,89 @@ const ProductDetails = ({ product, onAddToCart }) => {
           {currentStock === 0 ? t('shop.outOfStock') : `${t('product.addToCart')} - ${formatPrice(totalPrice)}`}
         </button>
       </div>
+
+      {/* Zoomed Image Modal */}
+      {isZoomed && (
+        <div
+          className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center"
+          onClick={handleCloseZoom}
+        >
+          {/* Close Button */}
+          <button
+            onClick={handleCloseZoom}
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-colors z-10 backdrop-blur-sm"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          {/* Image Counter & Zoom Info */}
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm flex items-center gap-3">
+            {images.length > 1 && (
+              <span>{currentImageIndex + 1} / {images.length}</span>
+            )}
+            {zoomScale > 1 && (
+              <>
+                <span className="text-gray-400">|</span>
+                <span>{Math.round(zoomScale * 100)}%</span>
+              </>
+            )}
+          </div>
+
+          {/* Zoom Controls */}
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-xs backdrop-blur-sm flex items-center gap-2">
+            <ZoomIn className="w-4 h-4" />
+            <span>Pinch to zoom • Swipe to navigate</span>
+          </div>
+
+          {/* Zoomed Image Container */}
+          <div
+            className="relative w-full h-full flex items-center justify-center p-4 overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={handleZoomTouchStart}
+            onTouchMove={handleZoomTouchMove}
+            onTouchEnd={handleZoomTouchEnd}
+          >
+            <img
+              ref={zoomImageRef}
+              src={images[currentImageIndex]}
+              alt={product.name}
+              className="max-w-full max-h-full object-contain transition-transform duration-200 ease-out"
+              style={{
+                transform: `scale(${zoomScale}) translate(${zoomPosition.x}px, ${zoomPosition.y}px)`,
+                cursor: zoomScale > 1 ? 'grab' : 'default'
+              }}
+              onError={(e) => {
+                console.error('Failed to load zoomed image:', images[currentImageIndex]);
+                e.target.src = 'https://via.placeholder.com/800x800?text=Image+Not+Found';
+              }}
+            />
+
+            {/* Navigation Arrows for Zoomed View */}
+            {images.length > 1 && zoomScale === 1 && (
+              <>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePrevImage();
+                  }}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors backdrop-blur-sm"
+                >
+                  <ChevronLeft className="w-8 h-8" />
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleNextImage();
+                  }}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors backdrop-blur-sm"
+                >
+                  <ChevronRight className="w-8 h-8" />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
