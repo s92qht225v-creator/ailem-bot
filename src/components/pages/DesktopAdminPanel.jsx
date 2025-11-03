@@ -979,9 +979,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [editingProduct, setEditingProduct] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [allImages, setAllImages] = useState([]); // Array of all product images
+    const [activeLanguageTab, setActiveLanguageTab] = useState('uz'); // 'uz' or 'ru'
     const [formData, setFormData] = useState({
       name: '',
+      name_uz: '',
+      name_ru: '',
       description: '',
+      description_uz: '',
+      description_ru: '',
       price: '',
       salePrice: '',
       imageUrl: '',
@@ -991,6 +996,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
       stock: '',
       badge: '',
       material: '',
+      material_uz: '',
+      material_ru: '',
       colors: '',
       sizes: '',
       tags: '',
@@ -1049,8 +1056,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         // Prepare product data in app format (API will handle database conversion)
         const productData = {
-          name: formData.name,
-          description: formData.description,
+          name: formData.name || formData.name_uz, // Fallback to Uzbek if name is empty
+          name_uz: formData.name_uz || formData.name,
+          name_ru: formData.name_ru || null,
+          description: formData.description || formData.description_uz,
+          description_uz: formData.description_uz || formData.description,
+          description_ru: formData.description_ru || null,
           price: parseFloat(formData.salePrice || formData.price), // Use sale price if available, otherwise regular price
           originalPrice: formData.salePrice ? parseFloat(formData.price) : null, // Original price only if there's a sale
           category: formData.category,  // Use category (API converts to category_name)
@@ -1059,7 +1070,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
           weight: formData.weight ? parseFloat(formData.weight) : null,
           stock: parseInt(formData.stock) || 0,
           badge: formData.badge || null,
-          material: formData.material || null,
+          material: formData.material || formData.material_uz,
+          material_uz: formData.material_uz || formData.material,
+          material_ru: formData.material_ru || null,
           colors: formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c) : [],
           sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : [],
           tags: formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
@@ -1080,9 +1093,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
         setShowForm(false);
         setEditingProduct(null);
         setAllImages([]);
+        setActiveLanguageTab('uz');
         setFormData({
           name: '',
+          name_uz: '',
+          name_ru: '',
           description: '',
+          description_uz: '',
+          description_ru: '',
           price: '',
           salePrice: '',
           imageUrl: '',
@@ -1092,6 +1110,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
           stock: '',
           badge: '',
           material: '',
+          material_uz: '',
+          material_ru: '',
           colors: '',
           sizes: '',
           tags: '',
@@ -1112,7 +1132,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
       
       setFormData({
         name: product.name,
+        name_uz: product.name_uz || product.name || '',
+        name_ru: product.name_ru || '',
         description: product.description || '',
+        description_uz: product.description_uz || product.description || '',
+        description_ru: product.description_ru || '',
         // If originalPrice exists, it's the regular price and price is the sale price
         price: product.originalPrice ? product.originalPrice.toString() : product.price.toString(),
         salePrice: product.originalPrice ? product.price.toString() : '',
@@ -1123,12 +1147,15 @@ const DesktopAdminPanel = ({ onLogout }) => {
         stock: product.stock ? product.stock.toString() : '',
         badge: product.badge || '',
         material: product.material || '',
+        material_uz: product.material_uz || product.material || '',
+        material_ru: product.material_ru || '',
         colors: product.colors ? product.colors.join(', ') : '',
         sizes: product.sizes ? product.sizes.join(', ') : '',
         tags: product.tags ? product.tags.join(', ') : '',
         inStock: product.inStock !== false,
         variants: product.variants || []
       });
+      setActiveLanguageTab('uz');
       setShowForm(true);
     };
 
@@ -1244,27 +1271,117 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Product Name *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  required
-                />
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Language Tabs */}
+              <div className="border-b border-gray-200">
+                <div className="flex gap-4">
+                  <button
+                    type="button"
+                    onClick={() => setActiveLanguageTab('uz')}
+                    className={`pb-3 px-4 font-medium border-b-2 transition-colors ${
+                      activeLanguageTab === 'uz'
+                        ? 'border-accent text-accent'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    🇺🇿 O'zbek tili
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveLanguageTab('ru')}
+                    className={`pb-3 px-4 font-medium border-b-2 transition-colors ${
+                      activeLanguageTab === 'ru'
+                        ? 'border-accent text-accent'
+                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    🇷🇺 Русский язык
+                  </button>
+                </div>
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <textarea
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  rows="3"
-                />
-              </div>
+              {/* Uzbek Language Fields */}
+              {activeLanguageTab === 'uz' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Mahsulot nomi (O'zbek) *</label>
+                    <input
+                      type="text"
+                      value={formData.name_uz}
+                      onChange={(e) => setFormData({ ...formData, name_uz: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      required
+                      placeholder="Masalan: Choyshablar to'plami"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Tavsif (O'zbek)</label>
+                    <textarea
+                      value={formData.description_uz}
+                      onChange={(e) => setFormData({ ...formData, description_uz: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      rows="3"
+                      placeholder="Mahsulot haqida batafsil ma'lumot..."
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Material (O'zbek)</label>
+                    <input
+                      type="text"
+                      value={formData.material_uz}
+                      onChange={(e) => setFormData({ ...formData, material_uz: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      placeholder="Masalan: Paxta"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Russian Language Fields */}
+              {activeLanguageTab === 'ru' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Название товара (Русский)</label>
+                    <input
+                      type="text"
+                      value={formData.name_ru}
+                      onChange={(e) => setFormData({ ...formData, name_ru: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      placeholder="Например: Комплект постельного белья"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы использовать узбекскую версию</p>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Описание (Русский)</label>
+                    <textarea
+                      value={formData.description_ru}
+                      onChange={(e) => setFormData({ ...formData, description_ru: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      rows="3"
+                      placeholder="Подробное описание товара..."
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы использовать узбекскую версию</p>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Материал (Русский)</label>
+                    <input
+                      type="text"
+                      value={formData.material_ru}
+                      onChange={(e) => setFormData({ ...formData, material_ru: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      placeholder="Например: Хлопок"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы использовать узбекскую версию</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Common Fields (Language-independent) */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Price (UZS) *</label>
@@ -1324,16 +1441,6 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Material</label>
-                <input
-                  type="text"
-                  value={formData.material}
-                  onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="e.g., Cotton"
-                />
-              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Badge</label>

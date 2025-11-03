@@ -179,7 +179,11 @@ export const productsAPI = {
     // Transform app fields to database fields
     const dbProduct = {
       name: product.name,
+      name_uz: product.name_uz || product.name,
+      name_ru: product.name_ru || null,
       description: product.description || null,
+      description_uz: product.description_uz || product.description || null,
+      description_ru: product.description_ru || null,
       price: product.price,
       original_price: product.originalPrice || (product.salePrice ? product.price : null),
       category_name: product.category,
@@ -189,6 +193,8 @@ export const productsAPI = {
       weight: product.weight || null,
       badge: product.badge || null,
       material: product.material || null,
+      material_uz: product.material_uz || product.material || null,
+      material_ru: product.material_ru || null,
       colors: product.colors || [],
       sizes: product.sizes || [],
       tags: product.tags || [],
@@ -222,7 +228,11 @@ export const productsAPI = {
     const dbUpdates = {};
     
     if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.name_uz !== undefined) dbUpdates.name_uz = updates.name_uz;
+    if (updates.name_ru !== undefined) dbUpdates.name_ru = updates.name_ru;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.description_uz !== undefined) dbUpdates.description_uz = updates.description_uz;
+    if (updates.description_ru !== undefined) dbUpdates.description_ru = updates.description_ru;
     if (updates.price !== undefined) dbUpdates.price = updates.price;
     if (updates.originalPrice !== undefined) dbUpdates.original_price = updates.originalPrice;
     if (updates.category !== undefined) dbUpdates.category_name = updates.category;
@@ -233,6 +243,8 @@ export const productsAPI = {
     if (updates.weight !== undefined) dbUpdates.weight = updates.weight;
     if (updates.badge !== undefined) dbUpdates.badge = updates.badge;
     if (updates.material !== undefined) dbUpdates.material = updates.material;
+    if (updates.material_uz !== undefined) dbUpdates.material_uz = updates.material_uz;
+    if (updates.material_ru !== undefined) dbUpdates.material_ru = updates.material_ru;
     if (updates.colors !== undefined) dbUpdates.colors = updates.colors;
     if (updates.sizes !== undefined) dbUpdates.sizes = updates.sizes;
     if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
