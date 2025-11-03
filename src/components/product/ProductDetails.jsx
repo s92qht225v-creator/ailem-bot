@@ -17,6 +17,8 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
   const zoomImageRef = useRef(null);
   const initialDistanceRef = useRef(0);
+  const lastTouchRef = useRef({ x: 0, y: 0 });
+  const isDraggingRef = useRef(false);
 
   // Check if product uses variant tracking (must be declared first)
   const hasVariants = product.variants && product.variants.length > 0;
@@ -101,10 +103,12 @@ const ProductDetails = ({ product, onAddToCart }) => {
     setTouchEnd(0);
   };
 
-  // Pinch to zoom handlers for zoomed view
+  // Pinch to zoom and pan handlers for zoomed view
   const handleZoomTouchStart = (e) => {
     if (e.touches.length === 2) {
+      // Pinch zoom with two fingers
       e.preventDefault();
+      isDraggingRef.current = false;
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
       const distance = Math.hypot(
@@ -112,11 +116,19 @@ const ProductDetails = ({ product, onAddToCart }) => {
         touch2.clientY - touch1.clientY
       );
       initialDistanceRef.current = distance;
+    } else if (e.touches.length === 1 && zoomScale > 1) {
+      // Pan with one finger when zoomed
+      isDraggingRef.current = true;
+      lastTouchRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+      };
     }
   };
 
   const handleZoomTouchMove = (e) => {
     if (e.touches.length === 2) {
+      // Pinch zoom
       e.preventDefault();
       const touch1 = e.touches[0];
       const touch2 = e.touches[1];
@@ -124,18 +136,34 @@ const ProductDetails = ({ product, onAddToCart }) => {
         touch2.clientX - touch1.clientX,
         touch2.clientY - touch1.clientY
       );
-      
+
       if (initialDistanceRef.current > 0) {
         const scale = distance / initialDistanceRef.current;
         const newScale = Math.min(Math.max(zoomScale * scale, 1), 4);
         setZoomScale(newScale);
         initialDistanceRef.current = distance;
       }
+    } else if (e.touches.length === 1 && isDraggingRef.current && zoomScale > 1) {
+      // Pan
+      e.preventDefault();
+      const deltaX = e.touches[0].clientX - lastTouchRef.current.x;
+      const deltaY = e.touches[0].clientY - lastTouchRef.current.y;
+
+      setZoomPosition(prev => ({
+        x: prev.x + deltaX / zoomScale,
+        y: prev.y + deltaY / zoomScale
+      }));
+
+      lastTouchRef.current = {
+        x: e.touches[0].clientX,
+        y: e.touches[0].clientY
+      };
     }
   };
 
   const handleZoomTouchEnd = () => {
     initialDistanceRef.current = 0;
+    isDraggingRef.current = false;
   };
 
   // Reset zoom when closing or changing images
@@ -440,7 +468,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
           {/* Zoom Controls */}
           <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-xs backdrop-blur-sm flex items-center gap-2">
             <ZoomIn className="w-4 h-4" />
-            <span>Pinch to zoom • Swipe to navigate</span>
+            <span>{zoomScale > 1 ? 'Drag to pan' : 'Pinch to zoom'}</span>
           </div>
 
           {/* Close Button - Below image in center */}
@@ -467,7 +495,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
               className="max-w-full max-h-full object-contain transition-transform duration-200 ease-out"
               style={{
                 transform: `scale(${zoomScale}) translate(${zoomPosition.x}px, ${zoomPosition.y}px)`,
-                cursor: zoomScale > 1 ? 'grab' : 'default'
+                cursor: zoomScale > 1 ? (isDraggingRef.current ? 'grabbing' : 'grab') : 'default'
               }}
               onError={(e) => {
                 console.error('Failed to load zoomed image:', images[currentImageIndex]);
