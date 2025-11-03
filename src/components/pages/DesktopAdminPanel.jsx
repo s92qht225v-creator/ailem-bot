@@ -1005,6 +1005,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
       sizes_uz: '',
       sizes_ru: '',
       tags: '',
+      tags_uz: '',
+      tags_ru: '',
       inStock: true,
       variants: []
     });
@@ -1083,7 +1085,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
           sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : (formData.sizes_uz ? formData.sizes_uz.split(',').map(s => s.trim()).filter(s => s) : []),
           sizes_uz: formData.sizes_uz ? formData.sizes_uz.split(',').map(s => s.trim()).filter(s => s) : (formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : []),
           sizes_ru: formData.sizes_ru ? formData.sizes_ru.split(',').map(s => s.trim()).filter(s => s) : [],
-          tags: formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
+          tags: formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : (formData.tags_uz ? formData.tags_uz.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : []),
+          tags_uz: formData.tags_uz ? formData.tags_uz.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : (formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : []),
+          tags_ru: formData.tags_ru ? formData.tags_ru.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
           variants: formData.variants || []
         };
 
@@ -1127,6 +1131,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
           sizes_uz: '',
           sizes_ru: '',
           tags: '',
+          tags_uz: '',
+          tags_ru: '',
           inStock: true,
           variants: []
         });
@@ -1168,6 +1174,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
         sizes_uz: product.sizes_uz ? product.sizes_uz.join(', ') : (product.sizes ? product.sizes.join(', ') : ''),
         sizes_ru: product.sizes_ru ? product.sizes_ru.join(', ') : '',
         tags: product.tags ? product.tags.join(', ') : '',
+        tags_uz: product.tags_uz ? product.tags_uz.join(', ') : (product.tags ? product.tags.join(', ') : ''),
+        tags_ru: product.tags_ru ? product.tags_ru.join(', ') : '', // Don't fallback to Uzbek in form - let user enter independently
         inStock: product.inStock !== false,
         variants: product.variants || []
       });
@@ -1196,6 +1204,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
       const colorsRu = updatedFormData.colors_ru ? updatedFormData.colors_ru.split(',').map(c => c.trim()).filter(c => c) : [];
       const sizesUz = updatedFormData.sizes_uz ? updatedFormData.sizes_uz.split(',').map(s => s.trim()).filter(s => s) : [];
       const sizesRu = updatedFormData.sizes_ru ? updatedFormData.sizes_ru.split(',').map(s => s.trim()).filter(s => s) : [];
+
+      // Validation: Warn if counts don't match (but allow it)
+      if (colorsUz.length > 0 && colorsRu.length > 0 && colorsUz.length !== colorsRu.length) {
+        console.warn(`⚠️ Color count mismatch: ${colorsUz.length} Uzbek vs ${colorsRu.length} Russian`);
+      }
+      if (sizesUz.length > 0 && sizesRu.length > 0 && sizesUz.length !== sizesRu.length) {
+        console.warn(`⚠️ Size count mismatch: ${sizesUz.length} Uzbek vs ${sizesRu.length} Russian`);
+      }
 
       // Use Uzbek as the primary language (stored in variant.color/size)
       // Only generate if Uzbek colors AND sizes exist
@@ -1392,6 +1408,19 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       placeholder="Kichik, O'rta, Katta (vergul bilan ajratilgan)"
                     />
                   </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Teglar (O'zbek) *</label>
+                    <input
+                      type="text"
+                      value={formData.tags_uz}
+                      onChange={(e) => setFormData({ ...formData, tags_uz: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      placeholder="choyshablar, paxta, hashamatli, yumshoq (vergul bilan ajratilgan)"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Teglar qidiruv uchun ishlatiladi - kalit so'zlarni vergul bilan ajrating</p>
+                  </div>
                 </div>
               )}
 
@@ -1456,6 +1485,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       placeholder="Маленький, Средний, Большой (через запятую)"
                     />
                     <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы использовать узбекскую версию</p>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Теги (Русский)</label>
+                    <input
+                      type="text"
+                      value={formData.tags_ru}
+                      onChange={(e) => setFormData({ ...formData, tags_ru: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                      placeholder="постельное белье, хлопок, роскошный, мягкий (через запятую)"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Теги используются для поиска - введите ключевые слова через запятую. Оставьте пустым, чтобы использовать узбекскую версию</p>
                   </div>
                 </div>
               )}
@@ -1724,18 +1765,6 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 </p>
               </div>
 
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tags *</label>
-                <input
-                  type="text"
-                  value={formData.tags}
-                  onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="bedsheet, cotton, luxury, soft (comma separated, lowercase)"
-                  required
-                />
-                <p className="text-xs text-gray-500 mt-1">Tags are used for search - enter keywords separated by commas</p>
-              </div>
               </div>
 
               <div className="md:col-span-2 flex gap-4">

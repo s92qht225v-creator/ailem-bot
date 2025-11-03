@@ -51,6 +51,12 @@ const ProductDetails = ({ product, onAddToCart }) => {
     ? getAvailableSizesForColor(product.variants, selectedColor, language)
     : (product.sizes || []);
 
+  // Reset selected color/size when language or product changes
+  useEffect(() => {
+    setSelectedColor(product.colors?.[0] || null);
+    setSelectedSize(product.sizes?.[0] || null);
+  }, [language, product.id]);
+
   // Reset to first image when variant changes
   useEffect(() => {
     setCurrentImageIndex(0);

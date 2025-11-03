@@ -105,6 +105,7 @@ export const productsAPI = {
         material: product[`material_${language}`] || product.material, // Localized material
         colors: product[`colors_${language}`] || product.colors, // Localized colors
         sizes: product[`sizes_${language}`] || product.sizes, // Localized sizes
+        tags: product[`tags_${language}`] || product.tags, // Localized tags
         category: categoryMap[product.category_name] || product.category_name, // Localized category name
         originalPrice: product.original_price,
         reviewCount: product.review_count,
@@ -162,6 +163,7 @@ export const productsAPI = {
       material: data[`material_${language}`] || data.material, // Localized material
       colors: data[`colors_${language}`] || data.colors, // Localized colors
       sizes: data[`sizes_${language}`] || data.sizes, // Localized sizes
+      tags: data[`tags_${language}`] || data.tags, // Localized tags
       category: localizedCategory, // Localized category name
       originalPrice: data.original_price,
       reviewCount: data.review_count,
@@ -206,6 +208,8 @@ export const productsAPI = {
       sizes_uz: product.sizes_uz || product.sizes || [],
       sizes_ru: product.sizes_ru || [],
       tags: product.tags || [],
+      tags_uz: product.tags_uz || product.tags || [],
+      tags_ru: product.tags_ru || [],
       variants: product.variants || [],
       rating: 0,
       review_count: 0
@@ -260,6 +264,8 @@ export const productsAPI = {
     if (updates.sizes_uz !== undefined) dbUpdates.sizes_uz = updates.sizes_uz;
     if (updates.sizes_ru !== undefined) dbUpdates.sizes_ru = updates.sizes_ru;
     if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
+    if (updates.tags_uz !== undefined) dbUpdates.tags_uz = updates.tags_uz;
+    if (updates.tags_ru !== undefined) dbUpdates.tags_ru = updates.tags_ru;
     if (updates.variants !== undefined) dbUpdates.variants = updates.variants;
 
     const { data, error } = await supabase
