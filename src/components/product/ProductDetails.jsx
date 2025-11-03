@@ -5,7 +5,7 @@ import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTota
 import { useTranslation } from '../../hooks/useTranslation';
 
 const ProductDetails = ({ product, onAddToCart }) => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
@@ -43,12 +43,12 @@ const ProductDetails = ({ product, onAddToCart }) => {
 
   const currentStock = getCurrentStock();
 
-  // Get available colors (those with stock)
-  const availableColors = hasVariants ? getAvailableColors(product.variants) : (product.colors || []);
+  // Get available colors (those with stock) - in current language
+  const availableColors = hasVariants ? getAvailableColors(product.variants, language) : (product.colors || []);
 
-  // Get available sizes for selected color
+  // Get available sizes for selected color - in current language
   const availableSizes = hasVariants && selectedColor
-    ? getAvailableSizesForColor(product.variants, selectedColor)
+    ? getAvailableSizesForColor(product.variants, selectedColor, language)
     : (product.sizes || []);
 
   // Reset to first image when variant changes

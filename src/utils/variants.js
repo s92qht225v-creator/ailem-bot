@@ -46,9 +46,10 @@ export const generateSKU = (color, size) => {
 
 /**
  * Find a specific variant by color and size
+ * Supports language-aware matching (checks both Uzbek and Russian names)
  * @param {Array} variants - Array of variants
- * @param {string} color - Color to find
- * @param {string} size - Size to find
+ * @param {string} color - Color to find (can be in any language)
+ * @param {string} size - Size to find (can be in any language)
  * @returns {Object|null} Variant object or null
  */
 export const findVariant = (variants = [], color, size) => {
@@ -56,10 +57,31 @@ export const findVariant = (variants = [], color, size) => {
     return null;
   }
 
-  return variants.find(v =>
-    v.color?.toLowerCase() === color.toLowerCase() &&
-    v.size?.toLowerCase() === size.toLowerCase()
-  );
+  const colorLower = color.toLowerCase();
+  const sizeLower = size.toLowerCase();
+
+  return variants.find(v => {
+    // Match against primary language (Uzbek)
+    const matchesPrimary = 
+      v.color?.toLowerCase() === colorLower &&
+      v.size?.toLowerCase() === sizeLower;
+    
+    // Match against Russian translations
+    const matchesRussian = 
+      v.color_ru?.toLowerCase() === colorLower &&
+      v.size_ru?.toLowerCase() === sizeLower;
+    
+    // Match mixed (Uzbek color + Russian size or vice versa)
+    const matchesMixed1 = 
+      v.color?.toLowerCase() === colorLower &&
+      v.size_ru?.toLowerCase() === sizeLower;
+    
+    const matchesMixed2 = 
+      v.color_ru?.toLowerCase() === colorLower &&
+      v.size?.toLowerCase() === sizeLower;
+    
+    return matchesPrimary || matchesRussian || matchesMixed1 || matchesMixed2;
+  });
 };
 
 /**
@@ -76,16 +98,26 @@ export const getVariantStock = (variants = [], color, size) => {
 
 /**
  * Update stock for a specific variant
+ * Supports language-aware matching
  * @param {Array} variants - Array of variants
- * @param {string} color - Color
- * @param {string} size - Size
+ * @param {string} color - Color (can be in any language)
+ * @param {string} size - Size (can be in any language)
  * @param {number} newStock - New stock value
  * @returns {Array} Updated variants array
  */
 export const updateVariantStock = (variants = [], color, size, newStock) => {
+  const colorLower = color.toLowerCase();
+  const sizeLower = size.toLowerCase();
+  
   return variants.map(v => {
-    if (v.color?.toLowerCase() === color.toLowerCase() &&
-        v.size?.toLowerCase() === size.toLowerCase()) {
+    const matches = (
+      (v.color?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower) ||
+      (v.color_ru?.toLowerCase() === colorLower && v.size_ru?.toLowerCase() === sizeLower) ||
+      (v.color?.toLowerCase() === colorLower && v.size_ru?.toLowerCase() === sizeLower) ||
+      (v.color_ru?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower)
+    );
+    
+    if (matches) {
       return { ...v, stock: newStock };
     }
     return v;
@@ -94,16 +126,26 @@ export const updateVariantStock = (variants = [], color, size, newStock) => {
 
 /**
  * Update image for a specific variant
+ * Supports language-aware matching
  * @param {Array} variants - Array of variants
- * @param {string} color - Color
- * @param {string} size - Size
+ * @param {string} color - Color (can be in any language)
+ * @param {string} size - Size (can be in any language)
  * @param {string} imageUrl - New image URL
  * @returns {Array} Updated variants array
  */
 export const updateVariantImage = (variants = [], color, size, imageUrl) => {
+  const colorLower = color.toLowerCase();
+  const sizeLower = size.toLowerCase();
+  
   return variants.map(v => {
-    if (v.color?.toLowerCase() === color.toLowerCase() &&
-        v.size?.toLowerCase() === size.toLowerCase()) {
+    const matches = (
+      (v.color?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower) ||
+      (v.color_ru?.toLowerCase() === colorLower && v.size_ru?.toLowerCase() === sizeLower) ||
+      (v.color?.toLowerCase() === colorLower && v.size_ru?.toLowerCase() === sizeLower) ||
+      (v.color_ru?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower)
+    );
+    
+    if (matches) {
       return { ...v, image: imageUrl };
     }
     return v;
@@ -112,16 +154,26 @@ export const updateVariantImage = (variants = [], color, size, imageUrl) => {
 
 /**
  * Decrease stock for a specific variant
+ * Supports language-aware matching
  * @param {Array} variants - Array of variants
- * @param {string} color - Color
- * @param {string} size - Size
+ * @param {string} color - Color (can be in any language)
+ * @param {string} size - Size (can be in any language)
  * @param {number} quantity - Quantity to decrease
  * @returns {Array} Updated variants array
  */
 export const decreaseVariantStock = (variants = [], color, size, quantity) => {
+  const colorLower = color.toLowerCase();
+  const sizeLower = size.toLowerCase();
+  
   return variants.map(v => {
-    if (v.color?.toLowerCase() === color.toLowerCase() &&
-        v.size?.toLowerCase() === size.toLowerCase()) {
+    const matches = (
+      (v.color?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower) ||
+      (v.color_ru?.toLowerCase() === colorLower && v.size_ru?.toLowerCase() === sizeLower) ||
+      (v.color?.toLowerCase() === colorLower && v.size_ru?.toLowerCase() === sizeLower) ||
+      (v.color_ru?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower)
+    );
+    
+    if (matches) {
       return { ...v, stock: Math.max(0, v.stock - quantity) };
     }
     return v;
@@ -171,30 +223,39 @@ export const isVariantAvailable = (variants = [], color, size, quantity = 1) => 
 
 /**
  * Get available colors (colors that have stock in at least one size)
+ * Returns colors in their primary language (Uzbek) and Russian translations
  * @param {Array} variants - Array of variants
+ * @param {string} language - Language to return colors in ('uz' or 'ru')
  * @returns {Array} Array of available color strings
  */
-export const getAvailableColors = (variants = []) => {
+export const getAvailableColors = (variants = [], language = 'uz') => {
   const colorsWithStock = variants
     .filter(v => v.stock > 0)
-    .map(v => v.color);
+    .map(v => language === 'ru' && v.color_ru ? v.color_ru : v.color);
 
   return [...new Set(colorsWithStock)];
 };
 
 /**
  * Get available sizes for a specific color
+ * Supports language-aware matching
  * @param {Array} variants - Array of variants
- * @param {string} color - Color to check
+ * @param {string} color - Color to check (can be in any language)
+ * @param {string} language - Language to return sizes in ('uz' or 'ru')
  * @returns {Array} Array of available size strings
  */
-export const getAvailableSizesForColor = (variants = [], color) => {
+export const getAvailableSizesForColor = (variants = [], color, language = 'uz') => {
+  const colorLower = color.toLowerCase();
+  
   return variants
-    .filter(v =>
-      v.color?.toLowerCase() === color.toLowerCase() &&
-      v.stock > 0
-    )
-    .map(v => v.size);
+    .filter(v => {
+      const matchesColor = (
+        v.color?.toLowerCase() === colorLower ||
+        v.color_ru?.toLowerCase() === colorLower
+      );
+      return matchesColor && v.stock > 0;
+    })
+    .map(v => language === 'ru' && v.size_ru ? v.size_ru : v.size);
 };
 
 /**
