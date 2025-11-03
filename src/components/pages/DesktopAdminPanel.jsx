@@ -353,11 +353,16 @@ const DesktopAdminPanel = ({ onLogout }) => {
         ? [...orders]
         : orders.filter(order => order.status === statusFilter);
 
-      // Sort by creation date (newest first)
+      // Sort by creation date (newest first) - use timestamps for reliable comparison
       return filtered.sort((a, b) => {
-        const dateA = new Date(a.createdAt || a.created_at || a.date);
-        const dateB = new Date(b.createdAt || b.created_at || b.date);
-        return dateB - dateA; // Descending order (newest first)
+        // Get timestamp, prioritizing created_at from database
+        const getTime = (order) => {
+          const dateStr = order.created_at || order.createdAt || order.date;
+          if (!dateStr) return 0;
+          return new Date(dateStr).getTime();
+        };
+
+        return getTime(b) - getTime(a); // Descending (newest first)
       });
     }, [orders, statusFilter]);
 
