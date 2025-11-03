@@ -9,7 +9,7 @@ const CartPage = ({ onNavigate }) => {
 
   if (cartItems.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen pb-20 px-4">
+      <div className="flex flex-col items-center justify-center h-screen pb-20 pt-16 px-4">
         <ShoppingBag className="w-24 h-24 text-gray-300 mb-4" />
         <h2 className="text-2xl font-bold text-gray-700 mb-2">{t('cart.empty')}</h2>
         <p className="text-gray-500 mb-6 text-center">
@@ -28,7 +28,7 @@ const CartPage = ({ onNavigate }) => {
   const subtotal = getCartTotal();
 
   return (
-    <div className="pb-40">
+    <div className="pb-40 pt-16">
       <div className="px-4 py-4">
         <h2 className="text-2xl font-bold mb-4">{t('cart.title')}</h2>
 

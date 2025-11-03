@@ -58,7 +58,7 @@ const MyReviewsPage = ({ onNavigate }) => {
   }).filter(r => r.productDetails); // Only show reviews with valid product details
 
   return (
-    <div className="pb-20 bg-gray-50 min-h-screen">
+    <div className="pb-20 pt-16 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="bg-white p-4 border-b border-gray-200 sticky top-0 z-10">
         <div className="flex items-center gap-3">

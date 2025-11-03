@@ -31,7 +31,7 @@ const ReferralsPage = ({ hideHeader = false }) => {
   };
 
   return (
-    <div className={hideHeader ? '' : 'pb-20 bg-gray-50 min-h-screen'}>
+    <div className={hideHeader ? 'pt-16' : 'pb-20 pt-16 bg-gray-50 min-h-screen'}>
       {/* Header */}
       <div className="bg-gradient-to-r from-accent to-blue-600 text-white p-6">
         <div className="text-center mb-6">

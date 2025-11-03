@@ -28,7 +28,7 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
   }
 
   return (
-    <div className={hideHeader ? '' : 'pb-20 bg-gray-50 min-h-screen'}>
+    <div className={hideHeader ? 'pt-16' : 'pb-20 pt-16 bg-gray-50 min-h-screen'}>
       {/* Header */}
       {!hideHeader && (
         <div className="bg-white p-4 border-b border-gray-200">

@@ -238,7 +238,7 @@ const CheckoutPage = ({ onNavigate }) => {
   };
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 pt-16">
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
         <h2 className="text-2xl font-bold">Checkout</h2>
 

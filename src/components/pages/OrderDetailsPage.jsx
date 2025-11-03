@@ -24,7 +24,7 @@ const OrderDetailsPage = ({ orderId, onNavigate }) => {
   }
 
   return (
-    <div className="pb-20 bg-gray-50 min-h-screen">
+    <div className="pb-20 pt-16 bg-gray-50 min-h-screen">
       <div className="p-4">
         {/* Order Header */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-4">
