@@ -1666,6 +1666,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 />
                 <p className="text-xs text-gray-500 mt-1">Tags are used for search - enter keywords separated by commas</p>
               </div>
+              </div>
 
               <div className="md:col-span-2 flex gap-4">
                 <button
