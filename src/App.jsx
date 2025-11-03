@@ -185,15 +185,30 @@ function App() {
 
   // Check for pending payment when app loads
   useEffect(() => {
-    // First check if we have URL parameters (coming back from Payme)
+    // First check if we have URL parameters (coming back from Payme/Click)
     const urlParams = new URLSearchParams(window.location.search);
-    const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
 
-    // Check both URL and hash for parameters (Payme uses hash)
-    const urlOrderId = urlParams.get('order') || hashParams.get('order');
-    const urlPaymentMethod = urlParams.get('method') || hashParams.get('method');
+    // Parse hash to extract page and query parameters
+    const hash = window.location.hash;
+    const hashParts = hash.split('?');
+    const hashPage = hashParts[0].replace('#', '').replace('/', '');
+    const hashParams = hashParts[1] ? new URLSearchParams(hashParts[1]) : null;
+
+    // Check both URL and hash for parameters (Payme/Click use hash with query params)
+    const urlOrderId = urlParams.get('order') || (hashParams && hashParams.get('order'));
+    const urlPaymentMethod = urlParams.get('method') || (hashParams && hashParams.get('method'));
+
+    console.log('🔍 Payment return detection:', {
+      hash,
+      hashPage,
+      urlOrderId,
+      urlPaymentMethod,
+      hasHashParams: !!hashParams,
+      fullURL: window.location.href
+    });
 
     if (urlOrderId && urlPaymentMethod) {
+      console.log('✅ Detected payment return from URL/hash params');
       // Clear the pending payment flag
       removeFromLocalStorage('pendingPayment');
 
@@ -211,6 +226,7 @@ function App() {
       // Only check if payment was initiated recently (within 1 hour)
       const oneHourAgo = Date.now() - 60 * 60 * 1000;
       if (timestamp > oneHourAgo) {
+        console.log('✅ Found pending payment in localStorage:', { orderId, paymentMethod });
         // Clear the pending payment flag
         removeFromLocalStorage('pendingPayment');
 
@@ -218,10 +234,11 @@ function App() {
         navigate('paymentStatus', { orderId, paymentMethod });
       } else {
         // Payment too old, clear it
+        console.log('⏰ Pending payment expired, clearing');
         removeFromLocalStorage('pendingPayment');
       }
     }
-  }, []); // Run only once on mount
+  }, [navigate]); // Include navigate in dependencies
 
 
   // Only show loading for a short time - then show content anyway

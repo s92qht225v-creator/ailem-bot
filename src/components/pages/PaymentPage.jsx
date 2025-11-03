@@ -117,7 +117,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       // Build return URL that redirects to payment status page
       // Using app URL with hash navigation for compatibility
       const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';
-      const returnUrl = `${appUrl}/#/paymentStatus?order=${orderId}&method=payme`;
+      const returnUrl = `${appUrl}/#paymentStatus?order=${orderId}&method=payme`;
 
       // Generate Payme payment link using numeric order ID
       const paymentUrl = generatePaymeLink({
@@ -246,7 +246,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
 
       // Build return URL that redirects to payment status page
       const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';
-      const returnUrl = `${appUrl}/#/paymentStatus?order=${orderId}&method=click`;
+      const returnUrl = `${appUrl}/#paymentStatus?order=${orderId}&method=click`;
 
       // Generate Click payment link
       const paymentUrl = generateClickLink({

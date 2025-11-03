@@ -8,8 +8,15 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
   const [checkCount, setCheckCount] = useState(0);
   const maxChecks = 6; // Check 6 times over ~20 seconds
 
+  // Log when component mounts
+  useEffect(() => {
+    console.log('💳 PaymentStatusPage mounted:', { orderId, paymentMethod });
+  }, []);
+
   // Safety check - if no orderId provided, show error
   if (!orderId) {
+    console.error('❌ PaymentStatusPage: No orderId provided');
+
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md">
@@ -35,9 +42,16 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
 
   const checkOrderStatus = useCallback(async () => {
     try {
+      console.log('🔍 Checking order status for:', orderId);
       const orderData = await ordersAPI.getById(orderId);
+      console.log('📦 Order data received:', {
+        id: orderData.id,
+        status: orderData.status,
+        paymentMethod: orderData.paymentMethod
+      });
 
       if (orderData.status === 'approved') {
+        console.log('✅ Payment successful!');
         setStatus('success');
         setOrder(orderData);
 
@@ -47,14 +61,16 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
         }, 4000);
         return true; // Payment confirmed
       } else if (orderData.status === 'rejected' || orderData.status === 'failed') {
+        console.log('❌ Payment failed/rejected');
         setStatus('failed');
         setOrder(orderData);
         return true; // Payment failed
       }
 
+      console.log('⏳ Payment still pending...');
       return false; // Still pending
     } catch (error) {
-      console.error('Failed to check order status:', error);
+      console.error('❌ Failed to check order status:', error);
       return false;
     }
   }, [orderId, onNavigate]);
