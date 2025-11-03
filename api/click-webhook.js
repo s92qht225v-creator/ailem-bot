@@ -49,10 +49,22 @@ async function deductStock(order) {
       const itemSize = item.size || item.selectedSize;
       
       if (product.variants && product.variants.length > 0 && itemColor && itemSize) {
-        // Deduct variant stock
+        // Deduct variant stock - support language-aware matching
+        const itemColorLower = itemColor.toLowerCase();
+        const itemSizeLower = itemSize.toLowerCase();
+        
         const updatedVariants = product.variants.map(v => {
-          if (v.color?.toLowerCase() === itemColor.toLowerCase() &&
-              v.size?.toLowerCase() === itemSize.toLowerCase()) {
+          // Match against both Uzbek and Russian names
+          const matchesColor = (
+            v.color?.toLowerCase() === itemColorLower ||
+            v.color_ru?.toLowerCase() === itemColorLower
+          );
+          const matchesSize = (
+            v.size?.toLowerCase() === itemSizeLower ||
+            v.size_ru?.toLowerCase() === itemSizeLower
+          );
+          
+          if (matchesColor && matchesSize) {
             return { ...v, stock: Math.max(0, (v.stock || 0) - item.quantity) };
           }
           return v;
