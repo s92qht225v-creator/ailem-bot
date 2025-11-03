@@ -148,9 +148,8 @@ const ProductDetails = ({ product, onAddToCart }) => {
           />
 
           {/* Zoom Icon Indicator */}
-          <div className="absolute bottom-2 right-2 bg-black/60 text-white px-3 py-2 rounded-full flex items-center gap-1 backdrop-blur-sm">
-            <ZoomIn className="w-4 h-4" />
-            <span className="text-xs font-medium">{t('product.tapToZoom', 'Tap to zoom')}</span>
+          <div className="absolute bottom-2 right-2 bg-black/60 text-white p-2 rounded-full backdrop-blur-sm">
+            <ZoomIn className="w-5 h-5" />
           </div>
 
           {/* Navigation Arrows */}
