@@ -1191,28 +1191,42 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const handleColorsOrSizesChange = (field, value, language = 'uz') => {
       const updatedFormData = { ...formData, [field]: value };
 
-      // Determine which color/size fields to use based on current language tab
-      const colorsField = language === 'uz' ? 'colors_uz' : 'colors_ru';
-      const sizesField = language === 'uz' ? 'sizes_uz' : 'sizes_ru';
+      // Parse colors and sizes from ALL language fields
+      const colorsUz = updatedFormData.colors_uz ? updatedFormData.colors_uz.split(',').map(c => c.trim()).filter(c => c) : [];
+      const colorsRu = updatedFormData.colors_ru ? updatedFormData.colors_ru.split(',').map(c => c.trim()).filter(c => c) : [];
+      const sizesUz = updatedFormData.sizes_uz ? updatedFormData.sizes_uz.split(',').map(s => s.trim()).filter(s => s) : [];
+      const sizesRu = updatedFormData.sizes_ru ? updatedFormData.sizes_ru.split(',').map(s => s.trim()).filter(s => s) : [];
 
-      // Parse colors and sizes from language-specific fields
-      const colors = updatedFormData[colorsField] ? updatedFormData[colorsField].split(',').map(c => c.trim()).filter(c => c) : [];
-      const sizes = updatedFormData[sizesField] ? updatedFormData[sizesField].split(',').map(s => s.trim()).filter(s => s) : [];
-
-      // Generate new variants if both colors and sizes exist
-      if (colors.length > 0 && sizes.length > 0) {
-        const newVariants = generateVariants(colors, sizes, 0);
-
-        // Merge with existing variants to preserve stock and images
-        const mergedVariants = newVariants.map(newV => {
-          const existing = formData.variants.find(v =>
-            v.color?.toLowerCase() === newV.color.toLowerCase() &&
-            v.size?.toLowerCase() === newV.size.toLowerCase()
-          );
-          return existing ? { ...newV, stock: existing.stock, image: existing.image || null } : newV;
+      // Use Uzbek as the primary language (stored in variant.color/size)
+      // Only generate if Uzbek colors AND sizes exist
+      if (colorsUz.length > 0 && sizesUz.length > 0) {
+        const newVariants = [];
+        
+        colorsUz.forEach((colorUz, colorIdx) => {
+          sizesUz.forEach((sizeUz, sizeIdx) => {
+            // Get corresponding Russian translations (or fallback to Uzbek)
+            const colorRu = colorsRu[colorIdx] || colorUz;
+            const sizeRu = sizesRu[sizeIdx] || sizeUz;
+            
+            // Check if variant already exists to preserve stock and image
+            const existing = formData.variants.find(v =>
+              v.color?.toLowerCase() === colorUz.toLowerCase() &&
+              v.size?.toLowerCase() === sizeUz.toLowerCase()
+            );
+            
+            newVariants.push({
+              color: colorUz,        // Store Uzbek as primary
+              color_ru: colorRu,     // Store Russian translation
+              size: sizeUz,          // Store Uzbek as primary
+              size_ru: sizeRu,       // Store Russian translation
+              stock: existing?.stock || 0,
+              image: existing?.image || null,
+              sku: `${colorUz.substring(0, 3).toUpperCase()}-${sizeUz.substring(0, 1).toUpperCase()}`
+            });
+          });
         });
 
-        updatedFormData.variants = mergedVariants;
+        updatedFormData.variants = newVariants;
       } else {
         updatedFormData.variants = [];
       }
@@ -1580,9 +1594,20 @@ const DesktopAdminPanel = ({ onLogout }) => {
                         {/* Variant Info & Stock */}
                         <div className="flex-1">
                           <div className="text-sm font-medium mb-2">
-                            <span className="text-gray-900">{variant.color}</span>
-                            <span className="text-gray-400 mx-1">•</span>
-                            <span className="text-gray-900">{variant.size}</span>
+                            <div className="flex flex-col gap-0.5">
+                              <div>
+                                <span className="text-gray-900">{variant.color}</span>
+                                <span className="text-gray-400 mx-1">•</span>
+                                <span className="text-gray-900">{variant.size}</span>
+                              </div>
+                              {variant.color_ru && variant.color_ru !== variant.color && (
+                                <div className="text-xs text-gray-500">
+                                  <span>{variant.color_ru}</span>
+                                  <span className="mx-1">•</span>
+                                  <span>{variant.size_ru || variant.size}</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-gray-600">Stock:</span>
