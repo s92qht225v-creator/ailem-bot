@@ -5,7 +5,7 @@ import {
   Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload,
   TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle, AlertCircle,
   Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff, ImagePlus,
-  Download, FileDown, ChevronUp, ChevronDown
+  Download, FileDown, ChevronUp, ChevronDown, RotateCw
 } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
@@ -341,11 +341,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
   // Other content components would be implemented similarly...
   function OrdersContent() {
-    const { approveOrder, rejectOrder, updateOrderStatus } = useContext(AdminContext);
+    const { approveOrder, rejectOrder, updateOrderStatus, loadAllData } = useContext(AdminContext);
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [selectedOrders, setSelectedOrders] = useState([]);
     const [bulkAction, setBulkAction] = useState('');
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const filteredOrders = useMemo(() => {
       if (statusFilter === 'all') return orders;
@@ -523,6 +524,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
       }
     };
 
+    const handleRefresh = async () => {
+      setIsRefreshing(true);
+      try {
+        await loadAllData();
+        console.log('✅ Orders refreshed');
+      } catch (error) {
+        console.error('❌ Failed to refresh orders:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    };
+
     const handleBulkAction = async () => {
       if (!bulkAction || selectedOrders.length === 0) {
         alert('Please select orders and an action');
@@ -531,12 +544,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
       const action = bulkAction;
       const count = selectedOrders.length;
-      
+
       if (!confirm(`${action} ${count} order(s)?`)) return;
 
       try {
         console.log(`📦 Performing bulk ${action} on ${count} orders...`);
-        
+
         for (const orderId of selectedOrders) {
           const order = orders.find(o => o.id === orderId);
           if (!order) continue;
@@ -581,6 +594,17 @@ const DesktopAdminPanel = ({ onLogout }) => {
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold">Orders Management</h3>
             <div className="flex gap-2">
+              {/* Refresh Button */}
+              <button
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+                className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Refresh orders from database"
+              >
+                <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+
               {/* Export Dropdown */}
               <div className="relative group">
                 <button className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
