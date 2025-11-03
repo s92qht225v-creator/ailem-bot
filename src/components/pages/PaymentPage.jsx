@@ -6,10 +6,12 @@ import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
 import { useBackButton } from '../../hooks/useBackButton';
 import { useMainButton } from '../../hooks/useMainButton';
+import { useTranslation } from '../../hooks/useTranslation';
 import { generatePaymeLink } from '../../services/payme';
 import { generateClickLink } from '../../services/click';
 
 const PaymentPage = ({ checkoutData, onNavigate }) => {
+  const { language } = useTranslation();
   const { cartItems, clearCart } = useCart();
   const { user, updateBonusPoints } = useContext(UserContext);
   const { addOrder } = useContext(AdminContext);
@@ -94,6 +96,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         total: checkoutData.total,
         paymentMethod: 'payme',
         status: 'pending', // Will be approved by webhook
+        language: language, // Save user's language for localized notifications
         date: new Date().toISOString().split('T')[0],
         createdAt: new Date().toISOString()
       };
@@ -224,6 +227,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         total: checkoutData.total,
         paymentMethod: 'click',
         status: 'pending', // Will be approved by webhook
+        language: language, // Save user's language for localized notifications
         date: new Date().toISOString().split('T')[0],
         createdAt: new Date().toISOString()
       };

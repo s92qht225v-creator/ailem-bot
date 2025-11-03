@@ -183,18 +183,38 @@ async function sendTelegramNotification(order, status) {
     return;
   }
 
+  // Get user's preferred language (default to Uzbek)
+  const userLanguage = order.user_language || order.language || 'uz';
+
+  const orderNumber = order.order_number || order.id;
+  
   let message = '';
   if (status === 'approved') {
-    message = `✅ <b>Payment Successful!</b>\n\n` +
-      `Order: <b>#${order.id}</b>\n` +
-      `Amount: <b>${order.total} so'm</b>\n` +
-      `Payment: Payme\n\n` +
-      `Your order has been confirmed and will be processed shortly.`;
+    if (userLanguage === 'ru') {
+      message = `✅ <b>Оплата успешна!</b>\n\n` +
+        `Заказ: <b>#${orderNumber}</b>\n` +
+        `Сумма: <b>${order.total} сўм</b>\n` +
+        `Оплата: Payme\n\n` +
+        `Ваш заказ подтвержден и будет обработан в ближайшее время.`;
+    } else {
+      message = `✅ <b>To'lov muvaffaqiyatli!</b>\n\n` +
+        `Buyurtma: <b>#${orderNumber}</b>\n` +
+        `Summa: <b>${order.total} so'm</b>\n` +
+        `To'lov: Payme\n\n` +
+        `Buyurtmangiz tasdiqlandi va tez orada qayta ishlanadi.`;
+    }
   } else if (status === 'rejected') {
-    message = `❌ <b>Payment Cancelled</b>\n\n` +
-      `Order: <b>#${order.id}</b>\n` +
-      `Amount: <b>${order.total} so'm</b>\n\n` +
-      `Your payment was cancelled or declined.`;
+    if (userLanguage === 'ru') {
+      message = `❌ <b>Оплата отменена</b>\n\n` +
+        `Заказ: <b>#${orderNumber}</b>\n` +
+        `Сумма: <b>${order.total} сўм</b>\n\n` +
+        `Ваш платеж был отменен или отклонен.`;
+    } else {
+      message = `❌ <b>To'lov bekor qilindi</b>\n\n` +
+        `Buyurtma: <b>#${orderNumber}</b>\n` +
+        `Summa: <b>${order.total} so'm</b>\n\n` +
+        `To'lovingiz bekor qilindi yoki rad etildi.`;
+    }
   }
 
   try {
