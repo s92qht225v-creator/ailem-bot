@@ -231,9 +231,16 @@ export const isVariantAvailable = (variants = [], color, size, quantity = 1) => 
 export const getAvailableColors = (variants = [], language = 'uz') => {
   const colorsWithStock = variants
     .filter(v => v.stock > 0)
-    .map(v => language === 'ru' && v.color_ru ? v.color_ru : v.color);
+    .map(v => {
+      // Return color in requested language, fallback to primary
+      if (language === 'ru') {
+        return v.color_ru || v.color;
+      }
+      return v.color;
+    });
 
-  return [...new Set(colorsWithStock)];
+  // Remove duplicates and filter out null/undefined
+  return [...new Set(colorsWithStock)].filter(Boolean);
 };
 
 /**
@@ -245,17 +252,28 @@ export const getAvailableColors = (variants = [], language = 'uz') => {
  * @returns {Array} Array of available size strings
  */
 export const getAvailableSizesForColor = (variants = [], color, language = 'uz') => {
-  const colorLower = color.toLowerCase();
+  if (!color) return [];
   
-  return variants
+  const colorLower = color.toLowerCase().trim();
+  
+  const sizesWithStock = variants
     .filter(v => {
       const matchesColor = (
-        v.color?.toLowerCase() === colorLower ||
-        v.color_ru?.toLowerCase() === colorLower
+        v.color?.toLowerCase().trim() === colorLower ||
+        v.color_ru?.toLowerCase().trim() === colorLower
       );
       return matchesColor && v.stock > 0;
     })
-    .map(v => language === 'ru' && v.size_ru ? v.size_ru : v.size);
+    .map(v => {
+      // Return size in requested language, fallback to primary
+      if (language === 'ru') {
+        return v.size_ru || v.size;
+      }
+      return v.size;
+    });
+  
+  // Remove duplicates and filter out null/undefined
+  return [...new Set(sizesWithStock)].filter(Boolean);
 };
 
 /**

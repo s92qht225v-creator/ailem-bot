@@ -53,8 +53,16 @@ const ProductDetails = ({ product, onAddToCart }) => {
 
   // Reset selected color/size when language or product changes
   useEffect(() => {
-    setSelectedColor(product.colors?.[0] || null);
-    setSelectedSize(product.sizes?.[0] || null);
+    // When language changes, reset to first available color/size in new language
+    if (hasVariants && availableColors.length > 0) {
+      setSelectedColor(availableColors[0]);
+      // Reset size too since available sizes depend on selected color
+      const sizesForColor = getAvailableSizesForColor(product.variants, availableColors[0], language);
+      setSelectedSize(sizesForColor[0] || null);
+    } else {
+      setSelectedColor(product.colors?.[0] || null);
+      setSelectedSize(product.sizes?.[0] || null);
+    }
   }, [language, product.id]);
 
   // Reset to first image when variant changes
