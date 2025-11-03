@@ -3,8 +3,10 @@ import { Star, Camera, X } from 'lucide-react';
 import { formatDate } from '../../utils/helpers';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const ReviewSection = ({ product }) => {
+  const { t } = useTranslation();
   const { user } = useContext(UserContext);
   const { orders, addReview } = useContext(AdminContext);
   const [showForm, setShowForm] = useState(false);
@@ -26,7 +28,7 @@ const ReviewSection = ({ product }) => {
     const validFiles = files.filter(file => file.type.startsWith('image/'));
 
     if (reviewImages.length + validFiles.length > 5) {
-      alert('You can only upload up to 5 images');
+      alert(t('reviews.maxPhotos') || 'You can only upload up to 5 images');
       return;
     }
 
@@ -44,7 +46,7 @@ const ReviewSection = ({ product }) => {
     e.preventDefault();
 
     if (!hasPurchased) {
-      alert('You can only review products you have purchased.');
+      alert(t('reviews.purchaseRequired') || 'You can only review products you have purchased.');
       return;
     }
 
@@ -66,22 +68,22 @@ const ReviewSection = ({ product }) => {
     setReviewImages([]);
     setShowForm(false);
 
-    alert('Review submitted! It will appear after admin approval.');
+    alert(t('reviews.thankYou') || 'Review submitted! It will appear after admin approval.');
   };
 
   return (
     <div className="bg-white p-4">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">Reviews ({approvedReviews.length})</h2>
+        <h2 className="text-xl font-bold">{t('reviews.title')} ({approvedReviews.length})</h2>
         {hasPurchased ? (
           <button
             onClick={() => setShowForm(!showForm)}
             className="text-accent font-semibold hover:underline"
           >
-            {showForm ? 'Cancel' : 'Write a Review'}
+            {showForm ? t('common.cancel') : t('reviews.writeReview')}
           </button>
         ) : (
-          <span className="text-sm text-gray-500">Purchase to review</span>
+          <span className="text-sm text-gray-500">{t('reviews.purchaseToReview') || 'Purchase to review'}</span>
         )}
       </div>
 
@@ -89,7 +91,7 @@ const ReviewSection = ({ product }) => {
       {showForm && hasPurchased && (
         <form onSubmit={handleSubmitReview} className="mb-6 p-4 bg-gray-50 rounded-lg">
           <div className="mb-4">
-            <label className="block text-sm font-semibold mb-2">Your Rating</label>
+            <label className="block text-sm font-semibold mb-2">{t('reviews.rating')}</label>
             <div className="flex gap-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -111,13 +113,13 @@ const ReviewSection = ({ product }) => {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-semibold mb-2">Your Review</label>
+            <label className="block text-sm font-semibold mb-2">{t('reviews.comment')}</label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               required
               rows="4"
-              placeholder="Share your experience with this product..."
+              placeholder={t('reviews.placeholder') || 'Share your experience with this product...'}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
@@ -126,14 +128,14 @@ const ReviewSection = ({ product }) => {
           <div className="mb-4">
             <label className="block text-sm font-semibold mb-2">
               <Camera className="w-4 h-4 inline mr-1" />
-              Add Photos (Optional, max 5)
+              {t('reviews.addPhotos')}
             </label>
 
             {/* File Input Button */}
             {reviewImages.length < 5 && (
               <label className="w-full flex items-center justify-center gap-2 bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-semibold cursor-pointer hover:bg-gray-200 transition-colors border-2 border-dashed border-gray-300 mb-3">
                 <Camera className="w-5 h-5" />
-                <span>Take Photo or Choose from Gallery</span>
+                <span>{t('reviews.takePhoto') || 'Take Photo or Choose from Gallery'}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -168,7 +170,7 @@ const ReviewSection = ({ product }) => {
 
             {reviewImages.length > 0 && (
               <p className="text-xs text-gray-500 mt-2 text-center">
-                {reviewImages.length}/5 images added
+                {reviewImages.length}/5 {t('reviews.imagesAdded') || 'images added'}
               </p>
             )}
           </div>
@@ -177,7 +179,7 @@ const ReviewSection = ({ product }) => {
             type="submit"
             className="w-full bg-accent text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
           >
-            Submit Review
+            {t('reviews.submit')}
           </button>
         </form>
       )}
@@ -186,7 +188,7 @@ const ReviewSection = ({ product }) => {
       <div className="space-y-4">
         {approvedReviews.length === 0 ? (
           <p className="text-gray-500 text-center py-8">
-            No reviews yet. Be the first to review this product!
+            {t('reviews.beFirst') || 'No reviews yet. Be the first to review this product!'}
           </p>
         ) : (
           approvedReviews.map((review) => (

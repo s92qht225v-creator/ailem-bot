@@ -90,8 +90,8 @@ export default {
     description: 'Tavsif',
     specifications: 'Texnik xususiyatlari',
     reviews: 'Sharhlar',
-    selectColor: 'Rang tanlash',
-    selectSize: 'O\'lcham tanlash',
+    selectColor: 'Rang',
+    selectSize: 'O\'lcham',
     quantity: 'Miqdor',
     addToCart: 'Savatga qo\'shish',
     buyNow: 'Xarid qilish',
@@ -111,7 +111,8 @@ export default {
     addToFavorites: 'Saralanganga qo\'shish',
     removeFromFavorites: 'Saralanganidan o\'chirish',
     share: 'Ulashish',
-    similarProducts: 'O\'xshash mahsulotlar'
+    similarProducts: 'O\'xshash mahsulotlar',
+    relatedProducts: 'Sizga yoqishi mumkin'
   },
 
   // Cart
@@ -291,11 +292,18 @@ export default {
     notHelpful: 'Foydali emas',
     report: 'Shikoyat',
     photos: 'Rasmlar',
-    addPhotos: 'Rasm qo\'shish',
-    thankYou: 'Sharhingiz uchun rahmat!',
+    addPhotos: 'Rasm qo\'shish (ixtiyoriy, max 5)',
+    thankYou: 'Sharhingiz uchun rahmat! U admin tasdig\'idan keyin ko\'rinadi.',
     pending: 'Sharh moderatsiyadan o\'tmoqda',
     approved: 'Tasdiqlangan',
-    rejected: 'Rad etilgan'
+    rejected: 'Rad etilgan',
+    maxPhotos: 'Siz faqat 5 tagacha rasm yuklashingiz mumkin',
+    purchaseRequired: 'Siz faqat xarid qilgan mahsulotlaringizga sharh yozishingiz mumkin.',
+    purchaseToReview: 'Sharh yozish uchun xarid qiling',
+    placeholder: 'Mahsulot haqida fikringizni yozing...',
+    takePhoto: 'Rasm olish yoki galereyadan tanlash',
+    imagesAdded: 'ta rasm qo\'shildi',
+    beFirst: 'Hali sharhlar yo\'q. Birinchi bo\'lib sharh yozing!'
   },
 
   // Favorites

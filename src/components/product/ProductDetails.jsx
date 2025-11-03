@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant } from '../../utils/variants';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const ProductDetails = ({ product, onAddToCart }) => {
+  const { t } = useTranslation();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
@@ -207,10 +209,10 @@ const ProductDetails = ({ product, onAddToCart }) => {
                   <Star className="w-5 h-5 fill-warning text-warning" />
                   <span className="font-semibold">{averageRating}</span>
                 </div>
-                <span className="text-gray-500">({approvedReviewsCount} reviews)</span>
+                <span className="text-gray-500">({approvedReviewsCount} {t('product.reviews')})</span>
               </>
             ) : (
-              <span className="text-gray-500">No reviews yet</span>
+              <span className="text-gray-500">{t('reviews.noReviews')}</span>
             )}
           </div>
 
@@ -230,13 +232,13 @@ const ProductDetails = ({ product, onAddToCart }) => {
               <div className="space-y-1">
                 <span
                   className={`text-sm font-semibold ${
-                    currentStock > 10 ? 'text-success' : currentStock > 0 ? 'text-warning' : 'text-error'
+                  currentStock > 10 ? 'text-success' : currentStock > 0 ? 'text-warning' : 'text-error'
                   }`}
                 >
-                  {currentStock > 0 ? `${currentStock} in stock` : 'Out of stock'}
+                  {currentStock > 0 ? t('product.inStock', { count: currentStock }) : t('shop.outOfStock')}
                 </span>
                 <p className="text-xs text-gray-500">
-                  for {selectedColor} • {selectedSize}
+                  {selectedColor} • {selectedSize}
                 </p>
               </div>
             ) : (
@@ -245,7 +247,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
                   currentStock > 10 ? 'text-success' : currentStock > 0 ? 'text-warning' : 'text-error'
                 }`}
               >
-                {currentStock > 0 ? `${currentStock} in stock` : 'Out of stock'}
+                {currentStock > 0 ? t('product.inStock', { count: currentStock }) : t('shop.outOfStock')}
               </span>
             )}
           </div>
@@ -257,7 +259,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
         {product.colors && product.colors.length > 0 && (
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Color: {selectedColor}
+              {t('product.selectColor')}: {selectedColor}
             </label>
             <div className="flex gap-2 flex-wrap">
               {product.colors.map((color) => {
@@ -287,7 +289,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
         {product.sizes && product.sizes.length > 0 && (
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Size: {selectedSize}
+              {t('product.selectSize')}: {selectedSize}
             </label>
             <div className="flex gap-2 flex-wrap">
               {product.sizes.map((size) => {
@@ -316,7 +318,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
         {/* Quantity Selector */}
         <div className="mb-6">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Quantity
+            {t('product.quantity')}
           </label>
           <div className="flex items-center gap-3">
             <button
@@ -344,7 +346,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
           className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           <ShoppingCart className="w-5 h-5" />
-          {currentStock === 0 ? 'Out of Stock' : `Add to Cart - ${formatPrice(totalPrice)}`}
+          {currentStock === 0 ? t('shop.outOfStock') : `${t('product.addToCart')} - ${formatPrice(totalPrice)}`}
         </button>
       </div>
     </div>

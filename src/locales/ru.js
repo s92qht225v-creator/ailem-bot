@@ -90,8 +90,8 @@ export default {
     description: 'Описание',
     specifications: 'Характеристики',
     reviews: 'Отзывы',
-    selectColor: 'Выберите цвет',
-    selectSize: 'Выберите размер',
+    selectColor: 'Цвет',
+    selectSize: 'Размер',
     quantity: 'Количество',
     addToCart: 'В корзину',
     buyNow: 'Купить сейчас',
@@ -111,7 +111,8 @@ export default {
     addToFavorites: 'В избранное',
     removeFromFavorites: 'Удалить из избранного',
     share: 'Поделиться',
-    similarProducts: 'Похожие товары'
+    similarProducts: 'Похожие товары',
+    relatedProducts: 'Вам также может понравиться'
   },
 
   // Cart
@@ -291,11 +292,18 @@ export default {
     notHelpful: 'Не полезно',
     report: 'Пожаловаться',
     photos: 'Фото',
-    addPhotos: 'Добавить фото',
-    thankYou: 'Спасибо за отзыв!',
+    addPhotos: 'Добавить фото (необязательно, макс 5)',
+    thankYou: 'Спасибо за отзыв! Он появится после одобрения администратором.',
     pending: 'Отзыв на модерации',
     approved: 'Одобрен',
-    rejected: 'Отклонён'
+    rejected: 'Отклонён',
+    maxPhotos: 'Вы можете загрузить не более 5 фотографий',
+    purchaseRequired: 'Вы можете оставлять отзывы только на купленные товары.',
+    purchaseToReview: 'Купите товар, чтобы оставить отзыв',
+    placeholder: 'Поделитесь своим опытом использования этого товара...',
+    takePhoto: 'Сделать фото или выбрать из галереи',
+    imagesAdded: 'изображений добавлено',
+    beFirst: 'Пока нет отзывов. Станьте первым, кто оставит отзыв!'
   },
 
   // Favorites
