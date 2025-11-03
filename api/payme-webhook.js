@@ -166,13 +166,68 @@ async function awardBonusPoints(order) {
   }
 }
 
+// Send Telegram notification to admin about new order
+async function sendAdminNotification(order, status) {
+  const botToken = process.env.VITE_TELEGRAM_BOT_TOKEN;
+  const adminChatId = process.env.VITE_ADMIN_CHAT_ID;
+
+  if (!botToken || !adminChatId) {
+    console.log('⚠️ Cannot send admin notification: missing bot token or admin chat ID');
+    return;
+  }
+
+  const orderNumber = order.order_number || order.id;
+  const userName = order.user_name || order.customer_name || 'Customer';
+  const userPhone = order.user_phone || order.customer_phone || 'N/A';
+
+  let message = '';
+  if (status === 'approved') {
+    message = `🔔 <b>NEW ORDER APPROVED</b>\n\n` +
+      `Order: <b>#${orderNumber}</b>\n` +
+      `Customer: ${userName}\n` +
+      `Phone: ${userPhone}\n` +
+      `Amount: <b>${order.total} so'm</b>\n` +
+      `Payment: Payme ✅\n` +
+      `Status: APPROVED\n\n` +
+      `Please process this order.`;
+  } else if (status === 'rejected') {
+    message = `❌ <b>ORDER PAYMENT CANCELLED</b>\n\n` +
+      `Order: <b>#${orderNumber}</b>\n` +
+      `Customer: ${userName}\n` +
+      `Amount: ${order.total} so'm\n` +
+      `Payment was cancelled or declined.`;
+  }
+
+  try {
+    const response = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: adminChatId,
+        text: message,
+        parse_mode: 'HTML'
+      })
+    });
+
+    if (response.ok) {
+      console.log('✅ Admin notification sent to:', adminChatId);
+    } else {
+      console.error('❌ Failed to send admin notification:', await response.text());
+    }
+  } catch (error) {
+    console.error('❌ Error sending admin notification:', error);
+  }
+}
+
 // Send Telegram notification to user
 async function sendTelegramNotification(order, status) {
   const botToken = process.env.VITE_TELEGRAM_BOT_TOKEN;
-  const userChatId = order.user_telegram_id || order.userId;
+  // Fix: Use user_id field which contains telegram chat ID
+  const userChatId = order.user_id || order.userId;
 
   if (!botToken || !userChatId) {
     console.log('⚠️ Cannot send notification: missing bot token or chat ID');
+    console.log('Debug:', { botToken: !!botToken, userChatId, order_user_id: order.user_id, order_userId: order.userId });
     return;
   }
 
@@ -558,9 +613,13 @@ async function performTransaction(params, res, requestId) {
     // Continue anyway - don't fail the transaction
   }
 
-  // Send Telegram notification (non-critical, fire-and-forget)
+  // Send Telegram notifications (non-critical, fire-and-forget)
   sendTelegramNotification(order, 'approved').catch(err => {
-    console.error('❌ Failed to send notification:', err);
+    console.error('❌ Failed to send user notification:', err);
+  });
+
+  sendAdminNotification(order, 'approved').catch(err => {
+    console.error('❌ Failed to send admin notification:', err);
   });
 
   // Send response to Payme
@@ -598,12 +657,13 @@ async function cancelTransaction(params, res, requestId) {
     })
     .eq('payme_transaction_id', id);
 
-  // Send Telegram notification
+  // Send Telegram notifications
   if (order) {
     try {
       await sendTelegramNotification(order, 'rejected');
+      await sendAdminNotification(order, 'rejected');
     } catch (notifError) {
-      console.error('Failed to send Telegram notification:', notifError);
+      console.error('Failed to send Telegram notifications:', notifError);
     }
   }
 
