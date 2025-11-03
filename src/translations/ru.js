@@ -22,6 +22,49 @@ export default {
   orders: {
     title: 'Заказы',
     empty: 'Нет заказов',
+    orderHistory: 'История заказов',
+    orderNumber: 'Номер заказа',
+    date: 'Дата',
+    total: 'Итого',
+    status: 'Статус',
+    items: 'Товары',
+    viewDetails: 'Подробнее',
+    pending: 'В ожидании',
+    approved: 'Подтвержден',
+    shipped: 'Отправлен',
+    delivered: 'Доставлен',
+    rejected: 'Отменен',
+  },
+
+  // Payment
+  payment: {
+    successful: 'Оплата успешна!',
+    orderConfirmed: 'Ваш заказ подтвержден',
+    orderNumber: 'Номер заказа',
+    paymentMethod: 'Способ оплаты',
+    amount: 'Сумма',
+    status: 'Статус',
+    approved: 'Подтвержден',
+    redirecting: 'Переход к заказу...',
+    checkingStatus: 'Проверка статуса оплаты...',
+    pleaseWait: 'Пожалуйста, подождите',
+    failed: 'Оплата не удалась',
+    paymentCancelled: 'Оплата отменена или отклонена',
+    tryAgain: 'Попробовать снова',
+    backToHome: 'На главную',
+  },
+
+  // Reviews
+  myReviews: {
+    title: 'Мои отзывы',
+    empty: 'Пока нет отзывов',
+    writeReview: 'Написать отзыв',
+    yourRating: 'Ваша оценка',
+    yourReview: 'Ваш отзыв',
+    addPhotos: 'Добавить фото',
+    pending: 'На проверке',
+    approved: 'Одобрен',
+    rejected: 'Отклонен',
   },
 
   // Profile

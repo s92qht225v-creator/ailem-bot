@@ -8,20 +8,34 @@ import HomePage from './components/pages/HomePage';
 import ShopPage from './components/pages/ShopPage';
 import CartPage from './components/pages/CartPage';
 
-// Lazy load less critical pages
-const ProductPage = lazy(() => import('./components/pages/ProductPage'));
-const CheckoutPage = lazy(() => import('./components/pages/CheckoutPage'));
-const PaymentPage = lazy(() => import('./components/pages/PaymentPage'));
-const PaymentStatusPage = lazy(() => import('./components/pages/PaymentStatusPage'));
-const AccountPage = lazy(() => import('./components/pages/AccountPage'));
-const ProfilePage = lazy(() => import('./components/pages/ProfilePage'));
-const OrderHistoryPage = lazy(() => import('./components/pages/OrderHistoryPage'));
-const OrderDetailsPage = lazy(() => import('./components/pages/OrderDetailsPage'));
-const MyReviewsPage = lazy(() => import('./components/pages/MyReviewsPage'));
-const WriteReviewPage = lazy(() => import('./components/pages/WriteReviewPage'));
-const FavoritesPage = lazy(() => import('./components/pages/FavoritesPage'));
-const ReferralsPage = lazy(() => import('./components/pages/ReferralsPage'));
-const AdminAuth = lazy(() => import('./components/AdminAuth'));
+// Lazy load with retry logic for chunk loading errors
+const lazyWithRetry = (importFn) => {
+  return lazy(() => 
+    importFn().catch((error) => {
+      // If chunk loading failed, reload the page to get fresh chunks
+      if (error.name === 'ChunkLoadError' || error.message.includes('Failed to fetch')) {
+        console.warn('⚠️ Chunk load error detected, reloading page...');
+        window.location.reload();
+        return new Promise(() => {}); // Never resolve to prevent further errors
+      }
+      throw error;
+    })
+  );
+};
+
+const ProductPage = lazyWithRetry(() => import('./components/pages/ProductPage'));
+const CheckoutPage = lazyWithRetry(() => import('./components/pages/CheckoutPage'));
+const PaymentPage = lazyWithRetry(() => import('./components/pages/PaymentPage'));
+const PaymentStatusPage = lazyWithRetry(() => import('./components/pages/PaymentStatusPage'));
+const AccountPage = lazyWithRetry(() => import('./components/pages/AccountPage'));
+const ProfilePage = lazyWithRetry(() => import('./components/pages/ProfilePage'));
+const OrderHistoryPage = lazyWithRetry(() => import('./components/pages/OrderHistoryPage'));
+const OrderDetailsPage = lazyWithRetry(() => import('./components/pages/OrderDetailsPage'));
+const MyReviewsPage = lazyWithRetry(() => import('./components/pages/MyReviewsPage'));
+const WriteReviewPage = lazyWithRetry(() => import('./components/pages/WriteReviewPage'));
+const FavoritesPage = lazyWithRetry(() => import('./components/pages/FavoritesPage'));
+const ReferralsPage = lazyWithRetry(() => import('./components/pages/ReferralsPage'));
+const AdminAuth = lazyWithRetry(() => import('./components/AdminAuth'));
 import { loadFromLocalStorage, saveToLocalStorage, removeFromLocalStorage } from './utils/helpers';
 import { initTelegramWebApp, getReferralCode } from './utils/telegram';
 

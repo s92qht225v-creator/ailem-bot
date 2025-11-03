@@ -104,7 +104,11 @@ const OrderDetailsPage = ({ orderId, onNavigate }) => {
             <div>
               <span className="text-gray-600">Delivery Method:</span>
               <p className="font-medium">
-                {order.courier.name} - {order.courier.duration}
+                {typeof order.courier === 'string'
+                  ? order.courier
+                  : (order.courier && order.courier.name && order.courier.duration
+                      ? `${order.courier.name} - ${order.courier.duration}`
+                      : order.deliveryInfo?.courier || 'N/A')}
               </p>
             </div>
           </div>

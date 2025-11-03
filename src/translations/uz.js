@@ -22,6 +22,49 @@ export default {
   orders: {
     title: 'Buyurtmalar',
     empty: 'Buyurtmalar yo'q',
+    orderHistory: 'Buyurtmalar tarixi',
+    orderNumber: 'Buyurtma raqami',
+    date: 'Sana',
+    total: 'Jami',
+    status: 'Holat',
+    items: 'Mahsulotlar',
+    viewDetails: 'Batafsil',
+    pending: 'Kutilmoqda',
+    approved: 'Tasdiqlangan',
+    shipped: 'Jo'natilgan',
+    delivered: 'Yetkazilgan',
+    rejected: 'Rad etilgan',
+  },
+
+  // Payment
+  payment: {
+    successful: 'To'lov muvaffaqiyatli!',
+    orderConfirmed: 'Buyurtmangiz tasdiqlandi',
+    orderNumber: 'Buyurtma raqami',
+    paymentMethod: 'To'lov usuli',
+    amount: 'Summa',
+    status: 'Holat',
+    approved: 'Tasdiqlangan',
+    redirecting: 'Buyurtma sahifasiga o'tilmoqda...',
+    checkingStatus: 'To'lov holati tekshirilmoqda...',
+    pleaseWait: 'Iltimos, kuting',
+    failed: 'To'lov muvaffaqiyatsiz',
+    paymentCancelled: 'To'lov bekor qilindi yoki rad etildi',
+    tryAgain: 'Qayta urinish',
+    backToHome: 'Bosh sahifa',
+  },
+
+  // Reviews
+  myReviews: {
+    title: 'Mening sharhlarim',
+    empty: 'Hali sharhlar yo'q',
+    writeReview: 'Sharh yozish',
+    yourRating: 'Sizning bahoingiz',
+    yourReview: 'Sizning sharhingiz',
+    addPhotos: 'Rasm qo'shish',
+    pending: 'Tekshirilmoqda',
+    approved: 'Tasdiqlangan',
+    rejected: 'Rad etilgan',
   },
 
   // Profile

@@ -4,8 +4,10 @@ import { useOrders } from '../../hooks/useOrders';
 import { formatPrice, formatDate, getStatusColor } from '../../utils/helpers';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const OrderHistoryPage = ({ onNavigate }) => {
+  const { t } = useTranslation();
   const { user } = useContext(UserContext);
   const { reviews, loadAllData } = useContext(AdminContext);
   const { getUserOrders } = useOrders();
@@ -44,7 +46,7 @@ const OrderHistoryPage = ({ onNavigate }) => {
           >
             <ChevronLeft className="w-6 h-6 text-gray-700" />
           </button>
-          <h1 className="text-xl font-bold text-gray-900">Order History</h1>
+          <h1 className="text-xl font-bold text-gray-900">{t('orders.orderHistory')}</h1>
         </div>
       </div>
 
@@ -53,15 +55,12 @@ const OrderHistoryPage = ({ onNavigate }) => {
         {userOrders.length === 0 ? (
           <div className="bg-white rounded-xl p-12 text-center">
             <Package className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">No orders yet</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Start shopping to see your orders here
-            </p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('orders.empty')}</h3>
             <button
               onClick={() => onNavigate('shop')}
               className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
             >
-              Start Shopping
+              {t('nav.shop') || 'Start Shopping'}
             </button>
           </div>
         ) : (
@@ -92,12 +91,14 @@ const OrderHistoryPage = ({ onNavigate }) => {
 };
 
 const OrderCard = ({ order, onViewDetails, onWriteReview, hasUnreviewedItems }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm">
       {/* Header */}
       <div className="flex justify-between items-start mb-3">
         <div>
-          <p className="font-semibold text-gray-900">Order {order.id}</p>
+          <p className="font-semibold text-gray-900">{t('orders.orderNumber')} {order.id}</p>
           <p className="text-xs text-gray-500 mt-0.5">{formatDate(order.date)}</p>
         </div>
         <span
@@ -105,7 +106,7 @@ const OrderCard = ({ order, onViewDetails, onWriteReview, hasUnreviewedItems }) 
             order.status
           )}`}
         >
-          {order.status.toUpperCase()}
+          {t(`orders.${order.status}`) || order.status.toUpperCase()}
         </span>
       </div>
 
@@ -145,14 +146,14 @@ const OrderCard = ({ order, onViewDetails, onWriteReview, hasUnreviewedItems }) 
       <div className="pt-3 border-t border-gray-200 space-y-2">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs text-gray-500 mb-1">Total Amount</p>
+            <p className="text-xs text-gray-500 mb-1">{t('orders.total')}</p>
             <p className="text-lg font-bold text-gray-900">{formatPrice(order.total)}</p>
           </div>
           <button
             onClick={onViewDetails}
             className="bg-gray-100 text-gray-900 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200 transition-colors"
           >
-            View Details
+            {t('orders.viewDetails')}
           </button>
         </div>
 
@@ -162,7 +163,7 @@ const OrderCard = ({ order, onViewDetails, onWriteReview, hasUnreviewedItems }) 
             onClick={onWriteReview}
             className="w-full bg-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors"
           >
-            Write a Review
+            {t('myReviews.writeReview')}
           </button>
         )}
       </div>

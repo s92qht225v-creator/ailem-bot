@@ -291,7 +291,14 @@ const ProductDetails = ({ product, onAddToCart }) => {
             </label>
             <div className="flex gap-2 flex-wrap">
               {product.colors.map((color) => {
-                const isAvailable = !hasVariants || availableColors.includes(color);
+                // Check if this color has stock in ANY size (language-aware)
+                const isAvailable = !hasVariants || product.variants.some(v => {
+                  const matchesColor = (
+                    v.color?.toLowerCase() === color.toLowerCase() ||
+                    v.color_ru?.toLowerCase() === color.toLowerCase()
+                  );
+                  return matchesColor && v.stock > 0;
+                });
                 return (
                   <button
                     key={color}

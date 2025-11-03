@@ -604,7 +604,27 @@ export const ordersAPI = {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return (data || []).map(order => this._mapOrderFromDB(order));
+
+    console.log('📦 Orders fetched from database (first 3):',
+      (data || []).slice(0, 3).map(o => ({
+        order_number: o.order_number,
+        created_at: o.created_at,
+        status: o.status
+      }))
+    );
+
+    const mapped = (data || []).map(order => this._mapOrderFromDB(order));
+
+    console.log('📦 Orders after mapping (first 3):',
+      mapped.slice(0, 3).map(o => ({
+        id: o.id,
+        created_at: o.created_at,
+        createdAt: o.createdAt,
+        status: o.status
+      }))
+    );
+
+    return mapped;
   },
 
   // Get orders by user

@@ -349,21 +349,31 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const filteredOrders = useMemo(() => {
-      let filtered = statusFilter === 'all'
-        ? [...orders]
+      console.log('🔍 DesktopAdminPanel orders received (first 3):',
+        orders.slice(0, 3).map(o => ({
+          id: o.id,
+          created_at: o.created_at,
+          createdAt: o.createdAt,
+          status: o.status
+        }))
+      );
+
+      // Orders are already sorted by created_at DESC from database - trust that sort
+      // Just filter by status, do NOT re-sort (filtering preserves original order)
+      const filtered = statusFilter === 'all'
+        ? orders
         : orders.filter(order => order.status === statusFilter);
 
-      // Sort by creation date (newest first) - use timestamps for reliable comparison
-      return filtered.sort((a, b) => {
-        // Get timestamp, prioritizing created_at from database
-        const getTime = (order) => {
-          const dateStr = order.created_at || order.createdAt || order.date;
-          if (!dateStr) return 0;
-          return new Date(dateStr).getTime();
-        };
+      console.log('🔍 DesktopAdminPanel filtered orders (first 3):',
+        filtered.slice(0, 3).map(o => ({
+          id: o.id,
+          created_at: o.created_at,
+          createdAt: o.createdAt,
+          status: o.status
+        }))
+      );
 
-        return getTime(b) - getTime(a); // Descending (newest first)
-      });
+      return filtered;
     }, [orders, statusFilter]);
 
     const handleApprove = async (orderId) => {

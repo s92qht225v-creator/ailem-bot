@@ -70,6 +70,14 @@ export const AdminProvider = ({ children }) => {
         setCategories(categoriesData || []);
       }
 
+      console.log('🔍 AdminContext setting orders (first 3):',
+        (ordersData || []).slice(0, 3).map(o => ({
+          id: o.id,
+          created_at: o.created_at,
+          createdAt: o.createdAt,
+          status: o.status
+        }))
+      );
       setOrders(ordersData || []);
       setUsers(usersData || []);
       setReviews(reviewsData || []);

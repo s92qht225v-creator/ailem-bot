@@ -4,8 +4,10 @@ import { UserContext } from '../../context/UserContext';
 import { useOrders } from '../../hooks/useOrders';
 import { AdminContext } from '../../context/AdminContext';
 import { formatDate } from '../../utils/helpers';
+import { useTranslation } from '../../hooks/useTranslation';
 
 const MyReviewsPage = ({ onNavigate }) => {
+  const { t } = useTranslation();
   const { user } = useContext(UserContext);
   const { getUserOrders } = useOrders();
   const { reviews } = useContext(AdminContext);
@@ -68,7 +70,7 @@ const MyReviewsPage = ({ onNavigate }) => {
           >
             <ChevronLeft className="w-6 h-6 text-gray-700" />
           </button>
-          <h1 className="text-xl font-bold text-gray-900">My Reviews</h1>
+          <h1 className="text-xl font-bold text-gray-900">{t('myReviews.title')}</h1>
         </div>
       </div>
 
@@ -78,7 +80,7 @@ const MyReviewsPage = ({ onNavigate }) => {
         {reviewableItems.length > 0 && (
           <div>
             <h2 className="text-lg font-bold text-gray-900 mb-3">
-              Pending Reviews ({reviewableItems.length})
+              {t('myReviews.pending')} ({reviewableItems.length})
             </h2>
             <div className="space-y-3">
               {reviewableItems.map((item, index) => (
@@ -100,15 +102,12 @@ const MyReviewsPage = ({ onNavigate }) => {
         {/* Completed Reviews */}
         <div>
           <h2 className="text-lg font-bold text-gray-900 mb-3">
-            Completed Reviews ({completedReviews.length})
+            {t('myReviews.approved')} ({completedReviews.length})
           </h2>
           {completedReviews.length === 0 ? (
             <div className="bg-white rounded-xl p-12 text-center">
               <Star className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-              <p className="text-gray-500">No reviews yet</p>
-              <p className="text-sm text-gray-400 mt-1">
-                Complete your orders to write reviews
-              </p>
+              <p className="text-gray-500">{t('myReviews.empty')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -145,6 +144,8 @@ const MyReviewsPage = ({ onNavigate }) => {
 };
 
 const PendingReviewCard = ({ item, onWriteReview }) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm">
       <div className="flex gap-3">
@@ -162,7 +163,7 @@ const PendingReviewCard = ({ item, onWriteReview }) => {
         onClick={onWriteReview}
         className="w-full mt-3 bg-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors"
       >
-        Write Review
+        {t('myReviews.writeReview')}
       </button>
     </div>
   );

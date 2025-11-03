@@ -88,7 +88,10 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
           city: checkoutData.city,
           payme_order_id: paymeOrderId // Also store for webhook compatibility
         },
-        courier: checkoutData.courier,
+        courier: {
+          name: checkoutData.courier || 'N/A',
+          duration: checkoutData.type === 'home_delivery' ? 'Home Delivery' : 'Pickup'
+        },
         subtotal: checkoutData.subtotal,
         bonusDiscount: checkoutData.bonusDiscount,
         bonusPointsUsed: checkoutData.bonusPointsUsed,
@@ -219,7 +222,10 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
           address: checkoutData.address,
           city: checkoutData.city
         },
-        courier: checkoutData.courier,
+        courier: {
+          name: checkoutData.courier || 'N/A',
+          duration: checkoutData.type === 'home_delivery' ? 'Home Delivery' : 'Pickup'
+        },
         subtotal: checkoutData.subtotal,
         bonusDiscount: checkoutData.bonusDiscount,
         bonusPointsUsed: checkoutData.bonusPointsUsed,
