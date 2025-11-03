@@ -104,35 +104,41 @@ export const PickupPointsProvider = ({ children }) => {
     return [...new Set(pickupPoints.map(point => point.courierService))].sort();
   }, [pickupPoints]);
 
-  // Get states by courier service
-  const getStatesByCourier = useCallback((courierService) => {
+  // Get states by courier service (filtered by language)
+  const getStatesByCourier = useCallback((courierService, language = 'uz') => {
     return [...new Set(
       pickupPoints
-        .filter(point => point.courierService === courierService && point.active)
+        .filter(point => 
+          point.courierService === courierService && 
+          point.active &&
+          point.language === language
+        )
         .map(point => point.state)
     )].sort();
   }, [pickupPoints]);
 
-  // Get cities by courier and state
-  const getCitiesByCourierAndState = useCallback((courierService, state) => {
+  // Get cities by courier and state (filtered by language)
+  const getCitiesByCourierAndState = useCallback((courierService, state, language = 'uz') => {
     return [...new Set(
       pickupPoints
         .filter(point =>
           point.courierService === courierService &&
           point.state === state &&
-          point.active
+          point.active &&
+          point.language === language
         )
         .map(point => point.city)
     )].sort();
   }, [pickupPoints]);
 
-  // Get pickup points by courier, state, and city
-  const getPickupPointsByCourierStateCity = useCallback((courierService, state, city) => {
+  // Get pickup points by courier, state, and city (filtered by language)
+  const getPickupPointsByCourierStateCity = useCallback((courierService, state, city, language = 'uz') => {
     return pickupPoints.filter(point =>
       point.courierService === courierService &&
       point.state === state &&
       point.city === city &&
-      point.active
+      point.active &&
+      point.language === language
     );
   }, [pickupPoints]);
 

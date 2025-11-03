@@ -5,24 +5,41 @@ import { UserContext } from '../../context/UserContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
 import { formatPrice, bonusPointsToDollars, calculateMaxBonusUsage } from '../../utils/helpers';
 import { useBackButton } from '../../hooks/useBackButton';
+import { useTranslation } from '../../hooks/useTranslation';
 import CustomDropdown from '../common/CustomDropdown';
 
-// Tashkent districts for Yandex
-const TASHKENT_DISTRICTS = [
-  'Bektemir',
-  'Chilanzar',
-  'Mirobod',
-  'Mirzo Ulugbek',
-  'Sergeli',
-  'Shaykhontohur',
-  'Uchtepa',
-  'Yashnobod',
-  'Yakkasaray',
-  'Yunusabad',
-  'Olmazor'
-];
+// Tashkent districts for Yandex - bilingual support
+const TASHKENT_DISTRICTS = {
+  uz: [
+    'Bektemir',
+    'Chilonzor',
+    'Mirobod',
+    'Mirzo Ulug\'bek',
+    'Sergeli',
+    'Shayxontohur',
+    'Uchtepa',
+    'Yashnobod',
+    'Yakkasaroy',
+    'Yunusobod',
+    'Olmazor'
+  ],
+  ru: [
+    'Бектемир',
+    'Чиланзар',
+    'Мирабад',
+    'Мирзо Улугбек',
+    'Сергели',
+    'Шайхонтохур',
+    'Учтепа',
+    'Яшнабад',
+    'Яккасарай',
+    'Юнусабад',
+    'Алмазар'
+  ]
+};
 
 const CheckoutPage = ({ onNavigate }) => {
+  const { t, language } = useTranslation();
   const { getCartTotal } = useCart();
   const { user } = useContext(UserContext);
   const {
@@ -108,32 +125,32 @@ const CheckoutPage = ({ onNavigate }) => {
   // Update available states when non-Yandex courier is selected
   useEffect(() => {
     if (pickupCourier && pickupCourier !== 'Yandex') {
-      const states = getStatesByCourier(pickupCourier);
+      const states = getStatesByCourier(pickupCourier, language);
       setAvailableStates(states);
       setPickupState('');
       setPickupCity('');
       setSelectedPickupPoint(null);
     }
-  }, [pickupCourier, getStatesByCourier]);
+  }, [pickupCourier, language, getStatesByCourier]);
 
   // Update available cities when state changes
   useEffect(() => {
     if (pickupCourier && pickupCourier !== 'Yandex' && pickupState) {
-      const cities = getCitiesByCourierAndState(pickupCourier, pickupState);
+      const cities = getCitiesByCourierAndState(pickupCourier, pickupState, language);
       setAvailableCities(cities);
       setPickupCity('');
       setSelectedPickupPoint(null);
     }
-  }, [pickupCourier, pickupState, getCitiesByCourierAndState]);
+  }, [pickupCourier, pickupState, language, getCitiesByCourierAndState]);
 
   // Update available pickup points when city changes
   useEffect(() => {
     if (pickupCourier && pickupCourier !== 'Yandex' && pickupState && pickupCity) {
-      const points = getPickupPointsByCourierStateCity(pickupCourier, pickupState, pickupCity);
+      const points = getPickupPointsByCourierStateCity(pickupCourier, pickupState, pickupCity, language);
       setAvailablePickupPoints(points);
       setSelectedPickupPoint(null);
     }
-  }, [pickupCourier, pickupState, pickupCity, getPickupPointsByCourierStateCity]);
+  }, [pickupCourier, pickupState, pickupCity, language, getPickupPointsByCourierStateCity]);
 
   const subtotal = getCartTotal();
   const deliveryFee = 0; // Free delivery
@@ -176,25 +193,25 @@ const CheckoutPage = ({ onNavigate }) => {
 
     // Validation
     if (!formData.fullName || !formData.phone) {
-      alert('Please fill in your name and phone number');
+      alert(t('checkout.required'));
       return;
     }
 
     if (!pickupCourier) {
-      alert('Please select a courier service');
+      alert(t('checkout.selectCourier'));
       return;
     }
 
     // Yandex validation
     if (pickupCourier === 'Yandex') {
       if (!yandexDistrict || !yandexAddress) {
-        alert('Please select district and enter your delivery address');
+        alert(t('checkout.selectDistrictAddress'));
         return;
       }
     } else {
       // Other couriers validation
       if (!selectedPickupPoint) {
-        alert('Please select a pickup point');
+        alert(t('checkout.selectPickupPoint'));
         return;
       }
     }
@@ -240,16 +257,16 @@ const CheckoutPage = ({ onNavigate }) => {
   return (
     <div className="pb-20 pt-16">
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
-        <h2 className="text-2xl font-bold">Checkout</h2>
+        <h2 className="text-2xl font-bold">{t('checkout.title')}</h2>
 
         {/* Personal Information */}
         <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold mb-4">Personal Information</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('checkout.deliveryInfo')}</h3>
 
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Full Name *
+                {t('checkout.fullName')} *
               </label>
               <input
                 type="text"
@@ -263,7 +280,7 @@ const CheckoutPage = ({ onNavigate }) => {
 
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Phone Number *
+                {t('checkout.phone')} *
               </label>
               <input
                 type="tel"
@@ -300,20 +317,20 @@ const CheckoutPage = ({ onNavigate }) => {
         <div className="bg-white rounded-lg shadow-md p-4">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <MapPin className="w-5 h-5" />
-            Select Delivery Method *
+            {t('checkout.deliveryMethod')} *
           </h3>
 
           <div className="space-y-4">
             {/* Courier Service Dropdown */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                1. Select Courier Service
+                1. {t('checkout.selectCourierService')}
               </label>
               <CustomDropdown
                 value={pickupCourier}
                 onChange={(value) => setPickupCourier(value)}
                 options={allCouriers}
-                placeholder="-- Choose Courier --"
+                placeholder={`-- ${t('checkout.chooseCourier')} --`}
                 required
               />
             </div>
@@ -323,13 +340,13 @@ const CheckoutPage = ({ onNavigate }) => {
               <>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    2. Select District
+                    2. {t('checkout.selectDistrict')}
                   </label>
                   <CustomDropdown
                     value={yandexDistrict}
                     onChange={(value) => setYandexDistrict(value)}
-                    options={TASHKENT_DISTRICTS}
-                    placeholder="-- Choose District --"
+                    options={TASHKENT_DISTRICTS[language] || TASHKENT_DISTRICTS.uz}
+                    placeholder={`-- ${t('checkout.chooseDistrict')} --`}
                     required
                   />
                 </div>
@@ -337,18 +354,18 @@ const CheckoutPage = ({ onNavigate }) => {
                 {yandexDistrict && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      3. Enter Delivery Address
+                      3. {t('checkout.enterAddress')}
                     </label>
                     <textarea
                       value={yandexAddress}
                       onChange={(e) => setYandexAddress(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
                       rows="3"
-                      placeholder="Street name, building number, apartment..."
+                      placeholder={t('checkout.addressPlaceholder')}
                       required
                     />
                     <p className="text-xs text-gray-500 mt-1">
-                      Your order will be delivered to: {yandexDistrict} district
+                      {t('checkout.deliverTo', { district: yandexDistrict })}
                     </p>
                   </div>
                 )}
@@ -360,13 +377,13 @@ const CheckoutPage = ({ onNavigate }) => {
               <>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    2. Select State/Region
+                    2. {t('checkout.selectState')}
                   </label>
                   <CustomDropdown
                     value={pickupState}
                     onChange={(value) => setPickupState(value)}
                     options={availableStates}
-                    placeholder="-- Choose State --"
+                    placeholder={`-- ${t('checkout.chooseState')} --`}
                     required
                   />
                 </div>
@@ -374,13 +391,13 @@ const CheckoutPage = ({ onNavigate }) => {
                 {pickupState && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      3. Select City
+                      3. {t('checkout.city')}
                     </label>
                     <CustomDropdown
                       value={pickupCity}
                       onChange={(value) => setPickupCity(value)}
                       options={availableCities}
-                      placeholder="-- Choose City --"
+                      placeholder={`-- ${t('checkout.selectCity')} --`}
                       required
                     />
                   </div>
@@ -389,7 +406,7 @@ const CheckoutPage = ({ onNavigate }) => {
                 {pickupState && pickupCity && availablePickupPoints.length > 0 && (
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      4. Select Pickup Location
+                      4. {t('checkout.selectPickupLocation')}
                     </label>
                     <div className="space-y-2">
                       {availablePickupPoints.map((point) => (
@@ -432,7 +449,7 @@ const CheckoutPage = ({ onNavigate }) => {
 
                 {pickupState && pickupCity && availablePickupPoints.length === 0 && (
                   <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
-                    <p className="text-sm text-yellow-800">No pickup points available in this location</p>
+                    <p className="text-sm text-yellow-800">{t('checkout.noPickupPoints')}</p>
                   </div>
                 )}
               </>
@@ -442,14 +459,14 @@ const CheckoutPage = ({ onNavigate }) => {
 
         {/* Bonus Points */}
         <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold mb-4">Bonus Points</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('cart.bonusPoints')}</h3>
 
           <div className="mb-3">
             <p className="text-sm text-gray-600">
-              Available Balance: <span className="font-bold text-accent">{user.bonusPoints} points</span>
+              {t('cart.availableBonus', { points: user.bonusPoints })}
             </p>
             <p className="text-sm text-gray-600">
-              Maximum Usage (20%): <span className="font-bold">{availableBonusPoints} points</span>
+              {t('cart.maxBonus', { points: availableBonusPoints })}
               {' = '}{formatPrice(bonusPointsToDollars(availableBonusPoints))}
             </p>
           </div>
@@ -462,36 +479,36 @@ const CheckoutPage = ({ onNavigate }) => {
                 onChange={(e) => setUseBonusPoints(e.target.checked)}
                 className="w-5 h-5 text-accent"
               />
-              <span>Use {availableBonusPoints} bonus points ({formatPrice(bonusDiscount)} off)</span>
+              <span>{t('cart.applyBonus')} ({formatPrice(bonusDiscount)})</span>
             </label>
           )}
         </div>
 
         {/* Order Summary */}
         <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('checkout.orderSummary')}</h3>
 
           <div className="space-y-2">
             <div className="flex justify-between text-gray-700">
-              <span>Subtotal</span>
+              <span>{t('cart.subtotal')}</span>
               <span>{formatPrice(subtotal)}</span>
             </div>
 
             {useBonusPoints && bonusDiscount > 0 && (
               <div className="flex justify-between text-success">
-                <span>Bonus Discount</span>
+                <span>{t('cart.bonusDiscount')}</span>
                 <span>-{formatPrice(bonusDiscount)}</span>
               </div>
             )}
 
             <div className="flex justify-between text-success">
-              <span>Delivery Fee</span>
-              <span className="font-semibold">FREE</span>
+              <span>{t('cart.delivery')}</span>
+              <span className="font-semibold">{t('cart.deliveryFree')}</span>
             </div>
 
             <div className="border-t border-gray-300 pt-2 mt-2">
               <div className="flex justify-between text-xl font-bold">
-                <span>Total</span>
+                <span>{t('cart.total')}</span>
                 <span className="text-primary">{formatPrice(total)}</span>
               </div>
             </div>
@@ -503,7 +520,7 @@ const CheckoutPage = ({ onNavigate }) => {
           type="submit"
           className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
         >
-          Continue to Payment
+          {t('checkout.placeOrder')}
         </button>
       </form>
     </div>

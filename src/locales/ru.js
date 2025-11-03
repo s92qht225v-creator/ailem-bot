@@ -169,12 +169,25 @@ export default {
     orderSummary: 'Итого по заказу',
     placeOrder: 'Подтвердить заказ',
     processing: 'Обработка...',
-    required: 'Обязательное поле',
+    required: 'Пожалуйста, заполните имя и телефон',
     invalidPhone: 'Неверный номер телефона',
     invalidAddress: 'Неверный адрес',
     orderCreated: 'Заказ создан',
     orderFailed: 'Ошибка создания заказа',
-    bonusApplied: 'Использовано {points} баллов (-{value} UZS)'
+    bonusApplied: 'Использовано {points} баллов (-{value} UZS)',
+    selectCourier: 'Пожалуйста, выберите курьерскую службу',
+    selectDistrictAddress: 'Пожалуйста, выберите район и введите адрес',
+    selectCourierService: 'Выберите курьерскую службу',
+    chooseCourier: 'Выберите курьера',
+    selectDistrict: 'Выберите район',
+    chooseDistrict: 'Выберите район',
+    enterAddress: 'Введите адрес доставки',
+    addressPlaceholder: 'Название улицы, номер дома, квартира...',
+    deliverTo: 'Ваш заказ будет доставлен в {district} район',
+    selectState: 'Выберите область/регион',
+    chooseState: 'Выберите область',
+    selectPickupLocation: 'Выберите пункт самовывоза',
+    noPickupPoints: 'Нет пунктов самовывоза в этой локации'
   },
 
   // Payment

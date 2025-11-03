@@ -169,12 +169,25 @@ export default {
     orderSummary: 'Buyurtma xulosasi',
     placeOrder: 'Buyurtmani tasdiqlash',
     processing: 'Qayta ishlanmoqda...',
-    required: 'Majburiy maydon',
+    required: 'Iltimos, ism va telefon raqamni kiriting',
     invalidPhone: 'Noto\'g\'ri telefon raqam',
     invalidAddress: 'Noto\'g\'ri manzil',
     orderCreated: 'Buyurtma yaratildi',
     orderFailed: 'Xatolik yuz berdi',
-    bonusApplied: '{points} ball ishlatilmoqda (-{value} UZS)'
+    bonusApplied: '{points} ball ishlatilmoqda (-{value} UZS)',
+    selectCourier: 'Iltimos, kurerlik xizmatni tanlang',
+    selectDistrictAddress: 'Iltimos, tumanni tanlang va manzilni kiriting',
+    selectCourierService: 'Kurerlik xizmatni tanlang',
+    chooseCourier: 'Kurerni tanlang',
+    selectDistrict: 'Tumanni tanlang',
+    chooseDistrict: 'Tumanni tanlang',
+    enterAddress: 'Yetkazish manzilini kiriting',
+    addressPlaceholder: 'Ko\'cha nomi, bino raqami, xonadon...',
+    deliverTo: 'Sizning buyurtmangiz {district} tumaniga yetkaziladi',
+    selectState: 'Viloyat/Hududni tanlang',
+    chooseState: 'Viloyatni tanlang',
+    selectPickupLocation: 'Olib ketish punktini tanlang',
+    noPickupPoints: 'Bu manzilda olib ketish punktlari mavjud emas'
   },
 
   // Payment
