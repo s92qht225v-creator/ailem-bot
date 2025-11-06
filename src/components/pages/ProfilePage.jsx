@@ -1,16 +1,14 @@
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { Package, Award, Settings, HelpCircle, Heart, ChevronRight, MapPin, MessageSquare, LogIn, LogOut } from 'lucide-react';
+import { Package, Award, Settings, HelpCircle, Heart, ChevronRight, MapPin, MessageSquare } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useOrders } from '../../hooks/useOrders';
 import { formatPrice } from '../../utils/helpers';
-import AuthModal from '../common/AuthModal';
 
 const ProfilePage = ({ onNavigate, hideHeader = false }) => {
-  const { user, login, logout } = useContext(UserContext);
+  const { user } = useContext(UserContext);
   const { getUserOrders } = useOrders();
   const userOrders = getUserOrders();
-  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const getInitial = (name) => {
     return name ? name.charAt(0).toUpperCase() : 'U';
@@ -112,36 +110,12 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
           subtitle={t('profile.helpSubtitle')}
           onClick={() => alert(t('common.comingSoon'))}
         />
-
-        {/* Login/Logout Button */}
-        {user && user.id === 'guest' ? (
-          <MenuCard
-            icon={LogIn}
-            title={t('profile.login')}
-            subtitle={t('profile.loginSubtitle')}
-            onClick={() => setShowAuthModal(true)}
-          />
-        ) : (
-          <MenuCard
-            icon={LogOut}
-            title={t('profile.logout')}
-            subtitle={t('profile.logoutSubtitle')}
-            onClick={logout}
-          />
-        )}
       </div>
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onLogin={login}
-      />
     </div>
   );
 };
 
-const MenuCard = ({ icon: Icon, title, subtitle, count, onClick }) => {
+const MenuCard = ({ icon: Icon, title, subtitle, onClick }) => {
   return (
     <button
       onClick={onClick}
