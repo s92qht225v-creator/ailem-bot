@@ -72,7 +72,7 @@ export const calculateTimeRemaining = (endDate) => {
 // Format date to readable string
 export const formatDate = (dateString) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString('uz-UZ', {
     year: 'numeric',
     month: 'short',
     day: 'numeric'

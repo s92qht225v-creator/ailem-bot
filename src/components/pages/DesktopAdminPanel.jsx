@@ -3796,7 +3796,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <div className="mt-2 p-3 bg-blue-50 rounded-lg">
                   <p className="text-xs text-blue-800 font-medium">📅 Selected date:</p>
                   <p className="text-sm text-blue-900 font-semibold">
-                    {new Date(saleTimer.endDate).toLocaleString('en-US', {
+                    {new Date(saleTimer.endDate).toLocaleString('uz-UZ', {
                       weekday: 'long',
                       year: 'numeric',
                       month: 'long',

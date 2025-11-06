@@ -9,35 +9,20 @@ import { formatPrice, bonusPointsToDollars, calculateMaxBonusUsage } from '../..
 import { useBackButton } from '../../hooks/useBackButton';
 import CustomDropdown from '../common/CustomDropdown';
 
-// Tashkent districts for Yandex - bilingual support
-const TASHKENT_DISTRICTS = {
-  uz: [
-    'Bektemir',
-    'Chilonzor',
-    'Mirobod',
-    'Mirzo Ulug\'bek',
-    'Sergeli',
-    'Shayxontohur',
-    'Uchtepa',
-    'Yashnobod',
-    'Yakkasaroy',
-    'Yunusobod',
-    'Olmazor'
-  ],
-  ru: [
-    'Бектемир',
-    'Чиланзар',
-    'Мирабад',
-    'Мирзо Улугбек',
-    'Сергели',
-    'Шайхонтохур',
-    'Учтепа',
-    'Яшнабад',
-    'Яккасарай',
-    'Юнусабад',
-    'Алмазар'
-  ]
-};
+// Tashkent districts for Yandex delivery
+const TASHKENT_DISTRICTS = [
+  'Bektemir',
+  'Chilonzor',
+  'Mirobod',
+  'Mirzo Ulug\'bek',
+  'Sergeli',
+  'Shayxontohur',
+  'Uchtepa',
+  'Yashnobod',
+  'Yakkasaroy',
+  'Yunusobod',
+  'Olmazor'
+];
 
 const CheckoutPage = ({ onNavigate }) => {
   const { getCartTotal, cartItems } = useCart();
@@ -368,7 +353,7 @@ const CheckoutPage = ({ onNavigate }) => {
                   <CustomDropdown
                     value={yandexDistrict}
                     onChange={(value) => setYandexDistrict(value)}
-                    options={TASHKENT_DISTRICTS.uz}
+                    options={TASHKENT_DISTRICTS}
                     placeholder={`-- ${t('checkout.chooseDistrict')} --`}
                     required
                   />

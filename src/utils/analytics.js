@@ -253,7 +253,7 @@ export const getRevenueChartData = (orders = []) => {
     const revenue = dayOrders.reduce((sum, order) => sum + (order.total || 0), 0);
 
     last7Days.push({
-      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: date.toLocaleDateString('uz-UZ', { month: 'short', day: 'numeric' }),
       revenue,
       orders: dayOrders.length,
     });
@@ -263,12 +263,12 @@ export const getRevenueChartData = (orders = []) => {
 };
 
 /**
- * Format currency for display
- * @param {number} amount - Amount in currency
+ * Format currency for display in UZS
+ * @param {number} amount - Amount in UZS
  * @returns {string} Formatted currency string
  */
 export const formatCurrency = (amount) => {
-  return `$${amount.toFixed(2)}`;
+  return `${Math.round(amount).toLocaleString('uz-UZ')} UZS`;
 };
 
 /**

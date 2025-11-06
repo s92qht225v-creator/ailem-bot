@@ -46,10 +46,9 @@ export const generateSKU = (color, size) => {
 
 /**
  * Find a specific variant by color and size
- * Supports language-aware matching (checks both Uzbek and Russian names)
  * @param {Array} variants - Array of variants
- * @param {string} color - Color to find (can be in any language)
- * @param {string} size - Size to find (can be in any language)
+ * @param {string} color - Color to find
+ * @param {string} size - Size to find
  * @returns {Object|null} Variant object or null
  */
 export const findVariant = (variants = [], color, size) => {
@@ -60,28 +59,10 @@ export const findVariant = (variants = [], color, size) => {
   const colorLower = color.toLowerCase();
   const sizeLower = size.toLowerCase();
 
-  return variants.find(v => {
-    // Match against primary language (Uzbek)
-    const matchesPrimary = 
-      v.color?.toLowerCase() === colorLower &&
-      v.size?.toLowerCase() === sizeLower;
-    
-    // Match against Russian translations
-    const matchesRussian = 
-      v.color_ru?.toLowerCase() === colorLower &&
-      v.size_ru?.toLowerCase() === sizeLower;
-    
-    // Match mixed (Uzbek color + Russian size or vice versa)
-    const matchesMixed1 = 
-      v.color?.toLowerCase() === colorLower &&
-      v.size_ru?.toLowerCase() === sizeLower;
-    
-    const matchesMixed2 = 
-      v.color_ru?.toLowerCase() === colorLower &&
-      v.size?.toLowerCase() === sizeLower;
-    
-    return matchesPrimary || matchesRussian || matchesMixed1 || matchesMixed2;
-  });
+  return variants.find(v =>
+    v.color?.toLowerCase() === colorLower &&
+    v.size?.toLowerCase() === sizeLower
+  );
 };
 
 /**
@@ -98,25 +79,19 @@ export const getVariantStock = (variants = [], color, size) => {
 
 /**
  * Update stock for a specific variant
- * Supports language-aware matching
  * @param {Array} variants - Array of variants
- * @param {string} color - Color (can be in any language)
- * @param {string} size - Size (can be in any language)
+ * @param {string} color - Color
+ * @param {string} size - Size
  * @param {number} newStock - New stock value
  * @returns {Array} Updated variants array
  */
 export const updateVariantStock = (variants = [], color, size, newStock) => {
   const colorLower = color.toLowerCase();
   const sizeLower = size.toLowerCase();
-  
+
   return variants.map(v => {
-    const matches = (
-      (v.color?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower) ||
-      (v.color_ru?.toLowerCase() === colorLower && v.size_ru?.toLowerCase() === sizeLower) ||
-      (v.color?.toLowerCase() === colorLower && v.size_ru?.toLowerCase() === sizeLower) ||
-      (v.color_ru?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower)
-    );
-    
+    const matches = v.color?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower;
+
     if (matches) {
       return { ...v, stock: newStock };
     }
@@ -126,25 +101,19 @@ export const updateVariantStock = (variants = [], color, size, newStock) => {
 
 /**
  * Update image for a specific variant
- * Supports language-aware matching
  * @param {Array} variants - Array of variants
- * @param {string} color - Color (can be in any language)
- * @param {string} size - Size (can be in any language)
+ * @param {string} color - Color
+ * @param {string} size - Size
  * @param {string} imageUrl - New image URL
  * @returns {Array} Updated variants array
  */
 export const updateVariantImage = (variants = [], color, size, imageUrl) => {
   const colorLower = color.toLowerCase();
   const sizeLower = size.toLowerCase();
-  
+
   return variants.map(v => {
-    const matches = (
-      (v.color?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower) ||
-      (v.color_ru?.toLowerCase() === colorLower && v.size_ru?.toLowerCase() === sizeLower) ||
-      (v.color?.toLowerCase() === colorLower && v.size_ru?.toLowerCase() === sizeLower) ||
-      (v.color_ru?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower)
-    );
-    
+    const matches = v.color?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower;
+
     if (matches) {
       return { ...v, image: imageUrl };
     }
@@ -154,25 +123,19 @@ export const updateVariantImage = (variants = [], color, size, imageUrl) => {
 
 /**
  * Decrease stock for a specific variant
- * Supports language-aware matching
  * @param {Array} variants - Array of variants
- * @param {string} color - Color (can be in any language)
- * @param {string} size - Size (can be in any language)
+ * @param {string} color - Color
+ * @param {string} size - Size
  * @param {number} quantity - Quantity to decrease
  * @returns {Array} Updated variants array
  */
 export const decreaseVariantStock = (variants = [], color, size, quantity) => {
   const colorLower = color.toLowerCase();
   const sizeLower = size.toLowerCase();
-  
+
   return variants.map(v => {
-    const matches = (
-      (v.color?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower) ||
-      (v.color_ru?.toLowerCase() === colorLower && v.size_ru?.toLowerCase() === sizeLower) ||
-      (v.color?.toLowerCase() === colorLower && v.size_ru?.toLowerCase() === sizeLower) ||
-      (v.color_ru?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower)
-    );
-    
+    const matches = v.color?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower;
+
     if (matches) {
       return { ...v, stock: Math.max(0, v.stock - quantity) };
     }
@@ -300,27 +263,3 @@ export const formatVariantName = (variant) => {
   return `${variant.color} - ${variant.size}`;
 };
 
-/**
- * Get variant display info with stock status
- * @param {Object} variant - Variant object
- * @returns {Object} Display info
- */
-export const getVariantDisplayInfo = (variant) => {
-  if (!variant) {
-    return {
-      label: '',
-      stockStatus: 'unavailable',
-      stockText: 'Not available',
-      canOrder: false
-    };
-  }
-
-  const { stock } = variant;
-
-  return {
-    label: formatVariantName(variant),
-    stockStatus: stock === 0 ? 'out' : stock < 10 ? 'low' : 'available',
-    stockText: stock === 0 ? 'Out of stock' : stock < 10 ? `Only ${stock} left` : `${stock} in stock`,
-    canOrder: stock > 0
-  };
-};
