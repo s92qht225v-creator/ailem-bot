@@ -47,7 +47,32 @@ export const t = (key) => {
     'shop.sortPopular': 'Mashhur',
     'shop.productsFound': 'mahsulot topildi',
     'shop.noProducts': 'Mahsulotlar yo\'q',
-    'shop.noResults': 'Hech narsa topilmadi'
+    'shop.noResults': 'Hech narsa topilmadi',
+    // Checkout page
+    'checkout.deliveryInfo': 'Yetkazib berish ma\'lumotlari',
+    'checkout.fullName': 'To\'liq ism',
+    'checkout.phone': 'Telefon raqam',
+    'checkout.deliveryMethod': 'Yetkazib berish usuli',
+    'checkout.selectCourierService': 'Kurerlik xizmatni tanlang',
+    'checkout.chooseCourier': 'Kurerni tanlang',
+    'checkout.selectDistrict': 'Tumanni tanlang',
+    'checkout.chooseDistrict': 'Tumanni tanlang',
+    'checkout.enterAddress': 'Yetkazish manzilini kiriting',
+    'checkout.addressPlaceholder': 'Ko\'cha nomi, bino raqami, xonadon...',
+    'checkout.deliverTo': 'Sizning buyurtmangiz {district} tumaniga yetkaziladi',
+    'checkout.selectState': 'Viloyat/Hududni tanlang',
+    'checkout.chooseState': 'Viloyatni tanlang',
+    'checkout.city': 'Shahar',
+    'checkout.selectCity': 'Shaharni tanlang',
+    'checkout.selectPickupLocation': 'Olib ketish punktini tanlang',
+    'checkout.noPickupPoints': 'Bu manzilda olib ketish punktlari mavjud emas',
+    'checkout.orderSummary': 'Buyurtma xulosasi',
+    'checkout.subtotal': 'Jami',
+    'checkout.deliveryFee': 'Yetkazib berish',
+    'checkout.useBonusPoints': 'Bonus ballarini ishlatish',
+    'checkout.bonusDiscount': 'Bonus chegirmasi',
+    'checkout.total': 'To\'lov uchun',
+    'checkout.placeOrder': 'Buyurtmani tasdiqlash'
   };
   
   return translations[key] || key;

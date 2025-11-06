@@ -126,10 +126,9 @@ const CheckoutPage = ({ onNavigate }) => {
   // Update available states when non-Yandex courier is selected
   useEffect(() => {
     if (pickupCourier && pickupCourier !== 'Yandex') {
-      const states = getStatesByCourier(pickupCourier, language);
+      const states = getStatesByCourier(pickupCourier);
       console.log('🔍 Checkout Debug:', {
         pickupCourier,
-        language,
         availableStates: states,
         statesCount: states.length
       });
@@ -138,26 +137,26 @@ const CheckoutPage = ({ onNavigate }) => {
       setPickupCity('');
       setSelectedPickupPoint(null);
     }
-  }, [pickupCourier, language, getStatesByCourier]);
+  }, [pickupCourier, getStatesByCourier]);
 
   // Update available cities when state changes
   useEffect(() => {
     if (pickupCourier && pickupCourier !== 'Yandex' && pickupState) {
-      const cities = getCitiesByCourierAndState(pickupCourier, pickupState, language);
+      const cities = getCitiesByCourierAndState(pickupCourier, pickupState);
       setAvailableCities(cities);
       setPickupCity('');
       setSelectedPickupPoint(null);
     }
-  }, [pickupCourier, pickupState, language, getCitiesByCourierAndState]);
+  }, [pickupCourier, pickupState, getCitiesByCourierAndState]);
 
   // Update available pickup points when city changes
   useEffect(() => {
     if (pickupCourier && pickupCourier !== 'Yandex' && pickupState && pickupCity) {
-      const points = getPickupPointsByCourierStateCity(pickupCourier, pickupState, pickupCity, language);
+      const points = getPickupPointsByCourierStateCity(pickupCourier, pickupState, pickupCity);
       setAvailablePickupPoints(points);
       setSelectedPickupPoint(null);
     }
-  }, [pickupCourier, pickupState, pickupCity, language, getPickupPointsByCourierStateCity]);
+  }, [pickupCourier, pickupState, pickupCity, getPickupPointsByCourierStateCity]);
 
   const subtotal = getCartTotal();
 
@@ -369,7 +368,7 @@ const CheckoutPage = ({ onNavigate }) => {
                   <CustomDropdown
                     value={yandexDistrict}
                     onChange={(value) => setYandexDistrict(value)}
-                    options={TASHKENT_DISTRICTS[language] || TASHKENT_DISTRICTS.uz}
+                    options={TASHKENT_DISTRICTS.uz}
                     placeholder={`-- ${t('checkout.chooseDistrict')} --`}
                     required
                   />
