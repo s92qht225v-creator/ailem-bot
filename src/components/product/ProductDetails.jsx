@@ -136,12 +136,12 @@ const ProductDetails = ({ product, onAddToCart }) => {
     // Generate referral link (exactly like ReferralsPage)
     const referralLink = `https://t.me/${botUsername}?start=ref_${user.referralCode}`;
     
-    // Create message (exactly like referral page format)
-    const message = `🛍️ ${product.name}\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring va bonus oling!\n\n👉 ${referralLink}`;
+    // Create message WITHOUT the link in text (link goes in url parameter)
+    const message = `🛍️ ${product.name}\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring va bonus oling!`;
 
     const tg = getTelegramWebApp();
     if (tg) {
-      // Use Telegram's native share (same as referral page)
+      // Use Telegram's native share - url parameter only, no link in text
       const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`;
       tg.openTelegramLink(shareUrl);
     } else {
