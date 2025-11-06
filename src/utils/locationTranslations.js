@@ -164,6 +164,7 @@ export function normalizeLocationToEnglish(locationName, type = 'state') {
     .replace(/область/g, '')    // Remove область (Russian for region)
     .replace(/shahri/g, '')     // Remove shahri (city)
     .replace(/город/g, '')      // Remove город (Russian for city)
+    .replace(/q/g, 'k')         // Uzbek spelling: Samarqand → Samarkand
     .trim();
 
   // Check if it's already in English and exists (exact match)
@@ -188,7 +189,7 @@ export function normalizeLocationToEnglish(locationName, type = 'state') {
     }
 
     // Fuzzy match by removing common suffixes
-    const normalizedUz = uzLower.replace(/viloyati?/g, '').replace(/region/g, '').replace(/shahri/g, '').trim();
+    const normalizedUz = uzLower.replace(/viloyati?/g, '').replace(/region/g, '').replace(/shahri/g, '').replace(/q/g, 'k').trim();
     const normalizedRu = ruLower.replace(/область/g, '').replace(/регион/g, '').replace(/город/g, '').trim();
     const normalizedEn = enLower.replace(/region/g, '').trim();
 

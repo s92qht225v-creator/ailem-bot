@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
 import { pickupPointsAPI } from '../services/api';
-import { translateLocation } from '../utils/locationTranslations';
+import { translateLocation, normalizeLocationToEnglish } from '../utils/locationTranslations';
 
 export const PickupPointsContext = createContext();
 
@@ -113,46 +113,61 @@ export const PickupPointsProvider = ({ children }) => {
           point.courierService === courierService &&
           point.active
         )
-        .map(point => translateLocation(point.state, language, 'state'))
+        .map(point => {
+          // First normalize to English, then translate to target language
+          const englishState = normalizeLocationToEnglish(point.state, 'state');
+          return translateLocation(englishState, language, 'state');
+        })
     )].sort();
   }, [pickupPoints]);
 
   // Get cities by courier and state - translate to requested language
   const getCitiesByCourierAndState = useCallback((courierService, state, language = 'uz') => {
     // Normalize incoming state (might be translated from previous step)
-    const normalizedState = translateLocation(state, 'en', 'state'); // Convert back to English for matching
+    const normalizedState = normalizeLocationToEnglish(state, 'state'); // Convert back to English for matching
 
     return [...new Set(
       pickupPoints
-        .filter(point =>
-          point.courierService === courierService &&
-          (point.state === normalizedState || point.state === state) &&
-          point.active
-        )
-        .map(point => translateLocation(point.city, language, 'city'))
+        .filter(point => {
+          const pointStateEnglish = normalizeLocationToEnglish(point.state, 'state');
+          return point.courierService === courierService &&
+            (pointStateEnglish === normalizedState || point.state === state) &&
+            point.active;
+        })
+        .map(point => {
+          // First normalize to English, then translate to target language
+          const englishCity = normalizeLocationToEnglish(point.city, 'city');
+          return translateLocation(englishCity, language, 'city');
+        })
     )].sort();
   }, [pickupPoints]);
 
   // Get pickup points by courier, state, and city - translate address fields
   const getPickupPointsByCourierStateCity = useCallback((courierService, state, city, language = 'uz') => {
     // Normalize incoming state and city (might be translated from previous steps)
-    const normalizedState = translateLocation(state, 'en', 'state');
-    const normalizedCity = translateLocation(city, 'en', 'city');
+    const normalizedState = normalizeLocationToEnglish(state, 'state');
+    const normalizedCity = normalizeLocationToEnglish(city, 'city');
 
     return pickupPoints
-      .filter(point =>
-        point.courierService === courierService &&
-        (point.state === normalizedState || point.state === state) &&
-        (point.city === normalizedCity || point.city === city) &&
-        point.active
-      )
-      .map(point => ({
-        ...point,
-        // Translate state and city for display
-        state: translateLocation(point.state, language, 'state'),
-        city: translateLocation(point.city, language, 'city')
-        // Note: Address stays in original form (Latin or whatever was entered)
-      }));
+      .filter(point => {
+        const pointStateEnglish = normalizeLocationToEnglish(point.state, 'state');
+        const pointCityEnglish = normalizeLocationToEnglish(point.city, 'city');
+        return point.courierService === courierService &&
+          (pointStateEnglish === normalizedState || point.state === state) &&
+          (pointCityEnglish === normalizedCity || point.city === city) &&
+          point.active;
+      })
+      .map(point => {
+        // First normalize to English, then translate to target language for display
+        const englishState = normalizeLocationToEnglish(point.state, 'state');
+        const englishCity = normalizeLocationToEnglish(point.city, 'city');
+        return {
+          ...point,
+          state: translateLocation(englishState, language, 'state'),
+          city: translateLocation(englishCity, language, 'city')
+          // Note: Address stays in original form (Latin or whatever was entered)
+        };
+      });
   }, [pickupPoints]);
 
   return (
