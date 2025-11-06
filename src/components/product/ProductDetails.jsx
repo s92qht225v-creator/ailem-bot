@@ -259,16 +259,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
               {t(`badges.${product.badge}`) || product.badge}
             </span>
           )}
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <h1 className="text-2xl font-bold text-gray-800 flex-1">{product.name}</h1>
-            <button
-              onClick={handleShare}
-              className="flex-shrink-0 p-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all shadow-md hover:shadow-lg"
-              title="Ulashing va bonus oling"
-            >
-              <Share2 className="w-5 h-5" />
-            </button>
-          </div>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">{product.name}</h1>
 
           <div className="flex items-center gap-2 mb-3">
             {approvedReviewsCount > 0 ? (
@@ -415,10 +406,19 @@ const ProductDetails = ({ product, onAddToCart }) => {
         <button
           onClick={handleAddToCart}
           disabled={currentStock === 0}
-          className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-3"
         >
           <ShoppingCart className="w-5 h-5" />
           {currentStock === 0 ? t('shop.outOfStock') : `${t('product.addToCart')} - ${formatPrice(totalPrice)}`}
+        </button>
+
+        {/* Share Button */}
+        <button
+          onClick={handleShare}
+          className="w-full bg-white border-2 border-purple-500 text-purple-600 py-3 rounded-lg font-medium hover:bg-purple-50 transition-all flex items-center justify-center gap-2"
+        >
+          <Share2 className="w-5 h-5" />
+          Ulashing va bonus oling 🎁
         </button>
       </div>
 
