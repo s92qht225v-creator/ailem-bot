@@ -76,7 +76,67 @@ export const t = (key) => {
     // Favorites page
     'favorites.title': 'Saralangan',
     'favorites.empty': 'Saralangan mahsulotlar yo\'q',
-    'favorites.continueShopping': 'Xaridni davom ettirish'
+    'favorites.continueShopping': 'Xaridni davom ettirish',
+    'favorites.addedToFavorites': 'Saralanganga qo\'shildi',
+    'shop.allProducts': 'Barcha mahsulotlar',
+    // Product Details
+    'product.reviews': 'sharh',
+    'reviews.noReviews': 'Sharhlar yo\'q',
+    'product.selectColor': 'Rang',
+    'product.selectSize': 'O\'lcham',
+    'product.quantity': 'Miqdor',
+    'product.relatedProducts': 'O\'xshash mahsulotlar',
+    // Reviews
+    'reviews.maxPhotos': 'Faqat 5 tagacha rasm yuklash mumkin',
+    'reviews.purchaseRequired': 'Faqat sotib olgan mahsulotlaringizga sharh qoldirishingiz mumkin',
+    'reviews.thankYou': 'Sharh yuborildi! Admin tasdiqlagandan keyin ko\'rinadi',
+    'reviews.title': 'Sharhlar',
+    'reviews.writeReview': 'Sharh yozish',
+    'reviews.purchaseToReview': 'Sharh yozish uchun xarid qiling',
+    'reviews.rating': 'Baho',
+    'reviews.comment': 'Sharh',
+    'reviews.placeholder': 'Bu mahsulot haqida fikringizni yozing...',
+    'reviews.addPhotos': 'Rasmlar qo\'shish',
+    'reviews.takePhoto': 'Fotosurat oling yoki galereyadan tanlang',
+    'reviews.imagesAdded': 'rasm qo\'shildi',
+    'reviews.submit': 'Yuborish',
+    'reviews.beFirst': 'Hali sharhlar yo\'q. Birinchi bo\'lib sharh yozing!',
+    // Orders
+    'orders.orderHistory': 'Buyurtmalar tarixi',
+    'orders.empty': 'Buyurtmalar yo\'q',
+    'orders.orderNumber': 'Buyurtma raqami',
+    'orders.total': 'Jami',
+    'orders.viewDetails': 'Batafsil',
+    'myReviews.writeReview': 'Sharh yozish',
+    'myReviews.title': 'Mening sharhlarim',
+    'myReviews.pending': 'Kutilmoqda',
+    'myReviews.approved': 'Tasdiqlangan',
+    'myReviews.empty': 'Sharhlar yo\'q',
+    // Home page
+    'home.saleEnds': 'Chegirma tugaydi',
+    'nav.categories': 'Kategoriyalar',
+    'home.bestSellers': 'Ko\'p sotilganlar',
+    'home.viewAll': 'Barchasini ko\'rish',
+    'home.shopNow': 'Xarid qilish',
+    // Payment
+    'payment.checkingStatus': 'Status tekshirilmoqda',
+    'payment.pleaseWait': 'Iltimos, kuting...',
+    'payment.failed': 'Muvaffaqiyatsiz',
+    'payment.paymentCancelled': 'To\'lov bekor qilindi',
+    'payment.orderNumber': 'Buyurtma raqami',
+    'payment.amount': 'Summa',
+    'payment.tryAgain': 'Qayta urinish',
+    'payment.backToHome': 'Bosh sahifaga qaytish',
+    'payment.successful': 'Muvaffaqiyatli',
+    'payment.orderConfirmed': 'Buyurtma tasdiqlandi',
+    'payment.paymentMethod': 'To\'lov usuli',
+    'payment.status': 'Status',
+    'payment.approved': 'Tasdiqlangan',
+    'payment.redirecting': 'Yo\'naltirilmoqda...',
+    // Cart additional
+    'cart.subtotal': 'Jami',
+    // Common additional
+    'common.cancel': 'Bekor qilish'
   };
   
   return translations[key] || key;
