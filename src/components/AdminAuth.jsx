@@ -20,8 +20,18 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
     
     const checkSession = async () => {
       try {
-        // Get current session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        // Add timeout to prevent hanging
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 10000)
+        );
+        
+        // Get current session with timeout
+        const sessionResult = await Promise.race([
+          supabase.auth.getSession(),
+          timeoutPromise
+        ]);
+        
+        const { data: { session }, error: sessionError } = sessionResult;
         
         if (!mounted) return;
         
@@ -32,20 +42,35 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
         }
         
         if (!session) {
+          console.log('No active session');
           setLoading(false);
           return;
         }
         
-        // Verify user is in admin_users table
-        const { data: adminData, error: adminError } = await supabase
-          .from('admin_users')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .single();
+        console.log('Session found, checking admin status...');
+        
+        // Verify user is in admin_users table with timeout
+        const adminResult = await Promise.race([
+          supabase
+            .from('admin_users')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .maybeSingle(),
+          timeoutPromise
+        ]);
+        
+        const { data: adminData, error: adminError } = adminResult;
         
         if (!mounted) return;
         
-        if (adminError || !adminData) {
+        if (adminError) {
+          console.error('Admin check error:', adminError);
+          await supabase.auth.signOut();
+          setLoading(false);
+          return;
+        }
+        
+        if (!adminData) {
           console.log('User is not an admin');
           await supabase.auth.signOut();
           setLoading(false);
@@ -53,6 +78,7 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
         }
         
         // User is authenticated and is admin
+        console.log('Admin authenticated');
         setAdminUser(adminData);
         setIsAuthenticated(true);
         setLoading(false);
