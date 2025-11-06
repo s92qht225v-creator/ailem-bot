@@ -136,8 +136,8 @@ const ProductDetails = ({ product, onAddToCart }) => {
     // Generate referral link (exactly like ReferralsPage)
     const referralLink = `https://t.me/${botUsername}?start=ref_${user.referralCode}`;
     
-    // Create message with product info and referral link
-    const message = `🛍️ ${product.name}\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring!\n\n👉 ${referralLink}`;
+    // Create message - put link on separate line to ensure Telegram renders it properly
+    const message = `🛍️ ${product.name}\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring va bonus oling!\n\n${referralLink}`;
 
     const tg = getTelegramWebApp();
     if (tg) {
