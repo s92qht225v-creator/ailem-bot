@@ -14,6 +14,38 @@ const supabase = createClient(
 const CLICK_SERVICE_ID = process.env.CLICK_SERVICE_ID;
 const CLICK_SECRET_KEY = process.env.CLICK_SECRET_KEY;
 
+// Telegram Bot configuration
+const TELEGRAM_BOT_TOKEN = process.env.VITE_TELEGRAM_BOT_TOKEN;
+
+// Send Telegram notification
+async function sendTelegramNotification(chatId, message) {
+  if (!TELEGRAM_BOT_TOKEN || !chatId) {
+    console.log('⚠️ Telegram bot not configured or no chat ID');
+    return;
+  }
+
+  try {
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: message,
+        parse_mode: 'HTML'
+      })
+    });
+
+    if (response.ok) {
+      console.log('✅ Telegram notification sent to:', chatId);
+    } else {
+      console.error('❌ Failed to send Telegram notification:', await response.text());
+    }
+  } catch (error) {
+    console.error('❌ Telegram notification error:', error);
+  }
+}
+
 // Deduct stock for order items
 async function deductStock(order) {
   if (!order || !order.items || order.items.length === 0) {
@@ -367,6 +399,30 @@ async function handleComplete(params, res) {
       console.log('✅ Bonus points awarded successfully');
     } catch (bonusError) {
       console.error('❌ Failed to award bonus points:', bonusError);
+      // Continue anyway - don't fail the transaction
+    }
+
+    // Send Telegram notification to customer
+    try {
+      const userChatId = order.user_telegram_id;
+      if (userChatId && !String(userChatId).startsWith('demo-')) {
+        const items = order.items?.length || 0;
+        const notificationMessage = `
+🎉 <b>To'lov muvaffaqiyatli!</b>
+
+Sizning buyurtmangiz <b>#${order.order_number || order.id}</b> tasdiqlandi!
+
+📦 Mahsulotlar: ${items} ta
+💰 Jami: ${order.total.toLocaleString()} UZS
+🚚 Yetkazib berish: ${order.courier}
+
+Buyurtmangiz tez orada yetkazib beriladi. Xarid uchun rahmat! 🛍️
+        `.trim();
+
+        await sendTelegramNotification(userChatId, notificationMessage);
+      }
+    } catch (notifError) {
+      console.error('❌ Failed to send notification:', notifError);
       // Continue anyway - don't fail the transaction
     }
   }
