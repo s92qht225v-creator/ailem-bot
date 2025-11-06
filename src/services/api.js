@@ -6,19 +6,14 @@ import { supabase } from '../lib/supabase';
 
 export const categoriesAPI = {
   // Get all categories
-  async getAll(language = 'uz') {
+  async getAll() {
     const { data, error } = await supabase
       .from('categories')
       .select('*')
       .order('created_at', { ascending: true });
 
     if (error) throw error;
-    
-    // Map to localized name
-    return data.map(cat => ({
-      ...cat,
-      name: cat[`name_${language}`] || cat.name // Localized category name
-    }));
+    return data;
   },
 
   // Create category
@@ -63,28 +58,13 @@ export const categoriesAPI = {
 
 export const productsAPI = {
   // Get all products
-  async getAll(language = 'uz') {
+  async getAll() {
     const { data: products, error } = await supabase
       .from('products')
       .select('*')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-
-    // Fetch categories for localized category names
-    const { data: categories, error: categoriesError } = await supabase
-      .from('categories')
-      .select('name, name_uz, name_ru');
-
-    if (categoriesError) console.error('Failed to fetch categories:', categoriesError);
-
-    // Create category name mapping
-    const categoryMap = {};
-    if (categories) {
-      categories.forEach(cat => {
-        categoryMap[cat.name] = cat[`name_${language}`] || cat.name;
-      });
-    }
 
     // Fetch reviews for all products
     const { data: reviews, error: reviewsError } = await supabase
@@ -94,19 +74,13 @@ export const productsAPI = {
 
     if (reviewsError) console.error('Failed to fetch reviews:', reviewsError);
 
-    // Map database fields to match app expectations and attach reviews
+    // Map database fields to match app expectations
     return products.map(product => {
       const productReviews = reviews?.filter(r => r.product_id === product.id) || [];
 
       return {
         ...product,
-        name: product[`name_${language}`] || product.name, // Localized name
-        description: product[`description_${language}`] || product.description, // Localized description
-        material: product[`material_${language}`] || product.material, // Localized material
-        colors: product[`colors_${language}`] || product.colors, // Localized colors
-        sizes: product[`sizes_${language}`] || product.sizes, // Localized sizes
-        tags: product[`tags_${language}`] || product.tags, // Localized tags
-        category: categoryMap[product.category_name] || product.category_name, // Localized category name
+        category: product.category_name,
         originalPrice: product.original_price,
         reviewCount: product.review_count,
         variants: product.variants || [],
@@ -116,7 +90,7 @@ export const productsAPI = {
           userName: r.user_name,
           rating: r.rating,
           comment: r.comment,
-          date: r.created_at?.split('T')[0], // Format: YYYY-MM-DD
+          date: r.created_at?.split('T')[0],
           approved: r.approved
         }))
       };
@@ -124,7 +98,7 @@ export const productsAPI = {
   },
 
   // Get single product
-  async getById(id, language = 'uz') {
+  async getById(id) {
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -132,19 +106,6 @@ export const productsAPI = {
       .single();
 
     if (error) throw error;
-
-    // Fetch category for localized name
-    const { data: categoryData, error: categoryError } = await supabase
-      .from('categories')
-      .select('name, name_uz, name_ru')
-      .eq('name', data.category_name)
-      .maybeSingle();
-
-    if (categoryError) console.error('Failed to fetch category:', categoryError);
-
-    const localizedCategory = categoryData
-      ? (categoryData[`name_${language}`] || categoryData.name)
-      : data.category_name;
 
     // Fetch reviews for this product
     const { data: reviews, error: reviewsError } = await supabase
@@ -158,13 +119,7 @@ export const productsAPI = {
     // Map database fields to match app expectations
     return {
       ...data,
-      name: data[`name_${language}`] || data.name, // Localized name
-      description: data[`description_${language}`] || data.description, // Localized description
-      material: data[`material_${language}`] || data.material, // Localized material
-      colors: data[`colors_${language}`] || data.colors, // Localized colors
-      sizes: data[`sizes_${language}`] || data.sizes, // Localized sizes
-      tags: data[`tags_${language}`] || data.tags, // Localized tags
-      category: localizedCategory, // Localized category name
+      category: data.category_name,
       originalPrice: data.original_price,
       reviewCount: data.review_count,
       variants: data.variants || [],
@@ -185,11 +140,7 @@ export const productsAPI = {
     // Transform app fields to database fields
     const dbProduct = {
       name: product.name,
-      name_uz: product.name_uz || product.name,
-      name_ru: product.name_ru || null,
       description: product.description || null,
-      description_uz: product.description_uz || product.description || null,
-      description_ru: product.description_ru || null,
       price: product.price,
       original_price: product.originalPrice || (product.salePrice ? product.price : null),
       category_name: product.category,
@@ -199,17 +150,9 @@ export const productsAPI = {
       weight: product.weight || null,
       badge: product.badge || null,
       material: product.material || null,
-      material_uz: product.material_uz || product.material || null,
-      material_ru: product.material_ru || null,
       colors: product.colors || [],
-      colors_uz: product.colors_uz || product.colors || [],
-      colors_ru: product.colors_ru || [],
       sizes: product.sizes || [],
-      sizes_uz: product.sizes_uz || product.sizes || [],
-      sizes_ru: product.sizes_ru || [],
       tags: product.tags || [],
-      tags_uz: product.tags_uz || product.tags || [],
-      tags_ru: product.tags_ru || [],
       variants: product.variants || [],
       rating: 0,
       review_count: 0
@@ -236,15 +179,11 @@ export const productsAPI = {
 
   // Update product
   async update(id, updates) {
-    // Transform app fields to database fields (same as create)
+    // Transform app fields to database fields
     const dbUpdates = {};
     
     if (updates.name !== undefined) dbUpdates.name = updates.name;
-    if (updates.name_uz !== undefined) dbUpdates.name_uz = updates.name_uz;
-    if (updates.name_ru !== undefined) dbUpdates.name_ru = updates.name_ru;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
-    if (updates.description_uz !== undefined) dbUpdates.description_uz = updates.description_uz;
-    if (updates.description_ru !== undefined) dbUpdates.description_ru = updates.description_ru;
     if (updates.price !== undefined) dbUpdates.price = updates.price;
     if (updates.originalPrice !== undefined) dbUpdates.original_price = updates.originalPrice;
     if (updates.category !== undefined) dbUpdates.category_name = updates.category;
@@ -255,17 +194,9 @@ export const productsAPI = {
     if (updates.weight !== undefined) dbUpdates.weight = updates.weight;
     if (updates.badge !== undefined) dbUpdates.badge = updates.badge;
     if (updates.material !== undefined) dbUpdates.material = updates.material;
-    if (updates.material_uz !== undefined) dbUpdates.material_uz = updates.material_uz;
-    if (updates.material_ru !== undefined) dbUpdates.material_ru = updates.material_ru;
     if (updates.colors !== undefined) dbUpdates.colors = updates.colors;
-    if (updates.colors_uz !== undefined) dbUpdates.colors_uz = updates.colors_uz;
-    if (updates.colors_ru !== undefined) dbUpdates.colors_ru = updates.colors_ru;
     if (updates.sizes !== undefined) dbUpdates.sizes = updates.sizes;
-    if (updates.sizes_uz !== undefined) dbUpdates.sizes_uz = updates.sizes_uz;
-    if (updates.sizes_ru !== undefined) dbUpdates.sizes_ru = updates.sizes_ru;
     if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
-    if (updates.tags_uz !== undefined) dbUpdates.tags_uz = updates.tags_uz;
-    if (updates.tags_ru !== undefined) dbUpdates.tags_ru = updates.tags_ru;
     if (updates.variants !== undefined) dbUpdates.variants = updates.variants;
 
     const { data, error } = await supabase
