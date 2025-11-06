@@ -259,7 +259,16 @@ const ProductDetails = ({ product, onAddToCart }) => {
               {t(`badges.${product.badge}`) || product.badge}
             </span>
           )}
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">{product.name}</h1>
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <h1 className="text-2xl font-bold text-gray-800 flex-1">{product.name}</h1>
+            <button
+              onClick={handleShare}
+              className="flex-shrink-0 p-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all shadow-md hover:shadow-lg"
+              title="Ulashing va bonus oling"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
+          </div>
 
           <div className="flex items-center gap-2 mb-3">
             {approvedReviewsCount > 0 ? (
@@ -401,15 +410,6 @@ const ProductDetails = ({ product, onAddToCart }) => {
             </button>
           </div>
         </div>
-
-        {/* Share Button */}
-        <button
-          onClick={handleShare}
-          className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-600 transition-all flex items-center justify-center gap-2 mb-3"
-        >
-          <Share2 className="w-5 h-5" />
-          Ulashing va bonus oling 🎁
-        </button>
 
         {/* Add to Cart Button */}
         <button
