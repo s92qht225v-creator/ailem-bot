@@ -16,6 +16,7 @@ const CLICK_SECRET_KEY = process.env.CLICK_SECRET_KEY;
 
 // Telegram Bot configuration
 const TELEGRAM_BOT_TOKEN = process.env.VITE_TELEGRAM_BOT_TOKEN;
+const ADMIN_CHAT_ID = process.env.VITE_ADMIN_CHAT_ID;
 
 // Send Telegram notification
 async function sendTelegramNotification(chatId, message) {
@@ -407,6 +408,11 @@ async function handleComplete(params, res) {
       const userChatId = order.user_telegram_id;
       if (userChatId && !String(userChatId).startsWith('demo-')) {
         const items = order.items?.length || 0;
+        // Extract courier name if it's an object
+        const courierName = typeof order.courier === 'object'
+          ? order.courier?.name || 'Yetkazib berish'
+          : order.courier || 'Yetkazib berish';
+
         const notificationMessage = `
 🎉 <b>To'lov muvaffaqiyatli!</b>
 
@@ -414,7 +420,7 @@ Sizning buyurtmangiz <b>#${order.order_number || order.id}</b> tasdiqlandi!
 
 📦 Mahsulotlar: ${items} ta
 💰 Jami: ${order.total.toLocaleString()} UZS
-🚚 Yetkazib berish: ${order.courier}
+🚚 Yetkazib berish: ${courierName}
 
 Buyurtmangiz tez orada yetkazib beriladi. Xarid uchun rahmat! 🛍️
         `.trim();
@@ -423,6 +429,45 @@ Buyurtmangiz tez orada yetkazib beriladi. Xarid uchun rahmat! 🛍️
       }
     } catch (notifError) {
       console.error('❌ Failed to send notification:', notifError);
+      // Continue anyway - don't fail the transaction
+    }
+
+    // Send Telegram notification to admin
+    try {
+      if (ADMIN_CHAT_ID) {
+        const courierName = typeof order.courier === 'object'
+          ? order.courier?.name || 'Yetkazib berish'
+          : order.courier || 'Yetkazib berish';
+
+        const itemsList = order.items && order.items.length > 0
+          ? order.items.map(item => {
+              const itemName = item.productName || item.name || 'Mahsulot';
+              const itemPrice = (item.price || 0).toLocaleString();
+              return `  • ${itemName} (x${item.quantity}) - ${itemPrice} UZS`;
+            }).join('\n')
+          : '  • Mahsulotlar mavjud emas';
+
+        const adminMessage = `
+🔔 <b>Yangi buyurtma to'lovi!</b>
+
+Buyurtma: <b>#${order.order_number || order.id}</b>
+Mijoz: ${order.user_name || 'Noma\'lum'}
+Telefon: ${order.user_phone || 'Noma\'lum'}
+
+📦 <b>Mahsulotlar:</b>
+${itemsList}
+
+💰 <b>Jami:</b> ${order.total.toLocaleString()} UZS
+🚚 <b>Yetkazib berish:</b> ${courierName}
+📍 <b>Manzil:</b> ${order.delivery_info?.city || order.delivery_info?.address || 'Noma\'lum'}
+
+✅ To'lov tasdiqlandi. Buyurtmani yetkazib bering.
+        `.trim();
+
+        await sendTelegramNotification(ADMIN_CHAT_ID, adminMessage);
+      }
+    } catch (adminNotifError) {
+      console.error('❌ Failed to send admin notification:', adminNotifError);
       // Continue anyway - don't fail the transaction
     }
   }
