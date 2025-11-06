@@ -149,13 +149,15 @@ export const LOCATION_TRANSLATIONS = {
 /**
  * Normalize location name to English for matching with shipping rates
  * Works with Uzbek, Russian, or English input
+ * Case-insensitive and handles variations (e.g., "region" vs "Region")
  */
 export function normalizeLocationToEnglish(locationName, type = 'state') {
   if (!locationName) return null;
 
   const locations = LOCATION_TRANSLATIONS[type === 'state' ? 'states' : 'cities'];
+  const lowerName = locationName.toLowerCase();
 
-  // Check if it's already in English and exists
+  // Check if it's already in English and exists (exact match)
   if (locations[locationName]) {
     return locationName;
   }
@@ -163,6 +165,18 @@ export function normalizeLocationToEnglish(locationName, type = 'state') {
   // Search through all translations to find matching Uzbek or Russian
   for (const [englishName, translations] of Object.entries(locations)) {
     if (translations.uz === locationName || translations.ru === locationName) {
+      return englishName;
+    }
+
+    // Case-insensitive English matching
+    if (translations.en.toLowerCase() === lowerName) {
+      return englishName;
+    }
+
+    // Handle variations: "Samarqand region" → "Samarkand Region"
+    const uzLower = translations.uz.toLowerCase();
+    const ruLower = translations.ru.toLowerCase();
+    if (uzLower === lowerName || ruLower === lowerName) {
       return englishName;
     }
   }

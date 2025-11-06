@@ -84,12 +84,17 @@ export const ShippingRatesProvider = ({ children }) => {
         return r.state === 'Tashkent' || yandexMatches.includes(r.state);
       }
 
-      // Normal matching with normalized state
-      return r.state === normalizedState || r.state === state;
+      // Case-insensitive matching with normalized state
+      const rStateLower = r.state?.toLowerCase();
+      const normalizedLower = normalizedState?.toLowerCase();
+      const stateLower = state?.toLowerCase();
+
+      return rStateLower === normalizedLower || rStateLower === stateLower || r.state === normalizedState || r.state === state;
     });
 
     if (!rate) {
       console.warn(`No shipping rate found for courier: ${courier}, state: ${state} (normalized: ${normalizedState})`);
+      console.warn('Available rates for this courier:', shippingRates.filter(r => r.courier === courier).map(r => r.state));
       return 0; // No rate found, return 0 or handle differently
     }
 
