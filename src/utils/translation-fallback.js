@@ -28,6 +28,7 @@ export const t = (key) => {
     'common.comingSoon': 'Tez orada!',
     'cart.title': 'Savat',
     'cart.empty': 'Savatda hech narsa yo\'q',
+    'cart.checkout': 'Buyurtma berish',
     'checkout.title': 'Buyurtma berish',
     'shop.title': 'Do\'kon',
     'nav.home': 'Bosh sahifa',
