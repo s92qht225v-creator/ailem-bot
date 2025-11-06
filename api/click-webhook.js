@@ -389,11 +389,13 @@ async function handleComplete(params, res) {
 
   // CRITICAL: Respond to Click IMMEDIATELY (within 3 seconds) to prevent stuck payment screen
   // Click requires fast response or payment gets stuck on "Processing" screen
+  // MUST include click_paydoc_id in response or payment stays stuck
   const response = res.json({
     click_trans_id,
     merchant_trans_id,
     merchant_confirm_id,
     merchant_prepare_id: merchant_prepare_id || 0,
+    click_paydoc_id, // REQUIRED: Must return this or payment stays "Processing"
     error: 0,
     error_note: 'Success'
   });
