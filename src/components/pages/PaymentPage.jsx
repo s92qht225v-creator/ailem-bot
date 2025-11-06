@@ -98,7 +98,6 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         total: checkoutData.total,
         paymentMethod: 'payme',
         status: 'pending', // Will be approved by webhook
-        language: language, // Save user's language for localized notifications
         date: new Date().toISOString().split('T')[0],
         createdAt: new Date().toISOString()
       };
@@ -232,7 +231,6 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         total: checkoutData.total,
         paymentMethod: 'click',
         status: 'pending', // Will be approved by webhook
-        language: language, // Save user's language for localized notifications
         date: new Date().toISOString().split('T')[0],
         createdAt: new Date().toISOString()
       };
