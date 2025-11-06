@@ -111,6 +111,9 @@ export default {
     addToFavorites: 'Saralanganga qo\'shish',
     removeFromFavorites: 'Saralanganidan o\'chirish',
     share: 'Ulashish',
+    shareAndEarn: 'Ulashing va bonus oling 🎁',
+    checkItOut: 'Bu mahsulotni ko\'ring!',
+    linkCopied: 'Havola nusxalandi!',
     similarProducts: 'O\'xshash mahsulotlar',
     relatedProducts: 'Sizga yoqishi mumkin'
   },

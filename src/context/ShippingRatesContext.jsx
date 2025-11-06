@@ -67,20 +67,21 @@ export const ShippingRatesProvider = ({ children }) => {
   };
 
   // Calculate shipping cost based on courier, state, and total weight
-  // Everything in Uzbek now - direct matching
+  // Everything in Uzbek now - direct matching with trimmed whitespace
   const calculateShippingCost = (courier, state, totalWeight) => {
     const isYandex = courier === 'Yandex';
+    const stateTrimmed = state?.trim();
 
     const rate = shippingRates.find(r => {
       if (r.courier !== courier) return false;
 
-      // Direct match - everything in Uzbek
-      return r.state === state;
+      // Direct match with trimmed whitespace
+      return r.state?.trim() === stateTrimmed;
     });
 
     if (!rate) {
-      console.warn(`No shipping rate found for courier: ${courier}, state: ${state}`);
-      console.warn('Available rates for this courier:', shippingRates.filter(r => r.courier === courier).map(r => r.state));
+      console.warn(`No shipping rate found for courier: ${courier}, state: ${stateTrimmed}`);
+      console.warn('Available rates for this courier:', shippingRates.filter(r => r.courier === courier).map(r => `"${r.state}"`));
       return 0;
     }
 
@@ -105,8 +106,9 @@ export const ShippingRatesProvider = ({ children }) => {
 
   // Get rate for specific courier and state
   const getRate = (courier, state) => {
+    const stateTrimmed = state?.trim();
     return shippingRates.find(r =>
-      r.courier === courier && r.state === state
+      r.courier === courier && r.state?.trim() === stateTrimmed
     );
   };
 

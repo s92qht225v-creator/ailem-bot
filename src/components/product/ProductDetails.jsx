@@ -1,10 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, X, ZoomIn, Share2 } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant } from '../../utils/variants';
+import { UserContext } from '../../context/UserContext';
+import { referralsAPI } from '../../services/api';
+import { getTelegramWebApp } from '../../utils/telegram';
 
 const ProductDetails = ({ product, onAddToCart }) => {
+  const { user } = useContext(UserContext);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
@@ -119,6 +123,36 @@ const ProductDetails = ({ product, onAddToCart }) => {
 
   const handleAddToCart = () => {
     onAddToCart(product, quantity, selectedColor, selectedSize);
+  };
+
+  const handleShare = () => {
+    const tg = getTelegramWebApp();
+
+    // Get bot username from environment or Telegram WebApp
+    const botUsername = import.meta.env.VITE_BOT_USERNAME || 'ailem_shop_bot';
+
+    // Generate share link with referral code
+    const shareLink = referralsAPI.generateShareLink(
+      botUsername,
+      user.id,
+      product.id
+    );
+
+    const shareText = `🛍️ ${product.name}\n💰 ${formatPrice(product.price)}\n\n${t('product.checkItOut')}`;
+
+    // Use Telegram's native share functionality if available
+    if (tg?.shareMessage) {
+      tg.shareMessage(shareText, shareLink);
+    } else if (tg?.openTelegramLink) {
+      // Fallback: open share dialog
+      const url = `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareText)}`;
+      tg.openTelegramLink(url);
+    } else {
+      // Final fallback: copy to clipboard
+      navigator.clipboard.writeText(`${shareText}\n${shareLink}`)
+        .then(() => alert(t('product.linkCopied')))
+        .catch(() => alert(shareLink));
+    }
   };
 
   const totalPrice = product.price * quantity;
@@ -368,6 +402,15 @@ const ProductDetails = ({ product, onAddToCart }) => {
             </button>
           </div>
         </div>
+
+        {/* Share Button */}
+        <button
+          onClick={handleShare}
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-600 transition-all flex items-center justify-center gap-2 mb-3"
+        >
+          <Share2 className="w-5 h-5" />
+          {t('product.shareAndEarn')}
+        </button>
 
         {/* Add to Cart Button */}
         <button

@@ -1261,3 +1261,98 @@ export const migrationAPI = {
     return data;
   }
 };
+
+// ============================================
+// REFERRALS API
+// ============================================
+
+export const referralsAPI = {
+  // Create a new referral when a user signs up with a referral code
+  async createReferral(referrerId, referredId, referralCode) {
+    const { data, error } = await supabase
+      .from('referrals')
+      .insert([{
+        referrer_id: referrerId,
+        referred_id: referredId,
+        referral_code: referralCode,
+        status: 'pending'
+      }])
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Get all referrals for a user (as referrer)
+  async getUserReferrals(userId) {
+    const { data, error } = await supabase
+      .from('referrals')
+      .select(`
+        *,
+        referred:referred_id (
+          id,
+          name,
+          telegram_id,
+          created_at
+        )
+      `)
+      .eq('referrer_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Get referral stats for a user
+  async getReferralStats(userId) {
+    const { data, error } = await supabase
+      .from('referrals')
+      .select('status, reward_amount')
+      .eq('referrer_id', userId);
+
+    if (error) throw error;
+
+    const stats = {
+      total: data.length,
+      pending: data.filter(r => r.status === 'pending').length,
+      completed: data.filter(r => r.status === 'completed').length,
+      rewarded: data.filter(r => r.status === 'rewarded').length,
+      totalEarnings: data
+        .filter(r => r.status === 'rewarded')
+        .reduce((sum, r) => sum + (r.reward_amount || 0), 0)
+    };
+
+    return stats;
+  },
+
+  // Check if user was referred
+  async getUserReferralInfo(userId) {
+    const { data, error } = await supabase
+      .from('referrals')
+      .select(`
+        *,
+        referrer:referrer_id (
+          id,
+          name,
+          referral_code
+        )
+      `)
+      .eq('referred_id', userId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+    return data;
+  },
+
+  // Generate share link for product
+  generateShareLink(botUsername, userId, productId = null) {
+    const user = userId;
+    // Format: /start=ref_USERID or /start=ref_USERID_prod_PRODUCTID
+    const param = productId
+      ? `ref_${user}_prod_${productId}`
+      : `ref_${user}`;
+
+    return `https://t.me/${botUsername}?start=${param}`;
+  }
+};
