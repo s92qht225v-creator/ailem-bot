@@ -502,8 +502,19 @@ async function performTransaction(params, res, requestId) {
     });
   }
 
-  // Run all background tasks in parallel (CRITICAL: Payment providers timeout after few seconds)
-  await Promise.all([
+  // CRITICAL: Respond to Payme IMMEDIATELY to prevent timeout
+  const response = res.json({
+    jsonrpc: '2.0',
+    id: requestId,
+    result: {
+      transaction: id,
+      perform_time: performTime,
+      state: 2
+    }
+  });
+
+  // Run background tasks AFTER responding (don't await - they'll complete before Vercel terminates)
+  Promise.all([
     deductStock(order).catch(e => console.error('❌ Stock deduction failed:', e)),
     awardBonusPoints(order).catch(e => console.error('❌ Bonus points failed:', e)),
     (async () => {
@@ -579,16 +590,7 @@ ${itemsList}
     })().catch(e => console.error('❌ Admin notification failed:', e))
   ]).catch(e => console.error('❌ Background tasks failed:', e));
 
-  // Send response to Payme
-  return res.json({
-    jsonrpc: '2.0',
-    id: requestId,
-    result: {
-      transaction: id,
-      perform_time: performTime,
-      state: 2
-    }
-  });
+  return response;
 }
 
 // Cancel transaction

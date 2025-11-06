@@ -385,10 +385,23 @@ async function handleComplete(params, res) {
     console.error('❌ Failed to update order:', updateError);
   }
 
-  // Run all background tasks in parallel (CRITICAL: Click times out after 3 seconds)
-  // We MUST complete within 3 seconds or Click will show stuck payment screen
+  console.log('✅ COMPLETE successful, order updated');
+
+  // CRITICAL: Respond to Click IMMEDIATELY (within 3 seconds) to prevent stuck payment screen
+  // Click requires fast response or payment gets stuck on "Processing" screen
+  const response = res.json({
+    click_trans_id,
+    merchant_trans_id,
+    merchant_confirm_id,
+    merchant_prepare_id: merchant_prepare_id || 0,
+    error: 0,
+    error_note: 'Success'
+  });
+
+  // Run background tasks AFTER responding (don't await - they'll complete before Vercel terminates)
+  // These run asynchronously and won't block the response to Click
   if (isApproved) {
-    await Promise.all([
+    Promise.all([
       deductStock(order).catch(e => console.error('❌ Stock deduction failed:', e)),
       awardBonusPoints(order).catch(e => console.error('❌ Bonus points failed:', e)),
       (async () => {
@@ -465,16 +478,5 @@ ${itemsList}
     ]).catch(e => console.error('❌ Background tasks failed:', e));
   }
 
-  console.log('✅ COMPLETE successful, order updated');
-
-  // Return success to Click (they timeout after 3 seconds)
-  // IMPORTANT: Click expects these exact fields in the response  
-  return res.json({
-    click_trans_id,
-    merchant_trans_id,
-    merchant_confirm_id,
-    merchant_prepare_id: merchant_prepare_id || 0,
-    error: 0,
-    error_note: 'Success'
-  });
+  return response;
 }
