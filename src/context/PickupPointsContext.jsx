@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
 import { pickupPointsAPI } from '../services/api';
-import { translateLocation, normalizeLocationToEnglish } from '../utils/locationTranslations';
+import { translateLocation, normalizeLocationToEnglish, translateAddress } from '../utils/locationTranslations';
 
 export const PickupPointsContext = createContext();
 
@@ -164,8 +164,8 @@ export const PickupPointsProvider = ({ children }) => {
         return {
           ...point,
           state: translateLocation(englishState, language, 'state'),
-          city: translateLocation(englishCity, language, 'city')
-          // Note: Address stays in original form (Latin or whatever was entered)
+          city: translateLocation(englishCity, language, 'city'),
+          address: translateAddress(point.address, language)
         };
       });
   }, [pickupPoints]);

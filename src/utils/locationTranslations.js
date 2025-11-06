@@ -236,3 +236,88 @@ export function getAllCities(language = 'uz') {
     translations[language] || translations.en
   );
 }
+
+// Common English words to Uzbek/Russian translation
+const ADDRESS_TRANSLATIONS = {
+  // English street types to Uzbek
+  uz: {
+    'street': 'ko\'chasi',
+    'avenue': 'prospekti',
+    'road': 'yo\'li',
+    'boulevard': 'bulvari',
+    'square': 'maydoni',
+    'lane': 'ko\'chasi',
+    'drive': 'yo\'li',
+    'building': 'bino',
+    'apartment': 'xonadon',
+    'floor': 'qavat',
+    'house': 'uy'
+  },
+  // English street types to Russian
+  ru: {
+    'street': 'улица',
+    'avenue': 'проспект',
+    'road': 'дорога',
+    'boulevard': 'бульвар',
+    'square': 'площадь',
+    'lane': 'переулок',
+    'drive': 'проезд',
+    'building': 'здание',
+    'apartment': 'квартира',
+    'floor': 'этаж',
+    'house': 'дом'
+  }
+};
+
+// Street name translations (common Uzbek street names)
+const STREET_NAME_TRANSLATIONS = {
+  uz: {
+    'Amir Temur': 'Amir Temur',
+    'Mustaqillik': 'Mustaqillik',
+    'Navoi': 'Navoiy',
+    'Beruniy': 'Beruniy',
+    'Ibn Sino': 'Ibn Sino',
+    'Bobur': 'Bobur',
+    'Chilonzor': 'Chilonzor',
+    'Yunusobod': 'Yunusobod',
+    'Olmazor': 'Olmazor'
+  },
+  ru: {
+    'Amir Temur': 'Амир Темур',
+    'Mustaqillik': 'Мустакиллик',
+    'Navoi': 'Навои',
+    'Beruniy': 'Беруни',
+    'Ibn Sino': 'Ибн Сино',
+    'Bobur': 'Бобур',
+    'Chilonzor': 'Чиланзор',
+    'Yunusobod': 'Юнусабад',
+    'Olmazor': 'Алмазар'
+  }
+};
+
+/**
+ * Translate address from English to target language
+ * Handles common street types and street names
+ */
+export function translateAddress(address, targetLang) {
+  if (!address || targetLang === 'en') return address;
+
+  let translated = address;
+
+  // Translate street names first (more specific)
+  const streetNames = STREET_NAME_TRANSLATIONS[targetLang] || {};
+  Object.entries(streetNames).forEach(([enName, localName]) => {
+    const regex = new RegExp(enName, 'gi');
+    translated = translated.replace(regex, localName);
+  });
+
+  // Then translate common address words
+  const words = ADDRESS_TRANSLATIONS[targetLang] || {};
+  Object.entries(words).forEach(([enWord, localWord]) => {
+    // Use word boundaries to avoid partial matches
+    const regex = new RegExp('\\b' + enWord + '\\b', 'gi');
+    translated = translated.replace(regex, localWord);
+  });
+
+  return translated;
+}
