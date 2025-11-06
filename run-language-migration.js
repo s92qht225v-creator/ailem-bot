@@ -81,6 +81,101 @@ const CITY_TRANSLATIONS = {
   'Gulistan': 'Гулистан'
 };
 
+// Common Uzbek words to Russian translation
+const UZBEK_TO_RUSSIAN_WORDS = {
+  'ko\'cha': 'улица',
+  'kocha': 'улица',
+  'ko\'chasi': 'улица',
+  'kochasi': 'улица',
+  'shoh': 'шох',
+  'prospekt': 'проспект',
+  'prospekti': 'проспект',
+  'maydon': 'площадь',
+  'maydoni': 'площадь',
+  'tor': 'переулок',
+  'tori': 'переулок',
+  'massiv': 'массив',
+  'massivi': 'массив',
+  'ko\'cha': 'улица',
+  'ko\'chasi': 'улица',
+  'xiyobon': 'аллея',
+  'xiyoboni': 'аллея'
+};
+
+// Street name translations (add common ones)
+const STREET_NAME_TRANSLATIONS = {
+  'Amir Temur': 'Амир Темур',
+  'Mustaqillik': 'Мустакиллик',
+  'Navoi': 'Навои',
+  'Beruniy': 'Беруни',
+  'Ibn Sino': 'Ибн Сино',
+  'Bobur': 'Бобур',
+  'Chilonzor': 'Чиланзор',
+  'Yunusobod': 'Юнусабад',
+  'Olmazor': 'Алмазар'
+};
+
+// Transliteration map for Latin to Cyrillic
+const TRANSLITERATION = {
+  'a': 'а', 'b': 'б', 'v': 'в', 'd': 'д', 'e': 'е', 'f': 'ф',
+  'g': 'г', 'h': 'х', 'i': 'и', 'j': 'ж', 'k': 'к', 'l': 'л',
+  'm': 'м', 'n': 'н', 'o': 'о', 'p': 'п', 'r': 'р', 's': 'с',
+  't': 'т', 'u': 'у', 'y': 'й', 'z': 'з',
+  'sh': 'ш', 'ch': 'ч', 'yo': 'ё', 'yu': 'ю', 'ya': 'я',
+  'o\'': 'ў', 'g\'': 'ғ', 'q': 'қ', 'x': 'х'
+};
+
+function translateAddressToRussian(uzbekAddress) {
+  if (!uzbekAddress) return uzbekAddress;
+
+  let translated = uzbekAddress;
+
+  // First translate known street names
+  Object.entries(STREET_NAME_TRANSLATIONS).forEach(([uzName, ruName]) => {
+    const regex = new RegExp(uzName, 'gi');
+    translated = translated.replace(regex, ruName);
+  });
+
+  // Then translate common words
+  Object.entries(UZBEK_TO_RUSSIAN_WORDS).forEach(([uzWord, ruWord]) => {
+    const regex = new RegExp('\\b' + uzWord + '\\b', 'gi');
+    translated = translated.replace(regex, ruWord);
+  });
+
+  // Basic transliteration for remaining Latin text
+  // This is a simple version - for production you'd want a better transliteration library
+  let result = '';
+  let i = 0;
+  while (i < translated.length) {
+    let found = false;
+    // Try two-character combinations first
+    if (i < translated.length - 1) {
+      const twoChar = translated.substring(i, i + 2).toLowerCase();
+      if (TRANSLITERATION[twoChar]) {
+        result += translated[i] === translated[i].toUpperCase()
+          ? TRANSLITERATION[twoChar].toUpperCase()
+          : TRANSLITERATION[twoChar];
+        i += 2;
+        found = true;
+      }
+    }
+    // Single character
+    if (!found) {
+      const char = translated[i].toLowerCase();
+      if (TRANSLITERATION[char]) {
+        result += translated[i] === translated[i].toUpperCase()
+          ? TRANSLITERATION[char].toUpperCase()
+          : TRANSLITERATION[char];
+      } else {
+        result += translated[i]; // Keep numbers, spaces, punctuation as-is
+      }
+      i++;
+    }
+  }
+
+  return result;
+}
+
 async function runMigration() {
   console.log('🚀 Starting language migration...\n');
 
@@ -146,12 +241,15 @@ async function runMigration() {
       const translatedState = STATE_TRANSLATIONS[point.state] || point.state;
       const translatedCity = CITY_TRANSLATIONS[point.city] || point.city;
 
+      // Translate address to Russian (Cyrillic)
+      const translatedAddress = translateAddressToRussian(point.address);
+
       // Create Russian version
       const russianPoint = {
         courier_service: point.courier_service,
         state: translatedState,
         city: translatedCity,
-        address: point.address, // Keep in Latin
+        address: translatedAddress, // Translated to Cyrillic
         working_hours: point.working_hours,
         phone: point.phone,
         active: point.active,
