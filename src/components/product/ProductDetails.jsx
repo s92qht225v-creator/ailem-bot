@@ -4,7 +4,7 @@ import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, X, ZoomIn, 
 import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant } from '../../utils/variants';
 import { UserContext } from '../../context/UserContext';
-import { getTelegramWebApp } from '../../utils/telegram';
+import { getTelegramWebApp, shareReferralLink } from '../../utils/telegram';
 
 const ProductDetails = ({ product, onAddToCart }) => {
   const { user } = useContext(UserContext);
@@ -133,31 +133,8 @@ const ProductDetails = ({ product, onAddToCart }) => {
       return;
     }
 
-    // Generate referral link (exactly like ReferralsPage)
-    const referralLink = `https://t.me/${botUsername}?start=ref_${user.referralCode}`;
-    
-    // Create message WITHOUT the link in text (link goes in url parameter)
-    const message = `🛍️ ${product.name}\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring va bonus oling!`;
-
-    const tg = getTelegramWebApp();
-    if (tg) {
-      // Use Telegram's native share - url parameter only, no link in text
-      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`;
-      tg.openTelegramLink(shareUrl);
-    } else {
-      // Fallback to Web Share API
-      if (navigator.share) {
-        navigator.share({
-          title: product.name,
-          text: message,
-          url: referralLink
-        }).catch(err => console.error('Error sharing:', err));
-      } else {
-        // Fallback: copy to clipboard
-        navigator.clipboard.writeText(referralLink);
-        alert('Mahsulot havolasi nusxalandi!');
-      }
-    }
+    // Use the same shareReferralLink function as ReferralsPage
+    shareReferralLink(user.referralCode, botUsername, user.name);
   };
 
   const totalPrice = product.price * quantity;
