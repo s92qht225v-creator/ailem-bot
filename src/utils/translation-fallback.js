@@ -1,7 +1,7 @@
 // Simple fallback for t() function to prevent errors
 // Returns key if no translation found
 
-export const t = (key) => {
+export const t = (key, params = {}) => {
   // Map of common translations
   const translations = {
     'profile.title': 'Profil',
@@ -95,7 +95,7 @@ export const t = (key) => {
     'product.quantity': 'Miqdor',
     'product.relatedProducts': 'O\'xshash mahsulotlar',
     'product.addToCart': 'Savatga qo\'shish',
-    'product.inStock': 'Omborda',
+    'product.inStock': 'Omborda: {count} dona',
     'shop.outOfStock': 'Tugadi',
     // Badges
     'badges.SALE': 'CHEGIRMA',
@@ -157,5 +157,14 @@ export const t = (key) => {
     'common.cancel': 'Bekor qilish'
   };
   
-  return translations[key] || key;
+  let translation = translations[key] || key;
+  
+  // Replace parameters in translation string
+  if (params && typeof translation === 'string') {
+    Object.keys(params).forEach(param => {
+      translation = translation.replace(`{${param}}`, params[param]);
+    });
+  }
+  
+  return translation;
 };
