@@ -26,6 +26,7 @@ export const t = (key, params = {}) => {
     'profile.logout': 'Chiqish',
     'profile.logoutSubtitle': 'Hisobdan chiqish',
     'common.comingSoon': 'Tez orada!',
+    'common.loading': 'Yuklanmoqda...',
     'cart.title': 'Savat',
     'cart.empty': 'Savatda hech narsa yo\'q',
     'cart.checkout': 'Buyurtma berish',
