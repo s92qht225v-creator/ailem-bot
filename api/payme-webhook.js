@@ -44,6 +44,9 @@ async function sendTelegramNotification(chatId, message) {
 
 // Deduct stock for order items
 async function deductStock(order) {
+  console.log('🔍 deductStock called with order:', order.id || order.order_number);
+  console.log('🔍 Order items:', JSON.stringify(order.items, null, 2));
+  
   if (!order || !order.items || order.items.length === 0) {
     console.log('⚠️ No items found in order, skipping stock deduction');
     return;
@@ -51,8 +54,11 @@ async function deductStock(order) {
 
   try {
     for (const item of order.items) {
+      console.log('🔍 Processing item:', JSON.stringify(item, null, 2));
+      
       // Get product ID - support both 'id' and 'productId' field names
-      const productId = item.id || item.productId;
+      const productId = item.id || item.productId || item.product_id;
+      console.log('🔍 Resolved product ID:', productId);
       
       if (!productId) {
         console.error('❌ Item missing product ID:', item);
