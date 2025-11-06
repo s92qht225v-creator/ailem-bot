@@ -75,6 +75,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
       icon: UsersIcon,
       color: 'text-indigo-600'
     },
+    // Temporarily disabled for debugging
     // {
     //   id: 'bonus-settings',
     //   label: 'Bonus Settings',
@@ -3835,47 +3836,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
       purchaseBonus: 10,
       currency: 'UZS'
     });
-    const [loading, setLoading] = useState(true);
 
-    // Load from database first, fallback to localStorage
+    // Load from localStorage after mount
     useEffect(() => {
-      const loadBonusConfig = async () => {
-        try {
-          const settings = await settingsAPI.getSettings();
-          console.log('📊 Loaded settings:', settings);
-
-          if (settings?.bonus_config) {
-            console.log('✅ Using database bonus config:', settings.bonus_config);
-            setBonusConfig({
-              referralCommission: settings.bonus_config.referralCommission || 10,
-              purchaseBonus: settings.bonus_config.purchaseBonus || 10,
-              currency: 'UZS'
-            });
-          } else {
-            console.log('⚠️ No bonus_config in database, falling back to localStorage');
-            // Fallback to localStorage
-            const saved = loadFromLocalStorage('bonusConfig');
-            if (saved) {
-              console.log('✅ Using localStorage bonus config:', saved);
-              setBonusConfig(saved);
-            }
-          }
-        } catch (error) {
-          console.error('❌ Failed to load bonus config from database:', error);
-          // Fallback to localStorage
-          const saved = loadFromLocalStorage('bonusConfig');
-          if (saved) {
-            console.log('✅ Using localStorage bonus config (after error):', saved);
-            setBonusConfig(saved);
-          } else {
-            console.log('ℹ️ Using default bonus config');
-          }
-        } finally {
-          setLoading(false);
-        }
-      };
-
-      loadBonusConfig();
+      const saved = loadFromLocalStorage('bonusConfig');
+      if (saved) {
+        setBonusConfig(saved);
+      }
     }, []);
 
     const saveBonusConfig = async (newConfig) => {
@@ -3893,17 +3860,6 @@ const DesktopAdminPanel = ({ onLogout }) => {
         console.error('❌ Failed to save bonus config to database:', error);
       }
     };
-
-    if (loading) {
-      return (
-        <div className="max-w-4xl">
-          <div className="bg-white rounded-lg shadow-md p-6 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading bonus settings...</p>
-          </div>
-        </div>
-      );
-    }
 
     return (
       <div className="max-w-4xl">
