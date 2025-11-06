@@ -3,6 +3,7 @@ import { MapPin, Clock, Phone } from 'lucide-react';
 import { useCart } from '../../hooks/useCart';
 import { UserContext } from '../../context/UserContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
+import { ShippingRatesContext } from '../../context/ShippingRatesContext';
 import { formatPrice, bonusPointsToDollars, calculateMaxBonusUsage } from '../../utils/helpers';
 import { useBackButton } from '../../hooks/useBackButton';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -40,7 +41,7 @@ const TASHKENT_DISTRICTS = {
 
 const CheckoutPage = ({ onNavigate }) => {
   const { t, language } = useTranslation();
-  const { getCartTotal } = useCart();
+  const { getCartTotal, cartItems } = useCart();
   const { user } = useContext(UserContext);
   const {
     getCourierServices,
@@ -48,6 +49,7 @@ const CheckoutPage = ({ onNavigate }) => {
     getCitiesByCourierAndState,
     getPickupPointsByCourierStateCity
   } = useContext(PickupPointsContext);
+  const { calculateShippingCost } = useContext(ShippingRatesContext);
 
   // Format phone number helper
   const formatPhoneNumber = (value) => {
@@ -159,7 +161,24 @@ const CheckoutPage = ({ onNavigate }) => {
   }, [pickupCourier, pickupState, pickupCity, language, getPickupPointsByCourierStateCity]);
 
   const subtotal = getCartTotal();
-  const deliveryFee = 0; // Free delivery
+
+  // Calculate total weight from cart items (default to 0.5kg if weight not specified)
+  const totalWeight = cartItems.reduce((total, item) => {
+    const itemWeight = item.weight || 0.5; // Default 0.5kg per item if not specified
+    return total + (itemWeight * item.quantity);
+  }, 0);
+
+  // Calculate delivery fee based on courier, state/city, and total weight
+  const getDeliveryState = () => {
+    if (pickupCourier === 'Yandex') {
+      return 'Tashkent'; // Yandex uses city as state
+    }
+    return pickupState || selectedPickupPoint?.state || '';
+  };
+
+  const deliveryFee = pickupCourier && getDeliveryState()
+    ? calculateShippingCost(pickupCourier, getDeliveryState(), totalWeight)
+    : 0;
 
   const maxBonusPoints = calculateMaxBonusUsage(subtotal);
   const availableBonusPoints = Math.min(user.bonusPoints, maxBonusPoints);
@@ -507,9 +526,11 @@ const CheckoutPage = ({ onNavigate }) => {
               </div>
             )}
 
-            <div className="flex justify-between text-success">
-              <span>{t('cart.delivery')}</span>
-              <span className="font-semibold">{t('cart.deliveryFree')}</span>
+            <div className="flex justify-between">
+              <span className="text-gray-700">{t('cart.delivery')}</span>
+              <span className="font-semibold">
+                {deliveryFee === 0 ? t('cart.deliveryFree') : formatPrice(deliveryFee)}
+              </span>
             </div>
 
             <div className="border-t border-gray-300 pt-2 mt-2">

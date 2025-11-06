@@ -200,15 +200,26 @@ export default {
     payNow: 'To\'lash',
     processing: 'To\'lov qayta ishlanmoqda...',
     success: 'To\'lov muvaffaqiyatli!',
-    failed: 'To\'lov amalga oshmadi',
+    successful: 'To\'lov muvaffaqiyatli!',
+    orderConfirmed: 'Buyurtmangiz tasdiqlandi',
+    failed: 'To\'lov muvaffaqiyatsiz',
+    paymentCancelled: 'To\'lov bekor qilindi yoki rad etildi',
     pending: 'To\'lov kutilmoqda',
     redirect: 'To\'lov tizimiga yo\'naltirilmoqda...',
+    redirecting: 'Buyurtma sahifasiga o\'tilmoqda...',
+    checkingStatus: 'To\'lov holati tekshirilmoqda...',
+    pleaseWait: 'Iltimos, kuting',
+    tryAgain: 'Qayta urinish',
+    backToHome: 'Bosh sahifa',
     testCard: 'Test karta',
     cardNumber: 'Karta raqami',
     expiry: 'Amal qilish muddati',
     smsCode: 'SMS kod',
     orderNumber: 'Buyurtma raqami',
+    paymentMethod: 'To\'lov usuli',
     amount: 'Summa',
+    status: 'Holat',
+    approved: 'Tasdiqlangan',
     paymentInfo: 'To\'lov ma\'lumotlari'
   },
 
@@ -216,6 +227,7 @@ export default {
   orders: {
     title: 'Mening buyurtmalarim',
     empty: 'Buyurtmalar yo\'q',
+    orderHistory: 'Buyurtmalar tarixi',
     orderNumber: 'Buyurtma raqami',
     date: 'Sana',
     status: 'Holat',
@@ -225,6 +237,11 @@ export default {
     trackOrder: 'Kuzatish',
     cancelOrder: 'Bekor qilish',
     repeatOrder: 'Takrorlash',
+    pending: 'Kutilmoqda',
+    approved: 'Tasdiqlangan',
+    shipped: 'Jo\'natilgan',
+    delivered: 'Yetkazilgan',
+    rejected: 'Rad etilgan',
     statuses: {
       pending: 'Kutilmoqda',
       approved: 'Tasdiqlangan',
@@ -327,6 +344,16 @@ export default {
     takePhoto: 'Rasm olish yoki galereyadan tanlash',
     imagesAdded: 'ta rasm qo\'shildi',
     beFirst: 'Hali sharhlar yo\'q. Birinchi bo\'lib sharh yozing!'
+  },
+
+  // My Reviews
+  myReviews: {
+    title: 'Mening sharhlarim',
+    empty: 'Hali sharhlar yo\'q',
+    writeReview: 'Sharh yozish',
+    pending: 'Tekshirilmoqda',
+    approved: 'Tasdiqlangan',
+    rejected: 'Rad etilgan'
   },
 
   // Favorites

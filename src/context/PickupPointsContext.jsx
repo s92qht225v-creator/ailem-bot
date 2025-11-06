@@ -104,20 +104,20 @@ export const PickupPointsProvider = ({ children }) => {
     return [...new Set(pickupPoints.map(point => point.courierService))].sort();
   }, [pickupPoints]);
 
-  // Get states by courier service (filtered by language)
+  // Get states by courier service - filtered by language
   const getStatesByCourier = useCallback((courierService, language = 'uz') => {
     return [...new Set(
       pickupPoints
-        .filter(point => 
-          point.courierService === courierService && 
+        .filter(point =>
+          point.courierService === courierService &&
           point.active &&
-          (point.language === language || !point.language) // Fallback: include points without language field
+          point.language === language  // Filter by language
         )
         .map(point => point.state)
     )].sort();
   }, [pickupPoints]);
 
-  // Get cities by courier and state (filtered by language)
+  // Get cities by courier and state - filtered by language
   const getCitiesByCourierAndState = useCallback((courierService, state, language = 'uz') => {
     return [...new Set(
       pickupPoints
@@ -125,20 +125,20 @@ export const PickupPointsProvider = ({ children }) => {
           point.courierService === courierService &&
           point.state === state &&
           point.active &&
-          (point.language === language || !point.language) // Fallback: include points without language field
+          point.language === language  // Filter by language
         )
         .map(point => point.city)
     )].sort();
   }, [pickupPoints]);
 
-  // Get pickup points by courier, state, and city (filtered by language)
+  // Get pickup points by courier, state, and city - filtered by language
   const getPickupPointsByCourierStateCity = useCallback((courierService, state, city, language = 'uz') => {
     return pickupPoints.filter(point =>
       point.courierService === courierService &&
       point.state === state &&
       point.city === city &&
       point.active &&
-      (point.language === language || !point.language) // Fallback: include points without language field
+      point.language === language  // Filter by language
     );
   }, [pickupPoints]);
 

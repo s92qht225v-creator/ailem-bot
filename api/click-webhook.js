@@ -112,8 +112,8 @@ async function awardBonusPoints(order) {
 
   try {
     // Fetch bonus configuration from database
-    // If bonus_config column doesn't exist yet, we'll use 3% as default
-    let purchaseBonusPercentage = 3; // Default fallback (changed from 10% to 3%)
+    // If bonus_config column doesn't exist yet, we'll use 1% as default
+    let purchaseBonusPercentage = 1; // Default fallback
 
     const { data: settings, error: settingsError } = await supabase
       .from('app_settings')
@@ -123,7 +123,7 @@ async function awardBonusPoints(order) {
 
     if (settingsError) {
       console.error('❌ Failed to fetch bonus config (column may not exist yet):', settingsError);
-      console.log('ℹ️ Using default 3% bonus percentage');
+      console.log('ℹ️ Using default 1% bonus percentage');
     } else if (settings?.bonus_config?.purchaseBonus) {
       purchaseBonusPercentage = settings.bonus_config.purchaseBonus;
       console.log(`ℹ️ Using configured bonus: ${purchaseBonusPercentage}%`);

@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import { shippingRatesAPI } from '../services/api';
+import { normalizeLocationToEnglish } from '../utils/locationTranslations';
 
 export const ShippingRatesContext = createContext();
 
@@ -68,18 +69,32 @@ export const ShippingRatesProvider = ({ children }) => {
 
   // Calculate shipping cost based on courier, state, and total weight
   const calculateShippingCost = (courier, state, totalWeight) => {
-    // For Yandex, state is actually the city (Tashkent)
-    const rate = shippingRates.find(r =>
-      r.courier === courier &&
-      (r.state === state || (courier === 'Yandex' && state === 'Tashkent'))
-    );
+    // Normalize state name to English for matching (handles Uzbek/Russian input)
+    const normalizedState = normalizeLocationToEnglish(state, 'state');
+
+    // For Yandex, handle both "Tashkent" and translated versions
+    const isYandex = courier === 'Yandex';
+    const yandexMatches = ['Tashkent', 'Toshkent', 'Ташкент', 'город Ташкент', 'Toshkent shahri'];
+
+    const rate = shippingRates.find(r => {
+      if (r.courier !== courier) return false;
+
+      // Special handling for Yandex
+      if (isYandex && yandexMatches.includes(state)) {
+        return r.state === 'Tashkent' || yandexMatches.includes(r.state);
+      }
+
+      // Normal matching with normalized state
+      return r.state === normalizedState || r.state === state;
+    });
 
     if (!rate) {
+      console.warn(`No shipping rate found for courier: ${courier}, state: ${state} (normalized: ${normalizedState})`);
       return 0; // No rate found, return 0 or handle differently
     }
 
     // For Yandex (flat rate)
-    if (courier === 'Yandex') {
+    if (isYandex) {
       return rate.firstKg;
     }
 

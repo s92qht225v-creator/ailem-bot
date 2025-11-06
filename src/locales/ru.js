@@ -200,15 +200,26 @@ export default {
     payNow: 'Оплатить',
     processing: 'Обработка платежа...',
     success: 'Оплата успешна!',
-    failed: 'Оплата не прошла',
+    successful: 'Оплата успешна!',
+    orderConfirmed: 'Ваш заказ подтвержден',
+    failed: 'Оплата не удалась',
+    paymentCancelled: 'Оплата отменена или отклонена',
     pending: 'Ожидание оплаты',
     redirect: 'Перенаправление на платёжную систему...',
+    redirecting: 'Переход к заказу...',
+    checkingStatus: 'Проверка статуса оплаты...',
+    pleaseWait: 'Пожалуйста, подождите',
+    tryAgain: 'Попробовать снова',
+    backToHome: 'На главную',
     testCard: 'Тестовая карта',
     cardNumber: 'Номер карты',
     expiry: 'Срок действия',
     smsCode: 'SMS код',
     orderNumber: 'Номер заказа',
+    paymentMethod: 'Способ оплаты',
     amount: 'Сумма',
+    status: 'Статус',
+    approved: 'Подтвержден',
     paymentInfo: 'Информация об оплате'
   },
 
@@ -216,6 +227,7 @@ export default {
   orders: {
     title: 'Мои заказы',
     empty: 'Нет заказов',
+    orderHistory: 'История заказов',
     orderNumber: 'Номер заказа',
     date: 'Дата',
     status: 'Статус',
@@ -225,6 +237,11 @@ export default {
     trackOrder: 'Отследить',
     cancelOrder: 'Отменить',
     repeatOrder: 'Повторить',
+    pending: 'В ожидании',
+    approved: 'Подтвержден',
+    shipped: 'Отправлен',
+    delivered: 'Доставлен',
+    rejected: 'Отменен',
     statuses: {
       pending: 'В обработке',
       approved: 'Подтверждён',
@@ -327,6 +344,16 @@ export default {
     takePhoto: 'Сделать фото или выбрать из галереи',
     imagesAdded: 'изображений добавлено',
     beFirst: 'Пока нет отзывов. Станьте первым, кто оставит отзыв!'
+  },
+
+  // My Reviews
+  myReviews: {
+    title: 'Мои отзывы',
+    empty: 'Пока нет отзывов',
+    writeReview: 'Написать отзыв',
+    pending: 'На проверке',
+    approved: 'Одобрен',
+    rejected: 'Отклонен'
   },
 
   // Favorites
