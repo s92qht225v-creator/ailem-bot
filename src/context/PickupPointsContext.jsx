@@ -1,6 +1,5 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
 import { pickupPointsAPI } from '../services/api';
-import { translateLocation, normalizeLocationToEnglish, translateAddress } from '../utils/locationTranslations';
 
 export const PickupPointsContext = createContext();
 
@@ -105,69 +104,39 @@ export const PickupPointsProvider = ({ children }) => {
     return [...new Set(pickupPoints.map(point => point.courierService))].sort();
   }, [pickupPoints]);
 
-  // Get states by courier service - translate to requested language
-  const getStatesByCourier = useCallback((courierService, language = 'uz') => {
+  // Get states by courier service (all in Uzbek now)
+  const getStatesByCourier = useCallback((courierService) => {
     return [...new Set(
       pickupPoints
         .filter(point =>
           point.courierService === courierService &&
           point.active
         )
-        .map(point => {
-          // First normalize to English, then translate to target language
-          const englishState = normalizeLocationToEnglish(point.state, 'state');
-          return translateLocation(englishState, language, 'state');
-        })
+        .map(point => point.state)
     )].sort();
   }, [pickupPoints]);
 
-  // Get cities by courier and state - translate to requested language
-  const getCitiesByCourierAndState = useCallback((courierService, state, language = 'uz') => {
-    // Normalize incoming state (might be translated from previous step)
-    const normalizedState = normalizeLocationToEnglish(state, 'state'); // Convert back to English for matching
-
+  // Get cities by courier and state (all in Uzbek now)
+  const getCitiesByCourierAndState = useCallback((courierService, state) => {
     return [...new Set(
       pickupPoints
-        .filter(point => {
-          const pointStateEnglish = normalizeLocationToEnglish(point.state, 'state');
-          return point.courierService === courierService &&
-            (pointStateEnglish === normalizedState || point.state === state) &&
-            point.active;
-        })
-        .map(point => {
-          // First normalize to English, then translate to target language
-          const englishCity = normalizeLocationToEnglish(point.city, 'city');
-          return translateLocation(englishCity, language, 'city');
-        })
+        .filter(point =>
+          point.courierService === courierService &&
+          point.state === state &&
+          point.active
+        )
+        .map(point => point.city)
     )].sort();
   }, [pickupPoints]);
 
-  // Get pickup points by courier, state, and city - translate address fields
-  const getPickupPointsByCourierStateCity = useCallback((courierService, state, city, language = 'uz') => {
-    // Normalize incoming state and city (might be translated from previous steps)
-    const normalizedState = normalizeLocationToEnglish(state, 'state');
-    const normalizedCity = normalizeLocationToEnglish(city, 'city');
-
-    return pickupPoints
-      .filter(point => {
-        const pointStateEnglish = normalizeLocationToEnglish(point.state, 'state');
-        const pointCityEnglish = normalizeLocationToEnglish(point.city, 'city');
-        return point.courierService === courierService &&
-          (pointStateEnglish === normalizedState || point.state === state) &&
-          (pointCityEnglish === normalizedCity || point.city === city) &&
-          point.active;
-      })
-      .map(point => {
-        // First normalize to English, then translate to target language for display
-        const englishState = normalizeLocationToEnglish(point.state, 'state');
-        const englishCity = normalizeLocationToEnglish(point.city, 'city');
-        return {
-          ...point,
-          state: translateLocation(englishState, language, 'state'),
-          city: translateLocation(englishCity, language, 'city'),
-          address: translateAddress(point.address, language)
-        };
-      });
+  // Get pickup points by courier, state, and city (all in Uzbek now)
+  const getPickupPointsByCourierStateCity = useCallback((courierService, state, city) => {
+    return pickupPoints.filter(point =>
+      point.courierService === courierService &&
+      point.state === state &&
+      point.city === city &&
+      point.active
+    );
   }, [pickupPoints]);
 
   return (

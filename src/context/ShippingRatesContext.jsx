@@ -1,18 +1,17 @@
 import { createContext, useState, useEffect } from 'react';
 import { shippingRatesAPI } from '../services/api';
-import { normalizeLocationToEnglish } from '../utils/locationTranslations';
 
 export const ShippingRatesContext = createContext();
 
 export const ShippingRatesProvider = ({ children }) => {
   const [shippingRates, setShippingRates] = useState([
-    // Default rates (used as fallback)
-    { id: 1, courier: 'BTS', state: 'Tashkent Region', firstKg: 15000, additionalKg: 5000 },
-    { id: 2, courier: 'BTS', state: 'Samarkand Region', firstKg: 20000, additionalKg: 7000 },
-    { id: 3, courier: 'Starex', state: 'Tashkent Region', firstKg: 18000, additionalKg: 6000 },
-    { id: 4, courier: 'EMU', state: 'Tashkent Region', firstKg: 12000, additionalKg: 4000 },
-    { id: 5, courier: 'UzPost', state: 'Tashkent Region', firstKg: 10000, additionalKg: 3000 },
-    { id: 6, courier: 'Yandex', state: 'Tashkent', firstKg: 25000, additionalKg: 0 },
+    // Default rates in Uzbek (used as fallback)
+    { id: 1, courier: 'BTS', state: 'Toshkent viloyati', firstKg: 15000, additionalKg: 5000 },
+    { id: 2, courier: 'BTS', state: 'Samarqand viloyati', firstKg: 20000, additionalKg: 7000 },
+    { id: 3, courier: 'Starex', state: 'Toshkent viloyati', firstKg: 18000, additionalKg: 6000 },
+    { id: 4, courier: 'EMU', state: 'Toshkent viloyati', firstKg: 12000, additionalKg: 4000 },
+    { id: 5, courier: 'UzPost', state: 'Toshkent viloyati', firstKg: 10000, additionalKg: 3000 },
+    { id: 6, courier: 'Yandex', state: 'Toshkent', firstKg: 25000, additionalKg: 0 },
   ]);
   const [loading, setLoading] = useState(true);
 
@@ -33,9 +32,9 @@ export const ShippingRatesProvider = ({ children }) => {
     }
   };
 
-  const addShippingRate = async (rate) => {
+  const addShippingRate = async (rateData) => {
     try {
-      const newRate = await shippingRatesAPI.create(rate);
+      const newRate = await shippingRatesAPI.create(rateData);
       setShippingRates([...shippingRates, newRate]);
       return newRate;
     } catch (error) {
@@ -44,13 +43,13 @@ export const ShippingRatesProvider = ({ children }) => {
     }
   };
 
-  const updateShippingRate = async (id, updatedData) => {
+  const updateShippingRate = async (id, rateData) => {
     try {
-      const updated = await shippingRatesAPI.update(id, updatedData);
+      const updatedRate = await shippingRatesAPI.update(id, rateData);
       setShippingRates(shippingRates.map(rate =>
-        rate.id === id ? updated : rate
+        rate.id === id ? updatedRate : rate
       ));
-      return updated;
+      return updatedRate;
     } catch (error) {
       console.error('Failed to update shipping rate:', error);
       throw error;
@@ -68,56 +67,21 @@ export const ShippingRatesProvider = ({ children }) => {
   };
 
   // Calculate shipping cost based on courier, state, and total weight
+  // Everything in Uzbek now - direct matching
   const calculateShippingCost = (courier, state, totalWeight) => {
-    // Normalize state name to English for matching (handles Uzbek/Russian input)
-    const normalizedState = normalizeLocationToEnglish(state, 'state');
-
-    // For Yandex, handle both "Tashkent" and translated versions
     const isYandex = courier === 'Yandex';
-    const yandexMatches = ['Tashkent', 'Toshkent', 'Ташкент', 'город Ташкент', 'Toshkent shahri'];
 
     const rate = shippingRates.find(r => {
       if (r.courier !== courier) return false;
 
-      // Special handling for Yandex
-      if (isYandex && yandexMatches.includes(state)) {
-        return r.state === 'Tashkent' || yandexMatches.includes(r.state);
-      }
-
-      // Normalize both the rate state and input for fuzzy matching
-      const normalizeForMatch = (str) => {
-        if (!str) return '';
-        return str.toLowerCase()
-          .replace(/viloyati?/g, '')
-          .replace(/region/g, '')
-          .replace(/область/g, '')
-          .replace(/shahri/g, '')
-          .replace(/город/g, '')
-          .replace(/q/g, 'k')  // Samarqand → Samarkand
-          .trim();
-      };
-
-      const rStateNorm = normalizeForMatch(r.state);
-      const normalizedStateNorm = normalizeForMatch(normalizedState);
-      const stateNorm = normalizeForMatch(state);
-
-      // Try exact match first, then fuzzy match
-      const rStateLower = r.state?.toLowerCase();
-      const normalizedLower = normalizedState?.toLowerCase();
-      const stateLower = state?.toLowerCase();
-
-      return rStateLower === normalizedLower ||
-             rStateLower === stateLower ||
-             r.state === normalizedState ||
-             r.state === state ||
-             rStateNorm === normalizedStateNorm ||
-             rStateNorm === stateNorm;
+      // Direct match - everything in Uzbek
+      return r.state === state;
     });
 
     if (!rate) {
-      console.warn(`No shipping rate found for courier: ${courier}, state: ${state} (normalized: ${normalizedState})`);
+      console.warn(`No shipping rate found for courier: ${courier}, state: ${state}`);
       console.warn('Available rates for this courier:', shippingRates.filter(r => r.courier === courier).map(r => r.state));
-      return 0; // No rate found, return 0 or handle differently
+      return 0;
     }
 
     // For Yandex (flat rate)
@@ -130,7 +94,7 @@ export const ShippingRatesProvider = ({ children }) => {
       return rate.firstKg;
     }
 
-    const additionalWeight = Math.ceil(totalWeight - 1); // Round up additional weight
+    const additionalWeight = Math.ceil(totalWeight - 1);
     return rate.firstKg + (additionalWeight * rate.additionalKg);
   };
 
@@ -157,7 +121,7 @@ export const ShippingRatesProvider = ({ children }) => {
         calculateShippingCost,
         getRatesByCourier,
         getRate,
-        reload: loadShippingRates
+        loadShippingRates
       }}
     >
       {children}
