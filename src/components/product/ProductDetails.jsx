@@ -125,6 +125,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
   };
 
   const handleShare = () => {
+    console.log('🔵 Product share - using shareReferralLink function');
     const botUsername = import.meta.env.VITE_BOT_USERNAME || 'ailemuz_bot';
     
     if (!user || !user.referralCode) {
@@ -133,6 +134,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
       return;
     }
 
+    console.log('🔵 Calling shareReferralLink with:', user.referralCode, botUsername);
     // Use the same shareReferralLink function as ReferralsPage
     shareReferralLink(user.referralCode, botUsername, user.name);
   };
