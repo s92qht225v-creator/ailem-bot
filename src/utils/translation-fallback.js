@@ -35,6 +35,7 @@ export const t = (key) => {
     'cart.applyBonus': 'Bonus ishlatish',
     'cart.delivery': 'Yetkazib berish',
     'cart.deliveryFree': 'Bepul',
+    'cart.total': 'Jami',
     'checkout.title': 'Buyurtma berish',
     'shop.title': 'Do\'kon',
     'nav.home': 'Bosh sahifa',
