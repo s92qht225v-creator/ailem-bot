@@ -87,6 +87,16 @@ export const t = (key) => {
     'product.selectSize': 'O\'lcham',
     'product.quantity': 'Miqdor',
     'product.relatedProducts': 'O\'xshash mahsulotlar',
+    'product.addToCart': 'Savatga qo\'shish',
+    'product.inStock': 'Omborda',
+    'shop.outOfStock': 'Tugadi',
+    // Badges
+    'badges.SALE': 'CHEGIRMA',
+    'badges.NEW': 'YANGI',
+    'badges.LIMITED': 'CHEKLANGAN',
+    'badges.BEST SELLER': 'TOP SOTILGAN',
+    'badges.HOT': 'ISSIQ',
+    'badges.TRENDING': 'MASHHUR',
     // Reviews
     'reviews.maxPhotos': 'Faqat 5 tagacha rasm yuklash mumkin',
     'reviews.purchaseRequired': 'Faqat sotib olgan mahsulotlaringizga sharh qoldirishingiz mumkin',
