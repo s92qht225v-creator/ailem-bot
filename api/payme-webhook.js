@@ -525,10 +525,20 @@ async function performTransaction(params, res, requestId) {
     const userChatId = order.user_telegram_id;
     if (userChatId && !String(userChatId).startsWith('demo-')) {
       const items = order.items?.length || 0;
-      // Extract courier name if it's an object
-      const courierName = typeof order.courier === 'object'
-        ? order.courier?.name || 'Yetkazib berish'
-        : order.courier || 'Yetkazib berish';
+      // Extract courier name if it's an object or JSON string
+      let courierName = 'Yetkazib berish';
+      if (order.courier) {
+        if (typeof order.courier === 'string') {
+          try {
+            const parsed = JSON.parse(order.courier);
+            courierName = parsed.name || order.courier;
+          } catch {
+            courierName = order.courier;
+          }
+        } else if (typeof order.courier === 'object') {
+          courierName = order.courier?.name || 'Yetkazib berish';
+        }
+      }
 
       const notificationMessage = `
 🎉 <b>To'lov muvaffaqiyatli!</b>
@@ -552,9 +562,20 @@ Buyurtmangiz tez orada yetkazib beriladi. Xarid uchun rahmat! 🛍️
   // Send Telegram notification to admin
   try {
     if (ADMIN_CHAT_ID) {
-      const courierName = typeof order.courier === 'object'
-        ? order.courier?.name || 'Yetkazib berish'
-        : order.courier || 'Yetkazib berish';
+      // Extract courier name if it's an object or JSON string
+      let courierName = 'Yetkazib berish';
+      if (order.courier) {
+        if (typeof order.courier === 'string') {
+          try {
+            const parsed = JSON.parse(order.courier);
+            courierName = parsed.name || order.courier;
+          } catch {
+            courierName = order.courier;
+          }
+        } else if (typeof order.courier === 'object') {
+          courierName = order.courier?.name || 'Yetkazib berish';
+        }
+      }
 
       const itemsList = order.items && order.items.length > 0
         ? order.items.map(item => {
