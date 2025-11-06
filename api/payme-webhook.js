@@ -502,90 +502,63 @@ async function performTransaction(params, res, requestId) {
     });
   }
 
-  // Deduct stock and award bonus points BEFORE sending response (critical!)
-  // In serverless functions, code after res.json() may not execute
-  try {
-    await deductStock(order);
-    console.log('✅ Stock deducted successfully');
-  } catch (stockError) {
-    console.error('❌ Failed to deduct stock:', stockError);
-    // Continue anyway - don't fail the transaction
-  }
-
-  try {
-    await awardBonusPoints(order);
-    console.log('✅ Bonus points awarded successfully');
-  } catch (bonusError) {
-    console.error('❌ Failed to award bonus points:', bonusError);
-    // Continue anyway - don't fail the transaction
-  }
-
-  // Send Telegram notification to customer
-  try {
-    const userChatId = order.user_telegram_id;
-    if (userChatId && !String(userChatId).startsWith('demo-')) {
-      const items = order.items?.length || 0;
-      // Extract courier name if it's an object or JSON string
-      let courierName = 'Yetkazib berish';
-      if (order.courier) {
-        if (typeof order.courier === 'string') {
-          try {
-            const parsed = JSON.parse(order.courier);
-            courierName = parsed.name || order.courier;
-          } catch {
-            courierName = order.courier;
+  // Run all background tasks in parallel (CRITICAL: Payment providers timeout after few seconds)
+  await Promise.all([
+    deductStock(order).catch(e => console.error('❌ Stock deduction failed:', e)),
+    awardBonusPoints(order).catch(e => console.error('❌ Bonus points failed:', e)),
+    (async () => {
+      const userChatId = order.user_telegram_id;
+      if (userChatId && !String(userChatId).startsWith('demo-')) {
+        let courierName = 'Yetkazib berish';
+        if (order.courier) {
+          if (typeof order.courier === 'string') {
+            try {
+              const parsed = JSON.parse(order.courier);
+              courierName = parsed.name || order.courier;
+            } catch {
+              courierName = order.courier;
+            }
+          } else if (typeof order.courier === 'object') {
+            courierName = order.courier?.name || 'Yetkazib berish';
           }
-        } else if (typeof order.courier === 'object') {
-          courierName = order.courier?.name || 'Yetkazib berish';
         }
-      }
-
-      const notificationMessage = `
+        const notificationMessage = `
 🎉 <b>To'lov muvaffaqiyatli!</b>
 
 Sizning buyurtmangiz <b>#${order.order_number || order.id}</b> tasdiqlandi!
 
-📦 Mahsulotlar: ${items} ta
+📦 Mahsulotlar: ${order.items?.length || 0} ta
 💰 Jami: ${order.total.toLocaleString()} UZS
 🚚 Yetkazib berish: ${courierName}
 
 Buyurtmangiz tez orada yetkazib beriladi. Xarid uchun rahmat! 🛍️
-      `.trim();
-
-      await sendTelegramNotification(userChatId, notificationMessage);
-    }
-  } catch (notifError) {
-    console.error('❌ Failed to send notification:', notifError);
-    // Continue anyway - don't fail the transaction
-  }
-
-  // Send Telegram notification to admin
-  try {
-    if (ADMIN_CHAT_ID) {
-      // Extract courier name if it's an object or JSON string
-      let courierName = 'Yetkazib berish';
-      if (order.courier) {
-        if (typeof order.courier === 'string') {
-          try {
-            const parsed = JSON.parse(order.courier);
-            courierName = parsed.name || order.courier;
-          } catch {
-            courierName = order.courier;
-          }
-        } else if (typeof order.courier === 'object') {
-          courierName = order.courier?.name || 'Yetkazib berish';
-        }
+        `.trim();
+        await sendTelegramNotification(userChatId, notificationMessage);
       }
-
-      const itemsList = order.items && order.items.length > 0
-        ? order.items.map(item => {
-            const itemName = item.productName || item.name || 'Mahsulot';
-            const itemPrice = (item.price || 0).toLocaleString();
-            return `  • ${itemName} (x${item.quantity}) - ${itemPrice} UZS`;
-          }).join('\n')
-        : '  • Mahsulotlar mavjud emas';
-
-      const adminMessage = `
+    })().catch(e => console.error('❌ Customer notification failed:', e)),
+    (async () => {
+      if (ADMIN_CHAT_ID) {
+        let courierName = 'Yetkazib berish';
+        if (order.courier) {
+          if (typeof order.courier === 'string') {
+            try {
+              const parsed = JSON.parse(order.courier);
+              courierName = parsed.name || order.courier;
+            } catch {
+              courierName = order.courier;
+            }
+          } else if (typeof order.courier === 'object') {
+            courierName = order.courier?.name || 'Yetkazib berish';
+          }
+        }
+        const itemsList = order.items && order.items.length > 0
+          ? order.items.map(item => {
+              const itemName = item.productName || item.name || 'Mahsulot';
+              const itemPrice = (item.price || 0).toLocaleString();
+              return `  • ${itemName} (x${item.quantity}) - ${itemPrice} UZS`;
+            }).join('\n')
+          : '  • Mahsulotlar mavjud emas';
+        const adminMessage = `
 🔔 <b>Yangi buyurtma to'lovi!</b>
 
 Buyurtma: <b>#${order.order_number || order.id}</b>
@@ -600,14 +573,11 @@ ${itemsList}
 📍 <b>Manzil:</b> ${order.delivery_info?.city || order.delivery_info?.address || 'Noma\'lum'}
 
 ✅ To'lov tasdiqlandi. Buyurtmani yetkazib bering.
-      `.trim();
-
-      await sendTelegramNotification(ADMIN_CHAT_ID, adminMessage);
-    }
-  } catch (adminNotifError) {
-    console.error('❌ Failed to send admin notification:', adminNotifError);
-    // Continue anyway - don't fail the transaction
-  }
+        `.trim();
+        await sendTelegramNotification(ADMIN_CHAT_ID, adminMessage);
+      }
+    })().catch(e => console.error('❌ Admin notification failed:', e))
+  ]).catch(e => console.error('❌ Background tasks failed:', e));
 
   // Send response to Payme
   return res.json({
