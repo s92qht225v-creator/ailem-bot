@@ -1027,14 +1027,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [editingProduct, setEditingProduct] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [allImages, setAllImages] = useState([]); // Array of all product images
-    const [activeLanguageTab, setActiveLanguageTab] = useState('uz'); // 'uz' or 'ru'
     const [formData, setFormData] = useState({
       name: '',
-      name_uz: '',
-      name_ru: '',
       description: '',
-      description_uz: '',
-      description_ru: '',
       price: '',
       salePrice: '',
       imageUrl: '',
@@ -1044,17 +1039,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
       stock: '',
       badge: '',
       material: '',
-      material_uz: '',
-      material_ru: '',
       colors: '',
-      colors_uz: '',
-      colors_ru: '',
       sizes: '',
-      sizes_uz: '',
-      sizes_ru: '',
       tags: '',
-      tags_uz: '',
-      tags_ru: '',
       inStock: true,
       variants: []
     });
@@ -1110,12 +1097,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         // Prepare product data in app format (API will handle database conversion)
         const productData = {
-          name: formData.name || formData.name_uz, // Fallback to Uzbek if name is empty
-          name_uz: formData.name_uz || formData.name,
-          name_ru: formData.name_ru || null,
-          description: formData.description || formData.description_uz,
-          description_uz: formData.description_uz || formData.description,
-          description_ru: formData.description_ru || null,
+          name: formData.name,
+          description: formData.description,
           price: parseFloat(formData.salePrice || formData.price), // Use sale price if available, otherwise regular price
           originalPrice: formData.salePrice ? parseFloat(formData.price) : null, // Original price only if there's a sale
           category: formData.category,  // Use category (API converts to category_name)
@@ -1124,18 +1107,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
           weight: formData.weight ? parseFloat(formData.weight) : null,
           stock: parseInt(formData.stock) || 0,
           badge: formData.badge || null,
-          material: formData.material || formData.material_uz,
-          material_uz: formData.material_uz || formData.material,
-          material_ru: formData.material_ru || null,
-          colors: formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c) : (formData.colors_uz ? formData.colors_uz.split(',').map(c => c.trim()).filter(c => c) : []),
-          colors_uz: formData.colors_uz ? formData.colors_uz.split(',').map(c => c.trim()).filter(c => c) : (formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c) : []),
-          colors_ru: formData.colors_ru ? formData.colors_ru.split(',').map(c => c.trim()).filter(c => c) : [],
-          sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : (formData.sizes_uz ? formData.sizes_uz.split(',').map(s => s.trim()).filter(s => s) : []),
-          sizes_uz: formData.sizes_uz ? formData.sizes_uz.split(',').map(s => s.trim()).filter(s => s) : (formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : []),
-          sizes_ru: formData.sizes_ru ? formData.sizes_ru.split(',').map(s => s.trim()).filter(s => s) : [],
-          tags: formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : (formData.tags_uz ? formData.tags_uz.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : []),
-          tags_uz: formData.tags_uz ? formData.tags_uz.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : (formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : []),
-          tags_ru: formData.tags_ru ? formData.tags_ru.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
+          material: formData.material,
+          colors: formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c) : [],
+          sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : [],
+          tags: formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
           variants: formData.variants || []
         };
 
@@ -1153,14 +1128,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
         setShowForm(false);
         setEditingProduct(null);
         setAllImages([]);
-        setActiveLanguageTab('uz');
         setFormData({
           name: '',
-          name_uz: '',
-          name_ru: '',
           description: '',
-          description_uz: '',
-          description_ru: '',
           price: '',
           salePrice: '',
           imageUrl: '',
@@ -1170,17 +1140,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
           stock: '',
           badge: '',
           material: '',
-          material_uz: '',
-          material_ru: '',
           colors: '',
-          colors_uz: '',
-          colors_ru: '',
           sizes: '',
-          sizes_uz: '',
-          sizes_ru: '',
           tags: '',
-          tags_uz: '',
-          tags_ru: '',
           inStock: true,
           variants: []
         });
@@ -1197,12 +1159,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
       setAllImages(productImages.filter(url => url)); // Filter out any null/undefined
       
       setFormData({
-        name: product.name,
-        name_uz: product.name_uz || product.name || '',
-        name_ru: product.name_ru || '',
+        name: product.name || '',
         description: product.description || '',
-        description_uz: product.description_uz || product.description || '',
-        description_ru: product.description_ru || '',
         // If originalPrice exists, it's the regular price and price is the sale price
         price: product.originalPrice ? product.originalPrice.toString() : product.price.toString(),
         salePrice: product.originalPrice ? product.price.toString() : '',
@@ -1213,26 +1171,17 @@ const DesktopAdminPanel = ({ onLogout }) => {
         stock: product.stock ? product.stock.toString() : '',
         badge: product.badge || '',
         material: product.material || '',
-        material_uz: product.material_uz || product.material || '',
-        material_ru: product.material_ru || '',
         colors: product.colors ? product.colors.join(', ') : '',
-        colors_uz: product.colors_uz ? product.colors_uz.join(', ') : (product.colors ? product.colors.join(', ') : ''),
-        colors_ru: product.colors_ru ? product.colors_ru.join(', ') : '',
         sizes: product.sizes ? product.sizes.join(', ') : '',
-        sizes_uz: product.sizes_uz ? product.sizes_uz.join(', ') : (product.sizes ? product.sizes.join(', ') : ''),
-        sizes_ru: product.sizes_ru ? product.sizes_ru.join(', ') : '',
         tags: product.tags ? product.tags.join(', ') : '',
-        tags_uz: product.tags_uz ? product.tags_uz.join(', ') : (product.tags ? product.tags.join(', ') : ''),
-        tags_ru: product.tags_ru ? product.tags_ru.join(', ') : '', // Don't fallback to Uzbek in form - let user enter independently
         inStock: product.inStock !== false,
         variants: product.variants || []
       });
-      setActiveLanguageTab('uz');
       setShowForm(true);
     };
 
     const handleDelete = async (productId) => {
-      if (confirm('Are you sure you want to delete this product? This action cannot be undone.')) {
+      if (confirm('Ushbu mahsulotni o\'chirishga ishonchingiz komilmi? Bu amalni ortga qaytarib bo\'lmaydi.')) {
         try {
           await deleteProduct(productId);
           console.log('✅ Product deleted successfully');
@@ -1244,48 +1193,37 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     // Auto-generate variants when colors or sizes change
-    const handleColorsOrSizesChange = (field, value, language = 'uz') => {
+    const handleColorsOrSizesChange = (field, value) => {
       const updatedFormData = { ...formData, [field]: value };
 
-      // Parse colors and sizes from ALL language fields
-      const colorsUz = updatedFormData.colors_uz ? updatedFormData.colors_uz.split(',').map(c => c.trim()).filter(c => c) : [];
-      const colorsRu = updatedFormData.colors_ru ? updatedFormData.colors_ru.split(',').map(c => c.trim()).filter(c => c) : [];
-      const sizesUz = updatedFormData.sizes_uz ? updatedFormData.sizes_uz.split(',').map(s => s.trim()).filter(s => s) : [];
-      const sizesRu = updatedFormData.sizes_ru ? updatedFormData.sizes_ru.split(',').map(s => s.trim()).filter(s => s) : [];
+      // Parse colors and sizes
+      const colors = updatedFormData.colors ? updatedFormData.colors.split(',').map(c => c.trim()).filter(c => c) : [];
+      const sizes = updatedFormData.sizes ? updatedFormData.sizes.split(',').map(s => s.trim()).filter(s => s) : [];
 
-      // Validation: Warn if counts don't match (but allow it)
-      if (colorsUz.length > 0 && colorsRu.length > 0 && colorsUz.length !== colorsRu.length) {
-        console.warn(`⚠️ Color count mismatch: ${colorsUz.length} Uzbek vs ${colorsRu.length} Russian`);
-      }
-      if (sizesUz.length > 0 && sizesRu.length > 0 && sizesUz.length !== sizesRu.length) {
-        console.warn(`⚠️ Size count mismatch: ${sizesUz.length} Uzbek vs ${sizesRu.length} Russian`);
+      if (colors.length === 0 && sizes.length === 0) {
+        updatedFormData.variants = [];
+        setFormData(updatedFormData);
+        return;
       }
 
-      // Use Uzbek as the primary language (stored in variant.color/size)
-      // Only generate if Uzbek colors AND sizes exist
-      if (colorsUz.length > 0 && sizesUz.length > 0) {
+      // Generate variants only if both colors AND sizes exist
+      if (colors.length > 0 && sizes.length > 0) {
         const newVariants = [];
         
-        colorsUz.forEach((colorUz, colorIdx) => {
-          sizesUz.forEach((sizeUz, sizeIdx) => {
-            // Get corresponding Russian translations (or fallback to Uzbek)
-            const colorRu = colorsRu[colorIdx] || colorUz;
-            const sizeRu = sizesRu[sizeIdx] || sizeUz;
-            
+        colors.forEach((color) => {
+          sizes.forEach((size) => {
             // Check if variant already exists to preserve stock and image
             const existing = formData.variants.find(v =>
-              v.color?.toLowerCase() === colorUz.toLowerCase() &&
-              v.size?.toLowerCase() === sizeUz.toLowerCase()
+              v.color?.toLowerCase() === color.toLowerCase() &&
+              v.size?.toLowerCase() === size.toLowerCase()
             );
             
             newVariants.push({
-              color: colorUz,        // Store Uzbek as primary
-              color_ru: colorRu,     // Store Russian translation
-              size: sizeUz,          // Store Uzbek as primary
-              size_ru: sizeRu,       // Store Russian translation
+              color: color,
+              size: size,
               stock: existing?.stock || 0,
               image: existing?.image || null,
-              sku: `${colorUz.substring(0, 3).toUpperCase()}-${sizeUz.substring(0, 1).toUpperCase()}`
+              sku: `${color.substring(0, 3).toUpperCase()}-${size.substring(0, 1).toUpperCase()}`
             });
           });
         });
@@ -1329,8 +1267,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
         {/* Header Actions */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Product Management</h3>
-            <p className="text-gray-600">{products.length} products in catalog</p>
+            <h3 className="text-lg font-semibold text-gray-900">Mahsulotlarni boshqarish</h3>
+            <p className="text-gray-600">Katalogda {products.length} ta mahsulot</p>
           </div>
           <div className="flex gap-2">
             <button
@@ -1338,14 +1276,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
               className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 flex items-center gap-2 transition-colors"
             >
               <Download className="w-4 h-4" />
-              Export CSV
+              CSV yuklash
             </button>
             <button
               onClick={() => setShowForm(true)}
               className="bg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
             >
               <Plus className="w-5 h-5" />
-              Add Product
+              Mahsulot qo'shish
             </button>
           </div>
         </div>
@@ -1355,7 +1293,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-6">
               <h4 className="text-lg font-semibold">
-                {editingProduct ? 'Edit Product' : 'Add New Product'}
+                {editingProduct ? 'Mahsulotni tahrirlash' : 'Yangi mahsulot qo\'shish'}
               </h4>
               <button
                 onClick={() => {
@@ -1370,190 +1308,83 @@ const DesktopAdminPanel = ({ onLogout }) => {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Language Tabs */}
-              <div className="border-b border-gray-200">
-                <div className="flex gap-4">
-                  <button
-                    type="button"
-                    onClick={() => setActiveLanguageTab('uz')}
-                    className={`pb-3 px-4 font-medium border-b-2 transition-colors ${
-                      activeLanguageTab === 'uz'
-                        ? 'border-accent text-accent'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    🇺🇿 O'zbek tili
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveLanguageTab('ru')}
-                    className={`pb-3 px-4 font-medium border-b-2 transition-colors ${
-                      activeLanguageTab === 'ru'
-                        ? 'border-accent text-accent'
-                        : 'border-transparent text-gray-500 hover:text-gray-700'
-                    }`}
-                  >
-                    🇷🇺 Русский язык
-                  </button>
+              {/* Product Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Mahsulot nomi *</label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    required
+                    placeholder="Masalan: Choyshablar to'plami"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Tavsif</label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    rows="3"
+                    placeholder="Mahsulot haqida batafsil ma'lumot..."
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Material</label>
+                  <input
+                    type="text"
+                    value={formData.material}
+                    onChange={(e) => setFormData({ ...formData, material: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    placeholder="Masalan: Paxta"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Ranglar</label>
+                  <input
+                    type="text"
+                    value={formData.colors}
+                    onChange={(e) => handleColorsOrSizesChange('colors', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    placeholder="Oq, Qora, Ko'k (vergul bilan ajratilgan)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">O'lchamlar</label>
+                  <input
+                    type="text"
+                    value={formData.sizes}
+                    onChange={(e) => handleColorsOrSizesChange('sizes', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    placeholder="Kichik, O'rta, Katta (vergul bilan ajratilgan)"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Teglar *</label>
+                  <input
+                    type="text"
+                    value={formData.tags}
+                    onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    placeholder="choyshablar, paxta, hashamatli, yumshoq (vergul bilan ajratilgan)"
+                    required
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Teglar qidiruv uchun ishlatiladi - kalit so'zlarni vergul bilan ajrating</p>
                 </div>
               </div>
 
-              {/* Uzbek Language Fields */}
-              {activeLanguageTab === 'uz' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Mahsulot nomi (O'zbek) *</label>
-                    <input
-                      type="text"
-                      value={formData.name_uz}
-                      onChange={(e) => setFormData({ ...formData, name_uz: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                      required
-                      placeholder="Masalan: Choyshablar to'plami"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Tavsif (O'zbek)</label>
-                    <textarea
-                      value={formData.description_uz}
-                      onChange={(e) => setFormData({ ...formData, description_uz: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                      rows="3"
-                      placeholder="Mahsulot haqida batafsil ma'lumot..."
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Material (O'zbek)</label>
-                    <input
-                      type="text"
-                      value={formData.material_uz}
-                      onChange={(e) => setFormData({ ...formData, material_uz: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                      placeholder="Masalan: Paxta"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Ranglar (O'zbek)</label>
-                    <input
-                      type="text"
-                      value={formData.colors_uz}
-                      onChange={(e) => handleColorsOrSizesChange('colors_uz', e.target.value, 'uz')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                      placeholder="Oq, Qora, Ko'k (vergul bilan ajratilgan)"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">O'lchamlar (O'zbek)</label>
-                    <input
-                      type="text"
-                      value={formData.sizes_uz}
-                      onChange={(e) => handleColorsOrSizesChange('sizes_uz', e.target.value, 'uz')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                      placeholder="Kichik, O'rta, Katta (vergul bilan ajratilgan)"
-                    />
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Teglar (O'zbek) *</label>
-                    <input
-                      type="text"
-                      value={formData.tags_uz}
-                      onChange={(e) => setFormData({ ...formData, tags_uz: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                      placeholder="choyshablar, paxta, hashamatli, yumshoq (vergul bilan ajratilgan)"
-                      required
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Teglar qidiruv uchun ishlatiladi - kalit so'zlarni vergul bilan ajrating</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Russian Language Fields */}
-              {activeLanguageTab === 'ru' && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Название товара (Русский)</label>
-                    <input
-                      type="text"
-                      value={formData.name_ru}
-                      onChange={(e) => setFormData({ ...formData, name_ru: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                      placeholder="Например: Комплект постельного белья"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы использовать узбекскую версию</p>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Описание (Русский)</label>
-                    <textarea
-                      value={formData.description_ru}
-                      onChange={(e) => setFormData({ ...formData, description_ru: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                      rows="3"
-                      placeholder="Подробное описание товара..."
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы использовать узбекскую версию</p>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Материал (Русский)</label>
-                    <input
-                      type="text"
-                      value={formData.material_ru}
-                      onChange={(e) => setFormData({ ...formData, material_ru: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                      placeholder="Например: Хлопок"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы использовать узбекскую версию</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Цвета (Русский)</label>
-                    <input
-                      type="text"
-                      value={formData.colors_ru}
-                      onChange={(e) => handleColorsOrSizesChange('colors_ru', e.target.value, 'ru')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                      placeholder="Белый, Черный, Синий (через запятую)"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы использовать узбекскую версию</p>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Размеры (Русский)</label>
-                    <input
-                      type="text"
-                      value={formData.sizes_ru}
-                      onChange={(e) => handleColorsOrSizesChange('sizes_ru', e.target.value, 'ru')}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                      placeholder="Маленький, Средний, Большой (через запятую)"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Оставьте пустым, чтобы использовать узбекскую версию</p>
-                  </div>
-
-                  <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Теги (Русский)</label>
-                    <input
-                      type="text"
-                      value={formData.tags_ru}
-                      onChange={(e) => setFormData({ ...formData, tags_ru: e.target.value })}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                      placeholder="постельное белье, хлопок, роскошный, мягкий (через запятую)"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Теги используются для поиска - введите ключевые слова через запятую. Оставьте пустым, чтобы использовать узбекскую версию</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Common Fields (Language-independent) */}
+              {/* Pricing and Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Price (UZS) *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Narxi (UZS) *</label>
                 <input
                   type="number"
                   value={formData.price}
@@ -1564,7 +1395,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Sale Price (UZS)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Chegirma narxi (UZS)</label>
                 <input
                   type="number"
                   value={formData.salePrice}
@@ -1574,13 +1405,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Kategoriya</label>
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                 >
-                  <option value="">Select a category</option>
+                  <option value="">Kategoriyani tanlang</option>
                   {categories?.map(cat => (
                     <option key={cat.id} value={cat.name}>{cat.name}</option>
                   ))}
@@ -1588,7 +1419,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Stock Quantity *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Ombor miqdori *</label>
                 <input
                   type="number"
                   value={formData.stock}
@@ -1599,30 +1430,30 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Weight (kg)</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Vazni (kg)</label>
                 <input
                   type="number"
                   step="0.01"
                   value={formData.weight}
                   onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="e.g., 1.5"
+                  placeholder="Masalan: 1.5"
                 />
               </div>
 
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Badge</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Belgisi</label>
                 <select
                   value={formData.badge}
                   onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                 >
-                  <option value="">None</option>
-                  <option value="BEST SELLER">BEST SELLER</option>
-                  <option value="NEW ARRIVAL">NEW ARRIVAL</option>
-                  <option value="SALE">SALE</option>
-                  <option value="LIMITED">LIMITED</option>
+                  <option value="">Yo'q</option>
+                  <option value="BEST SELLER">ENG KO'P SOTILGAN</option>
+                  <option value="NEW ARRIVAL">YANGI KELDI</option>
+                  <option value="SALE">CHEGIRMA</option>
+                  <option value="LIMITED">CHEKLANGAN</option>
                 </select>
               </div>
 
@@ -1632,14 +1463,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <div className="md:col-span-2 border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
                   <div className="flex items-center justify-between mb-3">
                     <label className="block text-sm font-bold text-blue-900">
-                      Variant Inventory ({formData.variants.length} variants)
+                      Variant inventarizatsiyasi ({formData.variants.length} ta variant)
                     </label>
                     <span className="text-xs text-blue-700 font-medium">
-                      Total: {getTotalVariantStock(formData.variants)} units
+                      Jami: {getTotalVariantStock(formData.variants)} dona
                     </span>
                   </div>
                   <p className="text-xs text-blue-700 mb-3">
-                    Set stock quantity for each color + size combination
+                    Har bir rang + o'lcham kombinatsiyasi uchun miqdorni kiriting
                   </p>
 
                   {/* Variant Grid with Images */}
@@ -1659,10 +1490,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                 className="w-full h-full object-cover"
                               />
                               <button
-                                type="button"
+                              type="button"
                                 onClick={() => handleVariantImageChange(variant.color, variant.size, null)}
                                 className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl hover:bg-red-600"
-                                title="Remove image"
+                                title="Rasmni o'chirish"
                               >
                                 <X className="w-3 h-3" />
                               </button>
@@ -1689,17 +1520,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                 <span className="text-gray-400 mx-1">•</span>
                                 <span className="text-gray-900">{variant.size}</span>
                               </div>
-                              {variant.color_ru && variant.color_ru !== variant.color && (
-                                <div className="text-xs text-gray-500">
-                                  <span>{variant.color_ru}</span>
-                                  <span className="mx-1">•</span>
-                                  <span>{variant.size_ru || variant.size}</span>
-                                </div>
-                              )}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-600">Stock:</span>
+                            <span className="text-xs text-gray-600">Ombor:</span>
                             <input
                               type="number"
                               min="0"
@@ -1712,7 +1536,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                           {variant.image && (
                             <div className="mt-1 text-xs text-green-600 flex items-center gap-1">
                               <ImagePlus className="w-3 h-3" />
-                              Custom image set
+                              Maxsus rasm o'rnatilgan
                             </div>
                           )}
                         </div>
@@ -1722,8 +1546,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
                   <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
                     <p className="text-xs text-yellow-800">
-                      💡 <strong>Note:</strong> The "Stock Quantity" field above is now ignored when variants are present.
-                      Inventory is tracked per variant instead.
+                      💡 <strong>Eslatma:</strong> Yuqoridagi "Ombor miqdori" maydoni variantlar mavjud bo'lganda e'tiborga olinmaydi.
+                      Buning o'rniga, inventarizatsiya har bir variant uchun alohida hisoblanadi.
                     </p>
                   </div>
                 </div>
@@ -1731,7 +1555,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Product Images * {allImages.length > 0 && <span className="text-gray-500 font-normal">({allImages.length} image{allImages.length !== 1 ? 's' : ''})</span>}
+                  Mahsulot rasmlari * {allImages.length > 0 && <span className="text-gray-500 font-normal">({allImages.length} ta rasm)</span>}
                 </label>
                 
                 {/* Image Gallery */}
@@ -1941,8 +1765,6 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [uploadingImage, setUploadingImage] = useState(false);
     const [formData, setFormData] = useState({
       name: '',
-      name_uz: '',
-      name_ru: '',
       image: ''
     });
 
@@ -1973,9 +1795,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
       
       try {
         const categoryData = {
-          name: formData.name_uz || formData.name,
-          name_uz: formData.name_uz || formData.name,
-          name_ru: formData.name_ru,
+          name: formData.name,
           image: formData.image || null
         };
 
@@ -1989,7 +1809,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         setShowForm(false);
         setEditingCategory(null);
-        setFormData({ name: '', name_uz: '', name_ru: '', image: '' });
+        setFormData({ name: '', image: '' });
       } catch (error) {
         console.error('❌ Failed to save category:', error);
         alert('Failed to save category. Please try again.');
@@ -1999,16 +1819,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const handleEdit = (category) => {
       setEditingCategory(category);
       setFormData({
-        name: category.name,
-        name_uz: category.name_uz || category.name,
-        name_ru: category.name_ru || '',
+        name: category.name || '',
         image: category.image || ''
       });
       setShowForm(true);
     };
 
     const handleDelete = async (categoryId) => {
-      if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+      if (confirm('Ushbu kategoriyani o\'chirishga ishonchingiz komilmi? Bu amalni ortga qaytarib bo\'lmaydi.')) {
         try {
           await deleteCategory(categoryId);
           console.log('✅ Category deleted successfully');
@@ -2039,15 +1857,15 @@ const DesktopAdminPanel = ({ onLogout }) => {
         {/* Header Actions */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Category Management</h3>
-            <p className="text-gray-600">{categories.length} categories</p>
+            <h3 className="text-lg font-semibold text-gray-900">Kategoriyalarni boshqarish</h3>
+            <p className="text-gray-600">{categories.length} ta kategoriya</p>
           </div>
           <button
             onClick={() => setShowForm(true)}
             className="bg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
           >
             <Plus className="w-5 h-5" />
-            Add Category
+            Kategoriya qo'shish
           </button>
         </div>
 
@@ -2056,7 +1874,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-6">
               <h4 className="text-lg font-semibold">
-                {editingCategory ? 'Edit Category' : 'Add New Category'}
+                {editingCategory ? 'Kategoriyani tahrirlash' : 'Yangi kategoriya qo\'shish'}
               </h4>
               <button
                 onClick={() => {
@@ -2071,36 +1889,24 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">🇺🇿 Category Name (Uzbek) *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Kategoriya nomi *</label>
                 <input
                   type="text"
-                  value={formData.name_uz}
-                  onChange={(e) => setFormData({ ...formData, name_uz: e.target.value, name: e.target.value })}
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="e.g., Choyshablar"
+                  placeholder="Masalan: Choyshablar"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">🇷🇺 Category Name (Russian) *</label>
-                <input
-                  type="text"
-                  value={formData.name_ru}
-                  onChange={(e) => setFormData({ ...formData, name_ru: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="e.g., Постельное белье"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category Image</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Kategoriya rasmi</label>
                 <div className="space-y-3">
                   <div>
                     <label className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-blue-600 hover:to-blue-700 transition-all flex items-center justify-center gap-2">
                       <Upload className="w-5 h-5" />
-                      <span>{uploadingImage ? 'Uploading...' : 'Upload Image from Device'}</span>
+                      <span>{uploadingImage ? 'Yuklanmoqda...' : 'Qurilmadan rasm yuklash'}</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -2113,7 +1919,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-gray-300"></div>
-                    <span className="text-sm text-gray-500 font-medium">OR</span>
+                    <span className="text-sm text-gray-500 font-medium">YOKI</span>
                     <div className="flex-1 h-px bg-gray-300"></div>
                   </div>
 
@@ -2122,7 +1928,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                     className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                    placeholder="Paste image URL (https://...)"
+                    placeholder="Rasm URL manzilini kiriting (https://...)"
                   />
 
                   {formData.image && (
@@ -2143,7 +1949,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   type="submit"
                   className="bg-accent hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                 >
-                  {editingCategory ? 'Update Category' : 'Add Category'}
+                  {editingCategory ? 'Kategoriyani yangilash' : 'Kategoriya qo\'shish'}
                 </button>
                 <button
                   type="button"
@@ -2153,7 +1959,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   }}
                   className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-medium transition-colors"
                 >
-                  Cancel
+                  Bekor qilish
                 </button>
               </div>
             </form>
@@ -2178,18 +1984,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 )}
               </div>
               <div className="p-4">
-                <div className="mb-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-semibold text-gray-500">🇺🇿 UZ:</span>
-                    <h3 className="text-base font-semibold text-gray-900">{category.name_uz || category.name}</h3>
-                  </div>
-                  {category.name_ru && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-semibold text-gray-500">🇷🇺 RU:</span>
-                      <h3 className="text-base font-semibold text-gray-900">{category.name_ru}</h3>
-                    </div>
-                  )}
-                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">{category.name}</h3>
                 <div className="flex gap-2 mb-2">
                   <button
                     onClick={() => handleEdit(category)}
