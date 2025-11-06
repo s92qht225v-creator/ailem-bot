@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { CheckCircle, CreditCard } from 'lucide-react';
 import { formatPrice, generateOrderNumber, saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage } from '../../utils/helpers';
 import { useCart } from '../../hooks/useCart';
@@ -6,12 +7,10 @@ import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
 import { useBackButton } from '../../hooks/useBackButton';
 import { useMainButton } from '../../hooks/useMainButton';
-import { useTranslation } from '../../hooks/useTranslation';
 import { generatePaymeLink } from '../../services/payme';
 import { generateClickLink } from '../../services/click';
 
 const PaymentPage = ({ checkoutData, onNavigate }) => {
-  const { language } = useTranslation();
   const { cartItems, clearCart } = useCart();
   const { user, updateBonusPoints } = useContext(UserContext);
   const { addOrder } = useContext(AdminContext);

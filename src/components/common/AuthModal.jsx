@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { X } from 'lucide-react';
 
 const AuthModal = ({ isOpen, onClose, onLogin }) => {

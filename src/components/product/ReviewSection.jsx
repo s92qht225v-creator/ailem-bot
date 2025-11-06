@@ -1,12 +1,11 @@
 import { useState, useContext } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { Star, Camera, X } from 'lucide-react';
 import { formatDate } from '../../utils/helpers';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
-import { useTranslation } from '../../hooks/useTranslation';
 
 const ReviewSection = ({ product }) => {
-  const { t } = useTranslation();
   const { user } = useContext(UserContext);
   const { orders, addReview } = useContext(AdminContext);
   const [showForm, setShowForm] = useState(false);

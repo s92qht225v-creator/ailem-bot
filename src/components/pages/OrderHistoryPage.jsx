@@ -1,13 +1,12 @@
 import { useContext, useEffect, useState } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { Package, ChevronLeft } from 'lucide-react';
 import { useOrders } from '../../hooks/useOrders';
 import { formatPrice, formatDate, getStatusColor } from '../../utils/helpers';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
-import { useTranslation } from '../../hooks/useTranslation';
 
 const OrderHistoryPage = ({ onNavigate }) => {
-  const { t } = useTranslation();
   const { user } = useContext(UserContext);
   const { reviews, loadAllData } = useContext(AdminContext);
   const { getUserOrders } = useOrders();
@@ -91,7 +90,6 @@ const OrderHistoryPage = ({ onNavigate }) => {
 };
 
 const OrderCard = ({ order, onViewDetails, onWriteReview, hasUnreviewedItems }) => {
-  const { t } = useTranslation();
   
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm">

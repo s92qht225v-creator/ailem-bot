@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect, useRef } from 'react';
+import { t } from "../utils/translation-fallback";
 import { UserContext } from '../context/UserContext';
 import { supabase } from '../lib/supabase';
 import DesktopAdminPanel from './pages/DesktopAdminPanel';

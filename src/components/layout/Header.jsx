@@ -1,8 +1,7 @@
 import { Search } from 'lucide-react';
-import { useTranslation } from '../../hooks/useTranslation';
+import { t } from "../../utils/translation-fallback";
 
 const Header = ({ onSearch, searchQuery, showSearch = true, title }) => {
-  const { t } = useTranslation();
   
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">

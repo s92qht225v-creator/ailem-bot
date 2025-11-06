@@ -1,4 +1,5 @@
 import React from 'react';
+import { t } from "../utils/translation-fallback";
 
 class ErrorBoundary extends React.Component {
   constructor(props) {

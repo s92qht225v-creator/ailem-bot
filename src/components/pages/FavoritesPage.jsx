@@ -1,13 +1,12 @@
 import { useContext, useMemo } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { Heart, ShoppingCart } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { CartContext } from '../../context/CartContext';
 import { useProducts } from '../../hooks/useProducts';
 import { formatPrice, calculateDiscountedPrice } from '../../utils/helpers';
-import { useTranslation } from '../../hooks/useTranslation';
 
 const FavoritesPage = ({ onNavigate }) => {
-  const { t } = useTranslation();
   const { toggleFavorite, favorites } = useContext(UserContext);
   const { addToCart } = useContext(CartContext);
   const { products } = useProducts();

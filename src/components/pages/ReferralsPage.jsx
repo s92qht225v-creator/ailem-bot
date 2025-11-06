@@ -1,4 +1,5 @@
 import { useContext, useState, useEffect } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { Users, Copy, Share2, Gift, UserPlus, Award, Link as LinkIcon } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { copyToClipboard, formatPrice, loadFromLocalStorage } from '../../utils/helpers';

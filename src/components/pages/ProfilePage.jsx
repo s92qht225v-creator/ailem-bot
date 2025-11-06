@@ -1,14 +1,12 @@
 import { useContext, useState } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { Package, Award, Settings, HelpCircle, Heart, ChevronRight, MapPin, MessageSquare, LogIn, LogOut } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useOrders } from '../../hooks/useOrders';
 import { formatPrice } from '../../utils/helpers';
-import { useTranslation } from '../../hooks/useTranslation';
 import AuthModal from '../common/AuthModal';
-import LanguageSwitcher from '../LanguageSwitcher';
 
 const ProfilePage = ({ onNavigate, hideHeader = false }) => {
-  const { t } = useTranslation();
   const { user, login, logout } = useContext(UserContext);
   const { getUserOrders } = useOrders();
   const userOrders = getUserOrders();
@@ -65,7 +63,6 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
       {/* Menu Cards */}
       <div className="p-4 space-y-3">
         {/* Language Switcher */}
-        <LanguageSwitcher />
 
         <MenuCard
           icon={Package}

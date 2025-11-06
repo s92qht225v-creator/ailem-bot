@@ -1,4 +1,5 @@
 import { useState, useContext } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { Star, Camera, X } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';

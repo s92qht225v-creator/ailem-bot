@@ -1,10 +1,9 @@
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
+import { t } from "../../utils/translation-fallback";
 import { useCart } from '../../hooks/useCart';
 import { formatPrice } from '../../utils/helpers';
-import { useTranslation } from '../../hooks/useTranslation';
 
 const CartPage = ({ onNavigate }) => {
-  const { t } = useTranslation();
   const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
 
   if (cartItems.length === 0) {

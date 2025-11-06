@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {

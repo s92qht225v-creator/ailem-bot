@@ -1,4 +1,5 @@
 import { Home, ShoppingBag, ShoppingCart, User, Heart } from 'lucide-react';
+import { t } from "../../utils/translation-fallback";
 import { useContext } from 'react';
 import { UserContext } from '../../context/UserContext';
 import { useCart } from '../../hooks/useCart';

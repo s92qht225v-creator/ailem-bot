@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, X, ZoomIn } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant } from '../../utils/variants';
-import { useTranslation } from '../../hooks/useTranslation';
 
 const ProductDetails = ({ product, onAddToCart }) => {
-  const { t, language } = useTranslation();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);

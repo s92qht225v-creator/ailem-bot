@@ -1,12 +1,11 @@
 import { useContext, useMemo } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { AdminContext } from '../../context/AdminContext';
 import { UserContext } from '../../context/UserContext';
 import ProductCard from './ProductCard';
 import { getSmartRecommendations } from '../../utils/recommendations';
-import { useTranslation } from '../../hooks/useTranslation';
 
 const RelatedProducts = ({ currentProduct, onNavigate }) => {
-  const { t } = useTranslation();
   const { products } = useContext(AdminContext);
   const { toggleFavorite, isFavorite } = useContext(UserContext);
 

@@ -1,4 +1,5 @@
 import ProductDetails from '../product/ProductDetails';
+import { t } from "../../utils/translation-fallback";
 import ReviewSection from '../product/ReviewSection';
 import RelatedProducts from '../product/RelatedProducts';
 import { useProducts } from '../../hooks/useProducts';

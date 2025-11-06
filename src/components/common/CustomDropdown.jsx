@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { ChevronDown, Check } from 'lucide-react';
 
 const CustomDropdown = ({

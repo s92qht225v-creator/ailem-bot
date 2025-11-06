@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { calculateTimeRemaining } from '../../utils/helpers';
 
 const CountdownTimer = ({ endDate, onExpire }) => {

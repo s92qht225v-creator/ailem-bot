@@ -1,13 +1,12 @@
 import { useContext, useState, useEffect } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { ChevronLeft, Star, Edit2, Package } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useOrders } from '../../hooks/useOrders';
 import { AdminContext } from '../../context/AdminContext';
 import { formatDate } from '../../utils/helpers';
-import { useTranslation } from '../../hooks/useTranslation';
 
 const MyReviewsPage = ({ onNavigate }) => {
-  const { t } = useTranslation();
   const { user } = useContext(UserContext);
   const { getUserOrders } = useOrders();
   const { reviews } = useContext(AdminContext);
@@ -144,7 +143,6 @@ const MyReviewsPage = ({ onNavigate }) => {
 };
 
 const PendingReviewCard = ({ item, onWriteReview }) => {
-  const { t } = useTranslation();
   
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm">

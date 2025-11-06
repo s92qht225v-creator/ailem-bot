@@ -1,4 +1,5 @@
 import { useContext, useEffect, useState } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
 import ProductCard from '../product/ProductCard';
@@ -7,10 +8,8 @@ import Carousel from '../common/Carousel';
 import { settingsAPI } from '../../services/api';
 import { loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { useProducts } from '../../hooks/useProducts';
-import { useTranslation } from '../../hooks/useTranslation';
 
 const HomePage = ({ onNavigate }) => {
-  const { t } = useTranslation();
   const { categories, loading } = useContext(AdminContext);
   const { toggleFavorite, isFavorite } = useContext(UserContext);
   const { featuredProducts } = useProducts();

@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { CheckCircle, Loader } from 'lucide-react';
 import { ordersAPI } from '../../services/api';
-import { useTranslation } from '../../hooks/useTranslation';
 
 const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
-  const { t } = useTranslation();
   const [status, setStatus] = useState('checking'); // checking, success, failed, timeout
   const [order, setOrder] = useState(null);
   const [checkCount, setCheckCount] = useState(0);

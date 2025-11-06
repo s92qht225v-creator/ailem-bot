@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useContext, useState, useRef } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { Search, X } from 'lucide-react';
 import CategoryFilter from '../common/CategoryFilter';
 import ProductCard from '../product/ProductCard';
@@ -6,10 +7,8 @@ import CustomDropdown from '../common/CustomDropdown';
 import { useProducts } from '../../hooks/useProducts';
 import { AdminContext } from '../../context/AdminContext';
 import { UserContext } from '../../context/UserContext';
-import { useTranslation } from '../../hooks/useTranslation';
 
 const ShopPage = ({ onNavigate, initialCategory }) => {
-  const { t } = useTranslation();
   const { categories } = useContext(AdminContext);
   const { toggleFavorite, isFavorite, favorites } = useContext(UserContext);
 

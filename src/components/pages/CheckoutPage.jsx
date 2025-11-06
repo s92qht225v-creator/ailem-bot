@@ -1,4 +1,5 @@
 import { useState, useContext, useEffect } from 'react';
+import { t } from "../../utils/translation-fallback";
 import { MapPin, Clock, Phone } from 'lucide-react';
 import { useCart } from '../../hooks/useCart';
 import { UserContext } from '../../context/UserContext';
@@ -6,7 +7,6 @@ import { PickupPointsContext } from '../../context/PickupPointsContext';
 import { ShippingRatesContext } from '../../context/ShippingRatesContext';
 import { formatPrice, bonusPointsToDollars, calculateMaxBonusUsage } from '../../utils/helpers';
 import { useBackButton } from '../../hooks/useBackButton';
-import { useTranslation } from '../../hooks/useTranslation';
 import CustomDropdown from '../common/CustomDropdown';
 
 // Tashkent districts for Yandex - bilingual support
@@ -40,7 +40,6 @@ const TASHKENT_DISTRICTS = {
 };
 
 const CheckoutPage = ({ onNavigate }) => {
-  const { t, language } = useTranslation();
   const { getCartTotal, cartItems } = useCart();
   const { user } = useContext(UserContext);
   const {
