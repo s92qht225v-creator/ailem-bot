@@ -72,7 +72,11 @@ export const t = (key) => {
     'checkout.useBonusPoints': 'Bonus ballarini ishlatish',
     'checkout.bonusDiscount': 'Bonus chegirmasi',
     'checkout.total': 'To\'lov uchun',
-    'checkout.placeOrder': 'Buyurtmani tasdiqlash'
+    'checkout.placeOrder': 'Buyurtmani tasdiqlash',
+    // Favorites page
+    'favorites.title': 'Saralangan',
+    'favorites.empty': 'Saralangan mahsulotlar yo\'q',
+    'favorites.continueShopping': 'Xaridni davom ettirish'
   };
   
   return translations[key] || key;
