@@ -125,7 +125,6 @@ const ProductDetails = ({ product, onAddToCart }) => {
   };
 
   const handleShare = () => {
-    console.log('🔵 Product share - using shareReferralLink function');
     const botUsername = import.meta.env.VITE_BOT_USERNAME || 'ailemuz_bot';
     
     if (!user || !user.referralCode) {
@@ -134,9 +133,25 @@ const ProductDetails = ({ product, onAddToCart }) => {
       return;
     }
 
-    console.log('🔵 Calling shareReferralLink with:', user.referralCode, botUsername);
-    // Use the same shareReferralLink function as ReferralsPage
-    shareReferralLink(user.referralCode, botUsername, user.name);
+    // Build share URL manually without double encoding
+    const referralLink = `https://t.me/${botUsername}?start=ref_${user.referralCode}`;
+    const message = `🛍️ ${product.name}\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring va bonus oling!`;
+    
+    const tg = getTelegramWebApp();
+    if (tg) {
+      // Don't use encodeURIComponent - let Telegram handle encoding
+      const shareUrl = `https://t.me/share/url?url=${referralLink}&text=${message}`;
+      tg.openTelegramLink(shareUrl);
+    } else if (navigator.share) {
+      navigator.share({
+        title: product.name,
+        text: message,
+        url: referralLink
+      }).catch(err => console.error('Error sharing:', err));
+    } else {
+      navigator.clipboard.writeText(referralLink);
+      alert('Mahsulot havolasi nusxalandi!');
+    }
   };
 
   const totalPrice = product.price * quantity;
