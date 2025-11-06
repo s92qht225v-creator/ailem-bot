@@ -138,7 +138,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
       product.id
     );
 
-    const shareText = `🛍️ ${product.name}\n💰 ${formatPrice(product.price)}\n\n${t('product.checkItOut')}`;
+    const shareText = `🛍️ ${product.name}\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring!`;
 
     // Use Telegram's native share functionality if available
     if (tg?.shareMessage) {
@@ -150,7 +150,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
     } else {
       // Final fallback: copy to clipboard
       navigator.clipboard.writeText(`${shareText}\n${shareLink}`)
-        .then(() => alert(t('product.linkCopied')))
+        .then(() => alert('Havola nusxalandi!'))
         .catch(() => alert(shareLink));
     }
   };
@@ -409,7 +409,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
           className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-purple-600 transition-all flex items-center justify-center gap-2 mb-3"
         >
           <Share2 className="w-5 h-5" />
-          {t('product.shareAndEarn')}
+          Ulashing va bonus oling 🎁
         </button>
 
         {/* Add to Cart Button */}
