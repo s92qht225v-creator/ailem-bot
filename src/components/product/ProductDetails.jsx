@@ -4,7 +4,7 @@ import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, X, ZoomIn, 
 import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant } from '../../utils/variants';
 import { UserContext } from '../../context/UserContext';
-import { getTelegramWebApp, shareReferralLink } from '../../utils/telegram';
+import { getTelegramWebApp } from '../../utils/telegram';
 
 const ProductDetails = ({ product, onAddToCart }) => {
   const { user } = useContext(UserContext);
@@ -139,8 +139,8 @@ const ProductDetails = ({ product, onAddToCart }) => {
     
     const tg = getTelegramWebApp();
     if (tg) {
-      // Don't use encodeURIComponent - let Telegram handle encoding
-      const shareUrl = `https://t.me/share/url?url=${referralLink}&text=${message}`;
+      // Encode only the text message, keep URL unencoded
+      const shareUrl = `https://t.me/share/url?url=${referralLink}&text=${encodeURIComponent(message)}`;
       tg.openTelegramLink(shareUrl);
     } else if (navigator.share) {
       navigator.share({
