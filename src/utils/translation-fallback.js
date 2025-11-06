@@ -33,7 +33,21 @@ export const t = (key) => {
     'nav.home': 'Bosh sahifa',
     'nav.shop': 'Do\'kon',
     'nav.cart': 'Savat',
-    'nav.profile': 'Profil'
+    'nav.profile': 'Profil',
+    // Shop page
+    'header.searchPlaceholder': 'Mahsulotlarni qidirish...',
+    'shop.filters': 'Filtrlar',
+    'product.material': 'Material',
+    'product.colors': 'Ranglar',
+    'product.sizes': 'O\'lchamlar',
+    'shop.sortBy': 'Saralash',
+    'shop.sortNewest': 'Eng yangilari',
+    'shop.sortPriceLow': 'Arzonroq',
+    'shop.sortPriceHigh': 'Qimmatroq',
+    'shop.sortPopular': 'Mashhur',
+    'shop.productsFound': 'mahsulot topildi',
+    'shop.noProducts': 'Mahsulotlar yo\'q',
+    'shop.noResults': 'Hech narsa topilmadi'
   };
   
   return translations[key] || key;
