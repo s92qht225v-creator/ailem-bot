@@ -135,7 +135,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
 
     // Build share URL manually without double encoding
     const referralLink = `https://t.me/${botUsername}?start=ref_${user.referralCode}`;
-    const message = `🛍️ ${product.name}\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring va bonus oling!`;
+    const message = `🛍️ ${product.name}\n\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring va bonus oling!`;
     
     const tg = getTelegramWebApp();
     if (tg) {
