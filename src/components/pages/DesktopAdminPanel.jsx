@@ -2893,8 +2893,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
       city: '',
       address: '',
       workingHours: '09:00 - 20:00',
-      phone: '',
-      language: 'uz'
+      phone: ''
     });
 
     // Extract unique values from existing pickup points
@@ -2989,8 +2988,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         city: '',
         address: '',
         workingHours: '09:00 - 20:00',
-        phone: '',
-        language: 'uz'
+        phone: ''
       });
       setEditingPoint(null);
       setShowForm(false);
@@ -3004,8 +3002,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         city: point.city,
         address: point.address,
         workingHours: point.workingHours,
-        phone: point.phone,
-        language: point.language || 'uz'
+        phone: point.phone
       });
       setShowForm(true);
     };
@@ -3101,22 +3098,6 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">Language *</label>
-                <select
-                  value={formData.language}
-                  onChange={(e) => setFormData({ ...formData, language: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  required
-                >
-                  <option value="uz">🇺🇿 O'zbek (Latin)</option>
-                  <option value="ru">🇷🇺 Русский (Cyrillic)</option>
-                </select>
-                <p className="text-xs text-gray-500 mt-1">
-                  Select the language/script for this pickup point data
-                </p>
-              </div>
-
-              <div>
                 <label className="block text-sm font-semibold mb-1">Working Hours *</label>
                 <input
                   list="hours-list"
@@ -3165,8 +3146,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       city: '',
                       address: '',
                       workingHours: '09:00 - 20:00',
-                      phone: '',
-                      language: 'uz'
+                      phone: ''
                     });
                   }}
                   className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
@@ -3265,9 +3245,6 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                                       point.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
                                                     }`}>
                                                       {point.active ? 'Active' : 'Inactive'}
-                                                    </span>
-                                                    <span className="px-2 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
-                                                      {point.language === 'ru' ? '🇷🇺 RU' : '🇺🇿 UZ'}
                                                     </span>
                                                   </div>
                                                   <p className="text-gray-800 font-medium mb-1">{point.address}</p>
