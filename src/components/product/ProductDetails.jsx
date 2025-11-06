@@ -42,27 +42,26 @@ const ProductDetails = ({ product, onAddToCart }) => {
 
   const currentStock = getCurrentStock();
 
-  // Get available colors (those with stock) - in current language
-  const availableColors = hasVariants ? getAvailableColors(product.variants, language) : (product.colors || []);
+  // Get available colors (those with stock)
+  const availableColors = hasVariants ? getAvailableColors(product.variants) : (product.colors || []);
 
-  // Get available sizes for selected color - in current language
+  // Get available sizes for selected color
   const availableSizes = hasVariants && selectedColor
-    ? getAvailableSizesForColor(product.variants, selectedColor, language)
+    ? getAvailableSizesForColor(product.variants, selectedColor)
     : (product.sizes || []);
 
-  // Reset selected color/size when language or product changes
+  // Reset selected color/size when product changes
   useEffect(() => {
-    // When language changes, reset to first available color/size in new language
     if (hasVariants && availableColors.length > 0) {
       setSelectedColor(availableColors[0]);
       // Reset size too since available sizes depend on selected color
-      const sizesForColor = getAvailableSizesForColor(product.variants, availableColors[0], language);
+      const sizesForColor = getAvailableSizesForColor(product.variants, availableColors[0]);
       setSelectedSize(sizesForColor[0] || null);
     } else {
       setSelectedColor(product.colors?.[0] || null);
       setSelectedSize(product.sizes?.[0] || null);
     }
-  }, [language, product.id]);
+  }, [product.id]);
 
   // Reset to first image when variant changes
   useEffect(() => {
@@ -290,12 +289,9 @@ const ProductDetails = ({ product, onAddToCart }) => {
             </label>
             <div className="flex gap-2 flex-wrap">
               {product.colors.map((color) => {
-                // Check if this color has stock in ANY size (language-aware)
+                // Check if this color has stock in ANY size
                 const isAvailable = !hasVariants || product.variants.some(v => {
-                  const matchesColor = (
-                    v.color?.toLowerCase() === color.toLowerCase() ||
-                    v.color_ru?.toLowerCase() === color.toLowerCase()
-                  );
+                  const matchesColor = v.color?.toLowerCase() === color.toLowerCase();
                   return matchesColor && v.stock > 0;
                 });
                 return (

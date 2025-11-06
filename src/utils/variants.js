@@ -223,21 +223,13 @@ export const isVariantAvailable = (variants = [], color, size, quantity = 1) => 
 
 /**
  * Get available colors (colors that have stock in at least one size)
- * Returns colors in their primary language (Uzbek) and Russian translations
  * @param {Array} variants - Array of variants
- * @param {string} language - Language to return colors in ('uz' or 'ru')
  * @returns {Array} Array of available color strings
  */
-export const getAvailableColors = (variants = [], language = 'uz') => {
+export const getAvailableColors = (variants = []) => {
   const colorsWithStock = variants
     .filter(v => v.stock > 0)
-    .map(v => {
-      // Return color in requested language, fallback to primary
-      if (language === 'ru') {
-        return v.color_ru || v.color;
-      }
-      return v.color;
-    });
+    .map(v => v.color);
 
   // Remove duplicates and filter out null/undefined
   return [...new Set(colorsWithStock)].filter(Boolean);
@@ -245,32 +237,21 @@ export const getAvailableColors = (variants = [], language = 'uz') => {
 
 /**
  * Get available sizes for a specific color
- * Supports language-aware matching
  * @param {Array} variants - Array of variants
- * @param {string} color - Color to check (can be in any language)
- * @param {string} language - Language to return sizes in ('uz' or 'ru')
+ * @param {string} color - Color to check
  * @returns {Array} Array of available size strings
  */
-export const getAvailableSizesForColor = (variants = [], color, language = 'uz') => {
+export const getAvailableSizesForColor = (variants = [], color) => {
   if (!color) return [];
   
   const colorLower = color.toLowerCase().trim();
   
   const sizesWithStock = variants
     .filter(v => {
-      const matchesColor = (
-        v.color?.toLowerCase().trim() === colorLower ||
-        v.color_ru?.toLowerCase().trim() === colorLower
-      );
+      const matchesColor = v.color?.toLowerCase().trim() === colorLower;
       return matchesColor && v.stock > 0;
     })
-    .map(v => {
-      // Return size in requested language, fallback to primary
-      if (language === 'ru') {
-        return v.size_ru || v.size;
-      }
-      return v.size;
-    });
+    .map(v => v.size);
   
   // Remove duplicates and filter out null/undefined
   return [...new Set(sizesWithStock)].filter(Boolean);
