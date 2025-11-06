@@ -84,12 +84,34 @@ export const ShippingRatesProvider = ({ children }) => {
         return r.state === 'Tashkent' || yandexMatches.includes(r.state);
       }
 
-      // Case-insensitive matching with normalized state
+      // Normalize both the rate state and input for fuzzy matching
+      const normalizeForMatch = (str) => {
+        if (!str) return '';
+        return str.toLowerCase()
+          .replace(/viloyati?/g, '')
+          .replace(/region/g, '')
+          .replace(/область/g, '')
+          .replace(/shahri/g, '')
+          .replace(/город/g, '')
+          .replace(/q/g, 'k')  // Samarqand → Samarkand
+          .trim();
+      };
+
+      const rStateNorm = normalizeForMatch(r.state);
+      const normalizedStateNorm = normalizeForMatch(normalizedState);
+      const stateNorm = normalizeForMatch(state);
+
+      // Try exact match first, then fuzzy match
       const rStateLower = r.state?.toLowerCase();
       const normalizedLower = normalizedState?.toLowerCase();
       const stateLower = state?.toLowerCase();
 
-      return rStateLower === normalizedLower || rStateLower === stateLower || r.state === normalizedState || r.state === state;
+      return rStateLower === normalizedLower ||
+             rStateLower === stateLower ||
+             r.state === normalizedState ||
+             r.state === state ||
+             rStateNorm === normalizedStateNorm ||
+             rStateNorm === stateNorm;
     });
 
     if (!rate) {

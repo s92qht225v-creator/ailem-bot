@@ -149,13 +149,22 @@ export const LOCATION_TRANSLATIONS = {
 /**
  * Normalize location name to English for matching with shipping rates
  * Works with Uzbek, Russian, or English input
- * Case-insensitive and handles variations (e.g., "region" vs "Region")
+ * Case-insensitive and handles variations (e.g., "region" vs "Region", "viloyat" vs "viloyati")
  */
 export function normalizeLocationToEnglish(locationName, type = 'state') {
   if (!locationName) return null;
 
   const locations = LOCATION_TRANSLATIONS[type === 'state' ? 'states' : 'cities'];
   const lowerName = locationName.toLowerCase();
+
+  // Normalize variations for fuzzy matching
+  const normalizedInput = lowerName
+    .replace(/viloyati?/g, '') // Remove viloyat/viloyati
+    .replace(/region/g, '')     // Remove region
+    .replace(/область/g, '')    // Remove область (Russian for region)
+    .replace(/shahri/g, '')     // Remove shahri (city)
+    .replace(/город/g, '')      // Remove город (Russian for city)
+    .trim();
 
   // Check if it's already in English and exists (exact match)
   if (locations[locationName]) {
@@ -164,19 +173,26 @@ export function normalizeLocationToEnglish(locationName, type = 'state') {
 
   // Search through all translations to find matching Uzbek or Russian
   for (const [englishName, translations] of Object.entries(locations)) {
-    if (translations.uz === locationName || translations.ru === locationName) {
+    // Exact match first
+    if (translations.uz === locationName || translations.ru === locationName || translations.en === locationName) {
       return englishName;
     }
 
-    // Case-insensitive English matching
-    if (translations.en.toLowerCase() === lowerName) {
-      return englishName;
-    }
-
-    // Handle variations: "Samarqand region" → "Samarkand Region"
+    // Case-insensitive exact match
     const uzLower = translations.uz.toLowerCase();
     const ruLower = translations.ru.toLowerCase();
-    if (uzLower === lowerName || ruLower === lowerName) {
+    const enLower = translations.en.toLowerCase();
+
+    if (uzLower === lowerName || ruLower === lowerName || enLower === lowerName) {
+      return englishName;
+    }
+
+    // Fuzzy match by removing common suffixes
+    const normalizedUz = uzLower.replace(/viloyati?/g, '').replace(/region/g, '').replace(/shahri/g, '').trim();
+    const normalizedRu = ruLower.replace(/область/g, '').replace(/регион/g, '').replace(/город/g, '').trim();
+    const normalizedEn = enLower.replace(/region/g, '').trim();
+
+    if (normalizedInput === normalizedUz || normalizedInput === normalizedRu || normalizedInput === normalizedEn) {
       return englishName;
     }
   }
