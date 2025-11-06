@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { t } from "../../utils/translation-fallback";
 import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, X, ZoomIn, Share2 } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant } from '../../utils/variants';
 import { UserContext } from '../../context/UserContext';
-import { referralsAPI } from '../../services/api';
 import { getTelegramWebApp } from '../../utils/telegram';
 
 const ProductDetails = ({ product, onAddToCart }) => {
@@ -126,32 +125,38 @@ const ProductDetails = ({ product, onAddToCart }) => {
   };
 
   const handleShare = () => {
+    const botUsername = import.meta.env.VITE_BOT_USERNAME || 'ailemuz_bot';
+    
+    if (!user || !user.referralCode) {
+      const tg = getTelegramWebApp();
+      tg?.showAlert('Xatolik: Foydalanuvchi topilmadi');
+      return;
+    }
+
+    // Generate referral link (exactly like ReferralsPage)
+    const referralLink = `https://t.me/${botUsername}?start=ref_${user.referralCode}`;
+    
+    // Create message with product info and referral link
+    const message = `🛍️ ${product.name}\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring!\n\n👉 ${referralLink}`;
+
     const tg = getTelegramWebApp();
-
-    // Get bot username from environment or Telegram WebApp
-    const botUsername = import.meta.env.VITE_BOT_USERNAME || 'ailem_shop_bot';
-
-    // Generate share link with referral code
-    const shareLink = referralsAPI.generateShareLink(
-      botUsername,
-      user.id,
-      product.id
-    );
-
-    const shareText = `🛍️ ${product.name}\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring!`;
-
-    // Use Telegram's native share functionality if available
-    if (tg?.shareMessage) {
-      tg.shareMessage(shareText, shareLink);
-    } else if (tg?.openTelegramLink) {
-      // Fallback: open share dialog
-      const url = `https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=${encodeURIComponent(shareText)}`;
-      tg.openTelegramLink(url);
+    if (tg) {
+      // Use Telegram's native share (same as referral page)
+      const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${encodeURIComponent(message)}`;
+      tg.openTelegramLink(shareUrl);
     } else {
-      // Final fallback: copy to clipboard
-      navigator.clipboard.writeText(`${shareText}\n${shareLink}`)
-        .then(() => alert('Havola nusxalandi!'))
-        .catch(() => alert(shareLink));
+      // Fallback to Web Share API
+      if (navigator.share) {
+        navigator.share({
+          title: product.name,
+          text: message,
+          url: referralLink
+        }).catch(err => console.error('Error sharing:', err));
+      } else {
+        // Fallback: copy to clipboard
+        navigator.clipboard.writeText(referralLink);
+        alert('Mahsulot havolasi nusxalandi!');
+      }
     }
   };
 
