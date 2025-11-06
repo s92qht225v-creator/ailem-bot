@@ -1,8 +1,7 @@
 import { useContext, useState, useEffect } from 'react';
-import { t } from "../../utils/translation-fallback";
 import { Users, Copy, Share2, Gift, UserPlus, Award, Link as LinkIcon } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
-import { copyToClipboard, formatPrice, loadFromLocalStorage } from '../../utils/helpers';
+import { copyToClipboard, loadFromLocalStorage } from '../../utils/helpers';
 import { generateReferralLink, shareReferralLink } from '../../utils/telegram';
 
 // Telegram bot username
@@ -94,21 +93,18 @@ const ReferralsPage = ({ hideHeader = false }) => {
 
           <div className="space-y-4">
             <Step
-              number={1}
               icon={Share2}
               title="Share Your Code"
               description="Send your unique referral code to friends and family"
               color="bg-accent"
             />
             <Step
-              number={2}
               icon={Gift}
               title="Friend Makes Purchase"
               description={`Your friend earns ${commissionRate}% bonus on their purchase`}
               color="bg-warning"
             />
             <Step
-              number={3}
               icon={Award}
               title="You Earn Commission"
               description={`Receive ${commissionRate}% of your friend's purchase amount as commission`}
@@ -136,22 +132,12 @@ const ReferralsPage = ({ hideHeader = false }) => {
             />
           </div>
         </div>
-
-        {/* Current Earnings */}
-        <div className="bg-gradient-to-r from-success to-green-600 text-white rounded-lg shadow-md p-6 text-center">
-          <Award className="w-12 h-12 mx-auto mb-3" />
-          <p className="text-sm opacity-90 mb-2">Your Total Earnings</p>
-          <p className="text-4xl font-bold">{formatPrice(user.bonusPoints)}</p>
-          <p className="text-sm opacity-90 mt-2">
-            From {user.referrals} successful referrals
-          </p>
-        </div>
       </div>
     </div>
   );
 };
 
-const Step = ({ number, icon: Icon, title, description, color }) => {
+const Step = ({ icon: Icon, title, description, color }) => {
   return (
     <div className="flex gap-4">
       <div className={`${color} text-white w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0`}>

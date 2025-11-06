@@ -75,13 +75,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
       icon: UsersIcon,
       color: 'text-indigo-600'
     },
-    // Temporarily disabled for debugging
-    // {
-    //   id: 'bonus-settings',
-    //   label: 'Bonus Settings',
-    //   icon: Gift,
-    //   color: 'text-rose-600'
-    // },
+    {
+      id: 'bonus-settings',
+      label: 'Bonus Settings',
+      icon: Gift,
+      color: 'text-rose-600'
+    },
     {
       id: 'promotions',
       label: 'Promotions',
@@ -3836,13 +3835,39 @@ const DesktopAdminPanel = ({ onLogout }) => {
       purchaseBonus: 10,
       currency: 'UZS'
     });
+    const [loading, setLoading] = useState(true);
 
-    // Load from localStorage after mount
+    // Load from database first, fallback to localStorage
     useEffect(() => {
-      const saved = loadFromLocalStorage('bonusConfig');
-      if (saved) {
-        setBonusConfig(saved);
-      }
+      const loadBonusConfig = async () => {
+        try {
+          const settings = await settingsAPI.getSettings();
+          if (settings?.bonus_config) {
+            setBonusConfig({
+              referralCommission: settings.bonus_config.referralCommission || 10,
+              purchaseBonus: settings.bonus_config.purchaseBonus || 10,
+              currency: 'UZS'
+            });
+          } else {
+            // Fallback to localStorage
+            const saved = loadFromLocalStorage('bonusConfig');
+            if (saved) {
+              setBonusConfig(saved);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load bonus config:', error);
+          // Fallback to localStorage
+          const saved = loadFromLocalStorage('bonusConfig');
+          if (saved) {
+            setBonusConfig(saved);
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadBonusConfig();
     }, []);
 
     const saveBonusConfig = async (newConfig) => {
@@ -3860,6 +3885,17 @@ const DesktopAdminPanel = ({ onLogout }) => {
         console.error('❌ Failed to save bonus config to database:', error);
       }
     };
+
+    if (loading) {
+      return (
+        <div className="max-w-4xl">
+          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading bonus settings...</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="max-w-4xl">

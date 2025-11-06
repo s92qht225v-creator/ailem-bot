@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { Package, Award, Settings, HelpCircle, Heart, ChevronRight, MapPin, MessageSquare } from 'lucide-react';
+import { Package, Award, Settings, HelpCircle, ChevronRight, MapPin, MessageSquare } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useOrders } from '../../hooks/useOrders';
 import { formatPrice } from '../../utils/helpers';
@@ -24,7 +24,7 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
   }
 
   return (
-    <div className={hideHeader ? 'pt-16' : 'pb-20 pt-16 bg-gray-50 min-h-screen'}>
+    <div className={hideHeader ? '' : 'pb-20 bg-gray-50 min-h-screen'}>
       {/* Header */}
       {!hideHeader && (
         <div className="bg-white p-4 border-b border-gray-200">
@@ -33,7 +33,7 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
       )}
 
       {/* Profile Info */}
-      <div className="bg-white p-6 text-center">
+      <div className="bg-white p-6 pt-16 pb-3 text-center">
         {user?.photoUrl ? (
           <img
             src={user.photoUrl}
@@ -52,10 +52,19 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
         >
           {getInitial(user?.name)}
         </div>
-        <h2 className="text-xl font-bold text-gray-900 mb-1">{user?.name || t('profile.guest')}</h2>
-        <p className="text-sm text-gray-500">
-          {user?.phone || (user?.username && user.username !== 'guest' ? `@${user.username}` : (user?.telegramId ? `ID: ${user.telegramId}` : t('profile.guestUser')))}
-        </p>
+        <h2 className="text-xl font-bold text-gray-900">{user?.name || t('profile.guest')}</h2>
+      </div>
+
+      {/* Total Bonus Points Card */}
+      <div className="px-4 pt-2">
+        <div className="bg-gradient-to-r from-success to-green-600 text-white rounded-xl shadow-md p-6 text-center">
+          <Award className="w-12 h-12 mx-auto mb-3" />
+          <p className="text-sm opacity-90 mb-2">Jami bonus ballar</p>
+          <p className="text-4xl font-bold">{formatPrice(user.bonusPoints)}</p>
+          <p className="text-sm opacity-90 mt-2">
+            Xaridlarda foydalaning yoki do'stlarni taklif qilib ko'proq ishlang
+          </p>
+        </div>
       </div>
 
       {/* Menu Cards */}
@@ -81,20 +90,6 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
           title={t('profile.reviews')}
           subtitle={t('profile.reviewsSubtitle')}
           onClick={() => onNavigate('myReviews')}
-        />
-
-        <MenuCard
-          icon={Heart}
-          title={t('profile.favorites')}
-          subtitle={t('profile.favoritesSubtitle')}
-          onClick={() => onNavigate('favorites')}
-        />
-
-        <MenuCard
-          icon={Award}
-          title={t('profile.bonusPoints')}
-          subtitle={`${formatPrice(user?.bonusPoints || 0)} ${t('profile.earnings')}`}
-          onClick={() => onNavigate('referrals')}
         />
 
         <MenuCard

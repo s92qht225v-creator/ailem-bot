@@ -29,8 +29,6 @@ const CartPage = ({ onNavigate }) => {
   return (
     <div className="pb-40 pt-16">
       <div className="px-4 py-4">
-        <h2 className="text-2xl font-bold mb-4">{t('cart.title')}</h2>
-
         {/* Cart Items */}
         <div className="space-y-4 mb-6">
           {cartItems.map((item) => (
