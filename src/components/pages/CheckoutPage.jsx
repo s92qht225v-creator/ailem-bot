@@ -33,7 +33,7 @@ const CheckoutPage = ({ onNavigate }) => {
     getCitiesByCourierAndState,
     getPickupPointsByCourierStateCity
   } = useContext(PickupPointsContext);
-  const { calculateShippingCost } = useContext(ShippingRatesContext);
+  const { calculateShippingCost, getRate } = useContext(ShippingRatesContext);
 
   // Format phone number helper
   const formatPhoneNumber = (value) => {
@@ -163,11 +163,18 @@ const CheckoutPage = ({ onNavigate }) => {
     ? calculateShippingCost(pickupCourier, getDeliveryState(), totalWeight)
     : 0;
 
+  // Get the shipping rate to check payment type
+  const selectedRate = pickupCourier && getDeliveryState()
+    ? getRate(pickupCourier, getDeliveryState())
+    : null;
+  const isShippingPrepaid = selectedRate?.paymentType !== 'postpaid';
+
   const maxBonusPoints = calculateMaxBonusUsage(subtotal);
   const availableBonusPoints = Math.min(user.bonusPoints, maxBonusPoints);
   const bonusDiscount = useBonusPoints ? bonusPointsToDollars(availableBonusPoints) : 0;
 
-  const total = subtotal - bonusDiscount + deliveryFee;
+  // Only include delivery fee in total if it's prepaid
+  const total = subtotal - bonusDiscount + (isShippingPrepaid ? deliveryFee : 0);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -257,7 +264,8 @@ const CheckoutPage = ({ onNavigate }) => {
         bonusDiscount,
         subtotal,
         deliveryFee,
-        total
+        total,
+        shippingPaymentType: selectedRate?.paymentType || 'prepaid' // Track how shipping should be paid
       }
     });
   };
@@ -515,6 +523,18 @@ const CheckoutPage = ({ onNavigate }) => {
                 {deliveryFee === 0 ? t('cart.deliveryFree') : formatPrice(deliveryFee)}
               </span>
             </div>
+
+            {/* Show notice if shipping is postpaid */}
+            {deliveryFee > 0 && !isShippingPrepaid && (
+              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-sm">
+                <p className="text-orange-800 font-medium">
+                  ⚠️ Yetkazib berish to'lovi pickup punktida to'lanadi
+                </p>
+                <p className="text-orange-600 text-xs mt-1">
+                  Yetkazib berish to'lovi ({formatPrice(deliveryFee)}) onlayn to'lovga kiritilmagan. Mahsulotni olishda to'lanadi.
+                </p>
+              </div>
+            )}
 
             <div className="border-t border-gray-300 pt-2 mt-2">
               <div className="flex justify-between text-xl font-bold">

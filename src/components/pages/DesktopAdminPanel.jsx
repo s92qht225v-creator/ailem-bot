@@ -3123,7 +3123,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
       courier: '',
       state: '',
       firstKg: '',
-      additionalKg: ''
+      additionalKg: '',
+      paymentType: 'prepaid'
     });
 
     // Get unique couriers and states from existing rates
@@ -3141,7 +3142,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
       const rateData = {
         courier: formData.courier,
         firstKg: parseFloat(formData.firstKg),
-        additionalKg: parseFloat(formData.additionalKg) || 0
+        additionalKg: parseFloat(formData.additionalKg) || 0,
+        paymentType: formData.paymentType
       };
 
       if (editingRate) {
@@ -3155,7 +3157,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         });
       }
 
-      setFormData({ courier: '', state: '', firstKg: '', additionalKg: '' });
+      setFormData({ courier: '', state: '', firstKg: '', additionalKg: '', paymentType: 'prepaid' });
       setEditingRate(null);
       setShowForm(false);
     };
@@ -3166,7 +3168,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
         courier: rate.courier,
         state: rate.state,
         firstKg: rate.firstKg.toString(),
-        additionalKg: rate.additionalKg.toString()
+        additionalKg: rate.additionalKg.toString(),
+        paymentType: rate.paymentType || 'prepaid'
       });
       setShowForm(true);
     };
@@ -3279,6 +3282,22 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 />
               </div>
 
+              <div className="col-span-2">
+                <label className="block text-sm font-semibold mb-1">Payment Method *</label>
+                <select
+                  value={formData.paymentType}
+                  onChange={(e) => setFormData({ ...formData, paymentType: e.target.value })}
+                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  required
+                >
+                  <option value="prepaid">Prepaid (Customer pays online with product)</option>
+                  <option value="postpaid">Pay at Pickup (Customer pays at pickup point)</option>
+                </select>
+                <p className="text-xs text-gray-500 mt-1">
+                  💡 Choose how customers pay for shipping with this courier
+                </p>
+              </div>
+
               <div className="col-span-2 flex gap-2">
                 <button
                   type="submit"
@@ -3291,7 +3310,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   onClick={() => {
                     setShowForm(false);
                     setEditingRate(null);
-                    setFormData({ courier: '', state: '', firstKg: '', additionalKg: '' });
+                    setFormData({ courier: '', state: '', firstKg: '', additionalKg: '', paymentType: 'prepaid' });
                   }}
                   className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
                 >
@@ -3333,7 +3352,16 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       {rates.map((rate) => (
                         <div key={rate.id} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
                           <div className="flex-1">
-                            <p className="font-semibold text-gray-800 mb-2">{rate.state}</p>
+                            <div className="flex items-center gap-2 mb-2">
+                              <p className="font-semibold text-gray-800">{rate.state}</p>
+                              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                                rate.paymentType === 'postpaid'
+                                  ? 'bg-orange-100 text-orange-800'
+                                  : 'bg-green-100 text-green-800'
+                              }`}>
+                                {rate.paymentType === 'postpaid' ? 'Pay at Pickup' : 'Prepaid'}
+                              </span>
+                            </div>
                             <div className="flex gap-6 text-sm text-gray-600">
                               <div>
                                 <span className="font-medium">First KG:</span> {formatPrice(rate.firstKg)}

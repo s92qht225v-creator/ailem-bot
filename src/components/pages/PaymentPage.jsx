@@ -96,6 +96,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         bonusPointsUsed: checkoutData.bonusPointsUsed,
         deliveryFee: checkoutData.deliveryFee,
         total: checkoutData.total,
+        shippingPaymentType: checkoutData.shippingPaymentType || 'prepaid',
         paymentMethod: 'payme',
         status: 'pending', // Will be approved by webhook
         date: new Date().toISOString().split('T')[0],
@@ -229,6 +230,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         bonusPointsUsed: checkoutData.bonusPointsUsed,
         deliveryFee: checkoutData.deliveryFee,
         total: checkoutData.total,
+        shippingPaymentType: checkoutData.shippingPaymentType || 'prepaid',
         paymentMethod: 'click',
         status: 'pending', // Will be approved by webhook
         date: new Date().toISOString().split('T')[0],

@@ -1178,7 +1178,8 @@ export const shippingRatesAPI = {
       courier: rate.courier,
       state: rate.state,
       firstKg: rate.first_kg,
-      additionalKg: rate.additional_kg
+      additionalKg: rate.additional_kg,
+      paymentType: rate.payment_type || 'prepaid' // Default to prepaid for backward compatibility
     }));
   },
 
@@ -1188,7 +1189,8 @@ export const shippingRatesAPI = {
       courier: rate.courier,
       state: rate.state,
       first_kg: rate.firstKg,
-      additional_kg: rate.additionalKg
+      additional_kg: rate.additionalKg,
+      payment_type: rate.paymentType || 'prepaid' // Default to prepaid
     };
 
     const { data, error } = await supabase
@@ -1204,7 +1206,8 @@ export const shippingRatesAPI = {
       courier: data.courier,
       state: data.state,
       firstKg: data.first_kg,
-      additionalKg: data.additional_kg
+      additionalKg: data.additional_kg,
+      paymentType: data.payment_type || 'prepaid'
     };
   },
 
@@ -1215,6 +1218,7 @@ export const shippingRatesAPI = {
     if (updates.state !== undefined) dbUpdates.state = updates.state;
     if (updates.firstKg !== undefined) dbUpdates.first_kg = updates.firstKg;
     if (updates.additionalKg !== undefined) dbUpdates.additional_kg = updates.additionalKg;
+    if (updates.paymentType !== undefined) dbUpdates.payment_type = updates.paymentType;
 
     const { data, error } = await supabase
       .from('shipping_rates')
@@ -1230,7 +1234,8 @@ export const shippingRatesAPI = {
       courier: data.courier,
       state: data.state,
       firstKg: data.first_kg,
-      additionalKg: data.additional_kg
+      additionalKg: data.additional_kg,
+      paymentType: data.payment_type || 'prepaid'
     };
   },
 
