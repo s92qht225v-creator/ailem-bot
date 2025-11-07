@@ -1085,14 +1085,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     const handleSubmit = async (e) => {
+      console.log('🔥 handleSubmit called!', { editingProduct, formData, allImages });
       e.preventDefault();
-      
+
       try {
         // Ensure we have at least one image
         if (allImages.length === 0) {
+          console.error('❌ No images provided');
           alert('Please add at least one product image.');
           return;
         }
+
+        console.log('✅ Validation passed, preparing product data...');
 
         // Prepare product data in app format (API will handle database conversion)
         const productData = {
@@ -1642,6 +1646,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <div className="md:col-span-2 flex gap-4">
                 <button
                   type="submit"
+                  onClick={(e) => console.log('🖱️ Button clicked!', e)}
                   className="bg-accent hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                 >
                   {editingProduct ? 'Update Product' : 'Add Product'}
