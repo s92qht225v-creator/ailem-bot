@@ -940,12 +940,20 @@ export const pickupPointsAPI = {
 
   // Delete pickup point
   async delete(id) {
-    const { error } = await supabase
+    console.log('🗑️ Attempting to delete pickup point:', id);
+    const { data, error } = await supabase
       .from('pickup_points')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Delete failed with error:', error);
+      throw error;
+    }
+
+    console.log('✅ Delete successful, deleted rows:', data);
+    return data;
   }
 };
 
