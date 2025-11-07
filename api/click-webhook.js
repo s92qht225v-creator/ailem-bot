@@ -393,13 +393,15 @@ async function handleComplete(params, res) {
 
   console.log('✅ COMPLETE successful, order updated');
 
-  // SOLUTION: Run all background tasks FIRST with timeout limit
-  // Then send response to Click - this ensures tasks complete but stays under 3s timeout
+  // FINAL SOLUTION: Run background tasks with minimum 2s delay for user experience
+  // This ensures: tasks complete + user sees success page
   if (isApproved) {
     console.log('🔄 Running background tasks before responding...');
 
-    // Run all tasks with 2.5 second timeout to stay under Click's 3s limit
-    const tasksPromise = Promise.all([
+    const startTime = Date.now();
+
+    // Run all tasks in parallel
+    await Promise.all([
       deductStock(order).catch(e => console.error('❌ Stock deduction failed:', e)),
       awardBonusPoints(order).catch(e => console.error('❌ Bonus points failed:', e)),
       (async () => {
@@ -475,14 +477,15 @@ ${itemsList}
       })().catch(e => console.error('❌ Admin notification failed:', e))
     ]).catch(e => console.error('❌ Background tasks failed:', e));
 
-    // Wait for tasks with timeout
-    const timeoutPromise = new Promise((resolve) => setTimeout(() => {
-      console.log('⚠️ Tasks timeout - responding to Click anyway');
-      resolve();
-    }, 2500)); // 2.5 seconds max
+    const elapsed = Date.now() - startTime;
+    console.log(`✅ Background tasks completed in ${elapsed}ms`);
 
-    await Promise.race([tasksPromise, timeoutPromise]);
-    console.log('✅ Background tasks completed or timed out');
+    // Ensure minimum 2 second delay so user sees success page
+    if (elapsed < 2000) {
+      const remaining = 2000 - elapsed;
+      console.log(`⏱️ Waiting ${remaining}ms more for user experience...`);
+      await new Promise(resolve => setTimeout(resolve, remaining));
+    }
   }
 
   // Now respond to Click
