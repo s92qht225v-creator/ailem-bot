@@ -2763,7 +2763,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
       setExpandedCities(newSet);
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
 
       if (!formData.courierService || !formData.state || !formData.city || !formData.address || !formData.phone) {
@@ -2771,22 +2771,27 @@ const DesktopAdminPanel = ({ onLogout }) => {
         return;
       }
 
-      if (editingPoint) {
-        updatePickupPoint(editingPoint.id, formData);
-      } else {
-        addPickupPoint(formData);
-      }
+      try {
+        if (editingPoint) {
+          await updatePickupPoint(editingPoint.id, formData);
+        } else {
+          await addPickupPoint(formData);
+        }
 
-      setFormData({
-        courierService: '',
-        state: '',
-        city: '',
-        address: '',
-        workingHours: '09:00 - 20:00',
-        phone: ''
-      });
-      setEditingPoint(null);
-      setShowForm(false);
+        setFormData({
+          courierService: '',
+          state: '',
+          city: '',
+          address: '',
+          workingHours: '09:00 - 20:00',
+          phone: ''
+        });
+        setEditingPoint(null);
+        setShowForm(false);
+      } catch (error) {
+        console.error('Failed to save pickup point:', error);
+        alert('Failed to save pickup point. Please try again.');
+      }
     };
 
     const handleEdit = (point) => {
@@ -2802,9 +2807,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
       setShowForm(true);
     };
 
-    const handleDelete = (pointId) => {
+    const handleDelete = async (pointId) => {
       if (confirm('Are you sure you want to delete this pickup point?')) {
-        deletePickupPoint(pointId);
+        try {
+          await deletePickupPoint(pointId);
+        } catch (error) {
+          console.error('Failed to delete pickup point:', error);
+          alert('Failed to delete pickup point. Please try again.');
+        }
       }
     };
 
@@ -3131,7 +3141,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const uniqueCouriers = [...new Set(shippingRates.map(r => r.courier))].sort();
     const uniqueStates = [...new Set(shippingRates.map(r => r.state))].sort();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
 
       if (!formData.courier || !formData.state || !formData.firstKg) {
@@ -3146,20 +3156,25 @@ const DesktopAdminPanel = ({ onLogout }) => {
         paymentType: formData.paymentType
       };
 
-      if (editingRate) {
-        // When editing, only update single rate
-        updateShippingRate(editingRate.id, { ...rateData, state: formData.state });
-      } else {
-        // When adding, split states by comma and create multiple rates
-        const states = formData.state.split(',').map(s => s.trim()).filter(s => s);
-        states.forEach(state => {
-          addShippingRate({ ...rateData, state });
-        });
-      }
+      try {
+        if (editingRate) {
+          // When editing, only update single rate
+          await updateShippingRate(editingRate.id, { ...rateData, state: formData.state });
+        } else {
+          // When adding, split states by comma and create multiple rates
+          const states = formData.state.split(',').map(s => s.trim()).filter(s => s);
+          for (const state of states) {
+            await addShippingRate({ ...rateData, state });
+          }
+        }
 
-      setFormData({ courier: '', state: '', firstKg: '', additionalKg: '', paymentType: 'prepaid' });
-      setEditingRate(null);
-      setShowForm(false);
+        setFormData({ courier: '', state: '', firstKg: '', additionalKg: '', paymentType: 'prepaid' });
+        setEditingRate(null);
+        setShowForm(false);
+      } catch (error) {
+        console.error('Failed to save shipping rate:', error);
+        alert('Failed to save shipping rate. Please try again.');
+      }
     };
 
     const handleEdit = (rate) => {
@@ -3174,9 +3189,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
       setShowForm(true);
     };
 
-    const handleDelete = (rateId) => {
+    const handleDelete = async (rateId) => {
       if (confirm('Are you sure you want to delete this shipping rate?')) {
-        deleteShippingRate(rateId);
+        try {
+          await deleteShippingRate(rateId);
+        } catch (error) {
+          console.error('Failed to delete shipping rate:', error);
+          alert('Failed to delete shipping rate. Please try again.');
+        }
       }
     };
 
