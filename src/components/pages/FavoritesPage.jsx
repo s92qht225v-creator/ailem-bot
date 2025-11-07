@@ -9,13 +9,13 @@ import { formatPrice, calculateDiscountedPrice } from '../../utils/helpers';
 const FavoritesPage = ({ onNavigate }) => {
   const { toggleFavorite, favorites } = useContext(UserContext);
   const { addToCart } = useContext(CartContext);
-  const { products } = useProducts();
+  const { allProducts } = useProducts(); // Use allProducts to ignore category filters
 
   // Get favorite products by matching against favorites array
   const favoriteProducts = useMemo(() => {
-    if (!products || !favorites) return [];
-    return products.filter(product => favorites.includes(product?.id));
-  }, [products, favorites]);
+    if (!allProducts || !favorites) return [];
+    return allProducts.filter(product => favorites.includes(product?.id));
+  }, [allProducts, favorites]);
 
   const handleAddToCart = (product) => {
     if (!product) return;
@@ -28,7 +28,7 @@ const FavoritesPage = ({ onNavigate }) => {
   };
 
   // Show loading state if products not loaded
-  if (!products) {
+  if (!allProducts) {
     return (
       <div className="pb-20 bg-gray-50 min-h-screen pt-16">
         <div className="p-4 text-center">
