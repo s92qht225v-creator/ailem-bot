@@ -3889,13 +3889,42 @@ const DesktopAdminPanel = ({ onLogout }) => {
       purchaseBonus: 10,
       currency: 'UZS'
     });
+    const [loading, setLoading] = useState(true);
 
-    // Load from localStorage after mount
+    // Load from database first, fallback to localStorage
     useEffect(() => {
-      const saved = loadFromLocalStorage('bonusConfig');
-      if (saved) {
-        setBonusConfig(saved);
-      }
+      const loadConfig = async () => {
+        try {
+          const settings = await settingsAPI.getSettings();
+          if (settings?.bonus_config) {
+            console.log('✅ Loaded bonus config from database:', settings.bonus_config);
+            setBonusConfig({
+              ...bonusConfig,
+              ...settings.bonus_config
+            });
+            // Also update localStorage to sync
+            saveToLocalStorage('bonusConfig', settings.bonus_config);
+          } else {
+            // Fallback to localStorage if database doesn't have it
+            const saved = loadFromLocalStorage('bonusConfig');
+            if (saved) {
+              console.log('ℹ️ Loaded bonus config from localStorage:', saved);
+              setBonusConfig(saved);
+            }
+          }
+        } catch (error) {
+          console.error('❌ Failed to load bonus config:', error);
+          // Try localStorage as fallback
+          const saved = loadFromLocalStorage('bonusConfig');
+          if (saved) {
+            setBonusConfig(saved);
+          }
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      loadConfig();
     }, []);
 
     const saveBonusConfig = async (newConfig) => {
@@ -3904,15 +3933,27 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
       // ALSO save to Supabase database so webhooks can read it
       try {
-        await settingsAPI.updateBonusConfig({
+        const result = await settingsAPI.updateBonusConfig({
           purchaseBonus: newConfig.purchaseBonus,
           referralCommission: newConfig.referralCommission
         });
-        console.log('✅ Bonus config saved to database');
+        console.log('✅ Bonus config saved to database:', result);
+        alert('✅ Bonus configuration saved successfully!');
       } catch (error) {
         console.error('❌ Failed to save bonus config to database:', error);
+        alert('❌ Failed to save configuration. Please try again.');
       }
     };
+
+    if (loading) {
+      return (
+        <div className="max-w-4xl">
+          <div className="bg-white rounded-lg shadow-md p-6 text-center">
+            <p className="text-gray-600">Loading bonus configuration...</p>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div className="max-w-4xl">
