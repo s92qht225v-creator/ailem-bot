@@ -74,6 +74,7 @@ export const t = (key, params = {}) => {
     'checkout.city': 'Shahar',
     'checkout.selectCity': 'Shaharni tanlang',
     'checkout.selectPickupLocation': 'Olib ketish punktini tanlang',
+    'checkout.selectPickupPoint': 'Olib ketish punktini tanlang',
     'checkout.noPickupPoints': 'Bu manzilda olib ketish punktlari mavjud emas',
     'checkout.orderSummary': 'Buyurtma xulosasi',
     'checkout.subtotal': 'Jami',
