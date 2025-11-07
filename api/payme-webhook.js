@@ -508,8 +508,9 @@ async function performTransaction(params, res, requestId) {
     });
   }
 
-  // CRITICAL: Respond to Payme IMMEDIATELY to prevent timeout
-  const response = res.json({
+  // CRITICAL FIX: Send response immediately but await background tasks
+  // This prevents Vercel from terminating before tasks complete
+  res.status(200).json({
     jsonrpc: '2.0',
     id: requestId,
     result: {
@@ -519,8 +520,9 @@ async function performTransaction(params, res, requestId) {
     }
   });
 
-  // Run background tasks AFTER responding (don't await - they'll complete before Vercel terminates)
-  Promise.all([
+  // NOW run background tasks with await to ensure they complete
+  console.log('🔄 Running background tasks after sending response...');
+  await Promise.all([
     deductStock(order).catch(e => console.error('❌ Stock deduction failed:', e)),
     awardBonusPoints(order).catch(e => console.error('❌ Bonus points failed:', e)),
     (async () => {
@@ -595,8 +597,7 @@ ${itemsList}
       }
     })().catch(e => console.error('❌ Admin notification failed:', e))
   ]).catch(e => console.error('❌ Background tasks failed:', e));
-
-  return response;
+  console.log('✅ Background tasks completed');
 }
 
 // Cancel transaction

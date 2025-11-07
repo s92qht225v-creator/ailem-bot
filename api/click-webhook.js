@@ -393,10 +393,13 @@ async function handleComplete(params, res) {
 
   console.log('✅ COMPLETE successful, order updated');
 
-  // CRITICAL: Respond to Click IMMEDIATELY (within 3 seconds) to prevent stuck payment screen
-  // Click requires fast response or payment gets stuck on "Processing" screen
-  // MUST include click_paydoc_id in response or payment stays stuck
-  const response = res.json({
+  // CRITICAL FIX: We need to respond fast BUT also complete background tasks
+  // The trick: Send response immediately using res.status().json()
+  // Then await the background tasks BEFORE returning from the handler
+  // This satisfies Click's timeout AND ensures tasks complete before Vercel terminates
+
+  // Send response to Click immediately (non-blocking)
+  res.status(200).json({
     click_trans_id,
     merchant_trans_id,
     merchant_confirm_id,
@@ -406,10 +409,12 @@ async function handleComplete(params, res) {
     error_note: 'Success'
   });
 
-  // Run background tasks AFTER responding (don't await - they'll complete before Vercel terminates)
-  // These run asynchronously and won't block the response to Click
+  // NOW run background tasks with await to ensure they complete
+  // The response was already sent, so this doesn't block Click
+  // But Vercel won't terminate until these complete
   if (isApproved) {
-    Promise.all([
+    console.log('🔄 Running background tasks after sending response...');
+    await Promise.all([
       deductStock(order).catch(e => console.error('❌ Stock deduction failed:', e)),
       awardBonusPoints(order).catch(e => console.error('❌ Bonus points failed:', e)),
       (async () => {
@@ -484,7 +489,6 @@ ${itemsList}
         }
       })().catch(e => console.error('❌ Admin notification failed:', e))
     ]).catch(e => console.error('❌ Background tasks failed:', e));
+    console.log('✅ Background tasks completed');
   }
-
-  return response;
 }
