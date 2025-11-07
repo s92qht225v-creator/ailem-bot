@@ -1117,16 +1117,21 @@ const DesktopAdminPanel = ({ onLogout }) => {
           variants: formData.variants || []
         };
 
+        console.log('📦 Product data prepared:', productData);
+
         if (editingProduct) {
           // Update existing product
+          console.log('🔄 Updating product with ID:', editingProduct.id);
           await updateProduct(editingProduct.id, productData);
           console.log('✅ Product updated successfully');
         } else {
           // Create new product
+          console.log('➕ Creating new product...');
           await addProduct(productData);
           console.log('✅ Product created successfully');
         }
 
+        console.log('🧹 Cleaning up form...');
         // Reset form and close
         setShowForm(false);
         setEditingProduct(null);
@@ -1149,6 +1154,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           inStock: true,
           variants: []
         });
+        console.log('✨ Form submitted successfully!');
       } catch (error) {
         console.error('❌ Failed to save product:', error);
         alert('Failed to save product. Please try again.');
