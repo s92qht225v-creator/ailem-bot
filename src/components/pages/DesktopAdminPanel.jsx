@@ -1295,6 +1295,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 {editingProduct ? 'Mahsulotni tahrirlash' : 'Yangi mahsulot qo\'shish'}
               </h4>
               <button
+                type="button"
                 onClick={() => {
                   setShowForm(false);
                   setEditingProduct(null);
