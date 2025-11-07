@@ -3118,6 +3118,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
     const [showForm, setShowForm] = useState(false);
     const [editingRate, setEditingRate] = useState(null);
+    const [expandedCouriers, setExpandedCouriers] = useState(new Set());
     const [formData, setFormData] = useState({
       courier: '',
       state: '',
@@ -3174,6 +3175,16 @@ const DesktopAdminPanel = ({ onLogout }) => {
       if (confirm('Are you sure you want to delete this shipping rate?')) {
         deleteShippingRate(rateId);
       }
+    };
+
+    const toggleCourier = (courier) => {
+      const newSet = new Set(expandedCouriers);
+      if (newSet.has(courier)) {
+        newSet.delete(courier);
+      } else {
+        newSet.add(courier);
+      }
+      setExpandedCouriers(newSet);
     };
 
     const groupedRates = shippingRates.reduce((acc, rate) => {
@@ -3298,46 +3309,61 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <p className="text-gray-500 text-lg">No shipping rates configured</p>
             </div>
           ) : (
-            Object.entries(groupedRates).map(([courier, rates]) => (
-              <div key={courier} className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex items-center gap-3 mb-4 pb-3 border-b">
-                  <Truck className="w-6 h-6 text-accent" />
-                  <h3 className="text-xl font-bold text-gray-800">{courier}</h3>
-                </div>
+            Object.entries(groupedRates).map(([courier, rates]) => {
+              const isCourierExpanded = expandedCouriers.has(courier);
 
-                <div className="grid gap-3">
-                  {rates.map((rate) => (
-                    <div key={rate.id} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
-                      <div className="flex-1">
-                        <p className="font-semibold text-gray-800 mb-2">{rate.state}</p>
-                        <div className="flex gap-6 text-sm text-gray-600">
-                          <div>
-                            <span className="font-medium">First KG:</span> {formatPrice(rate.firstKg)}
+              return (
+                <div key={courier} className="bg-white rounded-lg shadow-md overflow-hidden">
+                  <button
+                    onClick={() => toggleCourier(courier)}
+                    className="w-full flex items-center gap-3 p-6 hover:bg-gray-50 transition-colors"
+                  >
+                    <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${
+                      isCourierExpanded ? 'rotate-90' : ''
+                    }`} />
+                    <Truck className="w-6 h-6 text-accent" />
+                    <div className="flex-1 text-left">
+                      <h3 className="text-xl font-bold text-gray-800">{courier}</h3>
+                      <p className="text-sm text-gray-500">{rates.length} shipping rates</p>
+                    </div>
+                  </button>
+
+                  {isCourierExpanded && (
+                    <div className="px-6 pb-6 grid gap-3">
+                      {rates.map((rate) => (
+                        <div key={rate.id} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
+                          <div className="flex-1">
+                            <p className="font-semibold text-gray-800 mb-2">{rate.state}</p>
+                            <div className="flex gap-6 text-sm text-gray-600">
+                              <div>
+                                <span className="font-medium">First KG:</span> {formatPrice(rate.firstKg)}
+                              </div>
+                              <div>
+                                <span className="font-medium">Additional KG:</span> {rate.additionalKg > 0 ? formatPrice(rate.additionalKg) : 'Flat rate'}
+                              </div>
+                            </div>
                           </div>
-                          <div>
-                            <span className="font-medium">Additional KG:</span> {rate.additionalKg > 0 ? formatPrice(rate.additionalKg) : 'Flat rate'}
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEdit(rate)}
+                              className="text-accent p-2 hover:bg-blue-50 rounded"
+                            >
+                              <Edit className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(rate.id)}
+                              className="text-error p-2 hover:bg-red-50 rounded"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
                           </div>
                         </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEdit(rate)}
-                          className="text-accent p-2 hover:bg-blue-50 rounded"
-                        >
-                          <Edit className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(rate.id)}
-                          className="text-error p-2 hover:bg-red-50 rounded"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
