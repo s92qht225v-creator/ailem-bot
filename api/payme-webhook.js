@@ -508,21 +508,11 @@ async function performTransaction(params, res, requestId) {
     });
   }
 
-  // CRITICAL FIX: Send response immediately but await background tasks
-  // This prevents Vercel from terminating before tasks complete
-  res.status(200).json({
-    jsonrpc: '2.0',
-    id: requestId,
-    result: {
-      transaction: id,
-      perform_time: performTime,
-      state: 2
-    }
-  });
+  // SOLUTION: Run all background tasks FIRST with timeout limit
+  console.log('🔄 Running background tasks before responding...');
 
-  // NOW run background tasks with await to ensure they complete
-  console.log('🔄 Running background tasks after sending response...');
-  await Promise.all([
+  // Run all tasks with 2.5 second timeout
+  const tasksPromise = Promise.all([
     deductStock(order).catch(e => console.error('❌ Stock deduction failed:', e)),
     awardBonusPoints(order).catch(e => console.error('❌ Bonus points failed:', e)),
     (async () => {
@@ -597,7 +587,26 @@ ${itemsList}
       }
     })().catch(e => console.error('❌ Admin notification failed:', e))
   ]).catch(e => console.error('❌ Background tasks failed:', e));
-  console.log('✅ Background tasks completed');
+
+  // Wait for tasks with timeout
+  const timeoutPromise = new Promise((resolve) => setTimeout(() => {
+    console.log('⚠️ Tasks timeout - responding to Payme anyway');
+    resolve();
+  }, 2500)); // 2.5 seconds max
+
+  await Promise.race([tasksPromise, timeoutPromise]);
+  console.log('✅ Background tasks completed or timed out');
+
+  // Now respond to Payme
+  return res.json({
+    jsonrpc: '2.0',
+    id: requestId,
+    result: {
+      transaction: id,
+      perform_time: performTime,
+      state: 2
+    }
+  });
 }
 
 // Cancel transaction

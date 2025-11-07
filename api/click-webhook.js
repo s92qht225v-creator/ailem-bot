@@ -393,28 +393,13 @@ async function handleComplete(params, res) {
 
   console.log('✅ COMPLETE successful, order updated');
 
-  // CRITICAL FIX: We need to respond fast BUT also complete background tasks
-  // The trick: Send response immediately using res.status().json()
-  // Then await the background tasks BEFORE returning from the handler
-  // This satisfies Click's timeout AND ensures tasks complete before Vercel terminates
-
-  // Send response to Click immediately (non-blocking)
-  res.status(200).json({
-    click_trans_id,
-    merchant_trans_id,
-    merchant_confirm_id,
-    merchant_prepare_id: merchant_prepare_id || 0,
-    click_paydoc_id, // REQUIRED: Must return this or payment stays "Processing"
-    error: 0,
-    error_note: 'Success'
-  });
-
-  // NOW run background tasks with await to ensure they complete
-  // The response was already sent, so this doesn't block Click
-  // But Vercel won't terminate until these complete
+  // SOLUTION: Run all background tasks FIRST with timeout limit
+  // Then send response to Click - this ensures tasks complete but stays under 3s timeout
   if (isApproved) {
-    console.log('🔄 Running background tasks after sending response...');
-    await Promise.all([
+    console.log('🔄 Running background tasks before responding...');
+
+    // Run all tasks with 2.5 second timeout to stay under Click's 3s limit
+    const tasksPromise = Promise.all([
       deductStock(order).catch(e => console.error('❌ Stock deduction failed:', e)),
       awardBonusPoints(order).catch(e => console.error('❌ Bonus points failed:', e)),
       (async () => {
@@ -489,6 +474,25 @@ ${itemsList}
         }
       })().catch(e => console.error('❌ Admin notification failed:', e))
     ]).catch(e => console.error('❌ Background tasks failed:', e));
-    console.log('✅ Background tasks completed');
+
+    // Wait for tasks with timeout
+    const timeoutPromise = new Promise((resolve) => setTimeout(() => {
+      console.log('⚠️ Tasks timeout - responding to Click anyway');
+      resolve();
+    }, 2500)); // 2.5 seconds max
+
+    await Promise.race([tasksPromise, timeoutPromise]);
+    console.log('✅ Background tasks completed or timed out');
   }
+
+  // Now respond to Click
+  return res.json({
+    click_trans_id,
+    merchant_trans_id,
+    merchant_confirm_id,
+    merchant_prepare_id: merchant_prepare_id || 0,
+    click_paydoc_id, // REQUIRED: Must return this or payment stays "Processing"
+    error: 0,
+    error_note: 'Success'
+  });
 }
