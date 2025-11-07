@@ -1,6 +1,7 @@
 import { useContext, useState, useMemo, useEffect } from 'react';
 import { AdminContext } from '../context/AdminContext';
 import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
+import { getTotalVariantStock } from '../utils/variants';
 
 export const useProducts = () => {
   const { products } = useContext(AdminContext);
@@ -21,6 +22,12 @@ export const useProducts = () => {
 
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
+
+    // Helper function to get stock for a product (considering variants)
+    const getProductStock = (product) => {
+      const hasVariants = product.variants && product.variants.length > 0;
+      return hasVariants ? getTotalVariantStock(product.variants) : (product.stock || 0);
+    };
 
     // Filter by category
     if (selectedCategory !== 'All') {
@@ -94,6 +101,20 @@ export const useProducts = () => {
         filtered.sort((a, b) => b.id - a.id);
         break;
     }
+
+    // Always move out-of-stock products to the end while preserving sort order
+    filtered.sort((a, b) => {
+      const aStock = getProductStock(a);
+      const bStock = getProductStock(b);
+
+      // If both in stock or both out of stock, maintain current order
+      if ((aStock > 0 && bStock > 0) || (aStock === 0 && bStock === 0)) {
+        return 0;
+      }
+
+      // Move out-of-stock to end
+      return aStock === 0 ? 1 : -1;
+    });
 
     return filtered;
   }, [products, searchQuery, selectedCategory, selectedPriceRange, selectedMaterial, selectedColor, selectedSize, sortBy]);

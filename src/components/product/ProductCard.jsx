@@ -1,6 +1,7 @@
 import { Star, Heart } from 'lucide-react';
 import { t } from "../../utils/translation-fallback";
 import { formatPrice, calculateDiscountPercentage } from '../../utils/helpers';
+import { getTotalVariantStock } from '../../utils/variants';
 import { memo } from 'react';
 
 const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => {
@@ -20,28 +21,47 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
 
   const averageRating = calculateAverageRating();
 
+  // Check if product is out of stock (considering variants)
+  const hasVariants = product.variants && product.variants.length > 0;
+  const currentStock = hasVariants
+    ? getTotalVariantStock(product.variants)
+    : (product.stock || 0);
+  const isOutOfStock = currentStock === 0;
+
   return (
     <div
       onClick={() => onView(product.id)}
-      className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+      className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer ${
+        isOutOfStock ? 'opacity-90' : ''
+      }`}
     >
       <div className="relative">
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-48 object-cover"
+          className={`w-full h-48 object-cover transition-opacity ${
+            isOutOfStock ? 'opacity-60' : ''
+          }`}
           loading="lazy"
           onError={(e) => {
             console.error('Failed to load image:', product.image);
             e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Found';
           }}
         />
-        {product.badge && (
+        {/* Out of Stock Overlay */}
+        {isOutOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+            <span className="bg-gray-800 text-white text-sm font-bold px-4 py-2 rounded-lg">
+              {t('shop.outOfStock') || 'Out of Stock'}
+            </span>
+          </div>
+        )}
+        {product.badge && !isOutOfStock && (
           <span className="absolute top-2 left-2 bg-accent text-white text-xs font-semibold px-2 py-1 rounded">
             {t(`badges.${product.badge}`) || product.badge}
           </span>
         )}
-        {discount > 0 && (
+        {discount > 0 && !isOutOfStock && (
           <span className="absolute top-2 right-2 bg-error text-white text-xs font-semibold px-2 py-1 rounded">
             -{discount}%
           </span>
