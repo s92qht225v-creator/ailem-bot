@@ -1152,6 +1152,19 @@ export const settingsAPI = {
 
     if (error) throw error;
     return data.bonus_config;
+  },
+
+  // Update inventory settings
+  async updateInventorySettings(inventorySettings) {
+    const { data, error} = await supabase
+      .from('app_settings')
+      .update({ inventory: inventorySettings })
+      .eq('id', 1)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data.inventory;
   }
 };
 

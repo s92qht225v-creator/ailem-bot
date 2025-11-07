@@ -131,9 +131,86 @@ async function deductStock(order) {
     }
 
     console.log('✅ Stock deduction completed');
+
+    // Check for low stock and send alerts
+    await checkLowStockAndAlert(order);
   } catch (error) {
     console.error('❌ Failed to deduct stock:', error);
   }
+}
+
+// Check for low stock and send alerts
+async function checkLowStockAndAlert(order) {
+  try {
+    // Get threshold from settings
+    const { data: settings } = await supabase
+      .from('app_settings')
+      .select('inventory')
+      .eq('id', 1)
+      .single();
+
+    const threshold = settings?.inventory?.low_stock_threshold || 10;
+
+    // Check each product in the order
+    for (const item of order.items) {
+      const { data: product } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', item.productId)
+        .single();
+
+      if (!product) continue;
+
+      const hasVariants = product.variants && product.variants.length > 0;
+      let currentStock = 0;
+
+      if (hasVariants) {
+        // Sum all variant stock
+        currentStock = product.variants.reduce((sum, v) => sum + (v.stock || 0), 0);
+      } else {
+        currentStock = product.stock || 0;
+      }
+
+      // Send alert if out of stock or low stock
+      if (currentStock === 0) {
+        await sendLowStockAlert(product, currentStock, true);
+      } else if (currentStock <= threshold) {
+        await sendLowStockAlert(product, currentStock, false);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Failed to check low stock:', error);
+  }
+}
+
+// Send low stock alert to admin
+async function sendLowStockAlert(product, stock, isOutOfStock) {
+  if (!ADMIN_CHAT_ID) {
+    console.log('⚠️ Admin chat ID not configured, skipping low stock alert');
+    return;
+  }
+
+  const message = isOutOfStock ? `
+🚨 <b>OUT OF STOCK ALERT</b>
+
+Product: <b>${product.name}</b>
+Current Stock: <b>${stock} units</b>
+
+❌ This product is now unavailable to customers!
+
+Please restock immediately to continue selling.
+  `.trim() : `
+⚠️ <b>Low Stock Alert</b>
+
+Product: <b>${product.name}</b>
+Current Stock: <b>${stock} units</b>
+Status: Running low
+
+Please consider restocking soon to avoid stockouts.
+  `.trim();
+
+  await sendTelegramNotification(ADMIN_CHAT_ID, message);
+  console.log(`📢 Low stock alert sent for: ${product.name} (${stock} units)`);
 }
 
 // Award bonus points to user for approved order
