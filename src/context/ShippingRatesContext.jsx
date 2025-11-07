@@ -69,8 +69,6 @@ export const ShippingRatesProvider = ({ children }) => {
   // Calculate shipping cost based on courier, state, and total weight
   // Everything in Uzbek now - direct matching with trimmed whitespace
   const calculateShippingCost = (courier, state, totalWeight) => {
-    console.log('🔧 calculateShippingCost called:', { courier, state, totalWeight });
-
     const isYandex = courier === 'Yandex';
     const stateTrimmed = state?.trim();
 
@@ -87,34 +85,18 @@ export const ShippingRatesProvider = ({ children }) => {
       return 0;
     }
 
-    console.log('📊 Found rate:', {
-      courier: rate.courier,
-      state: rate.state,
-      firstKg: rate.firstKg,
-      additionalKg: rate.additionalKg
-    });
-
     // For Yandex (flat rate)
     if (isYandex) {
-      console.log('🚕 Yandex flat rate:', rate.firstKg);
       return rate.firstKg;
     }
 
     // For other couriers (first kg + additional kgs)
     if (totalWeight <= 1) {
-      console.log('⚖️ Weight <= 1kg, returning firstKg:', rate.firstKg);
       return rate.firstKg;
     }
 
     const additionalWeight = Math.ceil(totalWeight - 1);
-    const cost = rate.firstKg + (additionalWeight * rate.additionalKg);
-    console.log('💰 Calculation:', {
-      totalWeight,
-      additionalWeight,
-      formula: `${rate.firstKg} + (${additionalWeight} × ${rate.additionalKg})`,
-      result: cost
-    });
-    return cost;
+    return rate.firstKg + (additionalWeight * rate.additionalKg);
   };
 
   // Get rates by courier

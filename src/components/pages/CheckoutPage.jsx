@@ -148,11 +148,8 @@ const CheckoutPage = ({ onNavigate }) => {
   // Calculate total weight from cart items (default to 0.5kg if weight not specified)
   const totalWeight = cartItems.reduce((total, item) => {
     const itemWeight = item.weight || 0.5; // Default 0.5kg per item if not specified
-    console.log(`📦 Item: ${item.name}, Weight: ${item.weight}, Using: ${itemWeight} kg, Quantity: ${item.quantity}, Subtotal: ${itemWeight * item.quantity} kg`);
     return total + (itemWeight * item.quantity);
   }, 0);
-
-  console.log(`⚖️ Total cart weight: ${totalWeight} kg`);
 
   // Calculate delivery fee based on courier, state/city, and total weight
   const getDeliveryState = () => {
@@ -165,8 +162,6 @@ const CheckoutPage = ({ onNavigate }) => {
   const deliveryFee = pickupCourier && getDeliveryState()
     ? calculateShippingCost(pickupCourier, getDeliveryState(), totalWeight)
     : 0;
-
-  console.log(`🚚 Delivery fee for ${totalWeight} kg: ${deliveryFee} UZS`);
 
   // Get the shipping rate to check payment type
   const selectedRate = pickupCourier && getDeliveryState()
