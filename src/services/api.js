@@ -883,6 +883,16 @@ export const pickupPointsAPI = {
 
   // Create pickup point
   async create(pickupPoint) {
+    // Get the max display_order to append new point at the end
+    const { data: maxOrderData } = await supabase
+      .from('pickup_points')
+      .select('display_order')
+      .order('display_order', { ascending: false })
+      .limit(1)
+      .single();
+
+    const nextOrder = (maxOrderData?.display_order || 0) + 1;
+
     const dbPoint = {
       courier_service: pickupPoint.courierService,
       state: pickupPoint.state,
@@ -890,7 +900,8 @@ export const pickupPointsAPI = {
       address: pickupPoint.address,
       working_hours: pickupPoint.workingHours,
       phone: pickupPoint.phone,
-      active: pickupPoint.active !== false
+      active: pickupPoint.active !== false,
+      display_order: nextOrder
     };
 
     const { data, error } = await supabase
