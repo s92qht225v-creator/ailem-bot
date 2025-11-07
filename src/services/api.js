@@ -78,7 +78,7 @@ export const productsAPI = {
     return products.map(product => {
       const productReviews = reviews?.filter(r => r.product_id === product.id) || [];
 
-      return {
+      const mappedProduct = {
         ...product,
         category: product.category_name,
         originalPrice: product.original_price,
@@ -94,6 +94,13 @@ export const productsAPI = {
           approved: r.approved
         }))
       };
+
+      // Debug: Log weight for products with variants
+      if (mappedProduct.variants && mappedProduct.variants.length > 0) {
+        console.log(`📦 Product "${mappedProduct.name}" has ${mappedProduct.variants.length} variants, weight: ${mappedProduct.weight || 'NULL'}`);
+      }
+
+      return mappedProduct;
     });
   },
 
