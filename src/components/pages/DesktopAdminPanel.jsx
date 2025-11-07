@@ -6,7 +6,7 @@ import {
   Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload,
   TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle, AlertCircle,
   Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff, ImagePlus,
-  Download, FileDown, ChevronUp, ChevronDown, RotateCw
+  Download, FileDown, ChevronUp, ChevronDown, RotateCw, GripVertical
 } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
@@ -2674,7 +2674,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
       updatePickupPoint,
       deletePickupPoint,
       togglePickupPointStatus,
-      duplicatePickupPoint
+      duplicatePickupPoint,
+      reorderPickupPoints
     } = useContext(PickupPointsContext);
 
     const [showForm, setShowForm] = useState(false);
@@ -2682,6 +2683,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [expandedCouriers, setExpandedCouriers] = useState(new Set());
     const [expandedStates, setExpandedStates] = useState(new Set());
     const [expandedCities, setExpandedCities] = useState(new Set());
+    const [draggedPoint, setDraggedPoint] = useState(null);
+    const [dragOverPoint, setDragOverPoint] = useState(null);
     const [formData, setFormData] = useState({
       courierService: '',
       state: '',
@@ -2805,6 +2808,65 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const handleDelete = (pointId) => {
       if (confirm('Are you sure you want to delete this pickup point?')) {
         deletePickupPoint(pointId);
+      }
+    };
+
+    // Drag and drop handlers
+    const handleDragStart = (e, point) => {
+      setDraggedPoint(point);
+      e.dataTransfer.effectAllowed = 'move';
+      e.currentTarget.style.opacity = '0.5';
+    };
+
+    const handleDragEnd = (e) => {
+      e.currentTarget.style.opacity = '1';
+      setDraggedPoint(null);
+      setDragOverPoint(null);
+    };
+
+    const handleDragOver = (e, point) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+
+      if (draggedPoint && draggedPoint.id !== point.id) {
+        setDragOverPoint(point.id);
+      }
+    };
+
+    const handleDragLeave = (e) => {
+      // Only clear if leaving the entire item, not child elements
+      if (e.currentTarget === e.target) {
+        setDragOverPoint(null);
+      }
+    };
+
+    const handleDrop = async (e, targetPoint) => {
+      e.preventDefault();
+
+      if (!draggedPoint || draggedPoint.id === targetPoint.id) {
+        setDragOverPoint(null);
+        return;
+      }
+
+      try {
+        // Create new array with reordered items
+        const reordered = [...pickupPoints];
+        const draggedIndex = reordered.findIndex(p => p.id === draggedPoint.id);
+        const targetIndex = reordered.findIndex(p => p.id === targetPoint.id);
+
+        // Remove dragged item and insert at target position
+        const [removed] = reordered.splice(draggedIndex, 1);
+        reordered.splice(targetIndex, 0, removed);
+
+        // Save new order to database
+        await reorderPickupPoints(reordered);
+
+        console.log('✅ Pickup points reordered');
+      } catch (error) {
+        console.error('❌ Failed to reorder:', error);
+        alert('Failed to reorder pickup points. Please try again.');
+      } finally {
+        setDragOverPoint(null);
       }
     };
 
@@ -3032,8 +3094,23 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                       {isCityExpanded && (
                                         <div className="px-3 pb-3 space-y-2">
                                           {addresses.map((point) => (
-                                            <div key={point.id} className="bg-gray-50 rounded-lg p-3">
+                                            <div
+                                              key={point.id}
+                                              draggable
+                                              onDragStart={(e) => handleDragStart(e, point)}
+                                              onDragEnd={handleDragEnd}
+                                              onDragOver={(e) => handleDragOver(e, point)}
+                                              onDragLeave={handleDragLeave}
+                                              onDrop={(e) => handleDrop(e, point)}
+                                              className={`bg-gray-50 rounded-lg p-3 cursor-move transition-all ${
+                                                dragOverPoint === point.id ? 'border-2 border-blue-500 scale-105' : 'border-2 border-transparent'
+                                              }`}
+                                              title="Drag to reorder"
+                                            >
                                               <div className="flex items-start justify-between mb-2">
+                                                <div className="flex items-center gap-2 mr-2">
+                                                  <GripVertical className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                                </div>
                                                 <div className="flex-1">
                                                   <div className="flex items-center gap-2 mb-2">
                                                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${

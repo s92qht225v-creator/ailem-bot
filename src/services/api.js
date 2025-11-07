@@ -838,7 +838,8 @@ export const pickupPointsAPI = {
       address: point.address,
       workingHours: point.working_hours,
       phone: point.phone,
-      active: point.active
+      active: point.active,
+      displayOrder: point.display_order
     };
   },
 
@@ -860,7 +861,7 @@ export const pickupPointsAPI = {
     const { data, error } = await supabase
       .from('pickup_points')
       .select('*')
-      .order('courier_service');
+      .order('display_order', { nullsFirst: false });
 
     if (error) throw error;
 
@@ -935,6 +936,39 @@ export const pickupPointsAPI = {
       .eq('id', id);
 
     if (error) throw error;
+  },
+
+  // Reorder pickup points (batch update display_order)
+  async reorder(reorderedPoints) {
+    try {
+      // Update display_order for each point
+      const updates = reorderedPoints.map((point, index) => ({
+        id: point.id,
+        display_order: index + 1
+      }));
+
+      // Batch update using individual updates (Supabase doesn't support batch upsert easily)
+      const promises = updates.map(({ id, display_order }) =>
+        supabase
+          .from('pickup_points')
+          .update({ display_order })
+          .eq('id', id)
+      );
+
+      const results = await Promise.all(promises);
+
+      // Check for errors
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        throw new Error(`Failed to update ${errors.length} pickup points`);
+      }
+
+      console.log('✅ Pickup points reordered successfully');
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to reorder pickup points:', error);
+      throw error;
+    }
   }
 };
 

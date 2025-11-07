@@ -99,6 +99,20 @@ export const PickupPointsProvider = ({ children }) => {
     }
   };
 
+  const reorderPickupPoints = async (reorderedPoints) => {
+    try {
+      console.log('📍 Reordering pickup points...');
+      await pickupPointsAPI.reorder(reorderedPoints);
+      console.log('✅ Pickup points reordered');
+      // Update local state with new order
+      setPickupPoints(reorderedPoints);
+      return true;
+    } catch (err) {
+      console.error('❌ Failed to reorder pickup points:', err);
+      throw err;
+    }
+  };
+
   // Get unique courier services
   const getCourierServices = useCallback(() => {
     return [...new Set(pickupPoints.map(point => point.courierService))].sort();
@@ -149,6 +163,7 @@ export const PickupPointsProvider = ({ children }) => {
         deletePickupPoint,
         togglePickupPointStatus,
         duplicatePickupPoint,
+        reorderPickupPoints,
         getCourierServices,
         getStatesByCourier,
         getCitiesByCourierAndState,
