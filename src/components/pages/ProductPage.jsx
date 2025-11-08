@@ -1,5 +1,4 @@
 import ProductDetails from '../product/ProductDetails';
-import { t } from "../../utils/translation-fallback";
 import ReviewSection from '../product/ReviewSection';
 import RelatedProducts from '../product/RelatedProducts';
 import { useProducts } from '../../hooks/useProducts';
@@ -38,7 +37,7 @@ const ProductPage = ({ productId, onNavigate }) => {
   };
 
   return (
-    <div className="pb-20 pt-16">
+    <div className="pb-20">
       {/* Product Details */}
       <ProductDetails product={product} onAddToCart={handleAddToCart} />
 
