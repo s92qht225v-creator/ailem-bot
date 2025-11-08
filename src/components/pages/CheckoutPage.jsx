@@ -8,6 +8,7 @@ import { ShippingRatesContext } from '../../context/ShippingRatesContext';
 import { formatPrice, bonusPointsToDollars, calculateMaxBonusUsage } from '../../utils/helpers';
 import { useBackButton } from '../../hooks/useBackButton';
 import CustomDropdown from '../common/CustomDropdown';
+import { usersAPI } from '../../services/api';
 
 // Tashkent districts for Yandex delivery
 const TASHKENT_DISTRICTS = [
@@ -203,7 +204,7 @@ const CheckoutPage = ({ onNavigate }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validation
@@ -228,6 +229,20 @@ const CheckoutPage = ({ onNavigate }) => {
       if (!selectedPickupPoint) {
         alert(t('checkout.selectPickupPoint'));
         return;
+      }
+    }
+
+    // Save phone number to user profile if not already saved
+    if (user.id && user.id !== 'demo-1') {
+      const cleanPhone = formData.phone.replace(/\s/g, ''); // Remove spaces
+      if (!user.phone || user.phone !== cleanPhone) {
+        try {
+          await usersAPI.update(user.id, { phone: cleanPhone });
+          console.log('✅ Phone number saved to user profile');
+        } catch (error) {
+          console.error('❌ Failed to save phone number:', error);
+          // Don't block checkout if this fails
+        }
       }
     }
 
