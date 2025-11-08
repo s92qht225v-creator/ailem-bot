@@ -176,7 +176,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
       <div className="bg-gray-50">
         {/* Main Image */}
         <div
-          className="relative cursor-pointer"
+          className="relative cursor-pointer aspect-square"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
@@ -185,7 +185,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
           <img
             src={images[currentImageIndex]}
             alt={product.name}
-            className="w-full h-80 object-cover"
+            className="w-full h-full object-cover"
             onError={(e) => {
               console.error('Failed to load image:', images[currentImageIndex]);
               e.target.src = 'https://via.placeholder.com/600x400?text=Image+Not+Found';
