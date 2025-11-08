@@ -266,16 +266,30 @@ async function awardBonusPoints(order) {
 
     console.log(`💰 Updating bonus: ${currentBonus} + ${purchaseBonusPoints} = ${newBonusPoints}`);
 
+    // Increment total_orders count
+    const { data: userData } = await supabase
+      .from('users')
+      .select('total_orders')
+      .eq('id', userId)
+      .single();
+
+    const currentTotalOrders = userData?.total_orders || 0;
+    const newTotalOrders = currentTotalOrders + 1;
+
     const { error: updateError } = await supabase
       .from('users')
-      .update({ bonus_points: newBonusPoints })
+      .update({
+        bonus_points: newBonusPoints,
+        total_orders: newTotalOrders
+      })
       .eq('id', userId);
 
     if (updateError) {
-      console.error('❌ Failed to update bonus points:', updateError);
-      console.error('Update details:', { userId, currentBonus, purchaseBonusPoints, newBonusPoints });
+      console.error('❌ Failed to update bonus points and order count:', updateError);
+      console.error('Update details:', { userId, currentBonus, purchaseBonusPoints, newBonusPoints, newTotalOrders });
     } else {
       console.log(`✅ Purchase bonus awarded: User ${userId} now has ${newBonusPoints} points (was ${currentBonus})`);
+      console.log(`✅ Order count updated: User ${userId} now has ${newTotalOrders} orders (was ${currentTotalOrders})`);
     }
   } catch (error) {
     console.error('❌ Failed to award bonus points:', error);
