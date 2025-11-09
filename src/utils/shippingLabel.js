@@ -76,9 +76,14 @@ function generateLabelHTML(order, includeDocType = true) {
   const weight = calculateOrderWeight(order.items);
   const itemCount = order.items?.length || 0;
   // Get courier name - handle both string and object formats
-  const courier = typeof deliveryInfo.courier === 'string'
-    ? deliveryInfo.courier
-    : (deliveryInfo.courier?.name || order.courier || 'N/A');
+  let courier = 'N/A';
+  if (typeof deliveryInfo.courier === 'string') {
+    courier = deliveryInfo.courier;
+  } else if (deliveryInfo.courier && typeof deliveryInfo.courier === 'object' && deliveryInfo.courier.name) {
+    courier = deliveryInfo.courier.name;
+  } else if (order.courier) {
+    courier = typeof order.courier === 'string' ? order.courier : (order.courier.name || 'N/A');
+  }
   const orderDate = new Date(order.created_at).toLocaleDateString('uz-UZ');
 
   // Build address
