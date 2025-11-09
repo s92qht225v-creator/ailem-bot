@@ -75,7 +75,10 @@ function generateLabelHTML(order, includeDocType = true) {
   const deliveryInfo = order.delivery_info || {};
   const weight = calculateOrderWeight(order.items);
   const itemCount = order.items?.length || 0;
-  const courier = deliveryInfo.courier || 'N/A';
+  // Get courier name - handle both string and object formats
+  const courier = typeof deliveryInfo.courier === 'string'
+    ? deliveryInfo.courier
+    : (deliveryInfo.courier?.name || order.courier || 'N/A');
   const orderDate = new Date(order.created_at).toLocaleDateString('uz-UZ');
 
   // Build address
@@ -123,7 +126,7 @@ function generateLabelHTML(order, includeDocType = true) {
         </div>
         <div class="info-row">
           <span class="info-label">Jami:</span>
-          <span class="info-value">${(order.total_amount || 0).toLocaleString('uz-UZ')} UZS</span>
+          <span class="info-value">${(order.total || 0).toLocaleString('uz-UZ')} UZS</span>
         </div>
         <div class="info-row">
           <span class="info-label">Yetkazish:</span>
