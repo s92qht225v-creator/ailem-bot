@@ -1182,14 +1182,17 @@ const DesktopAdminPanel = ({ onLogout }) => {
             console.log('📢 Stock replenished! Sending notifications...');
 
             try {
+              // Create product object with ID for notifications
+              const productWithId = { ...productData, id: editingProduct.id };
+
               if (stockIncreased && (!productData.variants || productData.variants.length === 0)) {
                 // Non-variant product back in stock
-                await notifyProductBackInStock(productData);
+                await notifyProductBackInStock(productWithId);
               }
 
               // Notify for each variant that came back in stock
               for (const variant of variantsToNotify) {
-                await notifyProductBackInStock(productData, variant.color, variant.size);
+                await notifyProductBackInStock(productWithId, variant.color, variant.size);
               }
 
               console.log('✅ Stock notifications sent');
