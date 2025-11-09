@@ -154,6 +154,7 @@ export const productsAPI = {
       sizes: product.sizes || [],
       tags: product.tags || [],
       variants: product.variants || [],
+      volume_pricing: product.volume_pricing || null,
       rating: 0,
       review_count: 0
     };
@@ -181,7 +182,7 @@ export const productsAPI = {
   async update(id, updates) {
     // Transform app fields to database fields
     const dbUpdates = {};
-    
+
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
     if (updates.price !== undefined) dbUpdates.price = updates.price;
@@ -198,6 +199,7 @@ export const productsAPI = {
     if (updates.sizes !== undefined) dbUpdates.sizes = updates.sizes;
     if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
     if (updates.variants !== undefined) dbUpdates.variants = updates.variants;
+    if (updates.volume_pricing !== undefined) dbUpdates.volume_pricing = updates.volume_pricing;
 
     const { data, error } = await supabase
       .from('products')
@@ -1391,5 +1393,155 @@ export const referralsAPI = {
       : `ref_${user}`;
 
     return `https://t.me/${botUsername}?start=${param}`;
+  }
+};
+
+// ============================================
+// STOCK NOTIFICATIONS API
+// ============================================
+
+export const stockNotificationsAPI = {
+  // Subscribe user to stock notification
+  async subscribe(userId, productId, variantColor = null, variantSize = null) {
+    try {
+      const { data, error} = await supabase
+        .from('stock_notifications')
+        .insert([{
+          user_id: userId,
+          product_id: productId,
+          variant_color: variantColor,
+          variant_size: variantSize,
+          notified: false
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        // Handle duplicate subscription gracefully
+        if (error.code === '23505') {
+          console.log('User already subscribed to this product notification');
+          return { alreadySubscribed: true };
+        }
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      console.error('Error subscribing to stock notification:', error);
+      throw error;
+    }
+  },
+
+  // Unsubscribe user from stock notification
+  async unsubscribe(userId, productId, variantColor = null, variantSize = null) {
+    let query = supabase
+      .from('stock_notifications')
+      .delete()
+      .eq('user_id', userId)
+      .eq('product_id', productId);
+
+    // Add variant filters if specified
+    if (variantColor !== null) {
+      query = query.eq('variant_color', variantColor);
+    } else {
+      query = query.is('variant_color', null);
+    }
+
+    if (variantSize !== null) {
+      query = query.eq('variant_size', variantSize);
+    } else {
+      query = query.is('variant_size', null);
+    }
+
+    const { error } = await query;
+    if (error) throw error;
+    return true;
+  },
+
+  // Check if user is subscribed
+  async isSubscribed(userId, productId, variantColor = null, variantSize = null) {
+    let query = supabase
+      .from('stock_notifications')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('product_id', productId)
+      .eq('notified', false);
+
+    // Add variant filters if specified
+    if (variantColor !== null) {
+      query = query.eq('variant_color', variantColor);
+    } else {
+      query = query.is('variant_color', null);
+    }
+
+    if (variantSize !== null) {
+      query = query.eq('variant_size', variantSize);
+    } else {
+      query = query.is('variant_size', null);
+    }
+
+    const { data, error } = await query.maybeSingle();
+    if (error) throw error;
+    return !!data;
+  },
+
+  // Get all active notifications for a user
+  async getUserNotifications(userId) {
+    const { data, error } = await supabase
+      .from('stock_notifications')
+      .select(`
+        *,
+        product:products (
+          id,
+          name,
+          image,
+          price
+        )
+      `)
+      .eq('user_id', userId)
+      .eq('notified', false)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Get all users waiting for a specific product/variant
+  async getSubscribersForProduct(productId, variantColor = null, variantSize = null) {
+    let query = supabase
+      .from('stock_notifications')
+      .select(`
+        *,
+        user:users (
+          id,
+          telegram_id,
+          name
+        )
+      `)
+      .eq('product_id', productId)
+      .eq('notified', false);
+
+    // Filter by variant if specified
+    if (variantColor !== null) {
+      query = query.eq('variant_color', variantColor);
+    }
+
+    if (variantSize !== null) {
+      query = query.eq('variant_size', variantSize);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Mark notifications as sent
+  async markAsNotified(notificationIds) {
+    const { error } = await supabase
+      .from('stock_notifications')
+      .update({ notified: true })
+      .in('id', notificationIds);
+
+    if (error) throw error;
+    return true;
   }
 };

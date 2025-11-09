@@ -17,6 +17,7 @@ import { generateVariants, updateVariantStock, updateVariantImage, getTotalVaria
 import { settingsAPI, storageAPI, usersAPI } from '../../services/api';
 import { exportOrders, exportOrderItems, exportProducts, exportUsers, exportReviews } from '../../utils/csvExport';
 import { notifyUserOrderStatus, notifyReferrerReward, notifyAdminLowStock } from '../../services/telegram';
+import { notifyProductBackInStock } from '../../services/stockNotifications';
 import ImageModal from '../common/ImageModal';
 
 const DesktopAdminPanel = ({ onLogout }) => {
@@ -1049,7 +1050,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
       sizes: '',
       tags: '',
       inStock: true,
-      variants: []
+      variants: [],
+      volume_pricing: null
     });
 
     const handleImageUpload = async (e) => {
@@ -1096,6 +1098,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
       e.preventDefault();
 
       try {
+        console.log('🔍 Starting validation...');
+
         // Ensure we have at least one image
         if (allImages.length === 0) {
           console.error('❌ No images provided');
@@ -1121,7 +1125,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
           colors: formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c) : [],
           sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : [],
           tags: formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
-          variants: formData.variants || []
+          variants: formData.variants || [],
+          volume_pricing: formData.volume_pricing && formData.volume_pricing.length > 0 ? formData.volume_pricing : null
         };
 
         console.log('📦 Product data prepared:', productData);
@@ -1129,8 +1134,55 @@ const DesktopAdminPanel = ({ onLogout }) => {
         if (editingProduct) {
           // Update existing product
           console.log('🔄 Updating product with ID:', editingProduct.id);
+
+          // Check if stock changed from 0 to positive (for notifications)
+          const oldStock = editingProduct.stock || 0;
+          const newStock = productData.stock || 0;
+          const stockIncreased = oldStock === 0 && newStock > 0;
+
+          // Check variants for stock changes
+          const variantsToNotify = [];
+          if (productData.variants && productData.variants.length > 0) {
+            productData.variants.forEach((newVariant) => {
+              const oldVariant = editingProduct.variants?.find(
+                v => v.color === newVariant.color && v.size === newVariant.size
+              );
+              const oldVarStock = oldVariant?.stock || 0;
+              const newVarStock = newVariant.stock || 0;
+
+              if (oldVarStock === 0 && newVarStock > 0) {
+                variantsToNotify.push({
+                  color: newVariant.color,
+                  size: newVariant.size
+                });
+              }
+            });
+          }
+
           await updateProduct(editingProduct.id, productData);
           console.log('✅ Product updated successfully');
+
+          // Send stock notifications if stock was replenished
+          if (stockIncreased || variantsToNotify.length > 0) {
+            console.log('📢 Stock replenished! Sending notifications...');
+
+            try {
+              if (stockIncreased && (!productData.variants || productData.variants.length === 0)) {
+                // Non-variant product back in stock
+                await notifyProductBackInStock(productData);
+              }
+
+              // Notify for each variant that came back in stock
+              for (const variant of variantsToNotify) {
+                await notifyProductBackInStock(productData, variant.color, variant.size);
+              }
+
+              console.log('✅ Stock notifications sent');
+            } catch (error) {
+              console.error('❌ Failed to send stock notifications:', error);
+              // Don't block the update if notifications fail
+            }
+          }
         } else {
           // Create new product
           console.log('➕ Creating new product...');
@@ -1159,7 +1211,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
           sizes: '',
           tags: '',
           inStock: true,
-          variants: []
+          variants: [],
+          volume_pricing: null
         });
         console.log('✨ Form submitted successfully!');
       } catch (error) {
@@ -1191,7 +1244,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
         sizes: product.sizes ? product.sizes.join(', ') : '',
         tags: product.tags ? product.tags.join(', ') : '',
         inStock: product.inStock !== false,
-        variants: product.variants || []
+        variants: product.variants || [],
+        volume_pricing: product.volume_pricing || null
       });
       setShowForm(true);
     };
@@ -1656,10 +1710,136 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
               </div>
 
+              {/* Volume Pricing Section */}
+              <div className="md:col-span-2 border-t border-gray-200 pt-6">
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="text-sm font-bold text-green-900">
+                      Hajmli narxlash (Volume Discounts)
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newTier = {
+                          min_qty: formData.volume_pricing?.length > 0
+                            ? (formData.volume_pricing[formData.volume_pricing.length - 1].max_qty || 0) + 1
+                            : 2,
+                          max_qty: null,
+                          price: parseFloat(formData.salePrice || formData.price) || 0
+                        };
+                        setFormData({
+                          ...formData,
+                          volume_pricing: [...(formData.volume_pricing || []), newTier]
+                        });
+                      }}
+                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Daraja qo'shish
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-green-700 mb-4">
+                    Ko'p miqdorda xarid qilgan xaridorlar uchun maxsus narxlarni belgilang
+                  </p>
+
+                  {formData.volume_pricing && formData.volume_pricing.length > 0 ? (
+                    <div className="space-y-3">
+                      {formData.volume_pricing
+                        .sort((a, b) => a.min_qty - b.min_qty)
+                        .map((tier, index) => (
+                        <div key={index} className="bg-white p-3 rounded-lg border border-green-200 flex items-center gap-3">
+                          <div className="flex-1 grid grid-cols-3 gap-3">
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Min miqdor
+                              </label>
+                              <input
+                                type="number"
+                                min="1"
+                                value={tier.min_qty}
+                                onChange={(e) => {
+                                  const updated = [...(formData.volume_pricing || [])];
+                                  updated[index].min_qty = parseInt(e.target.value) || 1;
+                                  setFormData({ ...formData, volume_pricing: updated });
+                                }}
+                                className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Max miqdor
+                              </label>
+                              <input
+                                type="number"
+                                min={tier.min_qty}
+                                value={tier.max_qty || ''}
+                                onChange={(e) => {
+                                  const updated = [...(formData.volume_pricing || [])];
+                                  updated[index].max_qty = e.target.value ? parseInt(e.target.value) : null;
+                                  setFormData({ ...formData, volume_pricing: updated });
+                                }}
+                                placeholder="Cheksiz"
+                                className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-medium text-gray-700 mb-1">
+                                Har bir narxi (UZS)
+                              </label>
+                              <input
+                                type="number"
+                                min="0"
+                                value={tier.price}
+                                onChange={(e) => {
+                                  const updated = [...(formData.volume_pricing || [])];
+                                  updated[index].price = parseFloat(e.target.value) || 0;
+                                  setFormData({ ...formData, volume_pricing: updated });
+                                }}
+                                className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              />
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = formData.volume_pricing.filter((_, i) => i !== index);
+                              setFormData({ ...formData, volume_pricing: updated.length > 0 ? updated : null });
+                            }}
+                            className="bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-lg transition-colors"
+                            title="Darajani o'chirish"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* Preview */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-blue-900 mb-2">📊 Ko'rinish:</p>
+                        <div className="text-xs text-blue-800 space-y-1">
+                          {formData.volume_pricing
+                            .sort((a, b) => a.min_qty - b.min_qty)
+                            .map((tier, idx) => (
+                            <div key={idx}>
+                              • {tier.min_qty}{tier.max_qty ? `-${tier.max_qty}` : '+'} dona: {formatPrice(tier.price)} har biri
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6 text-gray-500 text-sm">
+                      <p className="mb-2">Hozircha hajmli narxlash yo'q</p>
+                      <p className="text-xs">Yuqoridagi "Daraja qo'shish" tugmasini bosing</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div className="md:col-span-2 flex gap-4">
                 <button
                   type="submit"
-                  onClick={(e) => console.log('🖱️ Button clicked!', e)}
                   className="bg-accent hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                 >
                   {editingProduct ? 'Update Product' : 'Add Product'}

@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, useContext } from 'react';
 import { saveToLocalStorage, loadFromLocalStorage } from '../utils/helpers';
 import { usersAPI } from '../services/api';
 import { UserContext } from './UserContext';
+import { calculateItemTotal } from '../utils/volumePricing';
 
 export const CartContext = createContext();
 
@@ -129,7 +130,11 @@ export const CartProvider = ({ children }) => {
   };
 
   const getCartTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => {
+      // Calculate price considering volume discounts
+      const itemTotal = calculateItemTotal(item.quantity, item.price, item.volume_pricing);
+      return total + itemTotal;
+    }, 0);
   };
 
   const getCartItemsCount = () => {

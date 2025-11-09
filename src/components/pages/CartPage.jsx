@@ -2,6 +2,8 @@ import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { t } from "../../utils/translation-fallback";
 import { useCart } from '../../hooks/useCart';
 import { formatPrice } from '../../utils/helpers';
+import { getVolumePricedUnit, calculateItemTotal } from '../../utils/volumePricing';
+import { getVariantStock } from '../../utils/variants';
 
 const CartPage = ({ onNavigate }) => {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
@@ -51,9 +53,16 @@ const CartPage = ({ onNavigate }) => {
                   {item.selectedSize && (
                     <p className="text-sm text-gray-600">{t('product.sizes')}: {item.selectedSize}</p>
                   )}
-                  <p className="text-lg font-bold text-primary mt-2">
-                    {formatPrice(item.price)}
-                  </p>
+                  <div className="mt-2">
+                    <p className="text-lg font-bold text-primary">
+                      {formatPrice(item.price)}
+                    </p>
+                    {item.volume_pricing && item.volume_pricing.length > 0 && (
+                      <p className="text-xs text-green-600 font-medium">
+                        💰 Hajm bo'yicha chegirma mavjud
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -61,7 +70,8 @@ const CartPage = ({ onNavigate }) => {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
-                    className="w-8 h-8 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100"
+                    className="w-8 h-8 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={item.quantity <= 1}
                   >
                     <Minus className="w-4 h-4" />
                   </button>
@@ -70,7 +80,20 @@ const CartPage = ({ onNavigate }) => {
                   </span>
                   <button
                     onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                    className="w-8 h-8 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100"
+                    className="w-8 h-8 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={(() => {
+                      // Calculate current available stock for THIS specific variant
+                      const hasVariants = item.variants && item.variants.length > 0;
+
+                      // If product has variants and user selected a specific variant
+                      if (hasVariants && item.selectedColor && item.selectedSize) {
+                        const currentStock = getVariantStock(item.variants, item.selectedColor, item.selectedSize);
+                        return item.quantity >= currentStock;
+                      }
+
+                      // For products without variants or no selection, use regular stock
+                      return item.quantity >= (item.stock || 0);
+                    })()}
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -84,13 +107,72 @@ const CartPage = ({ onNavigate }) => {
                 </button>
               </div>
 
+              {/* Stock limit indicator */}
+              {(() => {
+                const hasVariants = item.variants && item.variants.length > 0;
+
+                // Get stock for the specific variant selected
+                let currentStock;
+                if (hasVariants && item.selectedColor && item.selectedSize) {
+                  currentStock = getVariantStock(item.variants, item.selectedColor, item.selectedSize);
+                } else {
+                  currentStock = item.stock || 0;
+                }
+
+                if (item.quantity >= currentStock) {
+                  return (
+                    <div className="mt-2 text-xs text-warning flex items-center gap-1">
+                      <span>⚠️ Omborda {currentStock} dona mavjud</span>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="mt-3 pt-3 border-t border-gray-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">{t('cart.subtotal')}:</span>
-                  <span className="text-lg font-bold">
-                    {formatPrice(item.price * item.quantity)}
-                  </span>
-                </div>
+                {(() => {
+                  const effectivePrice = getVolumePricedUnit(item.quantity, item.price, item.volume_pricing);
+                  const itemTotal = calculateItemTotal(item.quantity, item.price, item.volume_pricing);
+                  const hasDiscount = effectivePrice < item.price;
+
+                  return (
+                    <>
+                      {hasDiscount && (
+                        <div className="mb-2 bg-green-50 border border-green-200 rounded p-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-green-700">
+                              Narx har biri ({item.quantity} dona):
+                            </span>
+                            <span className="font-bold text-green-800">
+                              {formatPrice(effectivePrice)}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs mt-1">
+                            <span className="text-green-700">
+                              Tejashingiz:
+                            </span>
+                            <span className="font-bold text-green-800">
+                              {formatPrice((item.price - effectivePrice) * item.quantity)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600">{t('cart.subtotal')}:</span>
+                        <div className="text-right">
+                          <span className="text-lg font-bold">
+                            {formatPrice(itemTotal)}
+                          </span>
+                          {hasDiscount && (
+                            <div className="text-xs text-gray-500 line-through">
+                              {formatPrice(item.price * item.quantity)}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
           ))}

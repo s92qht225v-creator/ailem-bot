@@ -1,10 +1,11 @@
 import { useState, useEffect, useContext } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, X, ZoomIn, Share2 } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, X, ZoomIn, Share2, Bell, BellOff } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant } from '../../utils/variants';
 import { UserContext } from '../../context/UserContext';
 import { getTelegramWebApp } from '../../utils/telegram';
+import { stockNotificationsAPI } from '../../services/api';
 
 const ProductDetails = ({ product, onAddToCart }) => {
   const { user } = useContext(UserContext);
@@ -15,6 +16,8 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [isSubscribing, setIsSubscribing] = useState(false);
 
   // Check if product uses variant tracking (must be declared first)
   const hasVariants = product.variants && product.variants.length > 0;
@@ -122,6 +125,62 @@ const ProductDetails = ({ product, onAddToCart }) => {
 
   const handleAddToCart = () => {
     onAddToCart(product, quantity, selectedColor, selectedSize);
+  };
+
+  // Check if user is subscribed to stock notifications
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (user?.id && user.id !== 'demo-1' && currentStock === 0) {
+        try {
+          const subscribed = await stockNotificationsAPI.isSubscribed(
+            user.id,
+            product.id,
+            selectedColor,
+            selectedSize
+          );
+          setIsSubscribed(subscribed);
+        } catch (error) {
+          console.error('Error checking subscription:', error);
+        }
+      } else {
+        setIsSubscribed(false);
+      }
+    };
+
+    checkSubscription();
+  }, [user?.id, product.id, selectedColor, selectedSize, currentStock]);
+
+  // Handle stock notification subscription
+  const handleNotifyMe = async () => {
+    if (!user?.id || user.id === 'demo-1') {
+      alert('Iltimos, Telegram orqali kiring');
+      return;
+    }
+
+    setIsSubscribing(true);
+    try {
+      if (isSubscribed) {
+        // Unsubscribe
+        await stockNotificationsAPI.unsubscribe(user.id, product.id, selectedColor, selectedSize);
+        setIsSubscribed(false);
+        alert('Bildirishnoma bekor qilindi');
+      } else {
+        // Subscribe
+        const result = await stockNotificationsAPI.subscribe(user.id, product.id, selectedColor, selectedSize);
+        if (result.alreadySubscribed) {
+          setIsSubscribed(true);
+          alert('Siz allaqachon obuna bo\'lgansiz!');
+        } else {
+          setIsSubscribed(true);
+          alert('✅ Mahsulot omborda bo\'lganda xabar beramiz!');
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling notification:', error);
+      alert('Xatolik yuz berdi. Qayta urinib ko\'ring.');
+    } finally {
+      setIsSubscribing(false);
+    }
   };
 
   const handleShare = () => {
@@ -286,6 +345,36 @@ const ProductDetails = ({ product, onAddToCart }) => {
             )}
           </div>
 
+          {/* Volume Pricing Display */}
+          {product.volume_pricing && product.volume_pricing.length > 0 && (
+            <div className="mb-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-sm font-bold text-green-900">
+                  💰 Hajm bo'yicha chegirmalar
+                </span>
+              </div>
+              <div className="space-y-1">
+                {product.volume_pricing
+                  .sort((a, b) => a.min_qty - b.min_qty)
+                  .map((tier, idx) => (
+                  <div key={idx} className="text-sm text-green-800 flex items-center gap-2">
+                    <span className="font-medium">
+                      {tier.min_qty}{tier.max_qty ? `-${tier.max_qty}` : '+'} dona:
+                    </span>
+                    <span className="font-bold text-green-900">
+                      {formatPrice(tier.price)} har biri
+                    </span>
+                    {tier.price < product.price && (
+                      <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
+                        {formatPrice(product.price - tier.price)} tejash
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="mb-4">
             {hasVariants && selectedColor && selectedSize ? (
               <div className="space-y-1">
@@ -402,15 +491,45 @@ const ProductDetails = ({ product, onAddToCart }) => {
           </div>
         </div>
 
-        {/* Add to Cart Button */}
-        <button
-          onClick={handleAddToCart}
-          disabled={currentStock === 0}
-          className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-3"
-        >
-          <ShoppingCart className="w-5 h-5" />
-          {currentStock === 0 ? t('shop.outOfStock') : `${t('product.addToCart')} - ${formatPrice(totalPrice)}`}
-        </button>
+        {/* Add to Cart or Notify Me Button */}
+        {currentStock === 0 ? (
+          // Out of Stock - Show Notify Me button
+          <button
+            onClick={handleNotifyMe}
+            disabled={isSubscribing}
+            className={`w-full py-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 mb-3 ${
+              isSubscribed
+                ? 'bg-green-100 text-green-700 border-2 border-green-300'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            {isSubscribing ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Yuklanmoqda...
+              </>
+            ) : isSubscribed ? (
+              <>
+                <BellOff className="w-5 h-5" />
+                ✓ Xabar berishni bekor qilish
+              </>
+            ) : (
+              <>
+                <Bell className="w-5 h-5" />
+                🔔 Omborda bo'lganda xabar bering
+              </>
+            )}
+          </button>
+        ) : (
+          // In Stock - Show Add to Cart button
+          <button
+            onClick={handleAddToCart}
+            className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 mb-3"
+          >
+            <ShoppingCart className="w-5 h-5" />
+            {`${t('product.addToCart')} - ${formatPrice(totalPrice)}`}
+          </button>
+        )}
 
         {/* Share Button */}
         <button
