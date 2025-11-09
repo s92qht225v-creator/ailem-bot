@@ -1140,15 +1140,29 @@ const DesktopAdminPanel = ({ onLogout }) => {
           const newStock = productData.stock || 0;
           const stockIncreased = oldStock === 0 && newStock > 0;
 
+          console.log('📊 Stock change detection:', {
+            oldStock,
+            newStock,
+            stockIncreased,
+            hasVariants: productData.variants?.length > 0
+          });
+
           // Check variants for stock changes
           const variantsToNotify = [];
           if (productData.variants && productData.variants.length > 0) {
+            console.log('🔍 Checking variant stock changes...');
             productData.variants.forEach((newVariant) => {
               const oldVariant = editingProduct.variants?.find(
                 v => v.color === newVariant.color && v.size === newVariant.size
               );
               const oldVarStock = oldVariant?.stock || 0;
               const newVarStock = newVariant.stock || 0;
+
+              console.log(`  Variant ${newVariant.color}-${newVariant.size}:`, {
+                oldStock: oldVarStock,
+                newStock: newVarStock,
+                shouldNotify: oldVarStock === 0 && newVarStock > 0
+              });
 
               if (oldVarStock === 0 && newVarStock > 0) {
                 variantsToNotify.push({
@@ -1157,6 +1171,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 });
               }
             });
+            console.log('✅ Variants to notify:', variantsToNotify);
           }
 
           await updateProduct(editingProduct.id, productData);

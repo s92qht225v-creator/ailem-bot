@@ -1404,6 +1404,13 @@ export const stockNotificationsAPI = {
   // Subscribe user to stock notification
   async subscribe(userId, productId, variantColor = null, variantSize = null) {
     try {
+      console.log('🔔 Subscribing to stock notification:', {
+        userId,
+        productId,
+        variantColor,
+        variantSize
+      });
+
       const { data, error} = await supabase
         .from('stock_notifications')
         .insert([{
@@ -1419,14 +1426,16 @@ export const stockNotificationsAPI = {
       if (error) {
         // Handle duplicate subscription gracefully
         if (error.code === '23505') {
-          console.log('User already subscribed to this product notification');
+          console.log('ℹ️ User already subscribed to this product notification');
           return { alreadySubscribed: true };
         }
+        console.error('❌ Subscription error:', error);
         throw error;
       }
+      console.log('✅ Subscribed to stock notifications:', data);
       return data;
     } catch (error) {
-      console.error('Error subscribing to stock notification:', error);
+      console.error('❌ Error subscribing to stock notification:', error);
       throw error;
     }
   },
