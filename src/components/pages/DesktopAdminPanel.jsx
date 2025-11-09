@@ -6,7 +6,7 @@ import {
   Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload,
   TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle, AlertCircle,
   Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff, ImagePlus,
-  Download, FileDown, ChevronUp, ChevronDown, RotateCw
+  Download, FileDown, ChevronUp, ChevronDown, RotateCw, Printer
 } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
@@ -18,6 +18,7 @@ import { settingsAPI, storageAPI, usersAPI } from '../../services/api';
 import { exportOrders, exportOrderItems, exportProducts, exportUsers, exportReviews } from '../../utils/csvExport';
 import { notifyUserOrderStatus, notifyReferrerReward, notifyAdminLowStock } from '../../services/telegram';
 import { notifyProductBackInStock } from '../../services/stockNotifications';
+import { printShippingLabel, printMultipleLabels } from '../../utils/shippingLabel';
 import ImageModal from '../common/ImageModal';
 
 const DesktopAdminPanel = ({ onLogout }) => {
@@ -681,6 +682,16 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <span className="text-sm font-semibold text-blue-900">
                 {selectedOrders.length} order(s) selected
               </span>
+              <button
+                onClick={() => {
+                  const ordersTorint = orders.filter(o => selectedOrders.includes(o.id));
+                  printMultipleLabels(ordersTorint);
+                }}
+                className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-1.5"
+              >
+                <Printer className="w-4 h-4" />
+                Print {selectedOrders.length} Label{selectedOrders.length > 1 ? 's' : ''}
+              </button>
               <select
                 value={bulkAction}
                 onChange={(e) => setBulkAction(e.target.value)}
@@ -787,20 +798,40 @@ const DesktopAdminPanel = ({ onLogout }) => {
                           </>
                         )}
                         {order.status === 'approved' && (
-                          <button 
-                            onClick={() => handleMarkShipped(order.id)}
-                            className="text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
-                          >
-                            Mark Shipped
-                          </button>
+                          <>
+                            <button
+                              onClick={() => printShippingLabel(order)}
+                              className="text-green-600 hover:text-green-800 font-medium whitespace-nowrap flex items-center gap-1"
+                              title="Print shipping label"
+                            >
+                              <Printer className="w-4 h-4" />
+                              Label
+                            </button>
+                            <button
+                              onClick={() => handleMarkShipped(order.id)}
+                              className="text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+                            >
+                              Mark Shipped
+                            </button>
+                          </>
                         )}
                         {order.status === 'shipped' && (
-                          <button 
-                            onClick={() => handleMarkDelivered(order.id)}
-                            className="text-purple-600 hover:text-purple-800 font-medium whitespace-nowrap"
-                          >
-                            Mark Delivered
-                          </button>
+                          <>
+                            <button
+                              onClick={() => printShippingLabel(order)}
+                              className="text-green-600 hover:text-green-800 font-medium whitespace-nowrap flex items-center gap-1"
+                              title="Print shipping label"
+                            >
+                              <Printer className="w-4 h-4" />
+                              Label
+                            </button>
+                            <button
+                              onClick={() => handleMarkDelivered(order.id)}
+                              className="text-purple-600 hover:text-purple-800 font-medium whitespace-nowrap"
+                            >
+                              Mark Delivered
+                            </button>
+                          </>
                         )}
                       </div>
                     </td>
