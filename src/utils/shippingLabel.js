@@ -79,6 +79,14 @@ function generateLabelHTML(order, includeDocType = true) {
   // Get courier name - handle both string and object formats
   let courier = 'N/A';
 
+  // Debug logging
+  console.log('🔍 Order courier structure:', {
+    'delivery_info.courier': deliveryInfo.courier,
+    'order.courier': order.courier,
+    'typeof delivery_info.courier': typeof deliveryInfo.courier,
+    'typeof order.courier': typeof order.courier
+  });
+
   // Try delivery_info.courier first
   if (deliveryInfo.courier) {
     if (typeof deliveryInfo.courier === 'string') {
@@ -96,6 +104,8 @@ function generateLabelHTML(order, includeDocType = true) {
       courier = order.courier.name;
     }
   }
+
+  console.log('✅ Final courier value:', courier);
 
   const orderDate = new Date(order.created_at).toLocaleDateString('uz-UZ');
 
