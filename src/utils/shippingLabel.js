@@ -75,15 +75,28 @@ function generateLabelHTML(order, includeDocType = true) {
   const deliveryInfo = order.delivery_info || {};
   const weight = calculateOrderWeight(order.items);
   const itemCount = order.items?.length || 0;
+
   // Get courier name - handle both string and object formats
   let courier = 'N/A';
-  if (typeof deliveryInfo.courier === 'string') {
-    courier = deliveryInfo.courier;
-  } else if (deliveryInfo.courier && typeof deliveryInfo.courier === 'object' && deliveryInfo.courier.name) {
-    courier = deliveryInfo.courier.name;
-  } else if (order.courier) {
-    courier = typeof order.courier === 'string' ? order.courier : (order.courier.name || 'N/A');
+
+  // Try delivery_info.courier first
+  if (deliveryInfo.courier) {
+    if (typeof deliveryInfo.courier === 'string') {
+      courier = deliveryInfo.courier;
+    } else if (typeof deliveryInfo.courier === 'object' && deliveryInfo.courier.name) {
+      courier = deliveryInfo.courier.name;
+    }
   }
+
+  // Fallback to top-level order.courier
+  if (courier === 'N/A' && order.courier) {
+    if (typeof order.courier === 'string') {
+      courier = order.courier;
+    } else if (typeof order.courier === 'object' && order.courier.name) {
+      courier = order.courier.name;
+    }
+  }
+
   const orderDate = new Date(order.created_at).toLocaleDateString('uz-UZ');
 
   // Build address
