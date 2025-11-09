@@ -76,9 +76,6 @@ export async function notifyProductBackInStock(product, variantColor = null, var
 
     console.log(`📬 Found ${subscribers.length} subscriber(s)`);
 
-    const botUsername = import.meta.env.VITE_BOT_USERNAME || 'ailemuz_bot';
-    const productUrl = `https://t.me/${botUsername}/app`;
-
     let notifiedCount = 0;
     const notificationIds = [];
 
@@ -104,8 +101,8 @@ export async function notifyProductBackInStock(product, variantColor = null, var
       message += `💰 <b>Narx:</b> ${product.price.toLocaleString('uz-UZ')} UZS\n\n`;
       message += `⏰ Tez buyurtma bering, omborda cheklangan miqdorda!`;
 
-      // Send notification
-      const sent = await sendTelegramMessage(telegramId, message, productUrl);
+      // Send notification without button (button URL was causing errors)
+      const sent = await sendTelegramMessage(telegramId, message);
 
       if (sent) {
         notifiedCount++;
