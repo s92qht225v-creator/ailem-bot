@@ -75,7 +75,6 @@ function generateLabelHTML(order, includeDocType = true) {
   const deliveryInfo = order.delivery_info || {};
   const weight = calculateOrderWeight(order.items);
   const itemCount = order.items?.length || 0;
-  const paymentStatus = order.payment_status === 'paid' ? '✅ To\'langan' : '❌ To\'lanmagan';
   const courier = deliveryInfo.courier || 'N/A';
   const orderDate = new Date(order.created_at).toLocaleDateString('uz-UZ');
 
@@ -125,10 +124,6 @@ function generateLabelHTML(order, includeDocType = true) {
         <div class="info-row">
           <span class="info-label">Jami:</span>
           <span class="info-value">${(order.total_amount || 0).toLocaleString('uz-UZ')} UZS</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">To'lov:</span>
-          <span class="info-value">${paymentStatus}</span>
         </div>
         <div class="info-row">
           <span class="info-label">Yetkazish:</span>
