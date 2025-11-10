@@ -913,7 +913,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
                         <div className="pt-2 border-t border-gray-200">
                           <div className="flex justify-between">
                             <span className="text-sm text-gray-600">Courier Service:</span>
-                            <span className="text-sm font-semibold text-primary">{selectedOrder.courier}</span>
+                            <span className="text-sm font-semibold text-primary">
+                              {typeof selectedOrder.courier === 'string' && selectedOrder.courier.startsWith('{')
+                                ? JSON.parse(selectedOrder.courier).name
+                                : typeof selectedOrder.courier === 'object'
+                                ? selectedOrder.courier.name
+                                : selectedOrder.courier}
+                            </span>
                           </div>
                         </div>
                       )}
