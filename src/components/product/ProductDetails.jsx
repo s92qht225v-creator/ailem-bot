@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext, useRef } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, X, ZoomIn, Share2, Bell, BellOff } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, Share2, Bell, BellOff } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant } from '../../utils/variants';
 import { UserContext } from '../../context/UserContext';
@@ -13,9 +13,6 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
   const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
   const [quantity, setQuantity] = useState(1);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
-  const [isZoomed, setIsZoomed] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
 
@@ -206,9 +203,6 @@ const ProductDetails = ({ product, onAddToCart }) => {
 
       lastTouchPosRef.current = { x: touch.clientX, y: touch.clientY };
       updateTransform();
-    } else if (e.touches.length === 1) {
-      // Track swipe for image navigation
-      setTouchEnd(e.targetTouches[0].clientX);
     }
   };
 
@@ -233,8 +227,6 @@ const ProductDetails = ({ product, onAddToCart }) => {
     }
 
     swipeStartXRef.current = 0;
-    setTouchStart(0);
-    setTouchEnd(0);
   };
 
 
@@ -354,16 +346,10 @@ const ProductDetails = ({ product, onAddToCart }) => {
       <div className="bg-gray-50">
         {/* Main Image */}
         <div
-          className="relative cursor-pointer aspect-square overflow-hidden"
+          className="relative aspect-square overflow-hidden"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          onClick={(e) => {
-            // Only open fullscreen if not zoomed
-            if (scaleRef.current === 1) {
-              setIsZoomed(true);
-            }
-          }}
         >
           <img
             ref={imageRef}
@@ -379,11 +365,6 @@ const ProductDetails = ({ product, onAddToCart }) => {
               e.target.src = 'https://via.placeholder.com/600x400?text=Image+Not+Found';
             }}
           />
-
-          {/* Zoom Icon Indicator */}
-          <div className="absolute bottom-2 right-2 bg-black/60 text-white p-2 rounded-full backdrop-blur-sm">
-            <ZoomIn className="w-5 h-5" />
-          </div>
 
           {/* Navigation Arrows */}
           {images.length > 1 && (
@@ -670,69 +651,6 @@ const ProductDetails = ({ product, onAddToCart }) => {
         </button>
       </div>
 
-      {/* Zoomed Image Modal */}
-      {isZoomed && (
-        <div
-          className="fixed inset-0 bg-black/95 z-50 flex flex-col items-center justify-center"
-          onClick={() => setIsZoomed(false)}
-        >
-          {/* Image Counter */}
-          {images.length > 1 && (
-            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/60 text-white px-4 py-2 rounded-full text-sm font-semibold backdrop-blur-sm">
-              <span>{currentImageIndex + 1} / {images.length}</span>
-            </div>
-          )}
-
-          {/* Close Button - Below image in center */}
-          <button
-            onClick={() => setIsZoomed(false)}
-            className="absolute bottom-6 left-1/2 transform -translate-x-1/2 bg-white/20 hover:bg-white/30 text-white px-6 py-3 rounded-full transition-colors z-10 backdrop-blur-sm flex items-center gap-2 font-medium"
-          >
-            <X className="w-5 h-5" />
-            <span>Close</span>
-          </button>
-
-          {/* Zoomed Image Container */}
-          <div
-            className="relative w-full h-full flex items-center justify-center p-4"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <img
-              src={images[currentImageIndex]}
-              alt={product.name}
-              className="max-w-full max-h-full object-contain"
-              onError={(e) => {
-                console.error('Failed to load zoomed image:', images[currentImageIndex]);
-                e.target.src = 'https://via.placeholder.com/800x800?text=Image+Not+Found';
-              }}
-            />
-
-            {/* Navigation Arrows for Zoomed View */}
-            {images.length > 1 && (
-              <>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handlePrevImage();
-                  }}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors backdrop-blur-sm"
-                >
-                  <ChevronLeft className="w-8 h-8" />
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleNextImage();
-                  }}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/20 hover:bg-white/30 text-white p-3 rounded-full transition-colors backdrop-blur-sm"
-                >
-                  <ChevronRight className="w-8 h-8" />
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };
