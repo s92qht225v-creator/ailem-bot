@@ -513,7 +513,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
             ) : (
               <>
                 <Bell className="w-5 h-5" />
-                🔔 Omborda bo'lganda xabar bering
+                Omborda bo'lganda xabar bering
               </>
             )}
           </button>
