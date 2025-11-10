@@ -20,7 +20,7 @@ import { notifyUserOrderStatus, notifyReferrerReward, notifyAdminLowStock } from
 import { notifyProductBackInStock } from '../../services/stockNotifications';
 import { printShippingLabel, printMultipleLabels } from '../../utils/shippingLabel';
 import { printPackingSlip, printMultiplePackingSlips } from '../../utils/packingSlip';
-import { supabase } from '../../services/supabase';
+import { supabase } from '../../lib/supabase';
 import ImageModal from '../common/ImageModal';
 
 const DesktopAdminPanel = ({ onLogout }) => {
