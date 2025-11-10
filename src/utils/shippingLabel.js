@@ -130,20 +130,9 @@ function generateLabelHTML(order, includeDocType = true) {
   const label = `
     <div class="label">
       <div class="header">
-        <div class="header-left">
-          <strong>AILEM.UZ</strong><br>
-          <span style="font-size: 9pt;">+998 99 123 45 67</span>
-        </div>
         <div class="header-right">
           <strong style="font-size: 14pt;">#${order.id}</strong>
         </div>
-      </div>
-
-      <div class="section-title">📦 KIMGA (TO):</div>
-      <div class="section to-section">
-        <div class="recipient-name">${deliveryInfo.fullName || 'N/A'}</div>
-        <div class="recipient-phone">${deliveryInfo.phone || 'N/A'}</div>
-        <div class="recipient-address">${address || 'Manzil ko\'rsatilmagan'}</div>
       </div>
 
       <div class="section-title">📤 KIMDAN (FROM):</div>
@@ -151,6 +140,13 @@ function generateLabelHTML(order, includeDocType = true) {
         <strong>AILEM Do'koni</strong><br>
         Sergeli tumani, Toshkent<br>
         +998 99 123 45 67
+      </div>
+
+      <div class="section-title">📦 KIMGA (TO):</div>
+      <div class="section to-section">
+        <div class="recipient-name">${deliveryInfo.fullName || 'N/A'}</div>
+        <div class="recipient-phone">${deliveryInfo.phone || 'N/A'}</div>
+        <div class="recipient-address">${address || 'Manzil ko\'rsatilmagan'}</div>
       </div>
 
       <div class="section-title">📊 BUYURTMA MA'LUMOTLARI:</div>
