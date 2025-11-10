@@ -135,14 +135,14 @@ function generateLabelHTML(order, includeDocType = true) {
         </div>
       </div>
 
-      <div class="section-title">KIMDAN (FROM):</div>
+      <div class="section-title">KIMDAN:</div>
       <div class="section from-section">
         <strong>AILEM Do'koni</strong><br>
-        Yunusobod-19, 44 dom, Yunusobod, Toshkent<br>
+        Yunusobod-19, 44 dom, Toshkent<br>
         +998 99 221 11 12
       </div>
 
-      <div class="section-title">KIMGA (TO):</div>
+      <div class="section-title">KIMGA:</div>
       <div class="section to-section">
         <div class="recipient-name">${deliveryInfo.fullName || 'N/A'}</div>
         <div class="recipient-phone">${deliveryInfo.phone || 'N/A'}</div>
