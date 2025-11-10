@@ -130,26 +130,26 @@ function generateLabelHTML(order, includeDocType = true) {
   const label = `
     <div class="label">
       <div class="header">
-        <div class="header-right">
+        <div class="header-center">
           <strong style="font-size: 14pt;">#${order.id}</strong>
         </div>
       </div>
 
-      <div class="section-title">📤 KIMDAN (FROM):</div>
+      <div class="section-title">KIMDAN (FROM):</div>
       <div class="section from-section">
         <strong>AILEM Do'koni</strong><br>
-        Sergeli tumani, Toshkent<br>
-        +998 99 123 45 67
+        Yunusobod-19, 44 dom, Yunusobod, Toshkent<br>
+        +998 99 221 11 12
       </div>
 
-      <div class="section-title">📦 KIMGA (TO):</div>
+      <div class="section-title">KIMGA (TO):</div>
       <div class="section to-section">
         <div class="recipient-name">${deliveryInfo.fullName || 'N/A'}</div>
         <div class="recipient-phone">${deliveryInfo.phone || 'N/A'}</div>
         <div class="recipient-address">${address || 'Manzil ko\'rsatilmagan'}</div>
       </div>
 
-      <div class="section-title">📊 BUYURTMA MA'LUMOTLARI:</div>
+      <div class="section-title">BUYURTMA MA'LUMOTLARI:</div>
       <div class="section info-section">
         <div class="info-row">
           <span class="info-label">Mahsulotlar:</span>
@@ -250,19 +250,15 @@ function getStyles() {
 
       .header {
         display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
+        justify-content: center;
+        align-items: center;
         border-bottom: 2px solid #000;
         padding-bottom: 3mm;
         margin-bottom: 3mm;
       }
 
-      .header-left {
-        font-size: 11pt;
-      }
-
-      .header-right {
-        text-align: right;
+      .header-center {
+        text-align: center;
       }
 
       .section-title {
