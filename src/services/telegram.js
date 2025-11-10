@@ -104,52 +104,52 @@ export const notifyUserOrderStatus = async (order, status) => {
   switch (status) {
     case 'approved':
       message = `
-🎉 <b>Order Approved!</b>
+🎉 <b>Buyurtma tasdiqlandi!</b>
 
-Your order <b>#${order.id}</b> has been approved!
+Sizning <b>#${order.id}</b> raqamli buyurtmangiz tasdiqlandi!
 
-📦 Items: ${order.items.length} item(s)
-💰 Total: ${order.total} UZS
-🚚 Courier: ${order.courier}
+📦 Mahsulotlar: ${order.items.length} ta
+💰 Jami: ${order.total} UZS
+🚚 Yetkazib beruvchi: ${order.courier}
 
-Your order will be shipped soon. Thank you for shopping with us! 🛍️
+Buyurtmangiz tez orada jo'natiladi. Xarid uchun rahmat! 🛍️
       `.trim();
       break;
 
     case 'shipped':
       message = `
-📦 <b>Order Shipped!</b>
+📦 <b>Buyurtma jo'natildi!</b>
 
-Your order <b>#${order.id}</b> is on its way!
+Sizning <b>#${order.id}</b> raqamli buyurtmangiz yo'lda!
 
-🚚 Courier: ${order.courier}
-📍 Delivery to: ${order.deliveryInfo?.city || 'N/A'}
+🚚 Yetkazib beruvchi: ${order.courier}
+📍 Manzil: ${order.deliveryInfo?.city || 'N/A'}
 
-Track your order and stay updated. It should arrive soon! 🚀
+Buyurtmangizni kuzatib boring. Tez orada yetib keladi! 🚀
       `.trim();
       break;
 
     case 'delivered':
       message = `
-✅ <b>Order Delivered!</b>
+✅ <b>Buyurtma yetkazildi!</b>
 
-Your order <b>#${order.id}</b> has been delivered!
+Sizning <b>#${order.id}</b> raqamli buyurtmangiz yetkazildi!
 
-Thank you for shopping with us! 🎉
+Xarid uchun rahmat! 🎉
 
-💬 Please leave a review to help others!
+💬 Iltimos, boshqalarga yordam berish uchun sharh qoldiring!
       `.trim();
       break;
 
     case 'rejected':
       message = `
-❌ <b>Order Rejected</b>
+❌ <b>Buyurtma bekor qilindi</b>
 
-Sorry, your order <b>#${order.id}</b> could not be processed.
+Kechirasiz, <b>#${order.id}</b> raqamli buyurtmangiz bajarilmadi.
 
-💰 Amount: ${order.total} UZS
+💰 Summa: ${order.total} UZS
 
-Your bonus points have been refunded. Please contact support if you have questions.
+Bonus ballaringiz qaytarildi. Savollaringiz bo'lsa, qo'llab-quvvatlash xizmatiga murojaat qiling.
       `.trim();
       break;
 
