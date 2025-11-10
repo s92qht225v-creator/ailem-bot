@@ -171,12 +171,11 @@ function generateLabelHTML(order, includeDocType = true) {
           <span class="info-label">Og'irligi:</span>
           <span class="info-value">~${weight} kg</span>
         </div>
+        <div class="info-row">
+          <span class="info-label">Sana:</span>
+          <span class="info-value">${orderDate}</span>
+        </div>
       </div>
-
-      <div class="order-number">
-        BUYURTMA #${order.id}
-      </div>
-      <div class="order-date">${orderDate}</div>
     </div>
   `;
 
