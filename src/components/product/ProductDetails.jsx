@@ -167,11 +167,8 @@ const ProductDetails = ({ product, onAddToCart }) => {
       } else {
         // Subscribe
         const result = await stockNotificationsAPI.subscribe(user.id, product.id, selectedColor, selectedSize);
-        if (result.alreadySubscribed) {
-          setIsSubscribed(true);
-          alert('Siz allaqachon obuna bo\'lgansiz!');
-        } else {
-          setIsSubscribed(true);
+        setIsSubscribed(true);
+        if (!result.alreadySubscribed) {
           alert('✅ Mahsulot omborda bo\'lganda xabar beramiz!');
         }
       }
