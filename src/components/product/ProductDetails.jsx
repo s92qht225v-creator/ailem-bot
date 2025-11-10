@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { t } from "../../utils/translation-fallback";
 import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, X, ZoomIn, Share2, Bell, BellOff } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
@@ -18,6 +18,18 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const [isZoomed, setIsZoomed] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
+
+  // Inline pinch-to-zoom states (using refs for smooth performance)
+  const imageRef = useRef(null);
+  const scaleRef = useRef(1);
+  const posXRef = useRef(0);
+  const posYRef = useRef(0);
+  const initialDistanceRef = useRef(0);
+  const initialScaleRef = useRef(1);
+  const isPinchingRef = useRef(false);
+  const lastTouchPosRef = useRef({ x: 0, y: 0 });
+  const [lastTap, setLastTap] = useState(0);
+  const swipeStartXRef = useRef(0);
 
   // Check if product uses variant tracking (must be declared first)
   const hasVariants = product.variants && product.variants.length > 0;
@@ -81,36 +93,146 @@ const ProductDetails = ({ product, onAddToCart }) => {
     }
   }, [currentStock, quantity]);
 
+  const resetZoom = () => {
+    scaleRef.current = 1;
+    posXRef.current = 0;
+    posYRef.current = 0;
+    updateTransform(true); // smooth transition
+  };
+
   const handleNextImage = () => {
+    resetZoom();
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
   };
 
   const handlePrevImage = () => {
+    resetZoom();
     setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
   };
 
+  // Helper to constrain pan within image bounds
+  const constrainPosition = () => {
+    if (!imageRef.current) return;
+
+    const img = imageRef.current;
+    const container = img.parentElement;
+
+    // Get the displayed size of the image
+    const imgRect = img.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+
+    // Get base displayed size (without our transform)
+    const baseWidth = imgRect.width / scaleRef.current;
+    const baseHeight = imgRect.height / scaleRef.current;
+
+    // Calculate scaled image size
+    const scaledWidth = baseWidth * scaleRef.current;
+    const scaledHeight = baseHeight * scaleRef.current;
+
+    // Calculate max pan distance
+    const maxPanX = Math.max(0, (scaledWidth - containerRect.width) / 2);
+    const maxPanY = Math.max(0, (scaledHeight - containerRect.height) / 2);
+
+    // Constrain position
+    posXRef.current = Math.max(-maxPanX, Math.min(maxPanX, posXRef.current));
+    posYRef.current = Math.max(-maxPanY, Math.min(maxPanY, posYRef.current));
+  };
+
+  // Helper to update transform directly on DOM (60fps smooth)
+  const updateTransform = (smooth = false) => {
+    if (imageRef.current) {
+      constrainPosition();
+      imageRef.current.style.transition = smooth ? 'transform 0.3s ease-out' : 'none';
+      imageRef.current.style.transform = `translate(${posXRef.current}px, ${posYRef.current}px) scale(${scaleRef.current})`;
+    }
+  };
+
+  // Get distance between two touch points
+  const getDistance = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
   const handleTouchStart = (e) => {
-    setTouchStart(e.targetTouches[0].clientX);
+    if (e.touches.length === 2) {
+      // Pinch gesture started
+      isPinchingRef.current = true;
+      initialDistanceRef.current = getDistance(e.touches);
+      initialScaleRef.current = scaleRef.current;
+      e.preventDefault();
+    } else if (e.touches.length === 1) {
+      const touch = e.touches[0];
+
+      // Store position for both panning and swipe detection
+      lastTouchPosRef.current = { x: touch.clientX, y: touch.clientY };
+      swipeStartXRef.current = touch.clientX;
+
+      // Check for double tap
+      const now = Date.now();
+      if (now - lastTap < 300) {
+        // Double tap detected - toggle zoom
+        e.preventDefault();
+        if (scaleRef.current === 1) {
+          scaleRef.current = 2.5;
+        } else {
+          scaleRef.current = 1;
+          posXRef.current = 0;
+          posYRef.current = 0;
+        }
+        updateTransform(true); // smooth zoom animation
+      }
+      setLastTap(now);
+    }
   };
 
   const handleTouchMove = (e) => {
-    setTouchEnd(e.targetTouches[0].clientX);
+    if (e.touches.length === 2 && isPinchingRef.current) {
+      // Pinch zoom
+      e.preventDefault();
+      const currentDistance = getDistance(e.touches);
+      const newScale = (currentDistance / initialDistanceRef.current) * initialScaleRef.current;
+      scaleRef.current = Math.min(Math.max(1, newScale), 4); // Min 1x, Max 4x
+      updateTransform();
+    } else if (e.touches.length === 1 && scaleRef.current > 1) {
+      // Pan when zoomed in
+      e.preventDefault();
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - lastTouchPosRef.current.x;
+      const deltaY = touch.clientY - lastTouchPosRef.current.y;
+
+      posXRef.current += deltaX;
+      posYRef.current += deltaY;
+
+      lastTouchPosRef.current = { x: touch.clientX, y: touch.clientY };
+      updateTransform();
+    } else if (e.touches.length === 1) {
+      // Track swipe for image navigation
+      setTouchEnd(e.targetTouches[0].clientX);
+    }
   };
 
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-
-    const distance = touchStart - touchEnd;
-    const minSwipeDistance = 50;
-
-    if (distance > minSwipeDistance) {
-      // Swipe left - next image
-      handleNextImage();
-    } else if (distance < -minSwipeDistance) {
-      // Swipe right - previous image
-      handlePrevImage();
+  const handleTouchEnd = (e) => {
+    if (e.touches.length < 2) {
+      isPinchingRef.current = false;
     }
 
+    // Handle swipe navigation only if not zoomed
+    if (scaleRef.current === 1 && swipeStartXRef.current !== 0) {
+      const touchEndX = e.changedTouches[0]?.clientX || 0;
+      const distance = swipeStartXRef.current - touchEndX;
+      const minSwipeDistance = 50;
+
+      if (Math.abs(distance) > minSwipeDistance) {
+        if (distance > 0) {
+          handleNextImage();
+        } else {
+          handlePrevImage();
+        }
+      }
+    }
+
+    swipeStartXRef.current = 0;
     setTouchStart(0);
     setTouchEnd(0);
   };
@@ -232,16 +354,26 @@ const ProductDetails = ({ product, onAddToCart }) => {
       <div className="bg-gray-50">
         {/* Main Image */}
         <div
-          className="relative cursor-pointer aspect-square"
+          className="relative cursor-pointer aspect-square overflow-hidden"
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          onClick={() => setIsZoomed(true)}
+          onClick={(e) => {
+            // Only open fullscreen if not zoomed
+            if (scaleRef.current === 1) {
+              setIsZoomed(true);
+            }
+          }}
         >
           <img
+            ref={imageRef}
             src={images[currentImageIndex]}
             alt={product.name}
             className="w-full h-full object-cover"
+            style={{
+              touchAction: 'none',
+              willChange: 'transform'
+            }}
             onError={(e) => {
               console.error('Failed to load image:', images[currentImageIndex]);
               e.target.src = 'https://via.placeholder.com/600x400?text=Image+Not+Found';
