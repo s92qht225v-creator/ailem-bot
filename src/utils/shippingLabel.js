@@ -79,33 +79,40 @@ function generateLabelHTML(order, includeDocType = true) {
   // Get courier name - handle both string and object formats
   let courier = 'N/A';
 
-  // Debug logging
-  console.log('🔍 Order courier structure:', {
-    'delivery_info.courier': deliveryInfo.courier,
-    'order.courier': order.courier,
-    'typeof delivery_info.courier': typeof deliveryInfo.courier,
-    'typeof order.courier': typeof order.courier
-  });
+  // Helper function to extract courier name from various formats
+  const extractCourierName = (courierData) => {
+    if (!courierData) return null;
+
+    // If it's already a plain string (not JSON), return it
+    if (typeof courierData === 'string') {
+      // Check if it's a JSON string
+      if (courierData.startsWith('{') || courierData.startsWith('"')) {
+        try {
+          const parsed = JSON.parse(courierData);
+          return parsed.name || null;
+        } catch (e) {
+          // If parsing fails, it might be a plain string
+          return courierData;
+        }
+      }
+      return courierData;
+    }
+
+    // If it's an object, extract name
+    if (typeof courierData === 'object' && courierData.name) {
+      return courierData.name;
+    }
+
+    return null;
+  };
 
   // Try delivery_info.courier first
-  if (deliveryInfo.courier) {
-    if (typeof deliveryInfo.courier === 'string') {
-      courier = deliveryInfo.courier;
-    } else if (typeof deliveryInfo.courier === 'object' && deliveryInfo.courier.name) {
-      courier = deliveryInfo.courier.name;
-    }
-  }
+  courier = extractCourierName(deliveryInfo.courier) || courier;
 
   // Fallback to top-level order.courier
-  if (courier === 'N/A' && order.courier) {
-    if (typeof order.courier === 'string') {
-      courier = order.courier;
-    } else if (typeof order.courier === 'object' && order.courier.name) {
-      courier = order.courier.name;
-    }
+  if (courier === 'N/A') {
+    courier = extractCourierName(order.courier) || courier;
   }
-
-  console.log('✅ Final courier value:', courier);
 
   const orderDate = new Date(order.created_at).toLocaleDateString('uz-UZ');
 
