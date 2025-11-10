@@ -1,14 +1,21 @@
 import { Home, ShoppingBag, ShoppingCart, User, Heart } from 'lucide-react';
 import { t } from "../../utils/translation-fallback";
-import { useContext } from 'react';
+import { useContext, useMemo } from 'react';
 import { UserContext } from '../../context/UserContext';
 import { useCart } from '../../hooks/useCart';
+import { useProducts } from '../../hooks/useProducts';
 
 const BottomNav = ({ currentPage, onNavigate }) => {
   const { favorites } = useContext(UserContext);
   const { getCartItemsCount } = useCart();
+  const { allProducts } = useProducts();
   const cartCount = getCartItemsCount();
-  const favoritesCount = favorites?.length || 0;
+
+  // Count only favorites that match existing products
+  const favoritesCount = useMemo(() => {
+    if (!allProducts || !favorites) return 0;
+    return favorites.filter(fav => allProducts.some(p => p.id === fav)).length;
+  }, [allProducts, favorites]);
 
   const navItems = [
     { id: 'home', icon: Home },
