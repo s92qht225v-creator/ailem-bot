@@ -161,7 +161,34 @@ export const t = (key, params = {}) => {
     // Cart additional
     'cart.subtotal': 'Jami',
     // Common additional
-    'common.cancel': 'Bekor qilish'
+    'common.cancel': 'Bekor qilish',
+    // Payment page
+    'payment.title': 'To\'lov',
+    'payment.totalAmount': 'Jami summa',
+    'payment.selectMethod': 'To\'lov usulini tanlang',
+    'payment.payme': 'Payme to\'lovi',
+    'payment.click': 'Click to\'lovi',
+    'payment.paySecurelyPayme': 'Payme orqali xavfsiz to\'lov',
+    'payment.paySecurelyClick': 'Click orqali xavfsiz to\'lov',
+    'payment.securePayment': 'Xavfsiz to\'lov',
+    'payment.poweredByPayme': 'Payme tomonidan',
+    'payment.poweredByClick': 'Click.uz tomonidan',
+    'payment.supportsPayme': 'Uzcard, HUMO va Payme ilovasini qo\'llab-quvvatlaydi',
+    'payment.supportsClick': 'Uzcard, HUMO, Visa va Mastercard ni qo\'llab-quvvatlaydi',
+    'payment.secureGateway': 'Xavfsiz to\'lov tizimi',
+    'payment.opensInTelegram': 'Telegram brauzerida ochiladi',
+    'payment.fastReliable': 'Tez va ishonchli',
+    'payment.clickButtonPayme': 'Davom etish uchun pastdagi <strong>"Payme bilan to\'lash"</strong> tugmasini bosing',
+    'payment.clickButtonClick': 'Davom etish uchun pastdagi <strong>"Click bilan to\'lash"</strong> tugmasini bosing',
+    'payment.payWithPayme': 'Payme bilan to\'lash',
+    'payment.payWithClick': 'Click bilan to\'lash',
+    'payment.orderSummary': 'Buyurtma xulosasi',
+    'payment.subtotal': 'Jami',
+    'payment.bonusDiscount': 'Bonus chegirmasi',
+    'payment.delivery': 'Yetkazib berish',
+    'payment.total': 'Jami',
+    'payment.noCheckoutData': 'Buyurtma ma\'lumotlari topilmadi',
+    'payment.backToCart': 'Savatga qaytish'
   };
   
   let translation = translations[key] || key;

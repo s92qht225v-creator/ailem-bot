@@ -303,8 +303,8 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
 
   // Use MainButton for payment methods
   const getButtonText = () => {
-    if (paymentMethod === 'telegram') return 'Pay with Payme';
-    if (paymentMethod === 'click') return 'Pay with Click';
+    if (paymentMethod === 'telegram') return t('payment.payWithPayme');
+    if (paymentMethod === 'click') return t('payment.payWithClick');
     return 'Continue';
   };
 
@@ -326,12 +326,12 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
   if (!checkoutData) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <p className="text-xl text-gray-500 mb-4">No checkout data found</p>
+        <p className="text-xl text-gray-500 mb-4">{t('payment.noCheckoutData')}</p>
         <button
           onClick={() => onNavigate('cart')}
           className="text-accent font-semibold hover:underline"
         >
-          Back to Cart
+          {t('payment.backToCart')}
         </button>
       </div>
     );
@@ -340,17 +340,17 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
   return (
     <div className="pb-20 pt-16">
       <div className="p-4 space-y-6">
-        <h2 className="text-2xl font-bold">Payment</h2>
+        <h2 className="text-2xl font-bold">{t('payment.title')}</h2>
 
         {/* Order Total */}
         <div className="bg-gradient-to-r from-accent to-blue-600 text-white rounded-lg shadow-lg p-6 text-center">
-          <p className="text-sm mb-2">Total Amount</p>
+          <p className="text-sm mb-2">{t('payment.totalAmount')}</p>
           <p className="text-4xl font-bold">{formatPrice(checkoutData.total)}</p>
         </div>
 
         {/* Payment Method Selection */}
         <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold mb-4">Select Payment Method</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('payment.selectMethod')}</h3>
           <div className="space-y-3">
             <button
               onClick={() => setPaymentMethod('telegram')}
@@ -362,8 +362,8 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
             >
               <CreditCard className="w-6 h-6 text-accent" />
               <div className="flex-1 text-left">
-                <p className="font-semibold text-gray-900">Payme Payment</p>
-                <p className="text-sm text-gray-600">Pay securely with Payme</p>
+                <p className="font-semibold text-gray-900">{t('payment.payme')}</p>
+                <p className="text-sm text-gray-600">{t('payment.paySecurelyPayme')}</p>
               </div>
               {paymentMethod === 'telegram' && (
                 <CheckCircle className="w-5 h-5 text-accent" />
@@ -379,8 +379,8 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
             >
               <CreditCard className="w-6 h-6 text-accent" />
               <div className="flex-1 text-left">
-                <p className="font-semibold text-gray-900">Click Payment</p>
-                <p className="text-sm text-gray-600">Pay securely with Click</p>
+                <p className="font-semibold text-gray-900">{t('payment.click')}</p>
+                <p className="text-sm text-gray-600">{t('payment.paySecurelyClick')}</p>
               </div>
               {paymentMethod === 'click' && (
                 <CheckCircle className="w-5 h-5 text-accent" />
@@ -393,20 +393,18 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         {/* Payme Payment Info */}
         {paymentMethod === 'telegram' && (
           <div className="bg-white rounded-lg shadow-md p-4">
-            <h3 className="text-lg font-semibold mb-3">Payme Payment</h3>
+            <h3 className="text-lg font-semibold mb-3">{t('payment.payme')}</h3>
             <div className="bg-blue-50 border-l-4 border-accent p-4 rounded">
               <p className="text-sm text-gray-700 mb-2">
-                <strong className="text-accent">✅ Secure Payment</strong>
+                <strong className="text-accent">✅ {t('payment.securePayment')}</strong>
               </p>
               <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                <li>Powered by Payme</li>
-                <li>Supports Uzcard, HUMO, and Payme app</li>
-                <li>Secure payment gateway</li>
-                <li>Opens in Telegram browser</li>
+                <li>{t('payment.poweredByPayme')}</li>
+                <li>{t('payment.supportsPayme')}</li>
+                <li>{t('payment.secureGateway')}</li>
+                <li>{t('payment.opensInTelegram')}</li>
               </ul>
-              <p className="text-sm text-gray-600 mt-3">
-                Click the <strong>"Pay with Payme"</strong> button below to proceed
-              </p>
+              <p className="text-sm text-gray-600 mt-3" dangerouslySetInnerHTML={{ __html: t('payment.clickButtonPayme') }} />
             </div>
           </div>
         )}
@@ -414,49 +412,47 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         {/* Click Payment Info */}
         {paymentMethod === 'click' && (
           <div className="bg-white rounded-lg shadow-md p-4">
-            <h3 className="text-lg font-semibold mb-3">Click Payment</h3>
+            <h3 className="text-lg font-semibold mb-3">{t('payment.click')}</h3>
             <div className="bg-blue-50 border-l-4 border-accent p-4 rounded">
               <p className="text-sm text-gray-700 mb-2">
-                <strong className="text-accent">✅ Secure Payment</strong>
+                <strong className="text-accent">✅ {t('payment.securePayment')}</strong>
               </p>
               <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                <li>Powered by Click.uz</li>
-                <li>Supports Uzcard, HUMO, Visa, and Mastercard</li>
-                <li>Secure payment gateway</li>
-                <li>Fast and reliable</li>
+                <li>{t('payment.poweredByClick')}</li>
+                <li>{t('payment.supportsClick')}</li>
+                <li>{t('payment.secureGateway')}</li>
+                <li>{t('payment.fastReliable')}</li>
               </ul>
-              <p className="text-sm text-gray-600 mt-3">
-                Click the <strong>"Pay with Click"</strong> button below to proceed
-              </p>
+              <p className="text-sm text-gray-600 mt-3" dangerouslySetInnerHTML={{ __html: t('payment.clickButtonClick') }} />
             </div>
           </div>
         )}
 
         {/* Order Summary */}
         <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
+          <h3 className="text-lg font-semibold mb-4">{t('payment.orderSummary')}</h3>
 
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600">Subtotal</span>
+              <span className="text-gray-600">{t('payment.subtotal')}</span>
               <span>{formatPrice(checkoutData.subtotal)}</span>
             </div>
 
             {checkoutData.bonusDiscount > 0 && (
               <div className="flex justify-between text-success">
-                <span>Bonus Discount</span>
+                <span>{t('payment.bonusDiscount')}</span>
                 <span>-{formatPrice(checkoutData.bonusDiscount)}</span>
               </div>
             )}
 
             <div className="flex justify-between">
-              <span className="text-gray-600">Delivery ({checkoutData.courier})</span>
+              <span className="text-gray-600">{t('payment.delivery')} ({checkoutData.courier})</span>
               <span>{formatPrice(checkoutData.deliveryFee)}</span>
             </div>
 
             <div className="border-t border-gray-300 pt-2 mt-2">
               <div className="flex justify-between text-lg font-bold">
-                <span>Total</span>
+                <span>{t('payment.total')}</span>
                 <span className="text-primary">{formatPrice(checkoutData.total)}</span>
               </div>
             </div>
