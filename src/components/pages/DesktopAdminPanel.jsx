@@ -19,6 +19,7 @@ import { exportOrders, exportOrderItems, exportProducts, exportUsers, exportRevi
 import { notifyUserOrderStatus, notifyReferrerReward, notifyAdminLowStock } from '../../services/telegram';
 import { notifyProductBackInStock } from '../../services/stockNotifications';
 import { printShippingLabel, printMultipleLabels } from '../../utils/shippingLabel';
+import { printPackingSlip, printMultiplePackingSlips } from '../../utils/packingSlip';
 import ImageModal from '../common/ImageModal';
 
 const DesktopAdminPanel = ({ onLogout }) => {
@@ -684,13 +685,23 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </span>
               <button
                 onClick={() => {
-                  const ordersTorint = orders.filter(o => selectedOrders.includes(o.id));
-                  printMultipleLabels(ordersTorint);
+                  const ordersToPrint = orders.filter(o => selectedOrders.includes(o.id));
+                  printMultiplePackingSlips(ordersToPrint);
+                }}
+                className="px-3 py-1.5 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 flex items-center gap-1.5"
+              >
+                <Package className="w-4 h-4" />
+                Pack {selectedOrders.length}
+              </button>
+              <button
+                onClick={() => {
+                  const ordersToPrint = orders.filter(o => selectedOrders.includes(o.id));
+                  printMultipleLabels(ordersToPrint);
                 }}
                 className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-1.5"
               >
                 <Printer className="w-4 h-4" />
-                Print {selectedOrders.length} Label{selectedOrders.length > 1 ? 's' : ''}
+                Label {selectedOrders.length}
               </button>
               <select
                 value={bulkAction}
@@ -799,6 +810,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
                         )}
                         {order.status === 'approved' && (
                           <>
+                            <button
+                              onClick={() => printPackingSlip(order)}
+                              className="text-orange-600 hover:text-orange-800 font-medium whitespace-nowrap flex items-center gap-1"
+                              title="Print packing slip for warehouse"
+                            >
+                              <Package className="w-4 h-4" />
+                              Pack
+                            </button>
                             <button
                               onClick={() => printShippingLabel(order)}
                               className="text-green-600 hover:text-green-800 font-medium whitespace-nowrap flex items-center gap-1"
