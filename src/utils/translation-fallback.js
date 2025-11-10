@@ -54,7 +54,7 @@ export const t = (key, params = {}) => {
     'shop.sortPriceLow': 'Arzonroq',
     'shop.sortPriceHigh': 'Qimmatroq',
     'shop.sortPopular': 'Mashhur',
-    'shop.productsFound': 'mahsulot topildi',
+    'shop.productsFound': '{count} ta mahsulot topildi',
     'shop.noProducts': 'Mahsulotlar yo\'q',
     'shop.noResults': 'Hech narsa topilmadi',
     // Checkout page
