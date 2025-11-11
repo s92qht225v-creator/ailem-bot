@@ -931,13 +931,18 @@ export const pickupPointsAPI = {
     if (updates.active !== undefined) dbUpdates.active = updates.active;
 
     console.log('📝 Mapped to database fields:', dbUpdates);
+    console.log('🔧 Executing Supabase update query...');
 
-    const { data, error } = await supabase
+    const updateResult = supabase
       .from('pickup_points')
       .update(dbUpdates)
       .eq('id', id)
       .select()
       .single();
+
+    console.log('⏳ Waiting for Supabase response...');
+    const { data, error } = await updateResult;
+    console.log('📬 Supabase response received:', { data, error });
 
     if (error) {
       console.error('❌ Supabase update error:', error);
@@ -956,15 +961,27 @@ export const pickupPointsAPI = {
 
   // Delete pickup point
   async delete(id) {
-    console.log('🗑️ Attempting to delete pickup point:', id);
-    const { data, error } = await supabase
+    console.log('🗑️ API delete called with:', { id });
+    console.log('🔧 Executing Supabase delete query...');
+
+    const deleteResult = supabase
       .from('pickup_points')
       .delete()
       .eq('id', id)
       .select();
 
+    console.log('⏳ Waiting for Supabase response...');
+    const { data, error } = await deleteResult;
+    console.log('📬 Supabase response received:', { data, error });
+
     if (error) {
-      console.error('❌ Delete failed with error:', error);
+      console.error('❌ Supabase delete error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       throw error;
     }
 
@@ -1270,12 +1287,30 @@ export const shippingRatesAPI = {
 
   // Delete shipping rate
   async delete(id) {
-    const { error } = await supabase
+    console.log('🗑️ API delete shipping rate called with:', { id });
+    console.log('🔧 Executing Supabase delete query...');
+
+    const deleteResult = supabase
       .from('shipping_rates')
       .delete()
       .eq('id', id);
 
-    if (error) throw error;
+    console.log('⏳ Waiting for Supabase response...');
+    const { error } = await deleteResult;
+    console.log('📬 Supabase response received:', { error });
+
+    if (error) {
+      console.error('❌ Supabase delete error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      throw error;
+    }
+
+    console.log('✅ Delete successful');
   }
 };
 

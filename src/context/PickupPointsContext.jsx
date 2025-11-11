@@ -1,11 +1,22 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
 import { pickupPointsAPI } from '../services/api';
+import { adminPickupPointsAPI } from '../services/adminApi';
 
 export const PickupPointsContext = createContext();
 
 export const PickupPointsProvider = ({ children }) => {
   const [pickupPoints, setPickupPoints] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Check if we're in admin mode
+  const isAdminMode = () => {
+    return window.location.search.includes('admin=true');
+  };
+
+  // Use admin API if in admin mode, otherwise use regular API
+  const getAPI = () => {
+    return isAdminMode() ? adminPickupPointsAPI : pickupPointsAPI;
+  };
 
   // Load pickup points from Supabase on mount
   useEffect(() => {
@@ -29,18 +40,13 @@ export const PickupPointsProvider = ({ children }) => {
 
   const addPickupPoint = async (pickupPoint) => {
     try {
-      console.log('📍 Adding pickup point to Supabase:', pickupPoint);
+      console.log('📍 Adding pickup point:', pickupPoint);
 
-      // Add timeout to prevent infinite hanging (30 seconds)
-      const createPromise = pickupPointsAPI.create({
+      const api = getAPI();
+      const newPickupPoint = await api.create({
         ...pickupPoint,
         active: true
       });
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Create timeout - please check your database connection and try again')), 30000)
-      );
-
-      const newPickupPoint = await Promise.race([createPromise, timeoutPromise]);
 
       console.log('✅ Pickup point added:', newPickupPoint);
       setPickupPoints([...pickupPoints, newPickupPoint]);
@@ -53,15 +59,10 @@ export const PickupPointsProvider = ({ children }) => {
 
   const updatePickupPoint = async (id, updatedData) => {
     try {
-      console.log('📍 Updating pickup point in Supabase:', id, updatedData);
+      console.log('📍 Updating pickup point:', id, updatedData);
 
-      // Add timeout to prevent infinite hanging (30 seconds)
-      const updatePromise = pickupPointsAPI.update(id, updatedData);
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Update timeout - please check your database connection and try again')), 30000)
-      );
-
-      const updated = await Promise.race([updatePromise, timeoutPromise]);
+      const api = getAPI();
+      const updated = await api.update(id, updatedData);
 
       console.log('✅ Pickup point updated:', updated);
       setPickupPoints(pickupPoints.map(point =>
@@ -76,8 +77,11 @@ export const PickupPointsProvider = ({ children }) => {
 
   const deletePickupPoint = async (id) => {
     try {
-      console.log('📍 Deleting pickup point from Supabase:', id);
-      await pickupPointsAPI.delete(id);
+      console.log('📍 Deleting pickup point:', id);
+
+      const api = getAPI();
+      await api.delete(id);
+
       console.log('✅ Pickup point deleted');
       setPickupPoints(pickupPoints.filter(point => point.id !== id));
     } catch (err) {

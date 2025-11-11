@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import { shippingRatesAPI } from '../services/api';
+import { adminShippingRatesAPI } from '../services/adminApi';
 
 export const ShippingRatesContext = createContext();
 
@@ -14,6 +15,16 @@ export const ShippingRatesProvider = ({ children }) => {
     { id: 6, courier: 'Yandex', state: 'Toshkent', firstKg: 25000, additionalKg: 0 },
   ]);
   const [loading, setLoading] = useState(true);
+
+  // Check if we're in admin mode
+  const isAdminMode = () => {
+    return window.location.search.includes('admin=true');
+  };
+
+  // Use admin API if in admin mode, otherwise use regular API
+  const getAPI = () => {
+    return isAdminMode() ? adminShippingRatesAPI : shippingRatesAPI;
+  };
 
   // Load shipping rates from database on mount
   useEffect(() => {
@@ -34,13 +45,8 @@ export const ShippingRatesProvider = ({ children }) => {
 
   const addShippingRate = async (rateData) => {
     try {
-      // Add timeout to prevent infinite hanging (30 seconds)
-      const createPromise = shippingRatesAPI.create(rateData);
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Create timeout - please check your database connection and try again')), 30000)
-      );
-
-      const newRate = await Promise.race([createPromise, timeoutPromise]);
+      const api = getAPI();
+      const newRate = await api.create(rateData);
       setShippingRates([...shippingRates, newRate]);
       return newRate;
     } catch (error) {
@@ -51,13 +57,8 @@ export const ShippingRatesProvider = ({ children }) => {
 
   const updateShippingRate = async (id, rateData) => {
     try {
-      // Add timeout to prevent infinite hanging (30 seconds)
-      const updatePromise = shippingRatesAPI.update(id, rateData);
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Update timeout - please check your database connection and try again')), 30000)
-      );
-
-      const updatedRate = await Promise.race([updatePromise, timeoutPromise]);
+      const api = getAPI();
+      const updatedRate = await api.update(id, rateData);
       setShippingRates(shippingRates.map(rate =>
         rate.id === id ? updatedRate : rate
       ));
@@ -70,7 +71,8 @@ export const ShippingRatesProvider = ({ children }) => {
 
   const deleteShippingRate = async (id) => {
     try {
-      await shippingRatesAPI.delete(id);
+      const api = getAPI();
+      await api.delete(id);
       setShippingRates(shippingRates.filter(rate => rate.id !== id));
     } catch (error) {
       console.error('Failed to delete shipping rate:', error);
