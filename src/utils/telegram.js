@@ -37,6 +37,10 @@ export const initTelegramWebApp = async () => {
   if (tg) {
     tg.ready();
     tg.expand();
+    // Disable vertical swipes to prevent accidental minimizing
+    if (tg.disableVerticalSwipes) {
+      tg.disableVerticalSwipes();
+    }
     return tg;
   }
   return null;
@@ -304,4 +308,26 @@ export const getTelegramVersion = () => {
 export const isFeatureAvailable = (feature) => {
   const tg = getTelegramWebApp();
   return tg?.isVersionAtLeast && tg.isVersionAtLeast(feature);
+};
+
+// Disable vertical swipes (prevents swipe-down to minimize)
+export const disableVerticalSwipes = () => {
+  const tg = getTelegramWebApp();
+  if (tg?.disableVerticalSwipes) {
+    tg.disableVerticalSwipes();
+  }
+};
+
+// Enable vertical swipes (allows swipe-down to minimize)
+export const enableVerticalSwipes = () => {
+  const tg = getTelegramWebApp();
+  if (tg?.enableVerticalSwipes) {
+    tg.enableVerticalSwipes();
+  }
+};
+
+// Check if vertical swipes are enabled
+export const isVerticalSwipesEnabled = () => {
+  const tg = getTelegramWebApp();
+  return tg?.isVerticalSwipesEnabled ?? true;
 };
