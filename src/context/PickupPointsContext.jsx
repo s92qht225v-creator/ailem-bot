@@ -30,10 +30,18 @@ export const PickupPointsProvider = ({ children }) => {
   const addPickupPoint = async (pickupPoint) => {
     try {
       console.log('📍 Adding pickup point to Supabase:', pickupPoint);
-      const newPickupPoint = await pickupPointsAPI.create({
+
+      // Add timeout to prevent infinite hanging (30 seconds)
+      const createPromise = pickupPointsAPI.create({
         ...pickupPoint,
         active: true
       });
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Create timeout - please check your database connection and try again')), 30000)
+      );
+
+      const newPickupPoint = await Promise.race([createPromise, timeoutPromise]);
+
       console.log('✅ Pickup point added:', newPickupPoint);
       setPickupPoints([...pickupPoints, newPickupPoint]);
       return newPickupPoint;
@@ -46,7 +54,15 @@ export const PickupPointsProvider = ({ children }) => {
   const updatePickupPoint = async (id, updatedData) => {
     try {
       console.log('📍 Updating pickup point in Supabase:', id, updatedData);
-      const updated = await pickupPointsAPI.update(id, updatedData);
+
+      // Add timeout to prevent infinite hanging (30 seconds)
+      const updatePromise = pickupPointsAPI.update(id, updatedData);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Update timeout - please check your database connection and try again')), 30000)
+      );
+
+      const updated = await Promise.race([updatePromise, timeoutPromise]);
+
       console.log('✅ Pickup point updated:', updated);
       setPickupPoints(pickupPoints.map(point =>
         point.id === id ? updated : point

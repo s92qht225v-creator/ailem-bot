@@ -34,7 +34,13 @@ export const ShippingRatesProvider = ({ children }) => {
 
   const addShippingRate = async (rateData) => {
     try {
-      const newRate = await shippingRatesAPI.create(rateData);
+      // Add timeout to prevent infinite hanging (30 seconds)
+      const createPromise = shippingRatesAPI.create(rateData);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Create timeout - please check your database connection and try again')), 30000)
+      );
+
+      const newRate = await Promise.race([createPromise, timeoutPromise]);
       setShippingRates([...shippingRates, newRate]);
       return newRate;
     } catch (error) {
@@ -45,7 +51,13 @@ export const ShippingRatesProvider = ({ children }) => {
 
   const updateShippingRate = async (id, rateData) => {
     try {
-      const updatedRate = await shippingRatesAPI.update(id, rateData);
+      // Add timeout to prevent infinite hanging (30 seconds)
+      const updatePromise = shippingRatesAPI.update(id, rateData);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Update timeout - please check your database connection and try again')), 30000)
+      );
+
+      const updatedRate = await Promise.race([updatePromise, timeoutPromise]);
       setShippingRates(shippingRates.map(rate =>
         rate.id === id ? updatedRate : rate
       ));
