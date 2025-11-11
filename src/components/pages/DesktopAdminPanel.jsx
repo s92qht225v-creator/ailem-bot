@@ -1125,11 +1125,22 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
       try {
         setUploadingImage(true);
-        console.log('📤 Uploading image to Supabase...');
+        console.log('📤 Uploading image to Supabase...', {
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type
+        });
 
         // Import storageAPI
         const { storageAPI } = await import('../../services/api');
-        const result = await storageAPI.uploadProductImage(file);
+
+        // Add timeout to prevent infinite hanging (30 seconds)
+        const uploadPromise = storageAPI.uploadProductImage(file);
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Upload timeout - please check your internet connection and try again')), 30000)
+        );
+
+        const result = await Promise.race([uploadPromise, timeoutPromise]);
 
         console.log('✅ Image uploaded:', result.url);
 
@@ -1137,7 +1148,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         setAllImages(prev => [...prev, result.url]);
       } catch (error) {
         console.error('❌ Image upload failed:', error);
-        alert('Failed to upload image. Please try again.');
+        alert(`Failed to upload image: ${error.message}\n\nPlease try again.`);
       } finally {
         setUploadingImage(false);
         // Reset file input
@@ -2264,16 +2275,27 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
       try {
         setUploadingImage(true);
-        console.log('📤 Uploading image to Supabase...');
+        console.log('📤 Uploading category image to Supabase...', {
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type
+        });
 
         const { storageAPI } = await import('../../services/api');
-        const result = await storageAPI.uploadProductImage(file);
+
+        // Add timeout to prevent infinite hanging (30 seconds)
+        const uploadPromise = storageAPI.uploadProductImage(file);
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Upload timeout - please check your internet connection and try again')), 30000)
+        );
+
+        const result = await Promise.race([uploadPromise, timeoutPromise]);
 
         console.log('✅ Image uploaded:', result.url);
         setFormData(prev => ({ ...prev, image: result.url }));
       } catch (error) {
         console.error('❌ Image upload failed:', error);
-        alert('Failed to upload image. Please try again.');
+        alert(`Failed to upload image: ${error.message}\n\nPlease try again.`);
       } finally {
         setUploadingImage(false);
         e.target.value = '';
@@ -4034,7 +4056,20 @@ const DesktopAdminPanel = ({ onLogout }) => {
       setUploadingImage(bannerIndex);
 
       try {
-        const result = await storageAPI.uploadImage(file, 'banners');
+        console.log('📤 Uploading banner image to Supabase...', {
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type
+        });
+
+        // Add timeout to prevent infinite hanging (30 seconds)
+        const uploadPromise = storageAPI.uploadImage(file, 'banners');
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Upload timeout - please check your internet connection and try again')), 30000)
+        );
+
+        const result = await Promise.race([uploadPromise, timeoutPromise]);
+
         handleUpdateBanner(bannerIndex, { imageUrl: result.url });
         console.log('✅ Banner image uploaded:', result.url);
       } catch (error) {
