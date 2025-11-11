@@ -161,6 +161,11 @@ const ProductDetails = ({ product, onAddToCart }) => {
     } else if (e.touches.length === 1) {
       const touch = e.touches[0];
 
+      // Prevent Telegram swipe-down when zoomed
+      if (scaleRef.current > 1) {
+        e.preventDefault();
+      }
+
       // Store position for both panning and swipe detection
       lastTouchPosRef.current = { x: touch.clientX, y: touch.clientY };
       swipeStartXRef.current = touch.clientX;
