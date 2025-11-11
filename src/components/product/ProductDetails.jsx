@@ -347,6 +347,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
         {/* Main Image */}
         <div
           className="relative aspect-square overflow-hidden"
+          style={{ touchAction: 'none' }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
