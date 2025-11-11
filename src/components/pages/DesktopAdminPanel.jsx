@@ -1165,6 +1165,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
       try {
         console.log('🔍 Starting validation...');
 
+        // Check if context functions are available
+        if (!addProduct || !updateProduct) {
+          console.error('❌ Admin context functions not available:', { addProduct, updateProduct });
+          alert('System not ready. Please wait a moment and try again.');
+          return;
+        }
+
         // Ensure we have at least one image
         if (allImages.length === 0) {
           console.error('❌ No images provided');
@@ -1300,7 +1307,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
         console.log('✨ Form submitted successfully!');
       } catch (error) {
         console.error('❌ Failed to save product:', error);
-        alert('Failed to save product. Please try again.');
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+          fullError: error
+        });
+        alert(`Failed to save product: ${error.message}\n\nPlease check the console for details and try again.`);
       }
     };
 
