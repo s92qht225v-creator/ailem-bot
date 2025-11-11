@@ -62,6 +62,16 @@ async function handleGet(res, id) {
 }
 
 async function handleCreate(res, body) {
+  // Get the max display_order and increment
+  const { data: maxData } = await supabaseAdmin
+    .from('pickup_points')
+    .select('display_order')
+    .order('display_order', { ascending: false })
+    .limit(1)
+    .single();
+
+  const nextDisplayOrder = (maxData?.display_order || 0) + 1;
+
   const dbData = {
     courier_service: body.courierService,
     state: body.state,
@@ -69,7 +79,8 @@ async function handleCreate(res, body) {
     address: body.address,
     working_hours: body.workingHours,
     phone: body.phone,
-    active: body.active !== undefined ? body.active : true
+    active: body.active !== undefined ? body.active : true,
+    display_order: nextDisplayOrder
   };
 
   const { data, error } = await supabaseAdmin
