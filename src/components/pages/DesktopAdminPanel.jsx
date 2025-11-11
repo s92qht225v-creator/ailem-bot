@@ -3277,18 +3277,31 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     const handleSubmit = async (e) => {
+      console.log('🔥 Pickup point submit called!', { editingPoint, formData });
       e.preventDefault();
 
       if (!formData.courierService || !formData.state || !formData.city || !formData.address || !formData.phone) {
+        console.error('❌ Validation failed - missing fields');
         alert('Please fill in all required fields');
+        return;
+      }
+
+      // Check if context functions are available
+      if (!addPickupPoint || !updatePickupPoint) {
+        console.error('❌ Pickup context functions not available:', { addPickupPoint, updatePickupPoint });
+        alert('System not ready. Please wait a moment and try again.');
         return;
       }
 
       try {
         if (editingPoint) {
+          console.log('🔄 Updating pickup point:', editingPoint.id, formData);
           await updatePickupPoint(editingPoint.id, formData);
+          console.log('✅ Pickup point updated successfully');
         } else {
+          console.log('➕ Creating new pickup point:', formData);
           await addPickupPoint(formData);
+          console.log('✅ Pickup point created successfully');
         }
 
         setFormData({
@@ -3302,8 +3315,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
         setEditingPoint(null);
         setShowForm(false);
       } catch (error) {
-        console.error('Failed to save pickup point:', error);
-        alert('Failed to save pickup point. Please try again.');
+        console.error('❌ Failed to save pickup point:', error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+          fullError: error
+        });
+        alert(`Failed to save pickup point: ${error.message}\n\nPlease check the console for details and try again.`);
       }
     };
 
@@ -3655,10 +3674,19 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const uniqueStates = [...new Set(shippingRates.map(r => r.state))].sort();
 
     const handleSubmit = async (e) => {
+      console.log('🔥 Shipping rate submit called!', { editingRate, formData });
       e.preventDefault();
 
       if (!formData.courier || !formData.state || !formData.firstKg) {
+        console.error('❌ Validation failed - missing fields');
         alert('Please fill in all required fields');
+        return;
+      }
+
+      // Check if context functions are available
+      if (!addShippingRate || !updateShippingRate) {
+        console.error('❌ Shipping context functions not available:', { addShippingRate, updateShippingRate });
+        alert('System not ready. Please wait a moment and try again.');
         return;
       }
 
@@ -3672,21 +3700,31 @@ const DesktopAdminPanel = ({ onLogout }) => {
       try {
         if (editingRate) {
           // When editing, only update single rate
+          console.log('🔄 Updating shipping rate:', editingRate.id, { ...rateData, state: formData.state });
           await updateShippingRate(editingRate.id, { ...rateData, state: formData.state });
+          console.log('✅ Shipping rate updated successfully');
         } else {
           // When adding, split states by comma and create multiple rates
           const states = formData.state.split(',').map(s => s.trim()).filter(s => s);
+          console.log('➕ Creating shipping rates for states:', states);
           for (const state of states) {
             await addShippingRate({ ...rateData, state });
           }
+          console.log('✅ Shipping rates created successfully');
         }
 
         setFormData({ courier: '', state: '', firstKg: '', additionalKg: '', paymentType: 'prepaid' });
         setEditingRate(null);
         setShowForm(false);
       } catch (error) {
-        console.error('Failed to save shipping rate:', error);
-        alert('Failed to save shipping rate. Please try again.');
+        console.error('❌ Failed to save shipping rate:', error);
+        console.error('Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name,
+          fullError: error
+        });
+        alert(`Failed to save shipping rate: ${error.message}\n\nPlease check the console for details and try again.`);
       }
     };
 
