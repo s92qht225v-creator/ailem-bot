@@ -360,7 +360,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
   // Other content components would be implemented similarly...
   function OrdersContent() {
-    const { approveOrder, rejectOrder, updateOrderStatus, loadAllData } = useContext(AdminContext);
+    const { approveOrder, rejectOrder, updateOrderStatus, loadAllData, updateUserBonusPoints } = useContext(AdminContext);
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [selectedOrders, setSelectedOrders] = useState([]);

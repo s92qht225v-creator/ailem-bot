@@ -35,11 +35,16 @@ export const getTelegramWebApp = () => {
 export const initTelegramWebApp = async () => {
   const tg = await waitForTelegramWebApp();
   if (tg) {
-    tg.ready();
-    tg.expand();
-    // Disable vertical swipes to prevent accidental minimizing
-    if (tg.disableVerticalSwipes) {
-      tg.disableVerticalSwipes();
+    try {
+      tg.ready();
+      tg.expand();
+      // Disable vertical swipes to prevent accidental minimizing
+      // Only if the method exists and we're actually in Telegram
+      if (tg.disableVerticalSwipes && typeof tg.disableVerticalSwipes === 'function') {
+        tg.disableVerticalSwipes();
+      }
+    } catch (error) {
+      console.error('Error initializing Telegram WebApp:', error);
     }
     return tg;
   }
