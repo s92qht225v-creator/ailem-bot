@@ -33,7 +33,7 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
       )}
 
       {/* Profile Info */}
-      <div className="bg-white p-6 pt-16 pb-3 text-center">
+      <div className="bg-white p-6 pb-3 text-center">
         {user?.photoUrl ? (
           <img
             src={user.photoUrl}

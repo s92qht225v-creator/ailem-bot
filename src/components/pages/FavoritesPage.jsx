@@ -30,7 +30,7 @@ const FavoritesPage = ({ onNavigate }) => {
   // Show loading state if products not loaded
   if (!allProducts) {
     return (
-      <div className="pb-20 bg-gray-50 min-h-screen pt-16">
+      <div className="pb-20 bg-gray-50 min-h-screen">
         <div className="p-4 text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-gray-600">{t('common.loading')}</p>
@@ -40,7 +40,7 @@ const FavoritesPage = ({ onNavigate }) => {
   }
 
   return (
-    <div className="pb-20 bg-gray-50 min-h-screen pt-16">
+    <div className="pb-20 bg-gray-50 min-h-screen">
       {/* Content */}
       <div className="p-4">
         {favoriteProducts.length === 0 ? (
