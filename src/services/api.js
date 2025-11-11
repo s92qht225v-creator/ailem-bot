@@ -919,6 +919,8 @@ export const pickupPointsAPI = {
 
   // Update pickup point
   async update(id, updates) {
+    console.log('🔍 API update called with:', { id, updates });
+
     const dbUpdates = {};
     if (updates.courierService !== undefined) dbUpdates.courier_service = updates.courierService;
     if (updates.state !== undefined) dbUpdates.state = updates.state;
@@ -928,6 +930,8 @@ export const pickupPointsAPI = {
     if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
     if (updates.active !== undefined) dbUpdates.active = updates.active;
 
+    console.log('📝 Mapped to database fields:', dbUpdates);
+
     const { data, error } = await supabase
       .from('pickup_points')
       .update(dbUpdates)
@@ -935,8 +939,18 @@ export const pickupPointsAPI = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Supabase update error:', error);
+      console.error('Error details:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
+      throw error;
+    }
 
+    console.log('✅ Update successful, returned data:', data);
     return this._mapPickupPointFromDB(data);
   },
 
