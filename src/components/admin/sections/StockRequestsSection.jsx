@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { AlertCircle, RotateCw } from 'lucide-react';
 import { supabase } from '../../../lib/supabase';
+import { useToast } from '../../../context/ToastContext';
 import { formatPrice } from '../../../utils/helpers';
 
 const StockRequestsSection = () => {
   const [stockRequests, setStockRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [expandedProduct, setExpandedProduct] = useState(null);
+  const toast = useToast();
 
   useEffect(() => {
     fetchStockRequests();
@@ -52,7 +54,7 @@ const StockRequestsSection = () => {
       setStockRequests(Object.values(grouped));
     } catch (error) {
       console.error('Error fetching stock requests:', error);
-      alert('Failed to load stock requests');
+      toast.error('Zaxira so\'rovlarini yuklashda xatolik');
     } finally {
       setLoading(false);
     }

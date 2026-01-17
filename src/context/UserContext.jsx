@@ -86,7 +86,8 @@ export const UserProvider = ({ children }) => {
             referralCode: dbUser.referral_code,
             referrals: dbUser.referrals || 0,
             referredBy: dbUser.referred_by,
-            totalOrders: dbUser.total_orders || 0
+            totalOrders: dbUser.total_orders || 0,
+            role: dbUser.role || 'customer'
           };
 
           setUser(appUser);
@@ -114,7 +115,8 @@ export const UserProvider = ({ children }) => {
         bonusPoints: 250,
         referralCode: generateReferralCode('Demo User'),
         referrals: 3,
-        referredBy: null
+        referredBy: null,
+        role: 'customer'
       };
 
       setUser(demoUser);
@@ -135,7 +137,8 @@ export const UserProvider = ({ children }) => {
         bonusPoints: 250,
         referralCode: generateReferralCode('Demo User'),
         referrals: 3,
-        referredBy: null
+        referredBy: null,
+        role: 'customer'
       };
       setUser(demoUser);
       // Load demo user favorites from localStorage

@@ -6,11 +6,13 @@ import {
   Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload,
   TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle, AlertCircle,
   Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff, ImagePlus,
-  Download, FileDown, ChevronUp, ChevronDown, RotateCw, Printer, Search
+  Download, FileDown, ChevronUp, ChevronDown, RotateCw, Printer, Search, ClipboardList
 } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
 import { ShippingRatesContext } from '../../context/ShippingRatesContext';
+import { useToast } from '../../context/ToastContext';
+import { useConfirm } from '../../context/ConfirmContext';
 import { formatPrice, formatDate, loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { calculateAnalytics, getRevenueChartData } from '../../utils/analytics';
 import { generateVariants, updateVariantStock, updateVariantImage, updateVariantPrice, getTotalVariantStock, getLowStockVariants, getOutOfStockVariants } from '../../utils/variants';
@@ -33,7 +35,8 @@ import {
   AnalyticsSection,
   BonusSettingsSection,
   InventorySettingsSection,
-  SettingsSection
+  SettingsSection,
+  AuditLogsSection
 } from '../admin/sections';
 import { ErrorBoundary } from '../admin/shared';
 
@@ -42,6 +45,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const { products, categories, orders, reviews, users, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, reorderCategories, approveReview, deleteReview } = useContext(AdminContext);
+  const toast = useToast();
+  const confirm = useConfirm();
 
   // Calculate stats
   const pendingOrders = orders.filter(o => o.status === 'pending').length;
@@ -134,6 +139,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
       label: 'Analytics',
       icon: BarChart3,
       color: 'text-teal-600'
+    },
+    {
+      id: 'audit-logs',
+      label: 'Audit Trail',
+      icon: ClipboardList,
+      color: 'text-slate-600'
     },
     {
       id: 'settings',
@@ -263,6 +274,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             {activeSection === 'bonus-settings' && <BonusSettingsSection />}
             {activeSection === 'inventory-settings' && <InventorySettingsSection />}
             {activeSection === 'settings' && <SettingsSection />}
+            {activeSection === 'audit-logs' && <AuditLogsSection />}
 
             {/* Inline components (complex, to be extracted later) */}
             {activeSection === 'products' && <ProductsContent />}
@@ -418,7 +430,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
       const order = orders.find(o => o.id === orderId);
       if (!order) return;
 
-      if (confirm('Approve this order? This will deduct stock from inventory and award bonus points.')) {
+      const confirmed = await confirm({
+        title: 'Buyurtmani tasdiqlash',
+        message: 'Buyurtmani tasdiqlamoqchimisiz? Bu zaxiradan ayiriladi va bonus ballari beriladi.',
+        type: 'success',
+        confirmText: 'Tasdiqlash',
+        cancelText: 'Bekor qilish'
+      });
+      if (confirmed) {
         try {
           // Approve the order
           await approveOrder(orderId);
@@ -482,7 +501,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         } catch (error) {
           console.error('❌ Failed to approve order:', error);
-          alert('Failed to approve order. Please try again.');
+          toast.error('Buyurtmani tasdiqlashda xatolik. Qayta urinib ko\'ring.');
         }
       }
     };
@@ -491,7 +510,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
       const order = orders.find(o => o.id === orderId);
       if (!order) return;
 
-      if (confirm('Reject this order? If previously approved, stock will be restored and bonus points refunded.')) {
+      const confirmed = await confirm({
+        title: 'Buyurtmani rad etish',
+        message: 'Buyurtmani rad etmoqchimisiz? Agar tasdiqlangan bo\'lsa, zaxira tiklanadi va bonus ballari qaytariladi.',
+        type: 'warning',
+        confirmText: 'Rad etish',
+        cancelText: 'Bekor qilish'
+      });
+      if (confirmed) {
         try {
           // Calculate bonus points that were awarded
           const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 3 });
@@ -520,7 +546,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         } catch (error) {
           console.error('❌ Failed to reject order:', error);
-          alert('Failed to reject order. Please try again.');
+          toast.error('Buyurtmani rad etishda xatolik. Qayta urinib ko\'ring.');
         }
       }
     };
@@ -529,7 +555,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
       const order = orders.find(o => o.id === orderId);
       if (!order) return;
 
-      if (confirm('Mark this order as shipped? Customer will be notified.')) {
+      const confirmed = await confirm({
+        title: 'Jo\'natildi deb belgilash',
+        message: 'Buyurtmani jo\'natildi deb belgilamoqchimisiz? Mijoz xabardor qilinadi.',
+        type: 'info',
+        confirmText: 'Tasdiqlash',
+        cancelText: 'Bekor qilish'
+      });
+      if (confirmed) {
         try {
           await updateOrderStatus(orderId, 'shipped');
           console.log('✅ Order marked as shipped');
@@ -540,7 +573,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           console.log('✅ User notified: Order shipped');
         } catch (error) {
           console.error('❌ Failed to mark as shipped:', error);
-          alert('Failed to update order status. Please try again.');
+          toast.error('Buyurtma holatini yangilashda xatolik. Qayta urinib ko\'ring.');
         }
       }
     };
@@ -549,7 +582,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
       const order = orders.find(o => o.id === orderId);
       if (!order) return;
 
-      if (confirm('Mark this order as delivered? Customer will be notified.')) {
+      const confirmed = await confirm({
+        title: 'Yetkazildi deb belgilash',
+        message: 'Buyurtmani yetkazildi deb belgilamoqchimisiz? Mijoz xabardor qilinadi.',
+        type: 'success',
+        confirmText: 'Tasdiqlash',
+        cancelText: 'Bekor qilish'
+      });
+      if (confirmed) {
         try {
           await updateOrderStatus(orderId, 'delivered');
           console.log('✅ Order marked as delivered');
@@ -560,7 +600,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           console.log('✅ User notified: Order delivered');
         } catch (error) {
           console.error('❌ Failed to mark as delivered:', error);
-          alert('Failed to update order status. Please try again.');
+          toast.error('Buyurtma holatini yangilashda xatolik. Qayta urinib ko\'ring.');
         }
       }
     };
@@ -599,14 +639,21 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
     const handleBulkAction = async () => {
       if (!bulkAction || selectedOrders.length === 0) {
-        alert('Please select orders and an action');
+        toast.warning('Buyurtmalar va amalni tanlang');
         return;
       }
 
       const action = bulkAction;
       const count = selectedOrders.length;
 
-      if (!confirm(`${action} ${count} order(s)?`)) return;
+      const confirmed = await confirm({
+        title: 'Ommaviy amal',
+        message: `${count} ta buyurtmaga "${action}" amalini bajarmoqchimisiz?`,
+        type: 'warning',
+        confirmText: 'Tasdiqlash',
+        cancelText: 'Bekor qilish'
+      });
+      if (!confirmed) return;
 
       try {
         console.log(`📦 Performing bulk ${action} on ${count} orders...`);
@@ -642,10 +689,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
         console.log(`✅ Bulk ${action} completed`);
         setSelectedOrders([]);
         setBulkAction('');
-        alert(`Successfully ${action.toLowerCase()}d ${count} order(s)`);
+        toast.success(`${count} ta buyurtma muvaffaqiyatli yangilandi`);
       } catch (error) {
         console.error('❌ Bulk action failed:', error);
-        alert('Some orders failed to update. Please try again.');
+        toast.error('Ba\'zi buyurtmalarni yangilashda xatolik. Qayta urinib ko\'ring.');
       }
     };
 
@@ -1124,6 +1171,48 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [imageUrl, setImageUrl] = useState('');
     const [tagSuggestions, setTagSuggestions] = useState([]);
     const [showTagSuggestions, setShowTagSuggestions] = useState(false);
+    // Search and filter state
+    const [searchQuery, setSearchQuery] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('');
+    const [stockFilter, setStockFilter] = useState(''); // 'all', 'in_stock', 'low_stock', 'out_of_stock'
+
+    // Filtered products based on search and filters
+    const filteredProducts = useMemo(() => {
+      return products.filter(product => {
+        // Search filter - match name, description, or tags
+        const matchesSearch = !searchQuery ||
+          product.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+
+        // Category filter
+        const matchesCategory = !categoryFilter || product.category === categoryFilter;
+
+        // Stock filter
+        let matchesStock = true;
+        if (stockFilter) {
+          const stock = product.variants && product.variants.length > 0
+            ? getTotalVariantStock(product.variants)
+            : (product.stock || 0);
+
+          switch (stockFilter) {
+            case 'in_stock':
+              matchesStock = stock > 10;
+              break;
+            case 'low_stock':
+              matchesStock = stock > 0 && stock <= 10;
+              break;
+            case 'out_of_stock':
+              matchesStock = stock === 0;
+              break;
+            default:
+              matchesStock = true;
+          }
+        }
+
+        return matchesSearch && matchesCategory && matchesStock;
+      });
+    }, [products, searchQuery, categoryFilter, stockFilter]);
     const [formData, setFormData] = useState({
       name: '',
       description: '',
@@ -1238,7 +1327,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           setImageUrl('');
           setShowUrlInput(false);
         } catch {
-          alert('Noto\'g\'ri URL manzili');
+          toast.error('Noto\'g\'ri URL manzili');
         }
       }
     };
@@ -1270,7 +1359,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         }
       } catch (error) {
         console.error('❌ Image upload failed:', error);
-        alert(`Rasm yuklashda xatolik: ${error.message}`);
+        toast.error(`Rasm yuklashda xatolik: ${error.message}`);
       } finally {
         setUploadingImage(false);
         e.target.value = '';
@@ -1306,7 +1395,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         setAllImages(prev => [...prev, result.url]);
       } catch (error) {
         console.error('❌ Image upload failed:', error);
-        alert(`Failed to upload image: ${error.message}\n\nPlease try again.`);
+        toast.error(`Rasm yuklashda xatolik: ${error.message}`);
       } finally {
         setUploadingImage(false);
         // Reset file input
@@ -1344,7 +1433,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         // Check if context functions are available
         if (!addProduct || !updateProduct) {
           console.error('❌ Admin context functions not available:', { addProduct, updateProduct });
-          alert('Tizim tayyor emas. Iltimos, biroz kuting va qayta urinib ko\'ring.');
+          toast.error('Tizim tayyor emas. Iltimos, biroz kuting va qayta urinib ko\'ring.');
           return;
         }
 
@@ -1483,7 +1572,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           name: error.name,
           fullError: error
         });
-        alert(`Mahsulotni saqlashda xatolik: ${error.message}\n\nIltimos, qayta urinib ko'ring.`);
+        toast.error(`Mahsulotni saqlashda xatolik: ${error.message}`);
       } finally {
         setSubmitting(false);
       }
@@ -1519,13 +1608,21 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     const handleDelete = async (productId) => {
-      if (confirm('Ushbu mahsulotni o\'chirishga ishonchingiz komilmi? Bu amalni ortga qaytarib bo\'lmaydi.')) {
+      const confirmed = await confirm({
+        title: 'Mahsulotni o\'chirish',
+        message: 'Ushbu mahsulotni o\'chirishga ishonchingiz komilmi? Bu amalni ortga qaytarib bo\'lmaydi.',
+        type: 'danger',
+        confirmText: 'O\'chirish',
+        cancelText: 'Bekor qilish'
+      });
+      if (confirmed) {
         try {
           await deleteProduct(productId);
           console.log('✅ Product deleted successfully');
+          toast.success('Mahsulot muvaffaqiyatli o\'chirildi');
         } catch (error) {
           console.error('❌ Failed to delete product:', error);
-          alert('Failed to delete product. Please try again.');
+          toast.error('Mahsulotni o\'chirishda xatolik. Qayta urinib ko\'ring.');
         }
       }
     };
@@ -1603,7 +1700,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         console.log(`✅ Variant image uploaded for ${color} - ${size}:`, result.url);
       } catch (error) {
         console.error('Upload error:', error);
-        alert('❌ Failed to upload variant image: ' + error.message);
+        toast.error('Variant rasmini yuklashda xatolik: ' + error.message);
       }
     };
 
@@ -2261,6 +2358,73 @@ const DesktopAdminPanel = ({ onLogout }) => {
           </div>
         )}
 
+        {/* Search and Filters */}
+        <div className="bg-white rounded-lg shadow p-4 mb-4">
+          <div className="flex flex-wrap gap-4 items-center">
+            {/* Search Input */}
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Mahsulot qidirish..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                />
+              </div>
+            </div>
+
+            {/* Category Filter */}
+            <div className="min-w-[150px]">
+              <select
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+              >
+                <option value="">Barcha kategoriyalar</option>
+                {categories?.map(cat => (
+                  <option key={cat.id} value={cat.name}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Stock Filter */}
+            <div className="min-w-[150px]">
+              <select
+                value={stockFilter}
+                onChange={(e) => setStockFilter(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+              >
+                <option value="">Ombor holati</option>
+                <option value="in_stock">Mavjud (10+)</option>
+                <option value="low_stock">Kam qolgan (1-10)</option>
+                <option value="out_of_stock">Tugagan</option>
+              </select>
+            </div>
+
+            {/* Clear Filters */}
+            {(searchQuery || categoryFilter || stockFilter) && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setCategoryFilter('');
+                  setStockFilter('');
+                }}
+                className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Tozalash
+              </button>
+            )}
+          </div>
+
+          {/* Results Count */}
+          <div className="mt-3 text-sm text-gray-600">
+            {filteredProducts.length} ta mahsulot topildi
+            {filteredProducts.length !== products.length && ` (jami: ${products.length})`}
+          </div>
+        </div>
+
         {/* Products Table */}
         <div className="bg-white rounded-lg shadow">
           <div className="overflow-x-auto">
@@ -2276,7 +2440,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {products.map((product) => (
+                {filteredProducts.map((product) => (
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4">
                       <div className="flex items-center">
@@ -2409,7 +2573,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         setStockRequests(Object.values(grouped));
       } catch (error) {
         console.error('Error fetching stock requests:', error);
-        alert('Failed to load stock requests');
+        toast.error('Zaxira so\'rovlarini yuklashda xatolik');
       } finally {
         setLoading(false);
       }
@@ -2589,7 +2753,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         setFormData(prev => ({ ...prev, image: result.url }));
       } catch (error) {
         console.error('❌ Image upload failed:', error);
-        alert(`Failed to upload image: ${error.message}\n\nPlease try again.`);
+        toast.error(`Rasm yuklashda xatolik: ${error.message}`);
       } finally {
         setUploadingImage(false);
         e.target.value = '';
@@ -2598,7 +2762,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
     const handleSubmit = async (e) => {
       e.preventDefault();
-      
+
       try {
         const categoryData = {
           name: formData.name,
@@ -2608,9 +2772,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
         if (editingCategory) {
           await updateCategory(editingCategory.id, categoryData);
           console.log('✅ Category updated successfully');
+          toast.success('Kategoriya muvaffaqiyatli yangilandi');
         } else {
           await addCategory(categoryData);
           console.log('✅ Category created successfully');
+          toast.success('Kategoriya muvaffaqiyatli qo\'shildi');
         }
 
         setShowForm(false);
@@ -2618,7 +2784,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         setFormData({ name: '', image: '' });
       } catch (error) {
         console.error('❌ Failed to save category:', error);
-        alert('Failed to save category. Please try again.');
+        toast.error('Kategoriyani saqlashda xatolik. Qayta urinib ko\'ring.');
       }
     };
 
@@ -2632,13 +2798,21 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     const handleDelete = async (categoryId) => {
-      if (confirm('Ushbu kategoriyani o\'chirishga ishonchingiz komilmi? Bu amalni ortga qaytarib bo\'lmaydi.')) {
+      const confirmed = await confirm({
+        title: 'Kategoriyani o\'chirish',
+        message: 'Ushbu kategoriyani o\'chirishga ishonchingiz komilmi? Bu amalni ortga qaytarib bo\'lmaydi.',
+        type: 'danger',
+        confirmText: 'O\'chirish',
+        cancelText: 'Bekor qilish'
+      });
+      if (confirmed) {
         try {
           await deleteCategory(categoryId);
           console.log('✅ Category deleted successfully');
+          toast.success('Kategoriya muvaffaqiyatli o\'chirildi');
         } catch (error) {
           console.error('❌ Failed to delete category:', error);
-          alert('Failed to delete category. Please try again.');
+          toast.error('Kategoriyani o\'chirishda xatolik. Qayta urinib ko\'ring.');
         }
       }
     };
@@ -2861,20 +3035,29 @@ const DesktopAdminPanel = ({ onLogout }) => {
       try {
         await approveReview(reviewId);
         console.log('✅ Review approved successfully');
+        toast.success('Sharh muvaffaqiyatli tasdiqlandi');
       } catch (error) {
         console.error('❌ Failed to approve review:', error);
-        alert('Failed to approve review. Please try again.');
+        toast.error('Sharhni tasdiqlashda xatolik. Qayta urinib ko\'ring.');
       }
     };
 
     const handleDelete = async (reviewId) => {
-      if (confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+      const confirmed = await confirm({
+        title: 'Sharhni o\'chirish',
+        message: 'Ushbu sharhni o\'chirishga ishonchingiz komilmi? Bu amalni ortga qaytarib bo\'lmaydi.',
+        type: 'danger',
+        confirmText: 'O\'chirish',
+        cancelText: 'Bekor qilish'
+      });
+      if (confirmed) {
         try {
           await deleteReview(reviewId);
           console.log('✅ Review deleted successfully');
+          toast.success('Sharh muvaffaqiyatli o\'chirildi');
         } catch (error) {
           console.error('❌ Failed to delete review:', error);
-          alert('Failed to delete review. Please try again.');
+          toast.error('Sharhni o\'chirishda xatolik. Qayta urinib ko\'ring.');
         }
       }
     };
@@ -3592,14 +3775,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
       if (!formData.courierService || !formData.state || !formData.city || !formData.address || !formData.phone) {
         console.error('❌ Validation failed - missing fields');
-        alert('Please fill in all required fields');
+        toast.warning('Barcha majburiy maydonlarni to\'ldiring');
         return;
       }
 
       // Check if context functions are available
       if (!addPickupPoint || !updatePickupPoint) {
         console.error('❌ Pickup context functions not available:', { addPickupPoint, updatePickupPoint });
-        alert('System not ready. Please wait a moment and try again.');
+        toast.error('Tizim tayyor emas. Iltimos, biroz kuting va qayta urinib ko\'ring.');
         return;
       }
 
@@ -3608,10 +3791,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
           console.log('🔄 Updating pickup point:', editingPoint.id, formData);
           await updatePickupPoint(editingPoint.id, formData);
           console.log('✅ Pickup point updated successfully');
+          toast.success('Olib ketish nuqtasi muvaffaqiyatli yangilandi');
         } else {
           console.log('➕ Creating new pickup point:', formData);
           await addPickupPoint(formData);
           console.log('✅ Pickup point created successfully');
+          toast.success('Olib ketish nuqtasi muvaffaqiyatli qo\'shildi');
         }
 
         setFormData({
@@ -3632,7 +3817,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           name: error.name,
           fullError: error
         });
-        alert(`Failed to save pickup point: ${error.message}\n\nPlease check the console for details and try again.`);
+        toast.error(`Olib ketish nuqtasini saqlashda xatolik: ${error.message}`);
       }
     };
 
@@ -3650,12 +3835,20 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     const handleDelete = async (pointId) => {
-      if (confirm('Are you sure you want to delete this pickup point?')) {
+      const confirmed = await confirm({
+        title: 'Olib ketish nuqtasini o\'chirish',
+        message: 'Ushbu olib ketish nuqtasini o\'chirishga ishonchingiz komilmi?',
+        type: 'danger',
+        confirmText: 'O\'chirish',
+        cancelText: 'Bekor qilish'
+      });
+      if (confirmed) {
         try {
           await deletePickupPoint(pointId);
+          toast.success('Olib ketish nuqtasi muvaffaqiyatli o\'chirildi');
         } catch (error) {
           console.error('Failed to delete pickup point:', error);
-          alert('Failed to delete pickup point. Please try again.');
+          toast.error('Olib ketish nuqtasini o\'chirishda xatolik. Qayta urinib ko\'ring.');
         }
       }
     };
@@ -4016,14 +4209,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
       if (!formData.courier || !formData.state || !formData.firstKg) {
         console.error('❌ Validation failed - missing fields');
-        alert('Please fill in all required fields');
+        toast.warning('Barcha majburiy maydonlarni to\'ldiring');
         return;
       }
 
       // Check if context functions are available
       if (!addShippingRate || !updateShippingRate) {
         console.error('❌ Shipping context functions not available:', { addShippingRate, updateShippingRate });
-        alert('System not ready. Please wait a moment and try again.');
+        toast.error('Tizim tayyor emas. Iltimos, biroz kuting va qayta urinib ko\'ring.');
         return;
       }
 
@@ -4040,6 +4233,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           console.log('🔄 Updating shipping rate:', editingRate.id, { ...rateData, state: formData.state });
           await updateShippingRate(editingRate.id, { ...rateData, state: formData.state });
           console.log('✅ Shipping rate updated successfully');
+          toast.success('Yetkazib berish narxi muvaffaqiyatli yangilandi');
         } else {
           // When adding, split states by comma and create multiple rates
           const states = formData.state.split(',').map(s => s.trim()).filter(s => s);
@@ -4048,6 +4242,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             await addShippingRate({ ...rateData, state });
           }
           console.log('✅ Shipping rates created successfully');
+          toast.success('Yetkazib berish narxi muvaffaqiyatli qo\'shildi');
         }
 
         setFormData({ courier: '', state: '', firstKg: '', additionalKg: '', paymentType: 'prepaid' });
@@ -4061,7 +4256,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           name: error.name,
           fullError: error
         });
-        alert(`Failed to save shipping rate: ${error.message}\n\nPlease check the console for details and try again.`);
+        toast.error(`Yetkazib berish narxini saqlashda xatolik: ${error.message}`);
       }
     };
 
@@ -4078,12 +4273,20 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     const handleDelete = async (rateId) => {
-      if (confirm('Are you sure you want to delete this shipping rate?')) {
+      const confirmed = await confirm({
+        title: 'Yetkazib berish narxini o\'chirish',
+        message: 'Ushbu yetkazib berish narxini o\'chirishga ishonchingiz komilmi?',
+        type: 'danger',
+        confirmText: 'O\'chirish',
+        cancelText: 'Bekor qilish'
+      });
+      if (confirmed) {
         try {
           await deleteShippingRate(rateId);
+          toast.success('Yetkazib berish narxi muvaffaqiyatli o\'chirildi');
         } catch (error) {
           console.error('Failed to delete shipping rate:', error);
-          alert('Failed to delete shipping rate. Please try again.');
+          toast.error('Yetkazib berish narxini o\'chirishda xatolik. Qayta urinib ko\'ring.');
         }
       }
     };
@@ -4362,17 +4565,24 @@ const DesktopAdminPanel = ({ onLogout }) => {
         setSavedTimer(saleTimer);
         setHasUnsavedChanges(false);
         console.log('✅ All settings saved to Supabase');
-        alert('✅ Promotions saved successfully!');
+        toast.success('Aksiyalar muvaffaqiyatli saqlandi!');
       } catch (error) {
         console.error('Failed to save settings:', error);
-        alert('❌ Failed to save settings. Please try again.');
+        toast.error('Sozlamalarni saqlashda xatolik. Qayta urinib ko\'ring.');
       } finally {
         setSaving(false);
       }
     };
 
-    const handleDiscardChanges = () => {
-      if (confirm('Discard all unsaved changes?')) {
+    const handleDiscardChanges = async () => {
+      const confirmed = await confirm({
+        title: 'O\'zgarishlarni bekor qilish',
+        message: 'Barcha saqlanmagan o\'zgarishlarni bekor qilmoqchimisiz?',
+        type: 'warning',
+        confirmText: 'Bekor qilish',
+        cancelText: 'Yo\'q'
+      });
+      if (confirmed) {
         setBanners(savedBanners);
         setSaleTimer(savedTimer);
         setHasUnsavedChanges(false);
@@ -4395,8 +4605,15 @@ const DesktopAdminPanel = ({ onLogout }) => {
       setBanners(newBanners);
     };
 
-    const handleDeleteBanner = (index) => {
-      if (confirm('Delete this banner?')) {
+    const handleDeleteBanner = async (index) => {
+      const confirmed = await confirm({
+        title: 'Bannerni o\'chirish',
+        message: 'Ushbu bannerni o\'chirishga ishonchingiz komilmi?',
+        type: 'danger',
+        confirmText: 'O\'chirish',
+        cancelText: 'Bekor qilish'
+      });
+      if (confirmed) {
         setBanners(banners.filter((_, i) => i !== index));
         if (editingBannerIndex === index) {
           setEditingBannerIndex(null);
@@ -4418,13 +4635,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
       // Check file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('Image size must be less than 5MB');
+        toast.warning('Rasm hajmi 5MB dan kam bo\'lishi kerak');
         return;
       }
 
       // Check file type
       if (!file.type.startsWith('image/')) {
-        alert('Please upload an image file');
+        toast.warning('Iltimos, rasm faylini yuklang');
         return;
       }
 
@@ -4449,7 +4666,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         console.log('✅ Banner image uploaded:', result.url);
       } catch (error) {
         console.error('Upload error:', error);
-        alert('❌ Failed to upload image: ' + error.message);
+        toast.error('Rasm yuklashda xatolik: ' + error.message);
       } finally {
         setUploadingImage(null);
       }
@@ -4859,10 +5076,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
           referralCommission: newConfig.referralCommission
         });
         console.log('✅ Bonus config saved to database:', result);
-        alert('✅ Bonus configuration saved successfully!');
+        toast.success('Bonus sozlamalari muvaffaqiyatli saqlandi!');
       } catch (error) {
         console.error('❌ Failed to save bonus config to database:', error);
-        alert('❌ Failed to save configuration. Please try again.');
+        toast.error('Sozlamalarni saqlashda xatolik. Qayta urinib ko\'ring.');
       }
     };
 
@@ -5010,10 +5227,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
       try {
         await settingsAPI.updateInventorySettings({ low_stock_threshold: newThreshold });
         setThreshold(newThreshold);
-        alert('✅ Low stock threshold saved successfully!');
+        toast.success('Kam zaxira chegarasi muvaffaqiyatli saqlandi!');
       } catch (error) {
         console.error('❌ Failed to save threshold:', error);
-        alert('❌ Failed to save. Please try again.');
+        toast.error('Saqlashda xatolik. Qayta urinib ko\'ring.');
       }
     };
 
@@ -5041,15 +5258,15 @@ const DesktopAdminPanel = ({ onLogout }) => {
         const result = await notifyAdminLowStockSummary(lowStockProducts, outOfStockProducts);
 
         if (result.success) {
-          alert(`✅ Inventory alert sent!\n\n${outOfStockProducts.length} out of stock\n${lowStockProducts.length} low stock`);
+          toast.success(`Zaxira ogohlantirishi yuborildi! ${outOfStockProducts.length} ta tugagan, ${lowStockProducts.length} ta kam zaxira`);
         } else {
-          alert(`⚠️ ${result.error || 'Failed to send alert'}`);
+          toast.warning(result.error || 'Ogohlantirishni yuborishda xatolik');
         }
 
         setLastCheck(new Date());
       } catch (error) {
         console.error('❌ Failed to check inventory:', error);
-        alert('❌ Failed to check inventory. Please try again.');
+        toast.error('Zaxirani tekshirishda xatolik. Qayta urinib ko\'ring.');
       } finally {
         setChecking(false);
       }

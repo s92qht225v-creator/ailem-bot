@@ -36,6 +36,7 @@ const WriteReviewPage = lazyWithRetry(() => import('./components/pages/WriteRevi
 const FavoritesPage = lazyWithRetry(() => import('./components/pages/FavoritesPage'));
 const ReferralsPage = lazyWithRetry(() => import('./components/pages/ReferralsPage'));
 const AdminAuth = lazyWithRetry(() => import('./components/AdminAuth'));
+const CashierMode = lazyWithRetry(() => import('./components/cashier/CashierMode'));
 import { loadFromLocalStorage, saveToLocalStorage, removeFromLocalStorage } from './utils/helpers';
 import { initTelegramWebApp, getReferralCode } from './utils/telegram';
 
@@ -48,7 +49,10 @@ function App() {
   // Load from localStorage in useEffect after mount
   const [pageData, setPageData] = useState({});
 
-  const { user, setReferredBy, toggleAdminMode } = useContext(UserContext);
+  const { user, setReferredBy } = useContext(UserContext);
+
+  // Check if user is a cashier
+  const isCashier = user?.role === 'cashier';
   
   // Track if Telegram has been initialized to prevent duplicate runs
   const telegramInitialized = useRef(false);
@@ -293,6 +297,21 @@ function App() {
             Retry
           </button>
         </div>
+      </div>
+    );
+  }
+
+  // Cashiers see a completely different interface
+  if (isCashier) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Suspense fallback={
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        }>
+          <CashierMode />
+        </Suspense>
       </div>
     );
   }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Gift } from 'lucide-react';
 import { loadFromLocalStorage, saveToLocalStorage } from '../../../utils/helpers';
 import { settingsAPI } from '../../../services/api';
+import { useToast } from '../../../context/ToastContext';
 
 const BonusSettingsSection = () => {
   const [bonusConfig, setBonusConfig] = useState({
@@ -10,6 +11,7 @@ const BonusSettingsSection = () => {
     currency: 'UZS'
   });
   const [loading, setLoading] = useState(true);
+  const toast = useToast();
 
   useEffect(() => {
     const loadConfig = async () => {
@@ -50,10 +52,10 @@ const BonusSettingsSection = () => {
         purchaseBonus: newConfig.purchaseBonus,
         referralCommission: newConfig.referralCommission
       });
-      alert('✅ Bonus configuration saved successfully!');
+      toast.success('Bonus sozlamalari muvaffaqiyatli saqlandi!');
     } catch (error) {
       console.error('❌ Failed to save bonus config to database:', error);
-      alert('❌ Failed to save configuration. Please try again.');
+      toast.error('Sozlamalarni saqlashda xatolik. Qayta urinib ko\'ring.');
     }
   };
 

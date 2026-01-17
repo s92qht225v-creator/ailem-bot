@@ -7,6 +7,7 @@ export { default as AnalyticsSection } from './AnalyticsSection';
 export { default as BonusSettingsSection } from './BonusSettingsSection';
 export { default as InventorySettingsSection } from './InventorySettingsSection';
 export { default as SettingsSection } from './SettingsSection';
+export { default as AuditLogsSection } from './AuditLogsSection';
 
 // These sections are still embedded in DesktopAdminPanel due to their complexity
 // They can be extracted later:

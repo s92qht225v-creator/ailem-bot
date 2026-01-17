@@ -1,11 +1,15 @@
 import { useState, useContext } from 'react';
 import { Star, CheckCircle, Trash2, Download } from 'lucide-react';
 import { AdminContext } from '../../../context/AdminContext';
+import { useToast } from '../../../context/ToastContext';
+import { useConfirm } from '../../../context/ConfirmContext';
 import { formatDate } from '../../../utils/helpers';
 import { exportReviews } from '../../../utils/csvExport';
 
 const ReviewsSection = () => {
   const { reviews, approveReview, deleteReview } = useContext(AdminContext);
+  const toast = useToast();
+  const confirm = useConfirm();
   const [filter, setFilter] = useState('all');
 
   const pendingReviews = reviews?.filter(r => !r.approved).length || 0;
@@ -20,20 +24,29 @@ const ReviewsSection = () => {
     try {
       await approveReview(reviewId);
       console.log('✅ Review approved successfully');
+      toast.success('Sharh muvaffaqiyatli tasdiqlandi');
     } catch (error) {
       console.error('❌ Failed to approve review:', error);
-      alert('Failed to approve review. Please try again.');
+      toast.error('Sharhni tasdiqlashda xatolik. Qayta urinib ko\'ring.');
     }
   };
 
   const handleDelete = async (reviewId) => {
-    if (confirm('Are you sure you want to delete this review? This action cannot be undone.')) {
+    const confirmed = await confirm({
+      title: 'Sharhni o\'chirish',
+      message: 'Ushbu sharhni o\'chirishga ishonchingiz komilmi? Bu amalni ortga qaytarib bo\'lmaydi.',
+      type: 'danger',
+      confirmText: 'O\'chirish',
+      cancelText: 'Bekor qilish'
+    });
+    if (confirmed) {
       try {
         await deleteReview(reviewId);
         console.log('✅ Review deleted successfully');
+        toast.success('Sharh muvaffaqiyatli o\'chirildi');
       } catch (error) {
         console.error('❌ Failed to delete review:', error);
-        alert('Failed to delete review. Please try again.');
+        toast.error('Sharhni o\'chirishda xatolik. Qayta urinib ko\'ring.');
       }
     }
   };

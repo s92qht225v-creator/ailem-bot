@@ -4,6 +4,8 @@ import {
   Download, FileDown, RotateCw, Package, Printer
 } from 'lucide-react';
 import { AdminContext } from '../../../context/AdminContext';
+import { useToast } from '../../../context/ToastContext';
+import { useConfirm } from '../../../context/ConfirmContext';
 import { formatPrice, formatDate, loadFromLocalStorage } from '../../../utils/helpers';
 import { exportOrders, exportOrderItems } from '../../../utils/csvExport';
 import { notifyUserOrderStatus, notifyReferrerReward } from '../../../services/telegram';
@@ -13,27 +15,49 @@ import { usersAPI } from '../../../services/api';
 
 const OrdersSection = ({ onImageClick }) => {
   const { orders, approveOrder, rejectOrder, updateOrderStatus, loadAllData, updateUserBonusPoints } = useContext(AdminContext);
+  const toast = useToast();
+  const confirm = useConfirm();
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  // Bulk operation loading state
+  const [bulkProgress, setBulkProgress] = useState({ isProcessing: false, current: 0, total: 0, action: '' });
+  // Date range filter
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const filteredOrders = useMemo(() => {
-    const filtered = statusFilter === 'all'
-      ? orders
-      : orders.filter(order => order.status === statusFilter);
-    return filtered;
-  }, [orders, statusFilter]);
+    return orders.filter(order => {
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+
+      // Date filter
+      const orderDate = new Date(order.createdAt || order.date);
+      const matchesDateFrom = !dateFrom || orderDate >= new Date(dateFrom);
+      const matchesDateTo = !dateTo || orderDate <= new Date(dateTo + 'T23:59:59');
+
+      return matchesStatus && matchesDateFrom && matchesDateTo;
+    });
+  }, [orders, statusFilter, dateFrom, dateTo]);
 
   const handleApprove = async (orderId) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
-    if (confirm('Approve this order? This will deduct stock from inventory and award bonus points.')) {
+    const confirmed = await confirm({
+      title: 'Buyurtmani tasdiqlash',
+      message: 'Buyurtmani tasdiqlamoqchimisiz? Ombordagi mahsulotlar kamaytiriladi va bonus ballar beriladi.',
+      type: 'success',
+      confirmText: 'Tasdiqlash',
+      cancelText: 'Bekor qilish'
+    });
+
+    if (confirmed) {
       try {
         await approveOrder(orderId);
-        console.log('✅ Order approved');
+        toast.success('Buyurtma muvaffaqiyatli tasdiqlandi');
 
         if (order.userId) {
           try {
@@ -42,7 +66,6 @@ const OrdersSection = ({ onImageClick }) => {
             const purchaseBonusPoints = Math.round((order.total * purchaseBonusPercentage) / 100);
 
             await updateUserBonusPoints(order.userId, purchaseBonusPoints);
-            console.log(`💰 Purchase bonus: Customer earned ${purchaseBonusPoints} points`);
 
             const customer = await usersAPI.getById(order.userId);
             if (customer && customer.referred_by) {
@@ -69,7 +92,7 @@ const OrdersSection = ({ onImageClick }) => {
         await notifyUserOrderStatus(order, 'approved');
       } catch (error) {
         console.error('❌ Failed to approve order:', error);
-        alert('Failed to approve order. Please try again.');
+        toast.error('Buyurtmani tasdiqlashda xatolik. Qayta urinib ko\'ring.');
       }
     }
   };
@@ -78,7 +101,15 @@ const OrdersSection = ({ onImageClick }) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
-    if (confirm('Reject this order? If previously approved, stock will be restored and bonus points refunded.')) {
+    const confirmed = await confirm({
+      title: 'Buyurtmani rad etish',
+      message: 'Buyurtmani rad etmoqchimisiz? Agar avval tasdiqlangan bo\'lsa, mahsulotlar qaytariladi va bonus ballar olib tashlanadi.',
+      type: 'danger',
+      confirmText: 'Rad etish',
+      cancelText: 'Bekor qilish'
+    });
+
+    if (confirmed) {
       try {
         const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 3 });
         const bonusPercentage = bonusConfig?.purchaseBonus || 3;
@@ -95,9 +126,10 @@ const OrdersSection = ({ onImageClick }) => {
         });
 
         await notifyUserOrderStatus(order, 'rejected');
+        toast.success('Buyurtma rad etildi');
       } catch (error) {
         console.error('❌ Failed to reject order:', error);
-        alert('Failed to reject order. Please try again.');
+        toast.error('Buyurtmani rad etishda xatolik. Qayta urinib ko\'ring.');
       }
     }
   };
@@ -106,13 +138,22 @@ const OrdersSection = ({ onImageClick }) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
-    if (confirm('Mark this order as shipped? Customer will be notified.')) {
+    const confirmed = await confirm({
+      title: 'Jo\'natildi deb belgilash',
+      message: 'Buyurtmani jo\'natildi deb belgilamoqchimisiz? Mijozga xabar yuboriladi.',
+      type: 'info',
+      confirmText: 'Jo\'natildi',
+      cancelText: 'Bekor qilish'
+    });
+
+    if (confirmed) {
       try {
         await updateOrderStatus(orderId, 'shipped');
         await notifyUserOrderStatus(order, 'shipped');
+        toast.success('Buyurtma jo\'natildi deb belgilandi');
       } catch (error) {
         console.error('❌ Failed to mark as shipped:', error);
-        alert('Failed to update order status. Please try again.');
+        toast.error('Holatni yangilashda xatolik. Qayta urinib ko\'ring.');
       }
     }
   };
@@ -121,13 +162,22 @@ const OrdersSection = ({ onImageClick }) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
 
-    if (confirm('Mark this order as delivered? Customer will be notified.')) {
+    const confirmed = await confirm({
+      title: 'Yetkazildi deb belgilash',
+      message: 'Buyurtmani yetkazildi deb belgilamoqchimisiz? Mijozga xabar yuboriladi.',
+      type: 'success',
+      confirmText: 'Yetkazildi',
+      cancelText: 'Bekor qilish'
+    });
+
+    if (confirmed) {
       try {
         await updateOrderStatus(orderId, 'delivered');
         await notifyUserOrderStatus(order, 'delivered');
+        toast.success('Buyurtma yetkazildi deb belgilandi');
       } catch (error) {
         console.error('❌ Failed to mark as delivered:', error);
-        alert('Failed to update order status. Please try again.');
+        toast.error('Holatni yangilashda xatolik. Qayta urinib ko\'ring.');
       }
     }
   };
@@ -161,42 +211,94 @@ const OrdersSection = ({ onImageClick }) => {
 
   const handleBulkAction = async () => {
     if (!bulkAction || selectedOrders.length === 0) {
-      alert('Please select orders and an action');
+      toast.warning('Iltimos, buyurtmalar va amalni tanlang');
       return;
     }
 
     const action = bulkAction;
     const count = selectedOrders.length;
 
-    if (!confirm(`${action} ${count} order(s)?`)) return;
+    const actionLabels = {
+      'Approve': 'Tasdiqlash',
+      'Mark as Shipped': 'Jo\'natildi',
+      'Mark as Delivered': 'Yetkazildi',
+      'Reject': 'Rad etish'
+    };
+
+    const confirmed = await confirm({
+      title: 'Ommaviy amal',
+      message: `${count} ta buyurtmani "${actionLabels[action] || action}" qilmoqchimisiz?`,
+      type: action === 'Reject' ? 'danger' : 'info',
+      confirmText: actionLabels[action] || action,
+      cancelText: 'Bekor qilish'
+    });
+
+    if (!confirmed) return;
+
+    // Start bulk progress tracking
+    setBulkProgress({ isProcessing: true, current: 0, total: count, action: actionLabels[action] || action });
+    let successCount = 0;
+    let failCount = 0;
 
     try {
-      for (const orderId of selectedOrders) {
+      for (let i = 0; i < selectedOrders.length; i++) {
+        const orderId = selectedOrders[i];
         const order = orders.find(o => o.id === orderId);
-        if (!order) continue;
 
-        switch (action) {
-          case 'Approve':
-            if (order.status === 'pending') await approveOrder(orderId);
-            break;
-          case 'Mark as Shipped':
-            if (order.status === 'approved') await updateOrderStatus(orderId, 'shipped');
-            break;
-          case 'Mark as Delivered':
-            if (order.status === 'shipped') await updateOrderStatus(orderId, 'delivered');
-            break;
-          case 'Reject':
-            if (order.status === 'pending') await rejectOrder(orderId);
-            break;
+        // Update progress
+        setBulkProgress(prev => ({ ...prev, current: i + 1 }));
+
+        if (!order) {
+          failCount++;
+          continue;
+        }
+
+        try {
+          switch (action) {
+            case 'Approve':
+              if (order.status === 'pending') {
+                await approveOrder(orderId);
+                successCount++;
+              }
+              break;
+            case 'Mark as Shipped':
+              if (order.status === 'approved') {
+                await updateOrderStatus(orderId, 'shipped');
+                successCount++;
+              }
+              break;
+            case 'Mark as Delivered':
+              if (order.status === 'shipped') {
+                await updateOrderStatus(orderId, 'delivered');
+                successCount++;
+              }
+              break;
+            case 'Reject':
+              if (order.status === 'pending') {
+                await rejectOrder(orderId);
+                successCount++;
+              }
+              break;
+          }
+        } catch (err) {
+          console.error(`Failed to ${action} order ${orderId}:`, err);
+          failCount++;
         }
       }
 
       setSelectedOrders([]);
       setBulkAction('');
-      alert(`Successfully ${action.toLowerCase()}d ${count} order(s)`);
+
+      if (failCount > 0) {
+        toast.warning(`Yakunlandi: ${successCount} ta muvaffaqiyatli, ${failCount} ta xato`);
+      } else {
+        toast.success(`${successCount} ta buyurtma muvaffaqiyatli yangilandi`);
+      }
     } catch (error) {
       console.error('❌ Bulk action failed:', error);
-      alert('Some orders failed to update. Please try again.');
+      toast.error('Ommaviy amal bajarilmadi. Qayta urinib ko\'ring.');
+    } finally {
+      setBulkProgress({ isProcessing: false, current: 0, total: 0, action: '' });
     }
   };
 
@@ -253,7 +355,61 @@ const OrdersSection = ({ onImageClick }) => {
           </div>
         </div>
 
-        {selectedOrders.length > 0 && (
+        {/* Date Range Filter */}
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-sm font-medium text-gray-600">Date Range:</span>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+              placeholder="From"
+            />
+            <span className="text-gray-400">-</span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+              placeholder="To"
+            />
+          </div>
+          {(dateFrom || dateTo) && (
+            <button
+              onClick={() => { setDateFrom(''); setDateTo(''); }}
+              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
+            >
+              Clear dates
+            </button>
+          )}
+          <span className="ml-auto text-sm text-gray-500">
+            Showing {filteredOrders.length} of {orders.length} orders
+          </span>
+        </div>
+
+        {/* Bulk Operation Progress */}
+        {bulkProgress.isProcessing && (
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-semibold text-blue-900">
+                {bulkProgress.action}: {bulkProgress.current} / {bulkProgress.total}
+              </span>
+              <span className="text-sm text-blue-700">
+                {Math.round((bulkProgress.current / bulkProgress.total) * 100)}%
+              </span>
+            </div>
+            <div className="w-full bg-blue-200 rounded-full h-2.5">
+              <div
+                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
+              />
+            </div>
+            <p className="text-xs text-blue-700 mt-2">Please wait while processing orders...</p>
+          </div>
+        )}
+
+        {selectedOrders.length > 0 && !bulkProgress.isProcessing && (
           <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
             <span className="text-sm font-semibold text-blue-900">
               {selectedOrders.length} order(s) selected
@@ -291,10 +447,10 @@ const OrdersSection = ({ onImageClick }) => {
             </select>
             <button
               onClick={handleBulkAction}
-              disabled={!bulkAction}
+              disabled={!bulkAction || bulkProgress.isProcessing}
               className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Apply
+              {bulkProgress.isProcessing ? 'Processing...' : 'Apply'}
             </button>
             <button
               onClick={() => setSelectedOrders([])}

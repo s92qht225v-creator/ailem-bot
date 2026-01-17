@@ -1,4 +1,11 @@
 import { supabase } from '../lib/supabase';
+import {
+  validateProduct,
+  validateCategory,
+  validateShippingRate,
+  validatePickupPoint,
+  validateReview
+} from '../utils/validation';
 
 // ============================================
 // CATEGORIES API
@@ -18,6 +25,9 @@ export const categoriesAPI = {
 
   // Create category
   async create(category) {
+    // Validate category data
+    validateCategory(category);
+
     const { data, error } = await supabase
       .from('categories')
       .insert([category])
@@ -137,6 +147,9 @@ export const productsAPI = {
 
   // Create product
   async create(product) {
+    // Validate product data
+    validateProduct(product);
+
     // Transform app fields to database fields
     const dbProduct = {
       name: product.name,
@@ -246,6 +259,42 @@ export const productsAPI = {
       .eq('id', id);
 
     if (error) throw error;
+  },
+
+  // Get product by barcode (for cashier scanner)
+  async getByBarcode(barcode) {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('barcode', barcode)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') return null; // Not found
+      throw error;
+    }
+
+    return {
+      ...data,
+      category: data.category_name,
+      originalPrice: data.original_price,
+      reviewCount: data.review_count,
+      variants: data.variants || [],
+      reviews: []
+    };
+  },
+
+  // Update product barcode
+  async updateBarcode(id, barcode) {
+    const { data, error } = await supabase
+      .from('products')
+      .update({ barcode })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 };
 
@@ -264,6 +313,7 @@ export const usersAPI = {
       referralCode: user.referral_code,
       referredBy: user.referred_by,
       totalOrders: user.total_orders,
+      role: user.role || 'customer',
       createdAt: user.created_at,
       updatedAt: user.updated_at
     };
@@ -496,6 +546,41 @@ export const usersAPI = {
       throw error;
     }
     return data;
+  },
+
+  // Update user role (admin only)
+  async updateRole(userId, role) {
+    const validRoles = ['customer', 'cashier'];
+    if (!validRoles.includes(role)) {
+      throw new Error(`Invalid role: ${role}. Must be one of: ${validRoles.join(', ')}`);
+    }
+
+    const { data, error } = await supabase
+      .from('users')
+      .update({ role })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return this._mapUserFromDB(data);
+  },
+
+  // Get users by role
+  async getByRole(role) {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('role', role)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data || []).map(user => this._mapUserFromDB(user));
+  },
+
+  // Get all cashiers
+  async getCashiers() {
+    return this.getByRole('cashier');
   }
 };
 
@@ -791,6 +876,9 @@ export const reviewsAPI = {
 
   // Create review
   async create(review) {
+    // Validate review data
+    validateReview(review);
+
     const { data, error } = await supabase
       .from('reviews')
       .insert([review])
@@ -885,6 +973,9 @@ export const pickupPointsAPI = {
 
   // Create pickup point
   async create(pickupPoint) {
+    // Validate pickup point data
+    validatePickupPoint(pickupPoint);
+
     // Get the max display_order to append new point at the end
     const { data: maxOrderData } = await supabase
       .from('pickup_points')
@@ -1232,6 +1323,9 @@ export const shippingRatesAPI = {
 
   // Create shipping rate
   async create(rate) {
+    // Validate shipping rate data
+    validateShippingRate(rate);
+
     const dbRate = {
       courier: rate.courier,
       state: rate.state,

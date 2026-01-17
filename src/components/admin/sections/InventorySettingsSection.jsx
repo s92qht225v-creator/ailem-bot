@@ -2,6 +2,7 @@ import { useState, useEffect, useContext, useMemo } from 'react';
 import { Bell, Save, BarChart3, AlertCircle, AlertTriangle, RotateCw } from 'lucide-react';
 import { AdminContext } from '../../../context/AdminContext';
 import { settingsAPI } from '../../../services/api';
+import { useToast } from '../../../context/ToastContext';
 import { getTotalVariantStock } from '../../../utils/variants';
 
 const InventorySettingsSection = () => {
@@ -10,6 +11,7 @@ const InventorySettingsSection = () => {
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
   const [lastCheck, setLastCheck] = useState(null);
+  const toast = useToast();
 
   useEffect(() => {
     const loadThreshold = async () => {
@@ -31,10 +33,10 @@ const InventorySettingsSection = () => {
     try {
       await settingsAPI.updateInventorySettings({ low_stock_threshold: newThreshold });
       setThreshold(newThreshold);
-      alert('✅ Low stock threshold saved successfully!');
+      toast.success('Kam zaxira chegarasi muvaffaqiyatli saqlandi!');
     } catch (error) {
       console.error('❌ Failed to save threshold:', error);
-      alert('❌ Failed to save. Please try again.');
+      toast.error('Saqlashda xatolik. Qayta urinib ko\'ring.');
     }
   };
 
@@ -61,15 +63,15 @@ const InventorySettingsSection = () => {
       const result = await notifyAdminLowStockSummary(lowStockProducts, outOfStockProducts);
 
       if (result.success) {
-        alert(`✅ Inventory alert sent!\n\n${outOfStockProducts.length} out of stock\n${lowStockProducts.length} low stock`);
+        toast.success(`Zaxira ogohlantirishi yuborildi! ${outOfStockProducts.length} ta tugagan, ${lowStockProducts.length} ta kam zaxira`);
       } else {
-        alert(`⚠️ ${result.error || 'Failed to send alert'}`);
+        toast.warning(result.error || 'Ogohlantirishni yuborishda xatolik');
       }
 
       setLastCheck(new Date());
     } catch (error) {
       console.error('❌ Failed to check inventory:', error);
-      alert('❌ Failed to check inventory. Please try again.');
+      toast.error('Zaxirani tekshirishda xatolik. Qayta urinib ko\'ring.');
     } finally {
       setChecking(false);
     }
