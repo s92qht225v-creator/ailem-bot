@@ -1098,7 +1098,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [showForm, setShowForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
     const [allImages, setAllImages] = useState([]); // Array of all product images
+    const [formErrors, setFormErrors] = useState({});
+    const [showUrlInput, setShowUrlInput] = useState(false);
+    const [imageUrl, setImageUrl] = useState('');
+    const [tagSuggestions, setTagSuggestions] = useState([]);
+    const [showTagSuggestions, setShowTagSuggestions] = useState(false);
     const [formData, setFormData] = useState({
       name: '',
       description: '',
@@ -1118,6 +1124,139 @@ const DesktopAdminPanel = ({ onLogout }) => {
       variants: [],
       volume_pricing: null
     });
+
+    // Get all existing tags from products for auto-suggest
+    const allExistingTags = useMemo(() => {
+      const tags = new Set();
+      products.forEach(product => {
+        if (product.tags) {
+          product.tags.forEach(tag => tags.add(tag.toLowerCase()));
+        }
+      });
+      return Array.from(tags).sort();
+    }, [products]);
+
+    // Handle tag input and suggestions
+    const handleTagInput = (value) => {
+      setFormData({ ...formData, tags: value });
+
+      // Get the last tag being typed
+      const tags = value.split(',');
+      const currentTag = tags[tags.length - 1].trim().toLowerCase();
+
+      if (currentTag.length >= 2) {
+        const suggestions = allExistingTags.filter(tag =>
+          tag.includes(currentTag) && !tags.slice(0, -1).map(t => t.trim().toLowerCase()).includes(tag)
+        ).slice(0, 5);
+        setTagSuggestions(suggestions);
+        setShowTagSuggestions(suggestions.length > 0);
+      } else {
+        setShowTagSuggestions(false);
+      }
+    };
+
+    const selectTagSuggestion = (tag) => {
+      const tags = formData.tags.split(',').map(t => t.trim());
+      tags[tags.length - 1] = tag;
+      setFormData({ ...formData, tags: tags.join(', ') + ', ' });
+      setShowTagSuggestions(false);
+    };
+
+    // Form validation
+    const validateForm = () => {
+      const errors = {};
+
+      if (!formData.name.trim()) {
+        errors.name = 'Mahsulot nomi kiritilishi shart';
+      }
+
+      if (!formData.price || parseFloat(formData.price) <= 0) {
+        errors.price = 'Narx kiritilishi shart';
+      }
+
+      if (formData.salePrice && parseFloat(formData.salePrice) >= parseFloat(formData.price)) {
+        errors.salePrice = 'Chegirma narxi asosiy narxdan kam bo\'lishi kerak';
+      }
+
+      if (!formData.category) {
+        errors.category = 'Kategoriya tanlanishi shart';
+      }
+
+      if (!formData.tags.trim()) {
+        errors.tags = 'Kamida bitta teg kiritilishi shart';
+      }
+
+      // Only require stock if no variants
+      const hasVariants = formData.variants && formData.variants.length > 0;
+      if (!hasVariants && (!formData.stock || parseInt(formData.stock) < 0)) {
+        errors.stock = 'Ombor miqdori kiritilishi shart';
+      }
+
+      if (allImages.length === 0) {
+        errors.images = 'Kamida bitta rasm yuklanishi shart';
+      }
+
+      // Check for duplicate variants
+      if (hasVariants) {
+        const variantKeys = formData.variants.map(v => `${v.color}-${v.size}`);
+        const uniqueKeys = new Set(variantKeys);
+        if (variantKeys.length !== uniqueKeys.size) {
+          errors.variants = 'Takroriy variantlar mavjud';
+        }
+      }
+
+      setFormErrors(errors);
+      return Object.keys(errors).length === 0;
+    };
+
+    // Add image via URL
+    const handleAddImageUrl = () => {
+      if (imageUrl.trim()) {
+        // Basic URL validation
+        try {
+          new URL(imageUrl);
+          setAllImages(prev => [...prev, imageUrl.trim()]);
+          setImageUrl('');
+          setShowUrlInput(false);
+        } catch {
+          alert('Noto\'g\'ri URL manzili');
+        }
+      }
+    };
+
+    // Multi-image upload
+    const handleMultiImageUpload = async (e) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
+
+      try {
+        setUploadingImage(true);
+        console.log(`📤 Uploading ${files.length} images to Supabase...`);
+
+        const { storageAPI } = await import('../../services/api');
+
+        for (const file of files) {
+          try {
+            const uploadPromise = storageAPI.uploadProductImage(file);
+            const timeoutPromise = new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Upload timeout')), 30000)
+            );
+
+            const result = await Promise.race([uploadPromise, timeoutPromise]);
+            console.log('✅ Image uploaded:', result.url);
+            setAllImages(prev => [...prev, result.url]);
+          } catch (error) {
+            console.error(`❌ Failed to upload ${file.name}:`, error);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Image upload failed:', error);
+        alert(`Rasm yuklashda xatolik: ${error.message}`);
+      } finally {
+        setUploadingImage(false);
+        e.target.value = '';
+      }
+    };
 
     const handleImageUpload = async (e) => {
       const file = e.target.files?.[0];
@@ -1173,20 +1312,20 @@ const DesktopAdminPanel = ({ onLogout }) => {
       console.log('🔥 handleSubmit called!', { editingProduct, formData, allImages });
       e.preventDefault();
 
+      // Validate form
+      if (!validateForm()) {
+        console.error('❌ Form validation failed:', formErrors);
+        return;
+      }
+
       try {
-        console.log('🔍 Starting validation...');
+        setSubmitting(true);
+        console.log('🔍 Starting submission...');
 
         // Check if context functions are available
         if (!addProduct || !updateProduct) {
           console.error('❌ Admin context functions not available:', { addProduct, updateProduct });
-          alert('System not ready. Please wait a moment and try again.');
-          return;
-        }
-
-        // Ensure we have at least one image
-        if (allImages.length === 0) {
-          console.error('❌ No images provided');
-          alert('Please add at least one product image.');
+          alert('Tizim tayyor emas. Iltimos, biroz kuting va qayta urinib ko\'ring.');
           return;
         }
 
@@ -1296,6 +1435,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         setShowForm(false);
         setEditingProduct(null);
         setAllImages([]);
+        setFormErrors({});
         setFormData({
           name: '',
           description: '',
@@ -1303,7 +1443,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           salePrice: '',
           imageUrl: '',
           additionalImages: '',
-          category: 'Bedsheets',
+          category: '',
           weight: '',
           stock: '',
           badge: '',
@@ -1324,7 +1464,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
           name: error.name,
           fullError: error
         });
-        alert(`Failed to save product: ${error.message}\n\nPlease check the console for details and try again.`);
+        alert(`Mahsulotni saqlashda xatolik: ${error.message}\n\nIltimos, qayta urinib ko'ring.`);
+      } finally {
+        setSubmitting(false);
       }
     };
 
@@ -1493,11 +1635,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                    required
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value });
+                      if (formErrors.name) setFormErrors({ ...formErrors, name: null });
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${formErrors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
                     placeholder="Masalan: Choyshablar to'plami"
                   />
+                  {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
                 </div>
 
                 <div className="md:col-span-2">
@@ -1544,16 +1689,41 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   />
                 </div>
 
-                <div className="md:col-span-2">
+                <div className="md:col-span-2 relative">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Teglar *</label>
                   <input
                     type="text"
                     value={formData.tags}
-                    onChange={(e) => setFormData({ ...formData, tags: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    onChange={(e) => {
+                      handleTagInput(e.target.value);
+                      if (formErrors.tags) setFormErrors({ ...formErrors, tags: null });
+                    }}
+                    onFocus={() => {
+                      if (tagSuggestions.length > 0) setShowTagSuggestions(true);
+                    }}
+                    onBlur={() => {
+                      // Delay hiding to allow click on suggestion
+                      setTimeout(() => setShowTagSuggestions(false), 200);
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${formErrors.tags ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
                     placeholder="choyshablar, paxta, hashamatli, yumshoq (vergul bilan ajratilgan)"
-                    required
                   />
+                  {/* Tag suggestions dropdown */}
+                  {showTagSuggestions && tagSuggestions.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                      {tagSuggestions.map((tag, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => selectTagSuggestion(tag)}
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                        >
+                          {tag}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {formErrors.tags && <p className="text-red-500 text-xs mt-1">{formErrors.tags}</p>}
                   <p className="text-xs text-gray-500 mt-1">Teglar qidiruv uchun ishlatiladi - kalit so'zlarni vergul bilan ajrating</p>
                 </div>
               </div>
@@ -1566,10 +1736,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <input
                   type="number"
                   value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  required
+                  onChange={(e) => {
+                    setFormData({ ...formData, price: e.target.value });
+                    if (formErrors.price) setFormErrors({ ...formErrors, price: null });
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${formErrors.price ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
                 />
+                {formErrors.price && <p className="text-red-500 text-xs mt-1">{formErrors.price}</p>}
               </div>
 
               <div>
@@ -1577,48 +1750,64 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <input
                   type="number"
                   value={formData.salePrice}
-                  onChange={(e) => setFormData({ ...formData, salePrice: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  onChange={(e) => {
+                    setFormData({ ...formData, salePrice: e.target.value });
+                    if (formErrors.salePrice) setFormErrors({ ...formErrors, salePrice: null });
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${formErrors.salePrice ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
                 />
+                {formErrors.salePrice && <p className="text-red-500 text-xs mt-1">{formErrors.salePrice}</p>}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Kategoriya</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Kategoriya *</label>
                 <select
                   value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  onChange={(e) => {
+                    setFormData({ ...formData, category: e.target.value });
+                    if (formErrors.category) setFormErrors({ ...formErrors, category: null });
+                  }}
+                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${formErrors.category ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
                 >
                   <option value="">Kategoriyani tanlang</option>
                   {categories?.map(cat => (
                     <option key={cat.id} value={cat.name}>{cat.name}</option>
                   ))}
                 </select>
+                {formErrors.category && <p className="text-red-500 text-xs mt-1">{formErrors.category}</p>}
               </div>
+
+              {/* Only show stock field when no variants */}
+              {(!formData.variants || formData.variants.length === 0) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Ombor miqdori *</label>
+                  <input
+                    type="number"
+                    value={formData.stock}
+                    onChange={(e) => {
+                      setFormData({ ...formData, stock: e.target.value });
+                      if (formErrors.stock) setFormErrors({ ...formErrors, stock: null });
+                    }}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${formErrors.stock ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                  />
+                  {formErrors.stock && <p className="text-red-500 text-xs mt-1">{formErrors.stock}</p>}
+                </div>
+              )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Ombor miqdori *</label>
-                <input
-                  type="number"
-                  value={formData.stock}
-                  onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  required
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-2">Vazni</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={formData.weight}
+                    onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
+                    className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    placeholder="Masalan: 1.5"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">kg</span>
+                </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Vazni (kg)</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.weight}
-                  onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="Masalan: 1.5"
-                />
-              </div>
-
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Belgisi</label>
@@ -1638,16 +1827,22 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
               {/* Variant Stock Management */}
               {formData.variants.length > 0 && (
-                <div className="md:col-span-2 border-2 border-blue-200 rounded-lg p-4 bg-blue-50">
+                <div className={`md:col-span-2 border-2 rounded-lg p-4 ${formErrors.variants ? 'border-red-300 bg-red-50' : 'border-blue-200 bg-blue-50'}`}>
                   <div className="flex items-center justify-between mb-3">
-                    <label className="block text-sm font-bold text-blue-900">
+                    <label className={`block text-sm font-bold ${formErrors.variants ? 'text-red-900' : 'text-blue-900'}`}>
                       Variant inventarizatsiyasi ({formData.variants.length} ta variant)
                     </label>
-                    <span className="text-xs text-blue-700 font-medium">
+                    <span className={`text-xs font-medium ${formErrors.variants ? 'text-red-700' : 'text-blue-700'}`}>
                       Jami: {getTotalVariantStock(formData.variants)} dona
                     </span>
                   </div>
-                  <p className="text-xs text-blue-700 mb-3">
+                  {formErrors.variants && (
+                    <div className="mb-3 p-2 bg-red-100 border border-red-300 rounded text-red-700 text-xs flex items-center gap-2">
+                      <AlertTriangle className="w-4 h-4" />
+                      {formErrors.variants}
+                    </div>
+                  )}
+                  <p className={`text-xs mb-3 ${formErrors.variants ? 'text-red-700' : 'text-blue-700'}`}>
                     Har bir rang + o'lcham kombinatsiyasi uchun miqdorni kiriting
                   </p>
 
@@ -1735,30 +1930,38 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Mahsulot rasmlari * {allImages.length > 0 && <span className="text-gray-500 font-normal">({allImages.length} ta rasm)</span>}
                 </label>
-                
+
+                {/* Image error message */}
+                {formErrors.images && (
+                  <div className="mb-3 p-2 bg-red-100 border border-red-300 rounded text-red-700 text-xs flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4" />
+                    {formErrors.images}
+                  </div>
+                )}
+
                 {/* Image Gallery */}
                 {allImages.length > 0 && (
                   <div className="mb-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                    {allImages.map((imageUrl, index) => (
+                    {allImages.map((imgUrl, index) => (
                       <div key={index} className="relative group">
                         <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
                           <img
-                            src={imageUrl}
-                            alt={`Product ${index + 1}`}
+                            src={imgUrl}
+                            alt={`Mahsulot ${index + 1}`}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3EError%3C/text%3E%3C/svg%3E';
+                              e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="100" height="100"%3E%3Crect fill="%23ddd" width="100" height="100"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3EXato%3C/text%3E%3C/svg%3E';
                             }}
                           />
                         </div>
-                        
+
                         {/* Image Badge */}
                         {index === 0 && (
                           <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded font-medium">
-                            Main
+                            Asosiy
                           </div>
                         )}
-                        
+
                         {/* Action Buttons */}
                         <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all flex items-center justify-center gap-1 opacity-0 group-hover:opacity-100">
                           {index > 0 && (
@@ -1766,7 +1969,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                               type="button"
                               onClick={() => handleMoveImage(index, index - 1)}
                               className="bg-white text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                              title="Move left"
+                              title="Chapga ko'chirish"
                             >
                               <ChevronRight className="w-4 h-4 rotate-180" />
                             </button>
@@ -1776,7 +1979,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                               type="button"
                               onClick={() => handleMoveImage(index, index + 1)}
                               className="bg-white text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
-                              title="Move right"
+                              title="O'ngga ko'chirish"
                             >
                               <ChevronRight className="w-4 h-4" />
                             </button>
@@ -1785,7 +1988,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                             type="button"
                             onClick={() => handleRemoveImage(index)}
                             className="bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 transition-colors"
-                            title="Remove image"
+                            title="Rasmni o'chirish"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -1795,23 +1998,64 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   </div>
                 )}
 
-                {/* Upload Button */}
-                <div>
-                  <label className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-blue-600 hover:to-blue-700 transition-all flex items-center justify-center gap-2">
+                {/* Upload Buttons */}
+                <div className="flex gap-2 flex-wrap">
+                  <label className={`flex-1 min-w-[200px] bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-blue-600 hover:to-blue-700 transition-all flex items-center justify-center gap-2 ${uploadingImage ? 'opacity-50 cursor-wait' : ''}`}>
                     <Upload className="w-5 h-5" />
-                    <span>{uploadingImage ? 'Uploading...' : (allImages.length === 0 ? 'Upload Product Images' : 'Add More Images')}</span>
+                    <span>{uploadingImage ? 'Yuklanmoqda...' : (allImages.length === 0 ? 'Rasmlarni yuklash' : 'Rasm qo\'shish')}</span>
                     <input
                       type="file"
                       accept="image/*"
-                      onChange={handleImageUpload}
+                      multiple
+                      onChange={handleMultiImageUpload}
                       className="hidden"
                       disabled={uploadingImage}
                     />
                   </label>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowUrlInput(!showUrlInput)}
+                    className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                  >
+                    <ImagePlus className="w-5 h-5 text-gray-600" />
+                    <span className="text-gray-700">URL orqali</span>
+                  </button>
                 </div>
+
+                {/* URL Input */}
+                {showUrlInput && (
+                  <div className="mt-3 flex gap-2">
+                    <input
+                      type="url"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      placeholder="Rasm URL manzilini kiriting..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddImageUrl}
+                      className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                      Qo'shish
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowUrlInput(false);
+                        setImageUrl('');
+                      }}
+                      className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                    >
+                      Bekor
+                    </button>
+                  </div>
+                )}
+
                 <p className="text-xs text-gray-500 mt-2">
-                  {allImages.length === 0 ? 'Upload at least one product image. ' : ''}
-                  First image will be the main product image. Click and drag to reorder.
+                  {allImages.length === 0 ? 'Kamida bitta rasm yuklang. ' : ''}
+                  Birinchi rasm asosiy mahsulot rasmi bo'ladi. Tartibni o'zgartirish uchun strelkalarni bosing.
                 </p>
               </div>
 
@@ -1947,20 +2191,29 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <div className="md:col-span-2 flex gap-4">
                 <button
                   type="submit"
-                  className="bg-accent hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                  disabled={submitting}
+                  className={`bg-accent hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${submitting ? 'opacity-50 cursor-wait' : ''}`}
                 >
-                  {editingProduct ? 'Update Product' : 'Add Product'}
+                  {submitting && (
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  )}
+                  {submitting ? 'Saqlanmoqda...' : (editingProduct ? 'Yangilash' : 'Qo\'shish')}
                 </button>
                 <button
                   type="button"
+                  disabled={submitting}
                   onClick={() => {
                     setShowForm(false);
                     setEditingProduct(null);
                     setAllImages([]);
+                    setFormErrors({});
                   }}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-medium transition-colors"
+                  className={`bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-medium transition-colors ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  Cancel
+                  Bekor qilish
                 </button>
               </div>
             </form>
@@ -1973,12 +2226,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Stock</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mahsulot</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategoriya</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Narxi</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ombor</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Holat</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amallar</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -2017,7 +2270,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                             displayStock > 0 ? 'bg-yellow-100 text-yellow-800' :
                             'bg-red-100 text-red-800'
                           }`}>
-                            {displayStock} units
+                            {displayStock} dona
                           </span>
                         );
                       })()}
@@ -2028,12 +2281,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
                         const displayStock = product.variants && product.variants.length > 0
                           ? getTotalVariantStock(product.variants)
                           : (product.stock || 0);
-                        
+
                         return (
                           <span className={`px-2 py-1 text-xs rounded-full ${
                             displayStock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                           }`}>
-                            {displayStock > 0 ? 'In Stock' : 'Out of Stock'}
+                            {displayStock > 0 ? 'Mavjud' : 'Tugagan'}
                           </span>
                         );
                       })()}
