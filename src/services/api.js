@@ -671,7 +671,7 @@ export const ordersAPI = {
     console.log('📦 Orders fetched from database (first 3):',
       (data || []).slice(0, 3).map(o => ({
         order_number: o.order_number,
-        created_at: o.created_at,
+        payment_method: o.payment_method,
         status: o.status
       }))
     );
@@ -681,8 +681,7 @@ export const ordersAPI = {
     console.log('📦 Orders after mapping (first 3):',
       mapped.slice(0, 3).map(o => ({
         id: o.id,
-        created_at: o.created_at,
-        createdAt: o.createdAt,
+        paymentMethod: o.paymentMethod,
         status: o.status
       }))
     );
