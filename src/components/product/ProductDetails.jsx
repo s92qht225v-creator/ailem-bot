@@ -2,7 +2,7 @@ import { useState, useEffect, useContext, useRef } from 'react';
 import { t } from "../../utils/translation-fallback";
 import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, Share2, Bell, BellOff } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
-import { getVariantStock, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant } from '../../utils/variants';
+import { getVariantStock, getVariantPrice, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant, getVariantPriceRange, hasVariantPricing } from '../../utils/variants';
 import { UserContext } from '../../context/UserContext';
 import { getTelegramWebApp } from '../../utils/telegram';
 import { stockNotificationsAPI } from '../../services/api';
@@ -56,6 +56,29 @@ const ProductDetails = ({ product, onAddToCart }) => {
   };
 
   const currentStock = getCurrentStock();
+
+  // Get current price based on variant selection
+  const getCurrentPrice = () => {
+    const basePrice = product.price;
+
+    if (!hasVariants) {
+      return basePrice;
+    }
+
+    if (selectedColor && selectedSize) {
+      return getVariantPrice(product.variants, selectedColor, selectedSize, basePrice);
+    }
+
+    return basePrice;
+  };
+
+  const currentPrice = getCurrentPrice();
+
+  // Check if product has variant-specific pricing
+  const hasVarPricing = hasVariantPricing(product.variants);
+
+  // Get price range for display when no variant is selected
+  const priceRange = hasVariants ? getVariantPriceRange(product.variants, product.price) : null;
 
   // Get available colors (those with stock)
   const availableColors = hasVariants ? getAvailableColors(product.variants) : (product.colors || []);
@@ -243,7 +266,9 @@ const ProductDetails = ({ product, onAddToCart }) => {
   };
 
   const handleAddToCart = () => {
-    onAddToCart(product, quantity, selectedColor, selectedSize);
+    // Pass variant price if available
+    const variantPrice = currentVariant?.price || null;
+    onAddToCart(product, quantity, selectedColor, selectedSize, variantPrice);
   };
 
   // Check if user is subscribed to stock notifications
@@ -329,7 +354,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
     }
   };
 
-  const totalPrice = product.price * quantity;
+  const totalPrice = currentPrice * quantity;
 
   // Calculate actual approved reviews count
   const approvedReviewsCount = product.reviews?.filter(r => r.approved).length || 0;
@@ -451,13 +476,29 @@ const ProductDetails = ({ product, onAddToCart }) => {
           </div>
 
           <div className="flex items-center gap-3 mb-3">
-            <span className="text-3xl font-bold text-primary">
-              {formatPrice(product.price)}
-            </span>
-            {product.originalPrice && (
-              <span className="text-xl text-gray-500 line-through">
-                {formatPrice(product.originalPrice)}
+            {/* Show variant price if selected, or price range if variants have different prices */}
+            {hasVarPricing && priceRange && priceRange.min !== priceRange.max && (!selectedColor || !selectedSize) ? (
+              <span className="text-3xl font-bold text-primary">
+                {formatPrice(priceRange.min)} - {formatPrice(priceRange.max)}
               </span>
+            ) : (
+              <>
+                <span className="text-3xl font-bold text-primary">
+                  {formatPrice(currentPrice)}
+                </span>
+                {/* Show original price if discounted (not variant price, but product original price) */}
+                {product.originalPrice && currentPrice < product.originalPrice && (
+                  <span className="text-xl text-gray-500 line-through">
+                    {formatPrice(product.originalPrice)}
+                  </span>
+                )}
+                {/* Show base price crossed out if variant has different price */}
+                {hasVarPricing && currentVariant?.price && currentVariant.price !== product.price && (
+                  <span className="text-sm text-gray-400">
+                    (variant narxi)
+                  </span>
+                )}
+              </>
             )}
           </div>
 

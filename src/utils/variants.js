@@ -263,3 +263,85 @@ export const formatVariantName = (variant) => {
   return `${variant.color} - ${variant.size}`;
 };
 
+/**
+ * Get price for a specific variant
+ * Falls back to product base price if variant has no price
+ * @param {Array} variants - Array of variants
+ * @param {string} color - Color
+ * @param {string} size - Size
+ * @param {number} basePrice - Base product price to fall back to
+ * @returns {number} Variant price or base price
+ */
+export const getVariantPrice = (variants = [], color, size, basePrice = 0) => {
+  const variant = findVariant(variants, color, size);
+  if (variant && variant.price !== null && variant.price !== undefined) {
+    return variant.price;
+  }
+  return basePrice;
+};
+
+/**
+ * Update price for a specific variant
+ * @param {Array} variants - Array of variants
+ * @param {string} color - Color
+ * @param {string} size - Size
+ * @param {number} newPrice - New price value
+ * @returns {Array} Updated variants array
+ */
+export const updateVariantPrice = (variants = [], color, size, newPrice) => {
+  const colorLower = color.toLowerCase();
+  const sizeLower = size.toLowerCase();
+
+  return variants.map(v => {
+    const matches = v.color?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower;
+
+    if (matches) {
+      return { ...v, price: newPrice };
+    }
+    return v;
+  });
+};
+
+/**
+ * Get price range for variants (min and max)
+ * @param {Array} variants - Array of variants
+ * @param {number} basePrice - Base product price
+ * @returns {Object} { min, max } price range
+ */
+export const getVariantPriceRange = (variants = [], basePrice = 0) => {
+  if (!variants || variants.length === 0) {
+    return { min: basePrice, max: basePrice };
+  }
+
+  const prices = variants
+    .map(v => v.price !== null && v.price !== undefined ? v.price : basePrice)
+    .filter(p => p > 0);
+
+  if (prices.length === 0) {
+    return { min: basePrice, max: basePrice };
+  }
+
+  return {
+    min: Math.min(...prices),
+    max: Math.max(...prices)
+  };
+};
+
+/**
+ * Check if variants have different prices
+ * @param {Array} variants - Array of variants
+ * @returns {boolean} True if variants have different prices
+ */
+export const hasVariantPricing = (variants = []) => {
+  if (!variants || variants.length === 0) return false;
+
+  const prices = variants
+    .map(v => v.price)
+    .filter(p => p !== null && p !== undefined);
+
+  if (prices.length === 0) return false;
+
+  const uniquePrices = new Set(prices);
+  return uniquePrices.size > 1 || prices.length > 0;
+};
+

@@ -13,7 +13,7 @@ import { PickupPointsContext } from '../../context/PickupPointsContext';
 import { ShippingRatesContext } from '../../context/ShippingRatesContext';
 import { formatPrice, formatDate, loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { calculateAnalytics, getRevenueChartData } from '../../utils/analytics';
-import { generateVariants, updateVariantStock, updateVariantImage, getTotalVariantStock, getLowStockVariants, getOutOfStockVariants } from '../../utils/variants';
+import { generateVariants, updateVariantStock, updateVariantImage, updateVariantPrice, getTotalVariantStock, getLowStockVariants, getOutOfStockVariants } from '../../utils/variants';
 import { settingsAPI, storageAPI, usersAPI } from '../../services/api';
 import { exportOrders, exportOrderItems, exportProducts, exportUsers, exportReviews } from '../../utils/csvExport';
 import { notifyUserOrderStatus, notifyReferrerReward, notifyAdminLowStock } from '../../services/telegram';
@@ -1541,6 +1541,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               color: color,
               size: size,
               stock: existing?.stock || 0,
+              price: existing?.price || null,
               image: existing?.image || null,
               sku: `${color.substring(0, 3).toUpperCase()}-${size.substring(0, 1).toUpperCase()}`
             });
@@ -1558,6 +1559,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
     // Update variant stock
     const handleVariantStockChange = (color, size, newStock) => {
       const updatedVariants = updateVariantStock(formData.variants, color, size, parseInt(newStock) || 0);
+      setFormData({ ...formData, variants: updatedVariants });
+    };
+
+    // Update variant price
+    const handleVariantPriceChange = (color, size, newPrice) => {
+      const updatedVariants = updateVariantPrice(formData.variants, color, size, parseFloat(newPrice) || 0);
       setFormData({ ...formData, variants: updatedVariants });
     };
 
@@ -1895,16 +1902,31 @@ const DesktopAdminPanel = ({ onLogout }) => {
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-600">Ombor:</span>
-                            <input
-                              type="number"
-                              min="0"
-                              value={variant.stock}
-                              onChange={(e) => handleVariantStockChange(variant.color, variant.size, e.target.value)}
-                              className="w-20 px-2 py-1 border rounded text-sm"
-                              placeholder="0"
-                            />
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-600 w-12">Narxi:</span>
+                              <input
+                                type="number"
+                                min="0"
+                                value={variant.price || ''}
+                                onChange={(e) => handleVariantPriceChange(variant.color, variant.size, e.target.value)}
+                                className="w-24 px-2 py-1 border rounded text-sm"
+                                placeholder={formData.salePrice || formData.price || '0'}
+                              />
+                              <span className="text-xs text-gray-400">UZS</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-600 w-12">Ombor:</span>
+                              <input
+                                type="number"
+                                min="0"
+                                value={variant.stock}
+                                onChange={(e) => handleVariantStockChange(variant.color, variant.size, e.target.value)}
+                                className="w-24 px-2 py-1 border rounded text-sm"
+                                placeholder="0"
+                              />
+                              <span className="text-xs text-gray-400">dona</span>
+                            </div>
                           </div>
                           {variant.image && (
                             <div className="mt-1 text-xs text-green-600 flex items-center gap-1">
@@ -1919,8 +1941,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
                   <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
                     <p className="text-xs text-yellow-800">
-                      💡 <strong>Eslatma:</strong> Yuqoridagi "Ombor miqdori" maydoni variantlar mavjud bo'lganda e'tiborga olinmaydi.
-                      Buning o'rniga, inventarizatsiya har bir variant uchun alohida hisoblanadi.
+                      💡 <strong>Eslatma:</strong> Har bir variant uchun alohida narx va ombor miqdorini belgilashingiz mumkin.
+                      Agar narx bo'sh qoldirilsa, asosiy narx ishlatiladi.
                     </p>
                   </div>
                 </div>

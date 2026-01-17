@@ -79,7 +79,7 @@ export const CartProvider = ({ children }) => {
     }
   }, [cartItems, user?.id, cartLoaded]); // Only depend on user.id, not entire user object
 
-  const addToCart = (product, quantity = 1, selectedColor = null, selectedSize = null) => {
+  const addToCart = (product, quantity = 1, selectedColor = null, selectedSize = null, variantPrice = null) => {
     setCartItems(prev => {
       const existingItemIndex = prev.findIndex(
         item =>
@@ -94,9 +94,15 @@ export const CartProvider = ({ children }) => {
         updated[existingItemIndex].quantity += quantity;
         return updated;
       } else {
-        // Add new item
+        // Add new item with variant price if available
+        // Use variantPrice if provided, otherwise fall back to product price
+        const effectivePrice = variantPrice !== null ? variantPrice : product.price;
+
         return [...prev, {
           ...product,
+          price: effectivePrice, // Override price with variant price
+          variantPrice: variantPrice, // Store original variant price for reference
+          basePrice: product.price, // Store base product price
           quantity,
           selectedColor,
           selectedSize,

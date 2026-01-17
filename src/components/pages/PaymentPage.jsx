@@ -74,7 +74,9 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         items: cartItems.map(item => ({
           productId: item.id,
           productName: item.name,
-          price: item.price,
+          price: item.price, // This will be variant price if set
+          basePrice: item.basePrice || item.price, // Original product price
+          variantPrice: item.variantPrice || null, // Explicit variant price if any
           quantity: item.quantity,
           color: item.selectedColor,
           size: item.selectedSize,
@@ -209,7 +211,9 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         items: cartItems.map(item => ({
           productId: item.id,
           productName: item.name,
-          price: item.price,
+          price: item.price, // This will be variant price if set
+          basePrice: item.basePrice || item.price, // Original product price
+          variantPrice: item.variantPrice || null, // Explicit variant price if any
           quantity: item.quantity,
           color: item.selectedColor,
           size: item.selectedSize,

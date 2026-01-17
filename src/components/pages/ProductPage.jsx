@@ -31,9 +31,9 @@ const ProductPage = ({ productId, onNavigate }) => {
     );
   }
 
-  const handleAddToCart = (product, quantity, color, size) => {
-    addToCart(product, quantity, color, size);
-    alert('Product added to cart!');
+  const handleAddToCart = (product, quantity, color, size, variantPrice = null) => {
+    addToCart(product, quantity, color, size, variantPrice);
+    alert('Mahsulot savatga qo\'shildi!');
   };
 
   return (
