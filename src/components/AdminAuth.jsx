@@ -17,66 +17,93 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
   // Check for existing Supabase session on mount
   useEffect(() => {
     let mounted = true;
-    
+    let fallbackTimer;
+
     const checkSession = async () => {
       try {
-        // Add timeout to prevent hanging
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Session check timeout')), 10000)
+        // Shorter timeout (5 seconds) to prevent hanging
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Session check timeout')), 5000)
         );
-        
+
         // Get current session with timeout
-        const sessionResult = await Promise.race([
-          supabase.auth.getSession(),
-          timeoutPromise
-        ]);
-        
+        let sessionResult;
+        try {
+          sessionResult = await Promise.race([
+            supabase.auth.getSession(),
+            timeoutPromise
+          ]);
+        } catch (timeoutErr) {
+          console.warn('Session check timed out, showing login form');
+          if (mounted) {
+            setLoading(false);
+            initialCheckDone.current = true;
+          }
+          return;
+        }
+
         const { data: { session }, error: sessionError } = sessionResult;
-        
+
         if (!mounted) return;
-        
+
         if (sessionError) {
           console.error('Session error:', sessionError);
           setLoading(false);
+          initialCheckDone.current = true;
           return;
         }
-        
+
         if (!session) {
           console.log('No active session');
           setLoading(false);
+          initialCheckDone.current = true;
           return;
         }
-        
+
         console.log('Session found, checking admin status...');
-        
+
         // Verify user is in admin_users table with timeout
-        const adminResult = await Promise.race([
-          supabase
-            .from('admin_users')
-            .select('*')
-            .eq('user_id', session.user.id)
-            .maybeSingle(),
-          timeoutPromise
-        ]);
-        
+        let adminResult;
+        try {
+          adminResult = await Promise.race([
+            supabase
+              .from('admin_users')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .maybeSingle(),
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error('Admin check timeout')), 5000)
+            )
+          ]);
+        } catch (timeoutErr) {
+          console.warn('Admin check timed out');
+          if (mounted) {
+            setLoading(false);
+            initialCheckDone.current = true;
+          }
+          return;
+        }
+
         const { data: adminData, error: adminError } = adminResult;
-        
+
         if (!mounted) return;
-        
+
         if (adminError) {
           console.error('Admin check error:', adminError);
-          await supabase.auth.signOut();
+          await supabase.auth.signOut().catch(() => {});
           setLoading(false);
+          initialCheckDone.current = true;
           return;
         }
-        
+
         if (!adminData) {
           console.log('User is not an admin');
-          await supabase.auth.signOut();
+          await supabase.auth.signOut().catch(() => {});
           setLoading(false);
+          initialCheckDone.current = true;
           return;
         }
-        
+
         // User is authenticated and is admin
         console.log('Admin authenticated');
         setAdminUser(adminData);
@@ -90,9 +117,18 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
         initialCheckDone.current = true;
       }
     };
-    
+
     checkSession();
-    
+
+    // Fallback: if still loading after 6 seconds, force show login form
+    fallbackTimer = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Auth check taking too long, forcing login screen');
+        setLoading(false);
+        initialCheckDone.current = true;
+      }
+    }, 6000);
+
     // Listen for auth state changes (skip INITIAL_SESSION event)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       // Skip initial session event to prevent duplicate checks
@@ -134,6 +170,7 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
     
     return () => {
       mounted = false;
+      if (fallbackTimer) clearTimeout(fallbackTimer);
       subscription.unsubscribe();
     };
   }, []);

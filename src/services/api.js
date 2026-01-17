@@ -1116,7 +1116,8 @@ export const settingsAPI = {
         sale_timer: {
           endDate: '2025-12-31T23:59:59',
           enabled: true
-        }
+        },
+        bonus_config: { purchaseBonus: 10, referralCommission: 10 }
       };
     }
 

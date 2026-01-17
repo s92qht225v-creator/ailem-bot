@@ -23,6 +23,19 @@ import { printPackingSlip, printMultiplePackingSlips } from '../../utils/packing
 import { supabase } from '../../lib/supabase';
 import ImageModal from '../common/ImageModal';
 
+// Import modular admin sections
+import {
+  DashboardSection,
+  OrdersSection,
+  StockRequestsSection,
+  ReviewsSection,
+  UsersSection,
+  AnalyticsSection,
+  BonusSettingsSection,
+  InventorySettingsSection,
+  SettingsSection
+} from '../admin/sections';
+
 const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -238,20 +251,23 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         {/* Content Area */}
         <main className="flex-1 overflow-auto p-6">
-          {activeSection === 'dashboard' && <DashboardContent />}
-          {activeSection === 'orders' && <OrdersContent />}
+          {/* Modular components */}
+          {activeSection === 'dashboard' && <DashboardSection onNavigate={setActiveSection} />}
+          {activeSection === 'orders' && <OrdersSection onImageClick={setSelectedImage} />}
+          {activeSection === 'stock-requests' && <StockRequestsSection />}
+          {activeSection === 'reviews' && <ReviewsSection />}
+          {activeSection === 'users' && <UsersSection />}
+          {activeSection === 'analytics' && <AnalyticsSection />}
+          {activeSection === 'bonus-settings' && <BonusSettingsSection />}
+          {activeSection === 'inventory-settings' && <InventorySettingsSection />}
+          {activeSection === 'settings' && <SettingsSection />}
+
+          {/* Inline components (complex, to be extracted later) */}
           {activeSection === 'products' && <ProductsContent />}
-          {activeSection === 'stock-requests' && <StockRequestsContent />}
           {activeSection === 'categories' && <CategoriesContent />}
-          {activeSection === 'reviews' && <ReviewsContent />}
-          {activeSection === 'users' && <UsersContent />}
-          {activeSection === 'bonus-settings' && <BonusSettingsContent />}
-          {activeSection === 'inventory-settings' && <InventorySettingsContent />}
           {activeSection === 'promotions' && <PromotionsContent />}
           {activeSection === 'pickup-points' && <PickupPointsContent />}
           {activeSection === 'shipping-rates' && <ShippingRatesContent />}
-          {activeSection === 'analytics' && <AnalyticsContent />}
-          {activeSection === 'settings' && <SettingsContent />}
         </main>
       </div>
 
