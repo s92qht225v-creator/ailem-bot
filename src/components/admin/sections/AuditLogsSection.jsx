@@ -26,7 +26,13 @@ const AuditLogsSection = () => {
   const loadLogs = async () => {
     try {
       setLoading(true);
-      const { data, count } = await auditLogsAPI.getAll({
+
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+
+      const fetchPromise = auditLogsAPI.getAll({
         limit: pageSize,
         offset: page * pageSize,
         action: actionFilter || null,
@@ -35,11 +41,14 @@ const AuditLogsSection = () => {
         startDate: dateFrom || null,
         endDate: dateTo ? dateTo + 'T23:59:59' : null
       });
+
+      const { data, count } = await Promise.race([fetchPromise, timeoutPromise]);
       setLogs(data || []);
       setTotalCount(count || 0);
     } catch (error) {
       console.error('Failed to load audit logs:', error);
       setLogs([]);
+      setTotalCount(0);
     } finally {
       setLoading(false);
     }

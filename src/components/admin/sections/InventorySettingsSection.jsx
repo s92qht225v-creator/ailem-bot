@@ -16,7 +16,13 @@ const InventorySettingsSection = () => {
   useEffect(() => {
     const loadThreshold = async () => {
       try {
-        const settings = await settingsAPI.getSettings();
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout')), 10000)
+        );
+        const settingsPromise = settingsAPI.getSettings();
+
+        const settings = await Promise.race([settingsPromise, timeoutPromise]);
         if (settings?.inventory?.low_stock_threshold) {
           setThreshold(settings.inventory.low_stock_threshold);
         }

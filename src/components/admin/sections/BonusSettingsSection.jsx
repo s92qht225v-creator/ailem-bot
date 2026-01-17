@@ -16,7 +16,13 @@ const BonusSettingsSection = () => {
   useEffect(() => {
     const loadConfig = async () => {
       try {
-        const settings = await settingsAPI.getSettings();
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout')), 10000)
+        );
+        const settingsPromise = settingsAPI.getSettings();
+
+        const settings = await Promise.race([settingsPromise, timeoutPromise]);
         if (settings?.bonus_config) {
           setBonusConfig({
             ...bonusConfig,

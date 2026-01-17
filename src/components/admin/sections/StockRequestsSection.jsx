@@ -17,7 +17,13 @@ const StockRequestsSection = () => {
   const fetchStockRequests = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+
+      const fetchPromise = supabase
         .from('stock_notifications')
         .select(`
           *,
@@ -37,10 +43,12 @@ const StockRequestsSection = () => {
         .eq('notified', false)
         .order('created_at', { ascending: false });
 
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]);
+
       if (error) throw error;
 
       const grouped = {};
-      data.forEach(request => {
+      (data || []).forEach(request => {
         const productId = request.product_id;
         if (!grouped[productId]) {
           grouped[productId] = {
@@ -54,7 +62,10 @@ const StockRequestsSection = () => {
       setStockRequests(Object.values(grouped));
     } catch (error) {
       console.error('Error fetching stock requests:', error);
-      toast.error('Zaxira so\'rovlarini yuklashda xatolik');
+      if (!error.message?.includes('does not exist')) {
+        toast.error('Zaxira so\'rovlarini yuklashda xatolik');
+      }
+      setStockRequests([]);
     } finally {
       setLoading(false);
     }
