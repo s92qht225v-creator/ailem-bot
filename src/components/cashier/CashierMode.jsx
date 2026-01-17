@@ -33,6 +33,8 @@ const CashierMode = () => {
   // Scanner state
   const [scannerActive, setScannerActive] = useState(false);
   const [scannerError, setScannerError] = useState(null);
+  const [manualBarcode, setManualBarcode] = useState('');
+  const [scanningBarcode, setScanningBarcode] = useState(false);
   const videoRef = useRef(null);
   const streamRef = useRef(null);
 
@@ -113,6 +115,12 @@ const CashierMode = () => {
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // Important: need to call play() for video to display
+        try {
+          await videoRef.current.play();
+        } catch (playError) {
+          console.warn('Video autoplay failed:', playError);
+        }
       }
       setScannerActive(true);
 
@@ -122,8 +130,8 @@ const CashierMode = () => {
 
     } catch (error) {
       console.error('Failed to start scanner:', error);
-      setScannerError('Camera access denied. Please allow camera permissions.');
-      showToast('Failed to access camera', 'error');
+      setScannerError('Kameraga ruxsat berilmadi. Iltimos, kamera ruxsatini yoqing.');
+      showToast('Kameraga kirish imkoni yo\'q', 'error');
     }
   };
 
@@ -137,8 +145,17 @@ const CashierMode = () => {
 
   // Handle barcode scan (simulated - would be triggered by actual scanner)
   const handleBarcodeScan = async (barcode) => {
+    if (!barcode || !barcode.trim()) {
+      showToast('Shtrix-kod kiriting', 'error');
+      return;
+    }
+
+    setScanningBarcode(true);
     try {
-      const result = await productsAPI.getByBarcode(barcode);
+      console.log('🔍 Scanning barcode:', barcode);
+      const result = await productsAPI.getByBarcode(barcode.trim());
+      console.log('📦 Scan result:', result);
+
       if (result) {
         // If a specific variant was matched, add with that variant
         if (result.matchedVariant) {
@@ -150,12 +167,15 @@ const CashierMode = () => {
           addToCart(result);
           showToast(`Qo'shildi: ${result.name}`, 'success');
         }
+        setManualBarcode(''); // Clear input on success
       } else {
-        showToast('Mahsulot topilmadi', 'error');
+        showToast(`Mahsulot topilmadi: ${barcode}`, 'error');
       }
     } catch (error) {
       console.error('Barcode scan error:', error);
       showToast('Mahsulotni topishda xatolik', 'error');
+    } finally {
+      setScanningBarcode(false);
     }
   };
 
@@ -356,15 +376,33 @@ const CashierMode = () => {
           <div className="flex gap-2">
             <input
               type="text"
-              placeholder="Enter barcode manually..."
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              value={manualBarcode}
+              onChange={(e) => setManualBarcode(e.target.value)}
+              placeholder="Shtrix-kodni kiriting..."
+              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-lg"
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && e.target.value) {
-                  handleBarcodeScan(e.target.value);
-                  e.target.value = '';
+                if (e.key === 'Enter' && manualBarcode) {
+                  handleBarcodeScan(manualBarcode);
                 }
               }}
+              disabled={scanningBarcode}
             />
+            <button
+              onClick={() => handleBarcodeScan(manualBarcode)}
+              disabled={!manualBarcode || scanningBarcode}
+              className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors ${
+                !manualBarcode || scanningBarcode
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-green-500 text-white hover:bg-green-600'
+              }`}
+            >
+              {scanningBarcode ? (
+                <RefreshCw className="w-5 h-5 animate-spin" />
+              ) : (
+                <Search className="w-5 h-5" />
+              )}
+              Qidirish
+            </button>
           </div>
         </div>
 
