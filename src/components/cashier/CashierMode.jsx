@@ -12,8 +12,10 @@ import {
   Receipt,
   CheckCircle,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  CameraOff
 } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 import { UserContext } from '../../context/UserContext';
 import { productsAPI, ordersAPI } from '../../services/api';
 import { formatPrice } from '../../utils/helpers';
@@ -21,7 +23,7 @@ import { useToast } from '../../context/ToastContext';
 
 const CashierMode = () => {
   const { user } = useContext(UserContext);
-  const { showToast } = useToast();
+  const toast = useToast();
 
   // Products and cart state
   const [products, setProducts] = useState([]);
@@ -35,8 +37,9 @@ const CashierMode = () => {
   const [scannerError, setScannerError] = useState(null);
   const [manualBarcode, setManualBarcode] = useState('');
   const [scanningBarcode, setScanningBarcode] = useState(false);
-  const videoRef = useRef(null);
-  const streamRef = useRef(null);
+  const [lastScannedCode, setLastScannedCode] = useState(null);
+  const scannerRef = useRef(null);
+  const scannerContainerId = 'barcode-scanner-container';
 
   // Checkout state
   const [showCheckout, setShowCheckout] = useState(false);
@@ -61,7 +64,7 @@ const CashierMode = () => {
       setProducts(data);
     } catch (error) {
       console.error('Failed to load products:', error);
-      showToast('Failed to load products', 'error');
+      toast.error('Failed to load products');
     } finally {
       setLoading(false);
     }
@@ -104,49 +107,95 @@ const CashierMode = () => {
     }
   }, [searchQuery, products]);
 
+  // Cleanup scanner on unmount
+  useEffect(() => {
+    return () => {
+      if (scannerRef.current) {
+        scannerRef.current.stop().catch(() => {});
+      }
+    };
+  }, []);
+
   // Scanner functions
   const startScanner = async () => {
     try {
       setScannerError(null);
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment' }
-      });
+      setLastScannedCode(null);
 
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        // Important: need to call play() for video to display
-        try {
-          await videoRef.current.play();
-        } catch (playError) {
-          console.warn('Video autoplay failed:', playError);
+      // Create scanner instance
+      const html5QrCode = new Html5Qrcode(scannerContainerId);
+      scannerRef.current = html5QrCode;
+
+      const config = {
+        fps: 10,
+        qrbox: { width: 250, height: 100 },
+        aspectRatio: 1.7777778,
+        formatsToSupport: [
+          0, // QR_CODE
+          1, // AZTEC
+          2, // CODABAR
+          3, // CODE_39
+          4, // CODE_93
+          5, // CODE_128
+          6, // DATA_MATRIX
+          7, // MAXICODE
+          8, // ITF
+          9, // EAN_13
+          10, // EAN_8
+          11, // PDF_417
+          12, // RSS_14
+          13, // RSS_EXPANDED
+          14, // UPC_A
+          15, // UPC_E
+          16, // UPC_EAN_EXTENSION
+        ]
+      };
+
+      await html5QrCode.start(
+        { facingMode: 'environment' },
+        config,
+        async (decodedText) => {
+          // Prevent duplicate scans of same code
+          if (decodedText === lastScannedCode) return;
+          setLastScannedCode(decodedText);
+
+          console.log('📷 Barcode scanned:', decodedText);
+
+          // Process the scanned barcode
+          await handleBarcodeScan(decodedText);
+        },
+        (errorMessage) => {
+          // Ignore scan errors (no barcode found in frame)
         }
-      }
-      setScannerActive(true);
+      );
 
-      // Note: For actual barcode scanning, you'd integrate with a library like
-      // html5-qrcode or quagga. For now, this just activates the camera.
-      // The barcode detection would happen in a separate scanning loop.
+      setScannerActive(true);
+      toast.success('Skaner yoqildi');
 
     } catch (error) {
       console.error('Failed to start scanner:', error);
       setScannerError('Kameraga ruxsat berilmadi. Iltimos, kamera ruxsatini yoqing.');
-      showToast('Kameraga kirish imkoni yo\'q', 'error');
+      toast.error('Kameraga kirish imkoni yo\'q');
     }
   };
 
-  const stopScanner = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-      streamRef.current = null;
+  const stopScanner = async () => {
+    try {
+      if (scannerRef.current) {
+        await scannerRef.current.stop();
+        scannerRef.current = null;
+      }
+    } catch (error) {
+      console.error('Error stopping scanner:', error);
     }
     setScannerActive(false);
+    setLastScannedCode(null);
   };
 
   // Handle barcode scan (simulated - would be triggered by actual scanner)
   const handleBarcodeScan = async (barcode) => {
     if (!barcode || !barcode.trim()) {
-      showToast('Shtrix-kod kiriting', 'error');
+      toast.error('Shtrix-kod kiriting');
       return;
     }
 
@@ -161,19 +210,19 @@ const CashierMode = () => {
         if (result.matchedVariant) {
           addToCart(result, result.matchedVariant);
           const variantInfo = `${result.matchedVariant.color} / ${result.matchedVariant.size}`;
-          showToast(`Qo'shildi: ${result.name} (${variantInfo})`, 'success');
+          toast.success(`Qo'shildi: ${result.name} (${variantInfo})`);
         } else {
           // Product-level barcode - add without variant
           addToCart(result);
-          showToast(`Qo'shildi: ${result.name}`, 'success');
+          toast.success(`Qo'shildi: ${result.name}`);
         }
         setManualBarcode(''); // Clear input on success
       } else {
-        showToast(`Mahsulot topilmadi: ${barcode}`, 'error');
+        toast.error(`Mahsulot topilmadi: ${barcode}`);
       }
     } catch (error) {
       console.error('Barcode scan error:', error);
-      showToast('Mahsulotni topishda xatolik', 'error');
+      toast.error('Mahsulotni topishda xatolik');
     } finally {
       setScanningBarcode(false);
     }
@@ -234,12 +283,12 @@ const CashierMode = () => {
   // Process cash checkout
   const processCashCheckout = async () => {
     if (cart.length === 0) {
-      showToast('Cart is empty', 'error');
+      toast.error('Cart is empty');
       return;
     }
 
     if (!cashReceived || Number(cashReceived) < cartTotal) {
-      showToast('Insufficient cash received', 'error');
+      toast.error('Insufficient cash received');
       return;
     }
 
@@ -297,10 +346,10 @@ const CashierMode = () => {
       loadProducts();
       loadTodaySales();
 
-      showToast('Sale completed!', 'success');
+      toast.success('Sale completed!');
     } catch (error) {
       console.error('Checkout failed:', error);
-      showToast(`Checkout failed: ${error.message}`, 'error');
+      toast.error(`Checkout failed: ${error.message}`);
     } finally {
       setProcessing(false);
     }
@@ -339,7 +388,7 @@ const CashierMode = () => {
         <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center gap-3 mb-4">
             <button
-              onClick={scannerActive ? stopScanner : startScanner}
+              onClick={() => scannerActive ? stopScanner() : startScanner()}
               className={`flex-1 py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors ${
                 scannerActive
                   ? 'bg-red-500 text-white'
@@ -347,21 +396,21 @@ const CashierMode = () => {
               }`}
             >
               <Camera className="w-5 h-5" />
-              {scannerActive ? 'Stop Scanner' : 'Scan Barcode'}
+              {scannerActive ? 'Skanerni to\'xtatish' : 'Shtrix-kodni skanerlash'}
             </button>
           </div>
 
-          {scannerActive && (
-            <div className="relative aspect-video bg-black rounded-lg overflow-hidden mb-4">
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-64 h-32 border-2 border-green-400 rounded-lg"></div>
-              </div>
+          {/* Scanner container - always rendered but hidden when not active */}
+          <div
+            id={scannerContainerId}
+            className={`rounded-lg overflow-hidden mb-4 ${scannerActive ? '' : 'hidden'}`}
+            style={{ minHeight: scannerActive ? '250px' : '0' }}
+          />
+
+          {!scannerActive && (
+            <div className="bg-gray-100 rounded-lg p-6 mb-4 text-center">
+              <CameraOff className="w-12 h-12 text-gray-400 mx-auto mb-2" />
+              <p className="text-gray-500 text-sm">Skaner o'chirilgan</p>
             </div>
           )}
 
@@ -427,7 +476,7 @@ const CashierMode = () => {
                   onClick={() => {
                     addToCart(product);
                     setSearchQuery('');
-                    showToast(`Added: ${product.name}`, 'success');
+                    toast.success(`Added: ${product.name}`);
                   }}
                   className="w-full p-3 flex items-center gap-3 hover:bg-gray-50 text-left"
                 >
