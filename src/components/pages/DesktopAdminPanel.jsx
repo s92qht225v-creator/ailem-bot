@@ -35,6 +35,7 @@ import {
   InventorySettingsSection,
   SettingsSection
 } from '../admin/sections';
+import { ErrorBoundary } from '../admin/shared';
 
 const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -251,23 +252,25 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         {/* Content Area */}
         <main className="flex-1 overflow-auto p-6">
-          {/* Modular components */}
-          {activeSection === 'dashboard' && <DashboardSection onNavigate={setActiveSection} />}
-          {activeSection === 'orders' && <OrdersSection onImageClick={setSelectedImage} />}
-          {activeSection === 'stock-requests' && <StockRequestsSection />}
-          {activeSection === 'reviews' && <ReviewsSection />}
-          {activeSection === 'users' && <UsersSection />}
-          {activeSection === 'analytics' && <AnalyticsSection />}
-          {activeSection === 'bonus-settings' && <BonusSettingsSection />}
-          {activeSection === 'inventory-settings' && <InventorySettingsSection />}
-          {activeSection === 'settings' && <SettingsSection />}
+          <ErrorBoundary key={activeSection} fallbackMessage={`The ${activeSection} section encountered an error.`}>
+            {/* Modular components */}
+            {activeSection === 'dashboard' && <DashboardSection onNavigate={setActiveSection} />}
+            {activeSection === 'orders' && <OrdersSection onImageClick={setSelectedImage} />}
+            {activeSection === 'stock-requests' && <StockRequestsSection />}
+            {activeSection === 'reviews' && <ReviewsSection />}
+            {activeSection === 'users' && <UsersSection />}
+            {activeSection === 'analytics' && <AnalyticsSection />}
+            {activeSection === 'bonus-settings' && <BonusSettingsSection />}
+            {activeSection === 'inventory-settings' && <InventorySettingsSection />}
+            {activeSection === 'settings' && <SettingsSection />}
 
-          {/* Inline components (complex, to be extracted later) */}
-          {activeSection === 'products' && <ProductsContent />}
-          {activeSection === 'categories' && <CategoriesContent />}
-          {activeSection === 'promotions' && <PromotionsContent />}
-          {activeSection === 'pickup-points' && <PickupPointsContent />}
-          {activeSection === 'shipping-rates' && <ShippingRatesContent />}
+            {/* Inline components (complex, to be extracted later) */}
+            {activeSection === 'products' && <ProductsContent />}
+            {activeSection === 'categories' && <CategoriesContent />}
+            {activeSection === 'promotions' && <PromotionsContent />}
+            {activeSection === 'pickup-points' && <PickupPointsContent />}
+            {activeSection === 'shipping-rates' && <ShippingRatesContent />}
+          </ErrorBoundary>
         </main>
       </div>
 
