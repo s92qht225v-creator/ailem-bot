@@ -303,6 +303,41 @@ export const updateVariantPrice = (variants = [], color, size, newPrice) => {
 };
 
 /**
+ * Update barcode for a specific variant
+ * @param {Array} variants - Array of variants
+ * @param {string} color - Color
+ * @param {string} size - Size
+ * @param {string} barcode - Barcode value
+ * @returns {Array} Updated variants array
+ */
+export const updateVariantBarcode = (variants = [], color, size, barcode) => {
+  const colorLower = color.toLowerCase();
+  const sizeLower = size.toLowerCase();
+
+  return variants.map(v => {
+    const matches = v.color?.toLowerCase() === colorLower && v.size?.toLowerCase() === sizeLower;
+
+    if (matches) {
+      return { ...v, barcode: barcode || null };
+    }
+    return v;
+  });
+};
+
+/**
+ * Find variant by barcode
+ * @param {Array} variants - Array of variants
+ * @param {string} barcode - Barcode to search
+ * @returns {Object|null} Variant object or null
+ */
+export const findVariantByBarcode = (variants = [], barcode) => {
+  if (!variants || variants.length === 0 || !barcode) {
+    return null;
+  }
+  return variants.find(v => v.barcode === barcode);
+};
+
+/**
  * Get price range for variants (min and max)
  * @param {Array} variants - Array of variants
  * @param {number} basePrice - Base product price

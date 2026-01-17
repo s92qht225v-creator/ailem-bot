@@ -1687,6 +1687,17 @@ const DesktopAdminPanel = ({ onLogout }) => {
       setFormData({ ...formData, variants: updatedVariants });
     };
 
+    // Update variant barcode
+    const handleVariantBarcodeChange = (color, size, barcode) => {
+      const updatedVariants = formData.variants.map(v => {
+        if (v.color?.toLowerCase() === color.toLowerCase() && v.size?.toLowerCase() === size.toLowerCase()) {
+          return { ...v, barcode: barcode || null };
+        }
+        return v;
+      });
+      setFormData({ ...formData, variants: updatedVariants });
+    };
+
     // Update variant image
     const handleVariantImageChange = (color, size, imageUrl) => {
       const updatedVariants = updateVariantImage(formData.variants, color, size, imageUrl);
@@ -2056,6 +2067,16 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                 placeholder="0"
                               />
                               <span className="text-xs text-gray-400">dona</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-gray-600 w-12">Shtrix:</span>
+                              <input
+                                type="text"
+                                value={variant.barcode || ''}
+                                onChange={(e) => handleVariantBarcodeChange(variant.color, variant.size, e.target.value)}
+                                className="w-28 px-2 py-1 border rounded text-sm font-mono"
+                                placeholder="Shtrix-kod"
+                              />
                             </div>
                           </div>
                           {variant.image && (

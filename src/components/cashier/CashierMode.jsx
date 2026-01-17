@@ -138,16 +138,24 @@ const CashierMode = () => {
   // Handle barcode scan (simulated - would be triggered by actual scanner)
   const handleBarcodeScan = async (barcode) => {
     try {
-      const product = await productsAPI.getByBarcode(barcode);
-      if (product) {
-        addToCart(product);
-        showToast(`Added: ${product.name}`, 'success');
+      const result = await productsAPI.getByBarcode(barcode);
+      if (result) {
+        // If a specific variant was matched, add with that variant
+        if (result.matchedVariant) {
+          addToCart(result, result.matchedVariant);
+          const variantInfo = `${result.matchedVariant.color} / ${result.matchedVariant.size}`;
+          showToast(`Qo'shildi: ${result.name} (${variantInfo})`, 'success');
+        } else {
+          // Product-level barcode - add without variant
+          addToCart(result);
+          showToast(`Qo'shildi: ${result.name}`, 'success');
+        }
       } else {
-        showToast('Product not found', 'error');
+        showToast('Mahsulot topilmadi', 'error');
       }
     } catch (error) {
       console.error('Barcode scan error:', error);
-      showToast('Failed to find product', 'error');
+      showToast('Mahsulotni topishda xatolik', 'error');
     }
   };
 

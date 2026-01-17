@@ -264,26 +264,60 @@ export const productsAPI = {
   },
 
   // Get product by barcode (for cashier scanner)
+  // Searches both product-level barcode and variant barcodes
   async getByBarcode(barcode) {
-    const { data, error } = await supabase
+    // First, try to find by product-level barcode
+    const { data: productByBarcode, error: productError } = await supabase
       .from('products')
       .select('*')
       .eq('barcode', barcode)
-      .single();
+      .maybeSingle();
 
-    if (error) {
-      if (error.code === 'PGRST116') return null; // Not found
-      throw error;
+    if (productError && productError.code !== 'PGRST116') {
+      throw productError;
     }
 
-    return {
-      ...data,
-      category: data.category_name,
-      originalPrice: data.original_price,
-      reviewCount: data.review_count,
-      variants: data.variants || [],
-      reviews: []
-    };
+    if (productByBarcode) {
+      return {
+        ...productByBarcode,
+        category: productByBarcode.category_name,
+        originalPrice: productByBarcode.original_price,
+        reviewCount: productByBarcode.review_count,
+        variants: productByBarcode.variants || [],
+        reviews: [],
+        matchedVariant: null // No specific variant matched
+      };
+    }
+
+    // If not found, search in variant barcodes
+    // Get all products that have variants with barcodes
+    const { data: allProducts, error: allError } = await supabase
+      .from('products')
+      .select('*')
+      .not('variants', 'eq', '[]');
+
+    if (allError) throw allError;
+
+    // Search through variants for matching barcode
+    for (const product of allProducts || []) {
+      const variants = product.variants || [];
+      const matchedVariant = variants.find(v => v.barcode === barcode);
+
+      if (matchedVariant) {
+        return {
+          ...product,
+          category: product.category_name,
+          originalPrice: product.original_price,
+          reviewCount: product.review_count,
+          variants: variants,
+          reviews: [],
+          matchedVariant: matchedVariant // Include the matched variant info
+        };
+      }
+    }
+
+    // Not found anywhere
+    return null;
   },
 
   // Update product barcode
