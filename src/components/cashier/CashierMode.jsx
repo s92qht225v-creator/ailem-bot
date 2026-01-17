@@ -95,8 +95,8 @@ const CashierMode = () => {
       const todayOrders = orders.filter(order => {
         const orderDate = new Date(order.created_at || order.createdAt);
         return orderDate >= today &&
-               order.payment_method === 'cash' &&
-               order.cashier_id === user?.id;
+               order.paymentMethod === 'cash' &&
+               order.cashierId === user?.id;
       });
 
       setTodaySales({
@@ -385,6 +385,9 @@ const CashierMode = () => {
         change_given: changeAmount,
         cashier_id: user?.id,
         cashier_name: user?.name,
+        walk_in_customer_id: selectedCustomer?.id || null,
+        walk_in_customer_name: selectedCustomer?.name || null,
+        walk_in_customer_phone: selectedCustomer?.phone || customerPhone || null,
         items: cart.map(item => ({
           id: item.product.id,
           name: item.product.name,

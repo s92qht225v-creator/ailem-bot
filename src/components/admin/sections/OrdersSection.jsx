@@ -35,7 +35,7 @@ const OrdersSection = ({ onImageClick }) => {
       const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
 
       // Source filter (online vs cash)
-      const isCashOrder = order.payment_method === 'cash';
+      const isCashOrder = order.paymentMethod === 'cash';
       const matchesSource = sourceFilter === 'all' ||
         (sourceFilter === 'cash' && isCashOrder) ||
         (sourceFilter === 'online' && !isCashOrder);
@@ -50,8 +50,8 @@ const OrdersSection = ({ onImageClick }) => {
   }, [orders, statusFilter, sourceFilter, dateFrom, dateTo]);
 
   // Count orders by source
-  const cashOrdersCount = orders.filter(o => o.payment_method === 'cash').length;
-  const onlineOrdersCount = orders.filter(o => o.payment_method !== 'cash').length;
+  const cashOrdersCount = orders.filter(o => o.paymentMethod === 'cash').length;
+  const onlineOrdersCount = orders.filter(o => o.paymentMethod !== 'cash').length;
 
   const handleApprove = async (orderId) => {
     const order = orders.find(o => o.id === orderId);
@@ -525,7 +525,7 @@ const OrdersSection = ({ onImageClick }) => {
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
                     <div className="flex items-center gap-2">
                       #{order.id}
-                      {order.payment_method === 'cash' && (
+                      {order.paymentMethod === 'cash' && (
                         <span className="px-1.5 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
                           POS
                         </span>
@@ -815,28 +815,28 @@ const OrdersSection = ({ onImageClick }) => {
                   </div>
 
                   {/* Cash Payment Details */}
-                  {selectedOrder.payment_method === 'cash' && (
+                  {selectedOrder.paymentMethod === 'cash' && (
                     <div className="border-t border-gray-300 pt-2 mt-2 space-y-2">
                       <div className="flex justify-between text-sm">
                         <span className="text-gray-600">Payment Method:</span>
                         <span className="font-medium text-green-700">Cash (POS)</span>
                       </div>
-                      {selectedOrder.cash_received > 0 && (
+                      {selectedOrder.cashReceived > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Cash Received:</span>
-                          <span className="font-medium text-gray-900">{formatPrice(selectedOrder.cash_received)}</span>
+                          <span className="font-medium text-gray-900">{formatPrice(selectedOrder.cashReceived)}</span>
                         </div>
                       )}
-                      {selectedOrder.change_given > 0 && (
+                      {selectedOrder.changeGiven > 0 && (
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Change Given:</span>
-                          <span className="font-medium text-gray-900">{formatPrice(selectedOrder.change_given)}</span>
+                          <span className="font-medium text-gray-900">{formatPrice(selectedOrder.changeGiven)}</span>
                         </div>
                       )}
-                      {selectedOrder.cashier_name && (
+                      {selectedOrder.cashierName && (
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-600">Cashier:</span>
-                          <span className="font-medium text-gray-900">{selectedOrder.cashier_name}</span>
+                          <span className="font-medium text-gray-900">{selectedOrder.cashierName}</span>
                         </div>
                       )}
                     </div>
