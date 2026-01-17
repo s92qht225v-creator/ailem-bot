@@ -6,7 +6,7 @@ import {
   Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload,
   TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle, AlertCircle,
   Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff, ImagePlus,
-  Download, FileDown, ChevronUp, ChevronDown, RotateCw, Printer
+  Download, FileDown, ChevronUp, ChevronDown, RotateCw, Printer, Search
 } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
@@ -3195,6 +3195,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [expandedCouriers, setExpandedCouriers] = useState(new Set());
     const [expandedStates, setExpandedStates] = useState(new Set());
     const [expandedCities, setExpandedCities] = useState(new Set());
+    const [searchQuery, setSearchQuery] = useState('');
     const [formData, setFormData] = useState({
       courierService: '',
       state: '',
@@ -3204,18 +3205,33 @@ const DesktopAdminPanel = ({ onLogout }) => {
       phone: ''
     });
 
+    // Filter pickup points based on search query
+    const filteredPickupPoints = useMemo(() => {
+      if (!searchQuery.trim()) return pickupPoints;
+
+      const query = searchQuery.toLowerCase().trim();
+      return pickupPoints.filter(point =>
+        point.courierService?.toLowerCase().includes(query) ||
+        point.state?.toLowerCase().includes(query) ||
+        point.city?.toLowerCase().includes(query) ||
+        point.address?.toLowerCase().includes(query) ||
+        point.phone?.toLowerCase().includes(query) ||
+        point.workingHours?.toLowerCase().includes(query)
+      );
+    }, [pickupPoints, searchQuery]);
+
     // Extract unique values from existing pickup points
     const uniqueCouriers = [...new Set(pickupPoints.map(p => p.courierService))].sort();
     const uniqueStates = [...new Set(pickupPoints.map(p => p.state))].sort();
     const uniqueCities = [...new Set(pickupPoints.map(p => p.city))].sort();
-    
+
     // Filter cities based on selected state
     const citiesForState = formData.state
       ? [...new Set(pickupPoints.filter(p => p.state === formData.state).map(p => p.city))].sort()
       : uniqueCities;
 
-    // Group pickup points by courier → state → city
-    const groupedPoints = pickupPoints.reduce((acc, point) => {
+    // Group pickup points by courier → state → city (using filtered points)
+    const groupedPoints = filteredPickupPoints.reduce((acc, point) => {
       if (!acc[point.courierService]) {
         acc[point.courierService] = {};
       }
@@ -3352,14 +3368,41 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
     return (
       <div>
-        {!showForm && (
-          <button
-            onClick={() => setShowForm(true)}
-            className="mb-4 bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center gap-2"
-          >
-            <Plus className="w-5 h-5" />
-            Add Pickup Point
-          </button>
+        <div className="flex gap-4 mb-4">
+          {!showForm && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Add Pickup Point
+            </button>
+          )}
+
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by courier, state, city, address, phone, or hours..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {searchQuery && (
+          <div className="mb-4 text-sm text-gray-600">
+            Found {filteredPickupPoints.length} pickup point{filteredPickupPoints.length !== 1 ? 's' : ''} matching "{searchQuery}"
+          </div>
         )}
 
         {showForm && (

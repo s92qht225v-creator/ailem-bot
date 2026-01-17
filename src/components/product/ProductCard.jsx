@@ -66,21 +66,21 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
             -{discount}%
           </span>
         )}
+      </div>
+
+      <div className="p-3 flex flex-col relative">
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggleFavorite(product.id);
           }}
-          className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
+          className="absolute -top-6 right-2 bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >
           <Heart
             className={`w-5 h-5 ${isFavorite ? 'fill-error text-error' : 'text-gray-400'}`}
           />
         </button>
-      </div>
-
-      <div className="p-3 flex flex-col">
         <h3 className="font-semibold text-gray-800 mb-1 line-clamp-2 h-12">
           {product.name}
         </h3>
