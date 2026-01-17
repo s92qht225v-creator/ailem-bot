@@ -259,18 +259,9 @@ function App() {
   }, [navigate]); // Include navigate in dependencies
 
 
-  // Only show loading for a short time - then show content anyway
-  // This prevents blank screen issues in Telegram
-  const [showLoading, setShowLoading] = useState(true);
-
-  useEffect(() => {
-    // Hide loading screen after 2 seconds even if still loading
-    const timer = setTimeout(() => setShowLoading(false), 2000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Show loading screen while data is being fetched (max 2 seconds)
-  if (adminLoading && showLoading) {
+  // Show loading screen while data is being fetched
+  // Wait for actual loading to complete instead of using a timeout
+  if (adminLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary to-accent flex items-center justify-center">
         <div className="text-center">

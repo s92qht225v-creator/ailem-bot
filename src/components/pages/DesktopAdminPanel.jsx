@@ -45,9 +45,21 @@ const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const { products, categories, orders, reviews, users, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, reorderCategories, approveReview, deleteReview } = useContext(AdminContext);
+  const { products, categories, orders, reviews, users, loading, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, reorderCategories, approveReview, deleteReview } = useContext(AdminContext);
   const toast = useToast();
   const confirm = useConfirm();
+
+  // Show loading state if data is still being fetched
+  if (loading) {
+    return (
+      <div className="flex h-screen bg-gray-100 items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-gray-600">Ma'lumotlar yuklanmoqda...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Calculate stats
   const pendingOrders = orders.filter(o => o.status === 'pending').length;
