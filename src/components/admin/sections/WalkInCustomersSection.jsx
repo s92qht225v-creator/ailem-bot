@@ -35,11 +35,21 @@ const WalkInCustomersSection = () => {
   const loadCustomers = async () => {
     setLoading(true);
     try {
-      const data = await walkInCustomersAPI.getAll();
-      setCustomers(data);
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+      const dataPromise = walkInCustomersAPI.getAll();
+
+      const data = await Promise.race([dataPromise, timeoutPromise]);
+      setCustomers(data || []);
     } catch (error) {
       console.error('Failed to load customers:', error);
-      toast.error('Mijozlarni yuklashda xatolik');
+      // Don't show error toast if table just doesn't exist yet
+      if (!error.message?.includes('does not exist')) {
+        toast.error('Mijozlarni yuklashda xatolik');
+      }
+      setCustomers([]);
     } finally {
       setLoading(false);
     }
