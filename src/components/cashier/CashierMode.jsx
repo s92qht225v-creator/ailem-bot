@@ -24,6 +24,7 @@ import { UserContext } from '../../context/UserContext';
 import { productsAPI, ordersAPI, walkInCustomersAPI } from '../../services/api';
 import { formatPrice } from '../../utils/helpers';
 import { useToast } from '../../context/ToastContext';
+import { getVolumePricedUnit, calculateItemTotal, getVolumeDiscountDescription } from '../../utils/volumePricing';
 
 const CashierMode = () => {
   const { user } = useContext(UserContext);
@@ -304,6 +305,13 @@ const CashierMode = () => {
 
   // Cart functions
   const addToCart = useCallback((product, variant = null) => {
+    console.log('🛒 Adding to cart:', {
+      name: product.name,
+      price: product.price,
+      volume_pricing: product.volume_pricing,
+      variant: variant
+    });
+
     setCart(prev => {
       const existingIndex = prev.findIndex(item =>
         item.product.id === product.id &&
@@ -350,9 +358,35 @@ const CashierMode = () => {
     setCart([]);
   };
 
-  // Calculate totals
-  const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  // Calculate totals with volume pricing
+  const cartTotal = cart.reduce((sum, item) => {
+    const basePrice = item.variant?.price || item.product.price;
+    const volumePricing = item.product.volume_pricing;
+    const itemTotal = calculateItemTotal(item.quantity, basePrice, volumePricing);
+    console.log('💰 Cart item calculation:', {
+      name: item.product.name,
+      qty: item.quantity,
+      basePrice,
+      volumePricing,
+      itemTotal
+    });
+    return sum + itemTotal;
+  }, 0);
   const changeAmount = cashReceived ? Number(cashReceived) - cartTotal : 0;
+
+  // Helper to get effective price for display
+  const getEffectivePrice = (item) => {
+    const basePrice = item.variant?.price || item.product.price;
+    const volumePricing = item.product.volume_pricing;
+    return getVolumePricedUnit(item.quantity, basePrice, volumePricing);
+  };
+
+  // Helper to check if volume discount is applied
+  const getDiscount = (item) => {
+    const basePrice = item.variant?.price || item.product.price;
+    const volumePricing = item.product.volume_pricing;
+    return getVolumeDiscountDescription(item.quantity, basePrice, volumePricing);
+  };
 
   // Process cash checkout
   const processCashCheckout = async () => {
@@ -388,14 +422,19 @@ const CashierMode = () => {
         walk_in_customer_id: selectedCustomer?.id || null,
         walk_in_customer_name: selectedCustomer?.name || null,
         walk_in_customer_phone: selectedCustomer?.phone || customerPhone || null,
-        items: cart.map(item => ({
-          id: item.product.id,
-          name: item.product.name,
-          price: item.price,
-          quantity: item.quantity,
-          variant: item.variant,
-          image: item.product.image
-        }))
+        items: cart.map(item => {
+          const basePrice = item.variant?.price || item.product.price;
+          const effectivePrice = getVolumePricedUnit(item.quantity, basePrice, item.product.volume_pricing);
+          return {
+            id: item.product.id,
+            name: item.product.name,
+            price: effectivePrice, // Use volume-discounted price
+            basePrice: basePrice, // Store original price for reference
+            quantity: item.quantity,
+            variant: item.variant,
+            image: item.product.image
+          };
+        })
       };
 
       const order = await ordersAPI.create(orderData);
@@ -629,47 +668,65 @@ const CashierMode = () => {
             </div>
           ) : (
             <div className="space-y-3 max-h-64 overflow-y-auto">
-              {cart.map((item, index) => (
-                <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
-                  <img
-                    src={item.product.image}
-                    alt={item.product.name}
-                    className="w-12 h-12 rounded-lg object-cover"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-gray-900 truncate text-sm">{item.product.name}</p>
-                    {item.variant && (
-                      <p className="text-xs text-gray-500">
-                        {item.variant.color} / {item.variant.size}
-                      </p>
-                    )}
-                    <p className="text-sm text-green-600 font-medium">
-                      {formatPrice(item.price)} x {item.quantity}
-                    </p>
+              {cart.map((item, index) => {
+                const discount = getDiscount(item);
+                const effectivePrice = getEffectivePrice(item);
+                const basePrice = item.variant?.price || item.product.price;
+                const itemTotal = calculateItemTotal(item.quantity, basePrice, item.product.volume_pricing);
+
+                return (
+                  <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">
+                    <img
+                      src={item.product.image}
+                      alt={item.product.name}
+                      className="w-12 h-12 rounded-lg object-cover"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate text-sm">{item.product.name}</p>
+                      {item.variant && (
+                        <p className="text-xs text-gray-500">
+                          {item.variant.color} / {item.variant.size}
+                        </p>
+                      )}
+                      <div className="text-sm">
+                        {discount ? (
+                          <>
+                            <span className="text-gray-400 line-through mr-1">{formatPrice(basePrice)}</span>
+                            <span className="text-green-600 font-medium">{formatPrice(effectivePrice)}</span>
+                            <span className="text-gray-500"> x {item.quantity}</span>
+                            <span className="ml-1 text-xs text-orange-500 font-medium">(-{formatPrice(discount.savingsTotal)})</span>
+                          </>
+                        ) : (
+                          <span className="text-green-600 font-medium">
+                            {formatPrice(effectivePrice)} x {item.quantity}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => updateQuantity(index, -1)}
+                        className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                      <span className="w-8 text-center font-medium">{item.quantity}</span>
+                      <button
+                        onClick={() => updateQuantity(index, 1)}
+                        className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600"
+                      >
+                        <Plus className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => removeFromCart(index)}
+                        className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => updateQuantity(index, -1)}
-                      className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
-                    <span className="w-8 text-center font-medium">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(index, 1)}
-                      className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center hover:bg-green-600"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => removeFromCart(index)}
-                      className="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center hover:bg-red-200"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 

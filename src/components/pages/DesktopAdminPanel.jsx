@@ -36,7 +36,8 @@ import {
   BonusSettingsSection,
   InventorySettingsSection,
   SettingsSection,
-  AuditLogsSection
+  AuditLogsSection,
+  WalkInCustomersSection
 } from '../admin/sections';
 import { ErrorBoundary } from '../admin/shared';
 
@@ -103,6 +104,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
       label: 'Users',
       icon: UsersIcon,
       color: 'text-indigo-600'
+    },
+    {
+      id: 'walk-in-customers',
+      label: 'Walk-in Customers',
+      icon: UsersIcon,
+      color: 'text-emerald-600'
     },
     {
       id: 'bonus-settings',
@@ -232,6 +239,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 {activeSection === 'categories' && `${categories.length} product categories`}
                 {activeSection === 'reviews' && `${reviews?.length || 0} customer reviews`}
                 {activeSection === 'users' && 'Manage customers and administrators'}
+                {activeSection === 'walk-in-customers' && 'POS walk-in customers for SMS marketing'}
                 {activeSection === 'bonus-settings' && 'Configure referral and purchase rewards'}
                 {activeSection === 'promotions' && 'Manage banners and app settings'}
                 {activeSection === 'pickup-points' && 'Manage courier pickup locations'}
@@ -270,6 +278,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             {activeSection === 'stock-requests' && <StockRequestsSection />}
             {activeSection === 'reviews' && <ReviewsSection />}
             {activeSection === 'users' && <UsersSection />}
+            {activeSection === 'walk-in-customers' && <WalkInCustomersSection />}
             {activeSection === 'analytics' && <AnalyticsSection />}
             {activeSection === 'bonus-settings' && <BonusSettingsSection />}
             {activeSection === 'inventory-settings' && <InventorySettingsSection />}
