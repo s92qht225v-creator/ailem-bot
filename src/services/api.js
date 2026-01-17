@@ -1734,3 +1734,131 @@ export const stockNotificationsAPI = {
     return true;
   }
 };
+
+// ============================================
+// WALK-IN CUSTOMERS API
+// ============================================
+
+export const walkInCustomersAPI = {
+  // Get all walk-in customers
+  async getAll() {
+    const { data, error } = await supabase
+      .from('walk_in_customers')
+      .select('*')
+      .order('updated_at', { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Search customers by phone or name
+  async search(query) {
+    if (!query || query.length < 2) return [];
+
+    const { data, error } = await supabase
+      .from('walk_in_customers')
+      .select('*')
+      .or(`phone.ilike.%${query}%,name.ilike.%${query}%`)
+      .order('updated_at', { ascending: false })
+      .limit(10);
+
+    if (error) throw error;
+    return data || [];
+  },
+
+  // Get customer by phone (exact match)
+  async getByPhone(phone) {
+    const { data, error } = await supabase
+      .from('walk_in_customers')
+      .select('*')
+      .eq('phone', phone)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Get customer by ID
+  async getById(id) {
+    const { data, error } = await supabase
+      .from('walk_in_customers')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data;
+  },
+
+  // Create new walk-in customer
+  async create(customer) {
+    if (!customer.name || !customer.phone) {
+      throw new Error('Name and phone are required');
+    }
+
+    const { data, error } = await supabase
+      .from('walk_in_customers')
+      .insert([{
+        name: customer.name,
+        phone: customer.phone,
+        notes: customer.notes || null
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      // Handle duplicate phone number
+      if (error.code === '23505') {
+        throw new Error('Bu telefon raqami bilan mijoz mavjud');
+      }
+      throw error;
+    }
+    return data;
+  },
+
+  // Update customer info
+  async update(id, updates) {
+    const dbUpdates = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+    if (updates.notes !== undefined) dbUpdates.notes = updates.notes;
+
+    const { data, error } = await supabase
+      .from('walk_in_customers')
+      .update(dbUpdates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        throw new Error('Bu telefon raqami bilan boshqa mijoz mavjud');
+      }
+      throw error;
+    }
+    return data;
+  },
+
+  // Delete customer
+  async delete(id) {
+    const { error } = await supabase
+      .from('walk_in_customers')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+  },
+
+  // Update customer stats after order (called after checkout)
+  async updateStatsAfterOrder(phone, orderTotal) {
+    const { error } = await supabase.rpc('update_walk_in_customer_stats', {
+      p_phone: phone,
+      p_order_total: orderTotal
+    });
+
+    if (error) {
+      console.error('Failed to update walk-in customer stats:', error);
+      // Don't throw - this is a non-critical operation
+    }
+  }
+};

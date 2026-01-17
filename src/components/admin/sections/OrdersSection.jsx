@@ -18,6 +18,7 @@ const OrdersSection = ({ onImageClick }) => {
   const toast = useToast();
   const confirm = useConfirm();
   const [statusFilter, setStatusFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState('all'); // 'all', 'online', 'cash'
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedOrders, setSelectedOrders] = useState([]);
   const [bulkAction, setBulkAction] = useState('');
@@ -33,14 +34,24 @@ const OrdersSection = ({ onImageClick }) => {
       // Status filter
       const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
 
+      // Source filter (online vs cash)
+      const isCashOrder = order.payment_method === 'cash';
+      const matchesSource = sourceFilter === 'all' ||
+        (sourceFilter === 'cash' && isCashOrder) ||
+        (sourceFilter === 'online' && !isCashOrder);
+
       // Date filter
       const orderDate = new Date(order.createdAt || order.date);
       const matchesDateFrom = !dateFrom || orderDate >= new Date(dateFrom);
       const matchesDateTo = !dateTo || orderDate <= new Date(dateTo + 'T23:59:59');
 
-      return matchesStatus && matchesDateFrom && matchesDateTo;
+      return matchesStatus && matchesSource && matchesDateFrom && matchesDateTo;
     });
-  }, [orders, statusFilter, dateFrom, dateTo]);
+  }, [orders, statusFilter, sourceFilter, dateFrom, dateTo]);
+
+  // Count orders by source
+  const cashOrdersCount = orders.filter(o => o.payment_method === 'cash').length;
+  const onlineOrdersCount = orders.filter(o => o.payment_method !== 'cash').length;
 
   const handleApprove = async (orderId) => {
     const order = orders.find(o => o.id === orderId);
@@ -342,14 +353,25 @@ const OrdersSection = ({ onImageClick }) => {
 
             <select
               className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+              value={sourceFilter}
+              onChange={(e) => setSourceFilter(e.target.value)}
+            >
+              <option value="all">All Orders ({orders.length})</option>
+              <option value="online">Online ({onlineOrdersCount})</option>
+              <option value="cash">Cash/POS ({cashOrdersCount})</option>
+            </select>
+
+            <select
+              className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="all">All Status ({orders.length})</option>
+              <option value="all">All Status</option>
               <option value="pending">Pending ({orders.filter(o => o.status === 'pending').length})</option>
               <option value="approved">Approved ({orders.filter(o => o.status === 'approved').length})</option>
               <option value="shipped">Shipped ({orders.filter(o => o.status === 'shipped').length})</option>
               <option value="delivered">Delivered ({orders.filter(o => o.status === 'delivered').length})</option>
+              <option value="completed">Completed ({orders.filter(o => o.status === 'completed').length})</option>
               <option value="rejected">Rejected ({orders.filter(o => o.status === 'rejected').length})</option>
             </select>
           </div>
@@ -500,7 +522,16 @@ const OrdersSection = ({ onImageClick }) => {
                       className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                     />
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">#{order.id}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    <div className="flex items-center gap-2">
+                      #{order.id}
+                      {order.payment_method === 'cash' && (
+                        <span className="px-1.5 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
+                          POS
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-900">{order.userName}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{formatDate(order.createdAt || order.date)}</td>
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatPrice(order.total)}</td>
@@ -782,6 +813,34 @@ const OrdersSection = ({ onImageClick }) => {
                       <span className="text-lg font-bold text-primary">{formatPrice(selectedOrder.total)}</span>
                     </div>
                   </div>
+
+                  {/* Cash Payment Details */}
+                  {selectedOrder.payment_method === 'cash' && (
+                    <div className="border-t border-gray-300 pt-2 mt-2 space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Payment Method:</span>
+                        <span className="font-medium text-green-700">Cash (POS)</span>
+                      </div>
+                      {selectedOrder.cash_received > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Cash Received:</span>
+                          <span className="font-medium text-gray-900">{formatPrice(selectedOrder.cash_received)}</span>
+                        </div>
+                      )}
+                      {selectedOrder.change_given > 0 && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Change Given:</span>
+                          <span className="font-medium text-gray-900">{formatPrice(selectedOrder.change_given)}</span>
+                        </div>
+                      )}
+                      {selectedOrder.cashier_name && (
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Cashier:</span>
+                          <span className="font-medium text-gray-900">{selectedOrder.cashier_name}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
 

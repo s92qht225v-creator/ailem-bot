@@ -13,11 +13,15 @@ import {
   CheckCircle,
   AlertCircle,
   RefreshCw,
-  CameraOff
+  CameraOff,
+  User,
+  Phone,
+  UserPlus,
+  Users
 } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { UserContext } from '../../context/UserContext';
-import { productsAPI, ordersAPI } from '../../services/api';
+import { productsAPI, ordersAPI, walkInCustomersAPI } from '../../services/api';
 import { formatPrice } from '../../utils/helpers';
 import { useToast } from '../../context/ToastContext';
 
@@ -37,9 +41,10 @@ const CashierMode = () => {
   const [scannerError, setScannerError] = useState(null);
   const [manualBarcode, setManualBarcode] = useState('');
   const [scanningBarcode, setScanningBarcode] = useState(false);
-  const [lastScannedCode, setLastScannedCode] = useState(null);
   const scannerRef = useRef(null);
+  const lastScanTimeRef = useRef(0);
   const scannerContainerId = 'barcode-scanner-container';
+  const SCAN_COOLDOWN_MS = 2000; // 2 second cooldown between scans
 
   // Checkout state
   const [showCheckout, setShowCheckout] = useState(false);
@@ -50,6 +55,16 @@ const CashierMode = () => {
 
   // Daily stats
   const [todaySales, setTodaySales] = useState({ count: 0, total: 0 });
+
+  // Walk-in customer state
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [customerSearchResults, setCustomerSearchResults] = useState([]);
+  const [searchingCustomers, setSearchingCustomers] = useState(false);
+  const [showAddCustomer, setShowAddCustomer] = useState(false);
+  const [newCustomerName, setNewCustomerName] = useState('');
+  const [newCustomerPhone, setNewCustomerPhone] = useState('');
+  const [addingCustomer, setAddingCustomer] = useState(false);
 
   // Load products on mount
   useEffect(() => {
@@ -107,6 +122,74 @@ const CashierMode = () => {
     }
   }, [searchQuery, products]);
 
+  // Search customers (debounced)
+  useEffect(() => {
+    const searchCustomers = async () => {
+      if (customerSearchQuery.trim().length < 2) {
+        setCustomerSearchResults([]);
+        return;
+      }
+
+      setSearchingCustomers(true);
+      try {
+        const results = await walkInCustomersAPI.search(customerSearchQuery.trim());
+        setCustomerSearchResults(results);
+      } catch (error) {
+        console.error('Customer search error:', error);
+        setCustomerSearchResults([]);
+      } finally {
+        setSearchingCustomers(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(searchCustomers, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [customerSearchQuery]);
+
+  // Add new walk-in customer
+  const handleAddCustomer = async () => {
+    if (!newCustomerName.trim() || !newCustomerPhone.trim()) {
+      toast.error('Ism va telefon raqamini kiriting');
+      return;
+    }
+
+    setAddingCustomer(true);
+    try {
+      const customer = await walkInCustomersAPI.create({
+        name: newCustomerName.trim(),
+        phone: newCustomerPhone.trim()
+      });
+      setSelectedCustomer(customer);
+      setCustomerPhone(customer.phone);
+      setShowAddCustomer(false);
+      setNewCustomerName('');
+      setNewCustomerPhone('');
+      setCustomerSearchQuery('');
+      setCustomerSearchResults([]);
+      toast.success('Mijoz qo\'shildi');
+    } catch (error) {
+      console.error('Add customer error:', error);
+      toast.error(error.message || 'Mijozni qo\'shishda xatolik');
+    } finally {
+      setAddingCustomer(false);
+    }
+  };
+
+  // Select existing customer
+  const handleSelectCustomer = (customer) => {
+    setSelectedCustomer(customer);
+    setCustomerPhone(customer.phone);
+    setCustomerSearchQuery('');
+    setCustomerSearchResults([]);
+    toast.success(`Mijoz tanlandi: ${customer.name}`);
+  };
+
+  // Clear selected customer
+  const clearSelectedCustomer = () => {
+    setSelectedCustomer(null);
+    setCustomerPhone('');
+  };
+
   // Cleanup scanner on unmount
   useEffect(() => {
     return () => {
@@ -120,60 +203,51 @@ const CashierMode = () => {
   const startScanner = async () => {
     try {
       setScannerError(null);
-      setLastScannedCode(null);
+      lastScanTimeRef.current = 0;
+
+      // First set scanner active to make the container visible
+      setScannerActive(true);
+
+      // Wait for next render cycle so container is visible and has dimensions
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Create scanner instance
       const html5QrCode = new Html5Qrcode(scannerContainerId);
       scannerRef.current = html5QrCode;
 
       const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 100 },
-        aspectRatio: 1.7777778,
-        formatsToSupport: [
-          0, // QR_CODE
-          1, // AZTEC
-          2, // CODABAR
-          3, // CODE_39
-          4, // CODE_93
-          5, // CODE_128
-          6, // DATA_MATRIX
-          7, // MAXICODE
-          8, // ITF
-          9, // EAN_13
-          10, // EAN_8
-          11, // PDF_417
-          12, // RSS_14
-          13, // RSS_EXPANDED
-          14, // UPC_A
-          15, // UPC_E
-          16, // UPC_EAN_EXTENSION
-        ]
+        fps: 5,
+        qrbox: 200, // Square scan area - only scans within this box
+        aspectRatio: 1.0,
+        disableFlip: false,
+        showTorchButtonIfSupported: true
       };
 
       await html5QrCode.start(
         { facingMode: 'environment' },
         config,
         async (decodedText) => {
-          // Prevent duplicate scans of same code
-          if (decodedText === lastScannedCode) return;
-          setLastScannedCode(decodedText);
+          // Check cooldown to prevent multiple rapid scans
+          const now = Date.now();
+          if (now - lastScanTimeRef.current < SCAN_COOLDOWN_MS) {
+            return; // Still in cooldown period
+          }
+          lastScanTimeRef.current = now;
 
           console.log('📷 Barcode scanned:', decodedText);
-
           // Process the scanned barcode
           await handleBarcodeScan(decodedText);
         },
-        (errorMessage) => {
+        () => {
           // Ignore scan errors (no barcode found in frame)
         }
       );
 
-      setScannerActive(true);
       toast.success('Skaner yoqildi');
 
     } catch (error) {
       console.error('Failed to start scanner:', error);
+      setScannerActive(false);
       setScannerError('Kameraga ruxsat berilmadi. Iltimos, kamera ruxsatini yoqing.');
       toast.error('Kameraga kirish imkoni yo\'q');
     }
@@ -189,7 +263,7 @@ const CashierMode = () => {
       console.error('Error stopping scanner:', error);
     }
     setScannerActive(false);
-    setLastScannedCode(null);
+    lastScanTimeRef.current = 0;
   };
 
   // Handle barcode scan (simulated - would be triggered by actual scanner)
@@ -296,7 +370,7 @@ const CashierMode = () => {
     try {
       // Create order
       const orderData = {
-        user_name: customerPhone ? `Cash Customer (${customerPhone})` : 'Cash Customer',
+        user_name: selectedCustomer ? selectedCustomer.name : (customerPhone ? `Naqd mijoz (${customerPhone})` : 'Naqd mijoz'),
         user_phone: customerPhone || 'N/A',
         delivery_info: { type: 'in-store', address: 'In-store purchase' },
         courier: null,
@@ -333,13 +407,20 @@ const CashierMode = () => {
         orderNumber: order.order_number,
         total: cartTotal,
         cashReceived: Number(cashReceived),
-        change: changeAmount
+        change: changeAmount,
+        customerName: selectedCustomer?.name
       });
+
+      // Update walk-in customer stats if customer selected
+      if (selectedCustomer && customerPhone) {
+        await walkInCustomersAPI.updateStatsAfterOrder(customerPhone, cartTotal);
+      }
 
       // Reset state
       setCart([]);
       setCashReceived('');
       setCustomerPhone('');
+      setSelectedCustomer(null);
       setShowCheckout(false);
 
       // Refresh data
@@ -400,12 +481,33 @@ const CashierMode = () => {
             </button>
           </div>
 
-          {/* Scanner container - always rendered but hidden when not active */}
+          {/* Scanner container - always mounted, visibility controlled by style */}
           <div
             id={scannerContainerId}
-            className={`rounded-lg overflow-hidden mb-4 ${scannerActive ? '' : 'hidden'}`}
-            style={{ minHeight: scannerActive ? '250px' : '0' }}
+            className="rounded-lg overflow-hidden mb-4"
+            style={{
+              width: '100%',
+              display: scannerActive ? 'block' : 'none'
+            }}
           />
+
+          {/* Custom styles to fix scanner frame */}
+          {scannerActive && (
+            <style>{`
+              #${scannerContainerId} video {
+                width: 100% !important;
+                height: auto !important;
+                max-height: 250px !important;
+                object-fit: cover !important;
+              }
+              #${scannerContainerId} > div {
+                border: none !important;
+              }
+              #qr-shaded-region {
+                border-width: 2px !important;
+              }
+            `}</style>
+          )}
 
           {!scannerActive && (
             <div className="bg-gray-100 rounded-lg p-6 mb-4 text-center">
@@ -600,14 +702,98 @@ const CashierMode = () => {
               </button>
             </div>
             <div className="text-sm text-green-800 space-y-1">
-              <p>Order: #{lastOrder.orderNumber}</p>
-              <p>Total: {formatPrice(lastOrder.total)}</p>
-              <p>Received: {formatPrice(lastOrder.cashReceived)}</p>
-              <p className="font-bold">Change: {formatPrice(lastOrder.change)}</p>
+              <p>Buyurtma: #{lastOrder.orderNumber}</p>
+              {lastOrder.customerName && (
+                <p>Mijoz: {lastOrder.customerName}</p>
+              )}
+              <p>Jami: {formatPrice(lastOrder.total)}</p>
+              <p>Qabul qilindi: {formatPrice(lastOrder.cashReceived)}</p>
+              <p className="font-bold">Qaytim: {formatPrice(lastOrder.change)}</p>
             </div>
           </div>
         )}
       </div>
+
+      {/* Add Customer Modal - higher z-index than checkout modal */}
+      {showAddCustomer && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white w-full max-w-sm rounded-xl">
+            <div className="p-4 border-b flex items-center justify-between">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <UserPlus className="w-5 h-5" />
+                Yangi mijoz
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAddCustomer(false);
+                  setNewCustomerName('');
+                  setNewCustomerPhone('');
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ism *
+                </label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={newCustomerName}
+                    onChange={(e) => setNewCustomerName(e.target.value)}
+                    placeholder="Mijoz ismi"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                    autoFocus
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Telefon raqam *
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="tel"
+                    value={newCustomerPhone}
+                    onChange={(e) => setNewCustomerPhone(e.target.value)}
+                    placeholder="+998 90 123 45 67"
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                  />
+                </div>
+              </div>
+
+              <button
+                onClick={handleAddCustomer}
+                disabled={addingCustomer || !newCustomerName.trim() || !newCustomerPhone.trim()}
+                className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors ${
+                  addingCustomer || !newCustomerName.trim() || !newCustomerPhone.trim()
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-green-500 text-white hover:bg-green-600'
+                }`}
+              >
+                {addingCustomer ? (
+                  <>
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    Saqlanmoqda...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="w-5 h-5" />
+                    Mijozni qo'shish
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Checkout Modal */}
       {showCheckout && (
@@ -633,18 +819,98 @@ const CashierMode = () => {
                 <p className="text-3xl font-bold text-gray-900">{formatPrice(cartTotal)}</p>
               </div>
 
-              {/* Customer Phone (optional) */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Customer Phone (optional)
+              {/* Customer Section */}
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-gray-700">
+                  Mijoz (ixtiyoriy)
                 </label>
-                <input
-                  type="tel"
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="+998 90 123 45 67"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
-                />
+
+                {selectedCustomer ? (
+                  // Selected customer display
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                          <User className="w-5 h-5 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{selectedCustomer.name}</p>
+                          <p className="text-sm text-gray-500">{selectedCustomer.phone}</p>
+                          {selectedCustomer.total_orders > 0 && (
+                            <p className="text-xs text-green-600">
+                              {selectedCustomer.total_orders} ta buyurtma
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={clearSelectedCustomer}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  // Customer search
+                  <>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <input
+                        type="text"
+                        value={customerSearchQuery}
+                        onChange={(e) => setCustomerSearchQuery(e.target.value)}
+                        placeholder="Telefon yoki ism bo'yicha qidirish..."
+                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      />
+                      {searchingCustomers && (
+                        <RefreshCw className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 animate-spin" />
+                      )}
+                    </div>
+
+                    {/* Customer search results */}
+                    {customerSearchResults.length > 0 && (
+                      <div className="border rounded-lg divide-y max-h-40 overflow-y-auto">
+                        {customerSearchResults.map(customer => (
+                          <button
+                            key={customer.id}
+                            onClick={() => handleSelectCustomer(customer)}
+                            className="w-full p-3 flex items-center gap-3 hover:bg-gray-50 text-left"
+                          >
+                            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                              <User className="w-4 h-4 text-gray-500" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 truncate">{customer.name}</p>
+                              <p className="text-sm text-gray-500">{customer.phone}</p>
+                            </div>
+                            {customer.total_orders > 0 && (
+                              <span className="text-xs text-gray-400">
+                                {customer.total_orders} buyurtma
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* No results - show add button */}
+                    {customerSearchQuery.length >= 2 && !searchingCustomers && customerSearchResults.length === 0 && (
+                      <div className="text-center py-3 text-gray-500 text-sm">
+                        <p>Mijoz topilmadi</p>
+                      </div>
+                    )}
+
+                    {/* Add new customer button */}
+                    <button
+                      onClick={() => setShowAddCustomer(true)}
+                      className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-green-400 hover:text-green-600 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      Yangi mijoz qo'shish
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Cash Received */}
