@@ -168,6 +168,7 @@ export const productsAPI = {
       tags: product.tags || [],
       variants: product.variants || [],
       volume_pricing: product.volume_pricing || null,
+      barcode: product.barcode || null,
       rating: 0,
       review_count: 0
     };
@@ -213,6 +214,7 @@ export const productsAPI = {
     if (updates.tags !== undefined) dbUpdates.tags = updates.tags;
     if (updates.variants !== undefined) dbUpdates.variants = updates.variants;
     if (updates.volume_pricing !== undefined) dbUpdates.volume_pricing = updates.volume_pricing;
+    if (updates.barcode !== undefined) dbUpdates.barcode = updates.barcode;
 
     const { data, error } = await supabase
       .from('products')

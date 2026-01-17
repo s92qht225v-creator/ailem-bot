@@ -1228,6 +1228,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
       colors: '',
       sizes: '',
       tags: '',
+      barcode: '',
       inStock: true,
       variants: [],
       volume_pricing: null
@@ -1456,7 +1457,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
           sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : [],
           tags: formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
           variants: formData.variants || [],
-          volume_pricing: formData.volume_pricing && formData.volume_pricing.length > 0 ? formData.volume_pricing : null
+          volume_pricing: formData.volume_pricing && formData.volume_pricing.length > 0 ? formData.volume_pricing : null,
+          barcode: formData.barcode || null
         };
 
         console.log('📦 Product data prepared:', productData);
@@ -1600,6 +1602,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         colors: product.colors ? product.colors.join(', ') : '',
         sizes: product.sizes ? product.sizes.join(', ') : '',
         tags: product.tags ? product.tags.join(', ') : '',
+        barcode: product.barcode || '',
         inStock: product.inStock !== false,
         variants: product.variants || [],
         volume_pricing: product.volume_pricing || null
@@ -1947,6 +1950,17 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 </select>
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Shtrix-kod (Barcode)</label>
+                <input
+                  type="text"
+                  value={formData.barcode}
+                  onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  placeholder="Masalan: 4750001234567"
+                />
+                <p className="text-xs text-gray-500 mt-1">Kassir skaneri uchun mahsulot shtrix-kodi</p>
+              </div>
 
               {/* Variant Stock Management */}
               {formData.variants.length > 0 && (
