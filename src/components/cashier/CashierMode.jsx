@@ -373,13 +373,13 @@ const CashierMode = () => {
           )}
 
           {/* Manual barcode input */}
-          <div className="flex gap-2">
+          <div className="space-y-3">
             <input
               type="text"
               value={manualBarcode}
               onChange={(e) => setManualBarcode(e.target.value)}
               placeholder="Shtrix-kodni kiriting..."
-              className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-lg"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-lg"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && manualBarcode) {
                   handleBarcodeScan(manualBarcode);
@@ -390,7 +390,7 @@ const CashierMode = () => {
             <button
               onClick={() => handleBarcodeScan(manualBarcode)}
               disabled={!manualBarcode || scanningBarcode}
-              className={`px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors ${
+              className={`w-full py-3 rounded-lg font-semibold flex items-center justify-center gap-2 transition-colors ${
                 !manualBarcode || scanningBarcode
                   ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                   : 'bg-green-500 text-white hover:bg-green-600'
