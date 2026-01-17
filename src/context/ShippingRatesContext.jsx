@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect } from 'react';
 import { shippingRatesAPI } from '../services/api';
 import { adminShippingRatesAPI } from '../services/adminApi';
+import { isAdminMode } from '../hooks/useAdminMode';
 
 export const ShippingRatesContext = createContext();
 
@@ -15,11 +16,6 @@ export const ShippingRatesProvider = ({ children }) => {
     { id: 6, courier: 'Yandex', state: 'Toshkent', firstKg: 25000, additionalKg: 0 },
   ]);
   const [loading, setLoading] = useState(true);
-
-  // Check if we're in admin mode
-  const isAdminMode = () => {
-    return window.location.search.includes('admin=true');
-  };
 
   // Use admin API if in admin mode, otherwise use regular API
   const getAPI = () => {

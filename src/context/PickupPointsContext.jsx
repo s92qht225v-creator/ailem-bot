@@ -1,17 +1,13 @@
 import { createContext, useState, useEffect, useCallback } from 'react';
 import { pickupPointsAPI } from '../services/api';
 import { adminPickupPointsAPI } from '../services/adminApi';
+import { isAdminMode } from '../hooks/useAdminMode';
 
 export const PickupPointsContext = createContext();
 
 export const PickupPointsProvider = ({ children }) => {
   const [pickupPoints, setPickupPoints] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Check if we're in admin mode
-  const isAdminMode = () => {
-    return window.location.search.includes('admin=true');
-  };
 
   // Use admin API if in admin mode, otherwise use regular API
   const getAPI = () => {
