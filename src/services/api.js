@@ -194,6 +194,7 @@ export const productsAPI = {
 
   // Update product
   async update(id, updates) {
+    console.log('🔄 [productsAPI.update] Starting update for id:', id);
     // Transform app fields to database fields
     const dbUpdates = {};
 
@@ -216,12 +217,17 @@ export const productsAPI = {
     if (updates.volume_pricing !== undefined) dbUpdates.volume_pricing = updates.volume_pricing;
     if (updates.barcode !== undefined) dbUpdates.barcode = updates.barcode;
 
+    console.log('📦 [productsAPI.update] dbUpdates prepared:', dbUpdates);
+    console.log('📡 [productsAPI.update] Sending Supabase request...');
+
     const { data, error } = await supabase
       .from('products')
       .update(dbUpdates)
       .eq('id', id)
       .select()
       .single();
+
+    console.log('📥 [productsAPI.update] Supabase response received:', { data, error });
 
     if (error) throw error;
 

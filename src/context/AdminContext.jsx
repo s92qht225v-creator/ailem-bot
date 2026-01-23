@@ -101,8 +101,11 @@ export const AdminProvider = ({ children }) => {
   };
 
   const updateProduct = async (productId, updates) => {
+    console.log('🔄 [AdminContext] updateProduct called with:', { productId, updates });
     try {
+      console.log('📡 [AdminContext] Calling productsAPI.update...');
       const updatedProduct = await productsAPI.update(productId, updates);
+      console.log('✅ [AdminContext] productsAPI.update returned:', updatedProduct);
       setProducts(prev =>
         prev.map(product =>
           product.id === productId ? updatedProduct : product
@@ -110,7 +113,7 @@ export const AdminProvider = ({ children }) => {
       );
       return updatedProduct;
     } catch (err) {
-      console.error('Failed to update product:', err);
+      console.error('❌ [AdminContext] Failed to update product:', err);
       throw err;
     }
   };
