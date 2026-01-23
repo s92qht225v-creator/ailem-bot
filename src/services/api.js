@@ -220,12 +220,19 @@ export const productsAPI = {
     console.log('📦 [productsAPI.update] dbUpdates prepared:', dbUpdates);
     console.log('📡 [productsAPI.update] Sending Supabase request...');
 
-    const { data, error } = await supabase
+    // Add timeout to prevent infinite hang on Supabase free tier
+    const updatePromise = supabase
       .from('products')
       .update(dbUpdates)
       .eq('id', id)
       .select()
       .single();
+
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Supabase request timed out after 30 seconds. Please try again.')), 30000)
+    );
+
+    const { data, error } = await Promise.race([updatePromise, timeoutPromise]);
 
     console.log('📥 [productsAPI.update] Supabase response received:', { data, error });
 
