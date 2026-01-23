@@ -72,7 +72,7 @@ const FavoritesPage = ({ onNavigate }) => {
                 >
                   {/* Product Image */}
                   <div
-                    className="relative aspect-square cursor-pointer"
+                    className="relative aspect-[4/5] cursor-pointer"
                     onClick={() => onNavigate('product', { productId: product.id })}
                   >
                     <img

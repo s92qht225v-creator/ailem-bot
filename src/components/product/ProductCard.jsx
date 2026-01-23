@@ -39,7 +39,7 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
         <img
           src={product.image}
           alt={product.name}
-          className={`w-full h-48 object-cover transition-opacity ${
+          className={`w-full aspect-[4/5] object-cover transition-opacity ${
             isOutOfStock ? 'opacity-60' : ''
           }`}
           loading="lazy"

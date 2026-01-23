@@ -376,7 +376,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
       <div className="bg-gray-50">
         {/* Main Image */}
         <div
-          className="relative aspect-square overflow-hidden"
+          className="relative aspect-[4/5] overflow-hidden"
           style={{ touchAction: 'none' }}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
