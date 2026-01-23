@@ -157,7 +157,7 @@ function generateLabelHTML(order, includeDocType = true) {
         </div>
         <div class="info-row">
           <span class="info-label">Jami:</span>
-          <span class="info-value">${(order.total || 0).toLocaleString('uz-UZ')} UZS</span>
+          <span class="info-value">${(order.total || 0).toLocaleString('uz-UZ')} so'm</span>
         </div>
         <div class="info-row">
           <span class="info-label">Yetkazish:</span>

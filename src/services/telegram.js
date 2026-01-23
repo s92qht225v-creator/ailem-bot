@@ -109,7 +109,7 @@ export const notifyUserOrderStatus = async (order, status) => {
 Sizning <b>#${order.id}</b> raqamli buyurtmangiz tasdiqlandi!
 
 📦 Mahsulotlar: ${order.items.length} ta
-💰 Jami: ${order.total} UZS
+💰 Jami: ${order.total} so'm
 🚚 Yetkazib beruvchi: ${order.courier}
 
 Buyurtmangiz tez orada jo'natiladi. Xarid uchun rahmat! 🛍️
@@ -147,7 +147,7 @@ Xarid uchun rahmat! 🎉
 
 Kechirasiz, <b>#${order.id}</b> raqamli buyurtmangiz bajarilmadi.
 
-💰 Summa: ${order.total} UZS
+💰 Summa: ${order.total} so'm
 
 Bonus ballaringiz qaytarildi. Savollaringiz bo'lsa, qo'llab-quvvatlash xizmatiga murojaat qiling.
       `.trim();
@@ -188,7 +188,7 @@ Order ID: <b>#${order.id}</b>
 📦 <b>Items:</b>
 ${items}
 
-💰 <b>Total:</b> ${order.total} UZS
+💰 <b>Total:</b> ${order.total} so'm
 🚚 <b>Courier:</b> ${order.courier}
 📍 <b>Delivery:</b> ${order.deliveryInfo?.city || 'N/A'}
 
@@ -210,7 +210,7 @@ export const notifyAdminNewOrder = async (order) => {
   }
 
   const items = order.items
-    .map(item => `  • ${item.productName || item.name} (x${item.quantity}) - ${item.price} UZS`)
+    .map(item => `  • ${item.productName || item.name} (x${item.quantity}) - ${item.price} so'm`)
     .join('\n');
 
   const message = `
@@ -223,7 +223,7 @@ Phone: ${order.userPhone}
 📦 <b>Items:</b>
 ${items}
 
-💰 <b>Total:</b> ${order.total} UZS
+💰 <b>Total:</b> ${order.total} so'm
 🚚 <b>Courier:</b> ${order.courier}
 📍 <b>Location:</b> ${order.deliveryInfo?.city || 'N/A'}
 

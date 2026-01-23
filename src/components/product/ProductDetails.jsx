@@ -507,7 +507,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
             <div className="mb-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm font-bold text-green-900">
-                  💰 Hajm bo'yicha chegirmalar
+                  💰 Ulgurja xarid uchun chegirma
                 </span>
               </div>
               <div className="space-y-1">
@@ -519,7 +519,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
                       {tier.min_qty}{tier.max_qty ? `-${tier.max_qty}` : '+'} dona:
                     </span>
                     <span className="font-bold text-green-900">
-                      {formatPrice(tier.price)} har biri
+                      har biri {formatPrice(tier.price)}
                     </span>
                     {tier.price < product.price && (
                       <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">

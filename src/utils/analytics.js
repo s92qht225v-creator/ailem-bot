@@ -268,7 +268,7 @@ export const getRevenueChartData = (orders = []) => {
  * @returns {string} Formatted currency string
  */
 export const formatCurrency = (amount) => {
-  return `${Math.round(amount).toLocaleString('uz-UZ')} UZS`;
+  return `${Math.round(amount).toLocaleString('uz-UZ')} so'm`;
 };
 
 /**

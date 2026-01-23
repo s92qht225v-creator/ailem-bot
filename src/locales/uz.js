@@ -148,7 +148,7 @@ export default {
     bonusPoints: 'Bonus ballari',
     availableBonus: 'Mavjud: {points} ball',
     maxBonus: 'Maksimal: {points} ball (buyurtmaning 20%)',
-    bonusValue: '{points} ball = {value} UZS'
+    bonusValue: '{points} ball = {value} so\'m'
   },
 
   // Checkout
@@ -177,7 +177,7 @@ export default {
     invalidAddress: 'Noto\'g\'ri manzil',
     orderCreated: 'Buyurtma yaratildi',
     orderFailed: 'Xatolik yuz berdi',
-    bonusApplied: '{points} ball ishlatilmoqda (-{value} UZS)',
+    bonusApplied: '{points} ball ishlatilmoqda (-{value} so\'m)',
     selectCourier: 'Iltimos, kurerlik xizmatni tanlang',
     selectDistrictAddress: 'Iltimos, tumanni tanlang va manzilni kiriting',
     selectCourierService: 'Kurerlik xizmatni tanlang',

@@ -2391,7 +2391,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                             .sort((a, b) => a.min_qty - b.min_qty)
                             .map((tier, idx) => (
                             <div key={idx}>
-                              • {tier.min_qty}{tier.max_qty ? `-${tier.max_qty}` : '+'} dona: {formatPrice(tier.price)} har biri
+                              • {tier.min_qty}{tier.max_qty ? `-${tier.max_qty}` : '+'} dona: har biri {formatPrice(tier.price)}
                             </div>
                           ))}
                         </div>

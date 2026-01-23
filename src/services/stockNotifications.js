@@ -98,7 +98,7 @@ export async function notifyProductBackInStock(product, variantColor = null, var
         message += `\n`;
       }
 
-      message += `💰 <b>Narx:</b> ${product.price.toLocaleString('uz-UZ')} UZS\n\n`;
+      message += `💰 <b>Narx:</b> ${product.price.toLocaleString('uz-UZ')} so'm\n\n`;
       message += `⏰ Tez buyurtma bering, omborda cheklangan miqdorda!`;
 
       // Send notification without button (button URL was causing errors)
