@@ -134,7 +134,9 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
     // Listen for auth state changes (skip events that shouldn't trigger re-auth)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       // Skip events that shouldn't trigger re-verification
-      if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
+      // USER_UPDATED can fire during storage operations
+      if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+        console.log('Skipping auth event:', event);
         return;
       }
 

@@ -1392,7 +1392,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
             const result = await storageAPI.uploadProductImage(file);
             console.log('✅ Image uploaded:', result.url);
-            setAllImages(prev => [...prev, result.url]);
+            try {
+              console.log('📝 About to update allImages state...');
+              setAllImages(prev => {
+                console.log('📝 Previous images:', prev);
+                const newImages = [...prev, result.url];
+                console.log('📝 New images:', newImages);
+                return newImages;
+              });
+              console.log('📝 State update scheduled successfully');
+            } catch (stateError) {
+              console.error('❌ State update error:', stateError);
+            }
             uploadedCount++;
 
             // Small delay between uploads to avoid rate limiting
