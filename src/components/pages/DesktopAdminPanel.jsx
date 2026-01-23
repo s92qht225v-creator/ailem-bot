@@ -56,8 +56,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  // Product form images state - lifted here to survive ProductsContent recreation
+  // Product form state - lifted here to survive ProductsContent recreation
   const [productFormImages, setProductFormImages] = useState([]);
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
   const { products, categories, orders, reviews, users, loading, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, reorderCategories, approveReview, deleteReview } = useContext(AdminContext);
   const toast = useToast();
   const confirm = useConfirm();
@@ -319,7 +321,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             {activeSection === 'audit-logs' && <AuditLogsSection />}
 
             {/* Inline components (complex, to be extracted later) */}
-            {activeSection === 'products' && <ProductsContent key="products-section" allImages={productFormImages} setAllImages={setProductFormImages} />}
+            {activeSection === 'products' && <ProductsContent key="products-section" allImages={productFormImages} setAllImages={setProductFormImages} showForm={showProductForm} setShowForm={setShowProductForm} editingProduct={editingProduct} setEditingProduct={setEditingProduct} />}
             {activeSection === 'categories' && <CategoriesContent />}
             {activeSection === 'promotions' && <PromotionsContent />}
             {activeSection === 'pickup-points' && <PickupPointsContent />}
@@ -1202,9 +1204,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
   }
 
   // Products Content with full functionality
-  function ProductsContent({ allImages, setAllImages }) {
-    const [showForm, setShowForm] = useState(false);
-    const [editingProduct, setEditingProduct] = useState(null);
+  function ProductsContent({ allImages, setAllImages, showForm, setShowForm, editingProduct, setEditingProduct }) {
+    // showForm and editingProduct now come from props (parent state)
     const [uploadingImage, setUploadingImage] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     // allImages and setAllImages now come from props (parent state)
