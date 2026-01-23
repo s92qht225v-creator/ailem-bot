@@ -241,17 +241,29 @@ export const productsAPI = {
 
       if (error) throw error;
 
-      // Fetch reviews for this product
-      const { data: reviews, error: reviewsError } = await supabase
+      console.log('✅ [productsAPI.update] Product updated, fetching reviews...');
+
+      // Fetch reviews for this product (with timeout)
+      const reviewsPromise = supabase
         .from('reviews')
         .select('*')
         .eq('product_id', id)
         .eq('approved', true);
 
+      const reviewsTimeoutPromise = new Promise((resolve) => {
+        setTimeout(() => {
+          console.log('⚠️ [productsAPI.update] Reviews fetch timeout, returning empty');
+          resolve({ data: [], error: null });
+        }, 10000);
+      });
+
+      const { data: reviews, error: reviewsError } = await Promise.race([reviewsPromise, reviewsTimeoutPromise]);
+
       if (reviewsError) console.error('Failed to fetch reviews:', reviewsError);
+      console.log('✅ [productsAPI.update] Reviews fetched:', reviews?.length || 0);
 
       // Map database fields to match app expectations
-      return {
+      const result = {
         ...data,
         category: data.category_name,
         originalPrice: data.original_price,
@@ -267,11 +279,10 @@ export const productsAPI = {
           approved: r.approved
         }))
       };
+      console.log('✅ [productsAPI.update] Returning updated product');
+      return result;
     } catch (err) {
-      clearTimeout(timeoutId);
-      if (err.name === 'AbortError') {
-        throw new Error('Supabase request timed out after 30 seconds. Please try again.');
-      }
+      console.error('❌ [productsAPI.update] Error:', err);
       throw err;
     }
   },
