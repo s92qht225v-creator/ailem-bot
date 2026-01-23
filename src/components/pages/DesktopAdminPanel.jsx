@@ -1379,7 +1379,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           try {
             const uploadPromise = storageAPI.uploadProductImage(file);
             const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('Upload timeout')), 30000)
+              setTimeout(() => reject(new Error('Upload timeout')), 60000)
             );
 
             const result = await Promise.race([uploadPromise, timeoutPromise]);
@@ -1416,7 +1416,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         // Add timeout to prevent infinite hanging (30 seconds)
         const uploadPromise = storageAPI.uploadProductImage(file);
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Upload timeout - please check your internet connection and try again')), 30000)
+          setTimeout(() => reject(new Error('Upload timeout - please check your internet connection and try again')), 60000)
         );
 
         const result = await Promise.race([uploadPromise, timeoutPromise]);
@@ -2824,7 +2824,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         // Add timeout to prevent infinite hanging (30 seconds)
         const uploadPromise = storageAPI.uploadProductImage(file);
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Upload timeout - please check your internet connection and try again')), 30000)
+          setTimeout(() => reject(new Error('Upload timeout - please check your internet connection and try again')), 60000)
         );
 
         const result = await Promise.race([uploadPromise, timeoutPromise]);
@@ -4737,7 +4737,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         // Add timeout to prevent infinite hanging (30 seconds)
         const uploadPromise = storageAPI.uploadImage(file, 'banners');
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Upload timeout - please check your internet connection and try again')), 30000)
+          setTimeout(() => reject(new Error('Upload timeout - please check your internet connection and try again')), 60000)
         );
 
         const result = await Promise.race([uploadPromise, timeoutPromise]);
