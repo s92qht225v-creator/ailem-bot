@@ -34,6 +34,7 @@ import { printShippingLabel, printMultipleLabels } from '../../utils/shippingLab
 import { printPackingSlip, printMultiplePackingSlips } from '../../utils/packingSlip';
 import { supabase } from '../../lib/supabase';
 import ImageModal from '../common/ImageModal';
+import { checkUploadPermissions } from '../../utils/checkUploadPermissions';
 
 // Import modular admin sections
 import {
@@ -58,6 +59,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
   const { products, categories, orders, reviews, users, loading, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, reorderCategories, approveReview, deleteReview } = useContext(AdminContext);
   const toast = useToast();
   const confirm = useConfirm();
+
+  // Expose diagnostic utility to browser console
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.checkUploadPermissions = checkUploadPermissions;
+      console.log('💡 Diagnostic available: Run checkUploadPermissions() in console to test uploads');
+    }
+  }, []);
 
   // Show loading state if data is still being fetched
   if (loading) {
