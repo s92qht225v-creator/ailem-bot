@@ -56,6 +56,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  // Product form images state - lifted here to survive ProductsContent recreation
+  const [productFormImages, setProductFormImages] = useState([]);
   const { products, categories, orders, reviews, users, loading, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, reorderCategories, approveReview, deleteReview } = useContext(AdminContext);
   const toast = useToast();
   const confirm = useConfirm();
@@ -317,7 +319,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             {activeSection === 'audit-logs' && <AuditLogsSection />}
 
             {/* Inline components (complex, to be extracted later) */}
-            {activeSection === 'products' && <ProductsContent key="products-section" />}
+            {activeSection === 'products' && <ProductsContent key="products-section" allImages={productFormImages} setAllImages={setProductFormImages} />}
             {activeSection === 'categories' && <CategoriesContent />}
             {activeSection === 'promotions' && <PromotionsContent />}
             {activeSection === 'pickup-points' && <PickupPointsContent />}
@@ -1200,29 +1202,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
   }
 
   // Products Content with full functionality
-  function ProductsContent() {
+  function ProductsContent({ allImages, setAllImages }) {
     const [showForm, setShowForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    // Use ref to persist images across component remounts
-    const imagesRef = useRef([]);
-    const [allImages, setAllImages] = useState([]);
-    
-    // Sync state with ref
-    const setAllImagesWithRef = (newImages) => {
-      const images = typeof newImages === 'function' ? newImages(imagesRef.current) : newImages;
-      imagesRef.current = images;
-      setAllImages(images);
-    };
-    
-    // Initialize from ref on mount
-    useEffect(() => {
-      if (imagesRef.current.length > 0 && allImages.length === 0) {
-        console.log('\ud83d\udd04 Restoring images from ref:', imagesRef.current.length);
-        setAllImages(imagesRef.current);
-      }
-    }, []);
+    // allImages and setAllImages now come from props (parent state)
     const [formErrors, setFormErrors] = useState({});
     const [showUrlInput, setShowUrlInput] = useState(false);
     const [imageUrl, setImageUrl] = useState('');
@@ -1389,7 +1374,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         // Basic URL validation
         try {
           new URL(imageUrl);
-          setAllImagesWithRef(prev => [...prev, imageUrl.trim()]);
+          setAllImages(prev => [...prev, imageUrl.trim()]);
           setImageUrl('');
           setShowUrlInput(false);
         } catch {
@@ -1428,7 +1413,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             console.log('✅ Image uploaded:', result.url);
             
             // Update state with new image
-            setAllImagesWithRef(prev => {
+            setAllImages(prev => {
               const newImages = [...prev, result.url];
               console.log('📝 State updated from', prev.length, 'to', newImages.length, 'images');
               return newImages;
@@ -1486,7 +1471,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         console.log('✅ Image uploaded:', result.url);
 
         // Add to images array
-        setAllImagesWithRef(prev => [...prev, result.url]);
+        setAllImages(prev => [...prev, result.url]);
       } catch (error) {
         console.error('❌ Image upload failed:', error);
         toast.error(`Rasm yuklashda xatolik: ${error.message}`);
@@ -1498,11 +1483,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     const handleRemoveImage = (indexToRemove) => {
-      setAllImagesWithRef(prev => prev.filter((_, index) => index !== indexToRemove));
+      setAllImages(prev => prev.filter((_, index) => index !== indexToRemove));
     };
 
     const handleMoveImage = (fromIndex, toIndex) => {
-      setAllImagesWithRef(prev => {
+      setAllImages(prev => {
         const newImages = [...prev];
         const [movedImage] = newImages.splice(fromIndex, 1);
         newImages.splice(toIndex, 0, movedImage);
@@ -1635,7 +1620,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         setShowForm(false);
         setEditingProduct(null);
-        setAllImagesWithRef([]);
+        setAllImages([]);
         setFormErrors({});
         
         setFormData({
@@ -1676,7 +1661,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
       setEditingProduct(product);
       // Set images array from product
       const productImages = product.images || [product.image || product.imageUrl];
-      setAllImagesWithRef(productImages.filter(url => url)); // Filter out any null/undefined
+      setAllImages(productImages.filter(url => url)); // Filter out any null/undefined
 
       // Convert Markdown to HTML if description contains Markdown syntax
       let description = product.description || '';
@@ -1855,7 +1840,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingProduct(null);
-                  setAllImagesWithRef([]);
+                  setAllImages([]);
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
