@@ -218,6 +218,20 @@ export const productsAPI = {
     if (updates.barcode !== undefined) dbUpdates.barcode = updates.barcode;
 
     console.log('📦 [productsAPI.update] dbUpdates prepared:', dbUpdates);
+
+    // Refresh session before update to prevent stale auth
+    console.log('🔐 [productsAPI.update] Refreshing session...');
+    try {
+      const { error: sessionError } = await supabase.auth.refreshSession();
+      if (sessionError) {
+        console.warn('⚠️ [productsAPI.update] Session refresh warning:', sessionError.message);
+      } else {
+        console.log('✅ [productsAPI.update] Session refreshed');
+      }
+    } catch (e) {
+      console.warn('⚠️ [productsAPI.update] Session refresh error:', e);
+    }
+
     console.log('📡 [productsAPI.update] Sending Supabase request...');
 
     // Add timeout to prevent infinite hang on Supabase free tier
