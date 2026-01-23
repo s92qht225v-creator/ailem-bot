@@ -1559,30 +1559,28 @@ const DesktopAdminPanel = ({ onLogout }) => {
           }
 
           await updateProduct(editingProduct.id, productData);
+          console.log('✅ Product updated successfully');
 
-          // Send stock notifications if stock was replenished
+          // Send stock notifications in background (don't await - fire and forget)
           if (stockIncreased || variantsToNotify.length > 0) {
-            console.log('📢 Stock replenished! Sending notifications...');
+            console.log('📢 Stock replenished! Sending notifications in background...');
 
-            try {
-              // Create product object with ID for notifications
-              const productWithId = { ...productData, id: editingProduct.id };
+            // Fire and forget - don't block the form submission
+            const productWithId = { ...productData, id: editingProduct.id };
 
-              if (stockIncreased && (!productData.variants || productData.variants.length === 0)) {
-                // Non-variant product back in stock
-                await notifyProductBackInStock(productWithId);
+            (async () => {
+              try {
+                if (stockIncreased && (!productData.variants || productData.variants.length === 0)) {
+                  await notifyProductBackInStock(productWithId);
+                }
+                for (const variant of variantsToNotify) {
+                  await notifyProductBackInStock(productWithId, variant.color, variant.size);
+                }
+                console.log('✅ Stock notifications sent');
+              } catch (error) {
+                console.error('❌ Failed to send stock notifications:', error);
               }
-
-              // Notify for each variant that came back in stock
-              for (const variant of variantsToNotify) {
-                await notifyProductBackInStock(productWithId, variant.color, variant.size);
-              }
-
-              console.log('✅ Stock notifications sent');
-            } catch (error) {
-              console.error('❌ Failed to send stock notifications:', error);
-              // Don't block the update if notifications fail
-            }
+            })();
           }
         } else {
           // Create new product
@@ -1590,6 +1588,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
           await addProduct(productData);
           console.log('✅ Product created successfully');
         }
+
+        // Show success message
+        toast.success(editingProduct ? 'Mahsulot yangilandi' : 'Mahsulot qo\'shildi');
 
         console.log('🧹 Cleaning up form...');
         // Reset form and close
