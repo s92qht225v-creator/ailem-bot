@@ -21,7 +21,8 @@ const safeLocalStorage = (() => {
 
 // Format price to display with currency (UZS - Uzbek Som)
 export const formatPrice = (price) => {
-  return `${Math.round(price).toLocaleString()} UZS`;
+  // Use space as thousand separator (190 000 instead of 190,000)
+  return `${Math.round(price).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} UZS`;
 };
 
 // Calculate discount percentage
