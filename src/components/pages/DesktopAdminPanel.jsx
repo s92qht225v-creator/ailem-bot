@@ -2852,7 +2852,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
     );
   }
 
-  function StockRequestsContent() {
+  function CategoriesContent() {
     const [showForm, setShowForm] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
