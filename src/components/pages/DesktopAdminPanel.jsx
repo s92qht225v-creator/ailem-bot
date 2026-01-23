@@ -1200,8 +1200,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
   }
 
   // Products Content with full functionality
-  // Memoized to prevent state reset when parent re-renders
-  const ProductsContent = useMemo(() => function ProductsContentInner() {
+  function ProductsContent() {
     const [showForm, setShowForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
@@ -2843,9 +2842,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
         </div>
       </div>
     );
-  }, [products, categories, toast, confirm, addProduct, updateProduct, deleteProduct]); // Memoized to prevent recreation
+  }
 
-  function CategoriesContent() {
+  function StockRequestsContent() {
     const [showForm, setShowForm] = useState(false);
     const [editingCategory, setEditingCategory] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
