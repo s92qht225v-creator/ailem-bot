@@ -1658,9 +1658,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     const handleEdit = (product) => {
+      console.log('✏️ Edit clicked for product:', product.id, product.name);
       setEditingProduct(product);
       // Set images array from product
       const productImages = product.images || [product.image || product.imageUrl];
+      console.log('🖼️ Setting images:', productImages);
       setAllImages(productImages.filter(url => url)); // Filter out any null/undefined
 
       // Convert Markdown to HTML if description contains Markdown syntax
