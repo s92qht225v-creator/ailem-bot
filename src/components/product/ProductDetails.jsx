@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { t } from "../../utils/translation-fallback";
 import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, Share2, Bell, BellOff } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
@@ -557,7 +558,9 @@ const ProductDetails = ({ product, onAddToCart }) => {
             )}
           </div>
 
-          <p className="text-gray-600 mb-4">{product.description}</p>
+          <div className="text-gray-600 mb-4 prose prose-sm max-w-none">
+            <ReactMarkdown>{product.description || ''}</ReactMarkdown>
+          </div>
         </div>
 
         {/* Color Selection */}
