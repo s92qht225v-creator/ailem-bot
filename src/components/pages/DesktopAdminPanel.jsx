@@ -1,6 +1,14 @@
 import { useState, useContext, useEffect, useMemo } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { marked } from 'marked';
+
+// Configure marked for proper line breaks
+marked.setOptions({
+  breaks: true,  // Convert \n to <br>
+  gfm: true      // GitHub Flavored Markdown
+});
+
 import { t } from "../../utils/translation-fallback";
 import {
   Shield, Package, Star, Users as UsersIcon, CheckCircle, XCircle,
@@ -1607,10 +1615,17 @@ const DesktopAdminPanel = ({ onLogout }) => {
       // Set images array from product
       const productImages = product.images || [product.image || product.imageUrl];
       setAllImages(productImages.filter(url => url)); // Filter out any null/undefined
-      
+
+      // Convert Markdown to HTML if description contains Markdown syntax
+      let description = product.description || '';
+      if (description && (description.includes('**') || description.includes('*') || description.includes('- ') || description.includes('\n'))) {
+        // Looks like Markdown, convert to HTML
+        description = marked.parse(description);
+      }
+
       setFormData({
         name: product.name || '',
-        description: product.description || '',
+        description: description,
         // If originalPrice exists, it's the regular price and price is the sale price
         price: product.originalPrice ? product.originalPrice.toString() : product.price.toString(),
         salePrice: product.originalPrice ? product.price.toString() : '',
