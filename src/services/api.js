@@ -218,42 +218,26 @@ export const productsAPI = {
     if (updates.barcode !== undefined) dbUpdates.barcode = updates.barcode;
 
     console.log('📦 [productsAPI.update] dbUpdates prepared:', dbUpdates);
-
-    // Refresh session before update to prevent stale auth
-    console.log('🔐 [productsAPI.update] Refreshing session...');
-    try {
-      const { error: sessionError } = await supabase.auth.refreshSession();
-      if (sessionError) {
-        console.warn('⚠️ [productsAPI.update] Session refresh warning:', sessionError.message);
-      } else {
-        console.log('✅ [productsAPI.update] Session refreshed');
-      }
-    } catch (e) {
-      console.warn('⚠️ [productsAPI.update] Session refresh error:', e);
-    }
-
     console.log('📡 [productsAPI.update] Sending Supabase request...');
 
-    // Add timeout to prevent infinite hang on Supabase free tier
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-      console.log('⏰ [productsAPI.update] Request timeout - aborting');
-      controller.abort();
-    }, 30000);
+    // Use Promise.race with timeout since AbortController may not work reliably
+    const updatePromise = supabase
+      .from('products')
+      .update(dbUpdates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        console.log('⏰ [productsAPI.update] Request timeout after 30s');
+        reject(new Error('Mahsulotni yangilash vaqti tugadi (30 soniya). Iltimos, qayta urinib ko\'ring.'));
+      }, 30000);
+    });
 
     try {
-      const updatePromise = supabase
-        .from('products')
-        .update(dbUpdates)
-        .eq('id', id)
-        .select()
-        .single()
-        .abortSignal(controller.signal);
-
-      const { data, error } = await updatePromise;
-      clearTimeout(timeoutId);
-
-      console.log('📥 [productsAPI.update] Supabase response received:', { data, error });
+      const { data, error } = await Promise.race([updatePromise, timeoutPromise]);
+      console.log('📥 [productsAPI.update] Supabase response received:', { hasData: !!data, error });
 
       if (error) throw error;
 
