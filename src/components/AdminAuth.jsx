@@ -135,8 +135,15 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       // Skip events that shouldn't trigger re-verification
       // USER_UPDATED can fire during storage operations
+      // SIGNED_IN can fire multiple times during operations
       if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
         console.log('Skipping auth event:', event);
+        return;
+      }
+      
+      // Skip SIGNED_IN if already authenticated (prevents duplicate processing)
+      if (event === 'SIGNED_IN' && isAuthenticatedRef.current) {
+        console.log('Already authenticated, skipping SIGNED_IN event');
         return;
       }
 
