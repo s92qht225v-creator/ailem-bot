@@ -507,7 +507,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
             <div className="mb-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm font-bold text-green-900">
-                  💰 Ulgurja xarid uchun chegirma
+                  💰 Ulgurji xarid uchun chegirma
                 </span>
               </div>
               <div className="space-y-1">
@@ -523,7 +523,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
                     </span>
                     {tier.price < product.price && (
                       <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
-                        {formatPrice(product.price - tier.price)} tejash
+                        {formatPrice(product.price - tier.price)} tejang
                       </span>
                     )}
                   </div>
