@@ -216,55 +216,63 @@ export const productsAPI = {
     if (updates.volume_pricing !== undefined) dbUpdates.volume_pricing = updates.volume_pricing;
     if (updates.barcode !== undefined) dbUpdates.barcode = updates.barcode;
 
-    // Use Promise.race with timeout to prevent hanging on slow connections
-    const updatePromise = supabase
-      .from('products')
-      .update(dbUpdates)
-      .eq('id', id)
-      .select()
-      .single();
+    // Wrap in try-catch with manual timeout tracking
+    let timeoutId;
+    let timedOut = false;
 
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => {
+      timeoutId = setTimeout(() => {
+        timedOut = true;
         reject(new Error('Mahsulotni yangilash vaqti tugadi (60 soniya). Iltimos, qayta urinib ko\'ring.'));
       }, 60000);
     });
 
-    const { data, error } = await Promise.race([updatePromise, timeoutPromise]);
+    try {
+      const updatePromise = supabase
+        .from('products')
+        .update(dbUpdates)
+        .eq('id', id)
+        .select()
+        .single();
 
-    if (error) throw error;
+      const result = await Promise.race([updatePromise, timeoutPromise]);
+      clearTimeout(timeoutId);
 
-    // Fetch reviews for this product (with timeout to prevent hanging)
-    const reviewsPromise = supabase
-      .from('reviews')
-      .select('*')
-      .eq('product_id', id)
-      .eq('approved', true);
+      if (result.error) throw result.error;
+      const data = result.data;
 
-    const reviewsTimeoutPromise = new Promise((resolve) => {
-      setTimeout(() => resolve({ data: [], error: null }), 10000);
-    });
+      // Fetch reviews (skip if main update timed out)
+      let reviews = [];
+      try {
+        const reviewsResult = await Promise.race([
+          supabase.from('reviews').select('*').eq('product_id', id).eq('approved', true),
+          new Promise((resolve) => setTimeout(() => resolve({ data: [], error: null }), 10000))
+        ]);
+        reviews = reviewsResult.data || [];
+      } catch (e) {
+        console.error('Failed to fetch reviews:', e);
+      }
 
-    const { data: reviews, error: reviewsError } = await Promise.race([reviewsPromise, reviewsTimeoutPromise]);
-
-    if (reviewsError) console.error('Failed to fetch reviews:', reviewsError);
-
-    // Map database fields to match app expectations
-    return {
-      ...data,
-      category: data.category_name,
-      originalPrice: data.original_price,
-      reviewCount: data.review_count,
-      variants: data.variants || [],
-      reviews: (reviews || []).map(r => ({
-        id: r.id,
-        userId: r.user_id,
-        userName: r.user_name,
-        rating: r.rating,
-        comment: r.comment,
-        date: r.created_at?.split('T')[0],
-        approved: r.approved
-      }))
+      // Map database fields to match app expectations
+      return {
+        ...data,
+        category: data.category_name,
+        originalPrice: data.original_price,
+        reviewCount: data.review_count,
+        variants: data.variants || [],
+        reviews: (reviews || []).map(r => ({
+          id: r.id,
+          userId: r.user_id,
+          userName: r.user_name,
+          rating: r.rating,
+          comment: r.comment,
+          date: r.created_at?.split('T')[0],
+          approved: r.approved
+        }))
+      };
+    } catch (err) {
+      clearTimeout(timeoutId);
+      throw err;
     }
   },
 
