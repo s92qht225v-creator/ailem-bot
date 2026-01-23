@@ -129,35 +129,40 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
       }
     }, 6000);
 
-    // Listen for auth state changes (skip INITIAL_SESSION event)
+    // Listen for auth state changes (skip events that shouldn't trigger re-auth)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Skip initial session event to prevent duplicate checks
-      if (event === 'INITIAL_SESSION') {
+      // Skip events that shouldn't trigger re-verification
+      if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
         return;
       }
-      
+
       // Only process changes after initial check is done
       if (!initialCheckDone.current) {
         return;
       }
-      
+
+      // If already authenticated, don't re-verify on every event
+      if (isAuthenticated && event !== 'SIGNED_OUT') {
+        return;
+      }
+
       console.log('Auth state changed:', event, session?.user?.email);
-      
+
       if (!mounted) return;
-      
+
       if (event === 'SIGNED_OUT' || !session) {
         setIsAuthenticated(false);
         setAdminUser(null);
-      } else if (event === 'SIGNED_IN' && session) {
-        // Verify admin status
+      } else if (event === 'SIGNED_IN' && session && !isAuthenticated) {
+        // Only verify admin status on fresh sign-in
         const { data: adminData } = await supabase
           .from('admin_users')
           .select('*')
           .eq('user_id', session.user.id)
           .single();
-        
+
         if (!mounted) return;
-        
+
         if (adminData) {
           setAdminUser(adminData);
           setIsAuthenticated(true);
