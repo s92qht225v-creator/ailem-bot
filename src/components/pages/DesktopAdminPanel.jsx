@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, useMemo } from 'react';
+import { useState, useContext, useEffect, useMemo, useRef } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { marked } from 'marked';
@@ -1205,7 +1205,24 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [editingProduct, setEditingProduct] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    // Use ref to persist images across component remounts
+    const imagesRef = useRef([]);
     const [allImages, setAllImages] = useState([]);
+    
+    // Sync state with ref
+    const setAllImagesWithRef = (newImages) => {
+      const images = typeof newImages === 'function' ? newImages(imagesRef.current) : newImages;
+      imagesRef.current = images;
+      setAllImages(images);
+    };
+    
+    // Initialize from ref on mount
+    useEffect(() => {
+      if (imagesRef.current.length > 0 && allImages.length === 0) {
+        console.log('\ud83d\udd04 Restoring images from ref:', imagesRef.current.length);
+        setAllImages(imagesRef.current);
+      }
+    }, []);
     const [formErrors, setFormErrors] = useState({});
     const [showUrlInput, setShowUrlInput] = useState(false);
     const [imageUrl, setImageUrl] = useState('');
@@ -1372,7 +1389,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         // Basic URL validation
         try {
           new URL(imageUrl);
-          setAllImages(prev => [...prev, imageUrl.trim()]);
+          setAllImagesWithRef(prev => [...prev, imageUrl.trim()]);
           setImageUrl('');
           setShowUrlInput(false);
         } catch {
@@ -1411,7 +1428,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             console.log('✅ Image uploaded:', result.url);
             
             // Update state with new image
-            setAllImages(prev => {
+            setAllImagesWithRef(prev => {
               const newImages = [...prev, result.url];
               console.log('📝 State updated from', prev.length, 'to', newImages.length, 'images');
               return newImages;
@@ -1469,7 +1486,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         console.log('✅ Image uploaded:', result.url);
 
         // Add to images array
-        setAllImages(prev => [...prev, result.url]);
+        setAllImagesWithRef(prev => [...prev, result.url]);
       } catch (error) {
         console.error('❌ Image upload failed:', error);
         toast.error(`Rasm yuklashda xatolik: ${error.message}`);
@@ -1481,11 +1498,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
     };
 
     const handleRemoveImage = (indexToRemove) => {
-      setAllImages(prev => prev.filter((_, index) => index !== indexToRemove));
+      setAllImagesWithRef(prev => prev.filter((_, index) => index !== indexToRemove));
     };
 
     const handleMoveImage = (fromIndex, toIndex) => {
-      setAllImages(prev => {
+      setAllImagesWithRef(prev => {
         const newImages = [...prev];
         const [movedImage] = newImages.splice(fromIndex, 1);
         newImages.splice(toIndex, 0, movedImage);
@@ -1618,7 +1635,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         setShowForm(false);
         setEditingProduct(null);
-        setAllImages([]);
+        setAllImagesWithRef([]);
         setFormErrors({});
         
         setFormData({
@@ -1659,7 +1676,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
       setEditingProduct(product);
       // Set images array from product
       const productImages = product.images || [product.image || product.imageUrl];
-      setAllImages(productImages.filter(url => url)); // Filter out any null/undefined
+      setAllImagesWithRef(productImages.filter(url => url)); // Filter out any null/undefined
 
       // Convert Markdown to HTML if description contains Markdown syntax
       let description = product.description || '';
@@ -1838,7 +1855,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingProduct(null);
-                  setAllImages([]);
+                  setAllImagesWithRef([]);
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
