@@ -4,7 +4,7 @@ import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
 import { getTotalVariantStock } from '../utils/variants';
 
 export const useProducts = () => {
-  const { products } = useContext(AdminContext);
+  const { products, orders } = useContext(AdminContext);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(() => {
     return loadFromLocalStorage('selectedCategory', 'All');
@@ -124,9 +124,62 @@ export const useProducts = () => {
     return products.find(product => product.id === id || product.id === parseInt(id));
   };
 
+  // Calculate best sellers based on actual order data
   const featuredProducts = useMemo(() => {
-    return products.filter(product => product.badge === 'BEST SELLER').slice(0, 6);
-  }, [products]);
+    // Helper to get stock
+    const getProductStock = (product) => {
+      const hasVariants = product.variants && product.variants.length > 0;
+      return hasVariants ? getTotalVariantStock(product.variants) : (product.stock || 0);
+    };
+
+    // Only count completed/delivered orders (exclude cancelled)
+    const validOrders = (orders || []).filter(order =>
+      order.status !== 'cancelled' && order.status !== 'refunded'
+    );
+
+    // Count total quantity sold per product
+    const salesCount = {};
+    validOrders.forEach(order => {
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach(item => {
+          const productId = item.productId || item.id;
+          if (productId) {
+            salesCount[productId] = (salesCount[productId] || 0) + (item.quantity || 1);
+          }
+        });
+      }
+    });
+
+    // Sort products by sales count
+    const productsWithSales = products
+      .filter(product => getProductStock(product) > 0) // Only in-stock products
+      .map(product => ({
+        ...product,
+        totalSold: salesCount[product.id] || 0
+      }))
+      .sort((a, b) => b.totalSold - a.totalSold);
+
+    // If we have sales data, return top sellers
+    const topSellers = productsWithSales.filter(p => p.totalSold > 0).slice(0, 6);
+
+    // Fallback: if no sales data, show products with BEST SELLER badge or newest products
+    if (topSellers.length === 0) {
+      const badgedProducts = products
+        .filter(p => p.badge === 'BEST SELLER' && getProductStock(p) > 0)
+        .slice(0, 6);
+
+      if (badgedProducts.length > 0) {
+        return badgedProducts;
+      }
+
+      // Last fallback: show newest in-stock products
+      return products
+        .filter(p => getProductStock(p) > 0)
+        .slice(0, 6);
+    }
+
+    return topSellers;
+  }, [products, orders]);
 
   const getFeaturedProducts = () => featuredProducts;
 
