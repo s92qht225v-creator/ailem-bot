@@ -317,7 +317,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             {activeSection === 'audit-logs' && <AuditLogsSection />}
 
             {/* Inline components (complex, to be extracted later) */}
-            {activeSection === 'products' && <ProductsContent />}
+            {activeSection === 'products' && <ProductsContent key="products-section" />}
             {activeSection === 'categories' && <CategoriesContent />}
             {activeSection === 'promotions' && <PromotionsContent />}
             {activeSection === 'pickup-points' && <PickupPointsContent />}
@@ -1200,7 +1200,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
   }
 
   // Products Content with full functionality
-  function ProductsContent() {
+  // Memoized to prevent state reset when parent re-renders
+  const ProductsContent = useMemo(() => function ProductsContentInner() {
     const [showForm, setShowForm] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
@@ -1277,6 +1278,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
     // Debug: Monitor allImages state changes
     useEffect(() => {
       console.log('🖼️ allImages state changed:', allImages.length, 'images', allImages);
+      if (allImages.length === 0) {
+        console.trace('🐛 State reset to empty! Stack trace:');
+      }
     }, [allImages]);
 
     // Get all existing tags from products for auto-suggest
@@ -2839,7 +2843,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         </div>
       </div>
     );
-  }
+  }, [products, categories, toast, confirm, addProduct, updateProduct, deleteProduct]); // Memoized to prevent recreation
 
   function CategoriesContent() {
     const [showForm, setShowForm] = useState(false);
