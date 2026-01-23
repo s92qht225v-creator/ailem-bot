@@ -1527,11 +1527,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             console.log('✅ Variants to notify:', variantsToNotify);
           }
 
-          console.log('🚀 About to call updateProduct...');
-          console.log('🔑 editingProduct.id:', editingProduct.id);
-          console.log('📦 productData keys:', Object.keys(productData));
           await updateProduct(editingProduct.id, productData);
-          console.log('✅ Product updated successfully');
 
           // Send stock notifications if stock was replenished
           if (stockIncreased || variantsToNotify.length > 0) {

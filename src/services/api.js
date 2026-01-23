@@ -194,7 +194,6 @@ export const productsAPI = {
 
   // Update product
   async update(id, updates) {
-    console.log('🔄 [productsAPI.update] Starting update for id:', id);
     // Transform app fields to database fields
     const dbUpdates = {};
 
@@ -217,10 +216,7 @@ export const productsAPI = {
     if (updates.volume_pricing !== undefined) dbUpdates.volume_pricing = updates.volume_pricing;
     if (updates.barcode !== undefined) dbUpdates.barcode = updates.barcode;
 
-    console.log('📦 [productsAPI.update] dbUpdates prepared:', dbUpdates);
-    console.log('📡 [productsAPI.update] Sending Supabase request...');
-
-    // Use Promise.race with timeout since AbortController may not work reliably
+    // Use Promise.race with timeout to prevent hanging on slow connections
     const updatePromise = supabase
       .from('products')
       .update(dbUpdates)
@@ -230,60 +226,45 @@ export const productsAPI = {
 
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
-        console.log('⏰ [productsAPI.update] Request timeout after 30s');
         reject(new Error('Mahsulotni yangilash vaqti tugadi (30 soniya). Iltimos, qayta urinib ko\'ring.'));
       }, 30000);
     });
 
-    try {
-      const { data, error } = await Promise.race([updatePromise, timeoutPromise]);
-      console.log('📥 [productsAPI.update] Supabase response received:', { hasData: !!data, error });
+    const { data, error } = await Promise.race([updatePromise, timeoutPromise]);
 
-      if (error) throw error;
+    if (error) throw error;
 
-      console.log('✅ [productsAPI.update] Product updated, fetching reviews...');
+    // Fetch reviews for this product (with timeout to prevent hanging)
+    const reviewsPromise = supabase
+      .from('reviews')
+      .select('*')
+      .eq('product_id', id)
+      .eq('approved', true);
 
-      // Fetch reviews for this product (with timeout)
-      const reviewsPromise = supabase
-        .from('reviews')
-        .select('*')
-        .eq('product_id', id)
-        .eq('approved', true);
+    const reviewsTimeoutPromise = new Promise((resolve) => {
+      setTimeout(() => resolve({ data: [], error: null }), 10000);
+    });
 
-      const reviewsTimeoutPromise = new Promise((resolve) => {
-        setTimeout(() => {
-          console.log('⚠️ [productsAPI.update] Reviews fetch timeout, returning empty');
-          resolve({ data: [], error: null });
-        }, 10000);
-      });
+    const { data: reviews, error: reviewsError } = await Promise.race([reviewsPromise, reviewsTimeoutPromise]);
 
-      const { data: reviews, error: reviewsError } = await Promise.race([reviewsPromise, reviewsTimeoutPromise]);
+    if (reviewsError) console.error('Failed to fetch reviews:', reviewsError);
 
-      if (reviewsError) console.error('Failed to fetch reviews:', reviewsError);
-      console.log('✅ [productsAPI.update] Reviews fetched:', reviews?.length || 0);
-
-      // Map database fields to match app expectations
-      const result = {
-        ...data,
-        category: data.category_name,
-        originalPrice: data.original_price,
-        reviewCount: data.review_count,
-        variants: data.variants || [],
-        reviews: (reviews || []).map(r => ({
-          id: r.id,
-          userId: r.user_id,
-          userName: r.user_name,
-          rating: r.rating,
-          comment: r.comment,
-          date: r.created_at?.split('T')[0],
-          approved: r.approved
-        }))
-      };
-      console.log('✅ [productsAPI.update] Returning updated product');
-      return result;
-    } catch (err) {
-      console.error('❌ [productsAPI.update] Error:', err);
-      throw err;
+    // Map database fields to match app expectations
+    return {
+      ...data,
+      category: data.category_name,
+      originalPrice: data.original_price,
+      reviewCount: data.review_count,
+      variants: data.variants || [],
+      reviews: (reviews || []).map(r => ({
+        id: r.id,
+        userId: r.user_id,
+        userName: r.user_name,
+        rating: r.rating,
+        comment: r.comment,
+        date: r.created_at?.split('T')[0],
+        approved: r.approved
+      }))
     }
   },
 
