@@ -221,49 +221,61 @@ export const productsAPI = {
     console.log('📡 [productsAPI.update] Sending Supabase request...');
 
     // Add timeout to prevent infinite hang on Supabase free tier
-    const updatePromise = supabase
-      .from('products')
-      .update(dbUpdates)
-      .eq('id', id)
-      .select()
-      .single();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.log('⏰ [productsAPI.update] Request timeout - aborting');
+      controller.abort();
+    }, 30000);
 
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Supabase request timed out after 30 seconds. Please try again.')), 30000)
-    );
+    try {
+      const updatePromise = supabase
+        .from('products')
+        .update(dbUpdates)
+        .eq('id', id)
+        .select()
+        .single()
+        .abortSignal(controller.signal);
 
-    const { data, error } = await Promise.race([updatePromise, timeoutPromise]);
+      const { data, error } = await updatePromise;
+      clearTimeout(timeoutId);
 
-    console.log('📥 [productsAPI.update] Supabase response received:', { data, error });
+      console.log('📥 [productsAPI.update] Supabase response received:', { data, error });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    // Fetch reviews for this product
-    const { data: reviews, error: reviewsError } = await supabase
-      .from('reviews')
-      .select('*')
-      .eq('product_id', id)
-      .eq('approved', true);
+      // Fetch reviews for this product
+      const { data: reviews, error: reviewsError } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('product_id', id)
+        .eq('approved', true);
 
-    if (reviewsError) console.error('Failed to fetch reviews:', reviewsError);
+      if (reviewsError) console.error('Failed to fetch reviews:', reviewsError);
 
-    // Map database fields to match app expectations
-    return {
-      ...data,
-      category: data.category_name,
-      originalPrice: data.original_price,
-      reviewCount: data.review_count,
-      variants: data.variants || [],
-      reviews: (reviews || []).map(r => ({
-        id: r.id,
-        userId: r.user_id,
-        userName: r.user_name,
-        rating: r.rating,
-        comment: r.comment,
-        date: r.created_at?.split('T')[0],
-        approved: r.approved
-      }))
-    };
+      // Map database fields to match app expectations
+      return {
+        ...data,
+        category: data.category_name,
+        originalPrice: data.original_price,
+        reviewCount: data.review_count,
+        variants: data.variants || [],
+        reviews: (reviews || []).map(r => ({
+          id: r.id,
+          userId: r.user_id,
+          userName: r.user_name,
+          rating: r.rating,
+          comment: r.comment,
+          date: r.created_at?.split('T')[0],
+          approved: r.approved
+        }))
+      };
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        throw new Error('Supabase request timed out after 30 seconds. Please try again.');
+      }
+      throw err;
+    }
   },
 
   // Delete product
