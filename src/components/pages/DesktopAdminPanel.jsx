@@ -1804,12 +1804,95 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
                 <div className="md:col-span-2">
                   <label className="block text-sm font-medium text-gray-700 mb-2">Tavsif</label>
+                  {/* Formatting toolbar */}
+                  <div className="flex gap-1 mb-2 p-1 bg-gray-100 rounded-t-lg border border-b-0 border-gray-300">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const textarea = document.getElementById('description-textarea');
+                        const start = textarea.selectionStart;
+                        const end = textarea.selectionEnd;
+                        const text = formData.description || '';
+                        const selected = text.substring(start, end);
+                        const newText = text.substring(0, start) + `**${selected || 'matn'}**` + text.substring(end);
+                        setFormData({ ...formData, description: newText });
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start + 2, start + 2 + (selected || 'matn').length);
+                        }, 0);
+                      }}
+                      className="px-2 py-1 text-sm font-bold hover:bg-gray-200 rounded"
+                      title="Qalin (Bold)"
+                    >
+                      B
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const textarea = document.getElementById('description-textarea');
+                        const start = textarea.selectionStart;
+                        const end = textarea.selectionEnd;
+                        const text = formData.description || '';
+                        const selected = text.substring(start, end);
+                        const newText = text.substring(0, start) + `*${selected || 'matn'}*` + text.substring(end);
+                        setFormData({ ...formData, description: newText });
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start + 1, start + 1 + (selected || 'matn').length);
+                        }, 0);
+                      }}
+                      className="px-2 py-1 text-sm italic hover:bg-gray-200 rounded"
+                      title="Kursiv (Italic)"
+                    >
+                      I
+                    </button>
+                    <div className="w-px bg-gray-300 mx-1" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const textarea = document.getElementById('description-textarea');
+                        const start = textarea.selectionStart;
+                        const text = formData.description || '';
+                        const newText = text.substring(0, start) + '\n- ' + text.substring(start);
+                        setFormData({ ...formData, description: newText });
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start + 3, start + 3);
+                        }, 0);
+                      }}
+                      className="px-2 py-1 text-sm hover:bg-gray-200 rounded"
+                      title="Ro'yxat (Bullet list)"
+                    >
+                      • List
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const textarea = document.getElementById('description-textarea');
+                        const start = textarea.selectionStart;
+                        const text = formData.description || '';
+                        const newText = text.substring(0, start) + '\n1. ' + text.substring(start);
+                        setFormData({ ...formData, description: newText });
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start + 4, start + 4);
+                        }, 0);
+                      }}
+                      className="px-2 py-1 text-sm hover:bg-gray-200 rounded"
+                      title="Raqamli ro'yxat (Numbered list)"
+                    >
+                      1. List
+                    </button>
+                  </div>
                   <textarea
+                    id="description-textarea"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                    rows="3"
-                    placeholder="Mahsulot haqida batafsil ma'lumot..."
+                    className="w-full px-3 py-2 border border-gray-300 rounded-b-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    rows="4"
+                    placeholder="Mahsulot haqida batafsil ma'lumot...
+
+Formatlash: **qalin**, *kursiv*, - ro'yxat"
                   />
                 </div>
 
