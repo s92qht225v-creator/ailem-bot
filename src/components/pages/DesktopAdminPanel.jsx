@@ -1883,6 +1883,25 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     >
                       1. List
                     </button>
+                    <div className="w-px bg-gray-300 mx-1" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const textarea = document.getElementById('description-textarea');
+                        const start = textarea.selectionStart;
+                        const text = formData.description || '';
+                        const newText = text.substring(0, start) + '\n\n' + text.substring(start);
+                        setFormData({ ...formData, description: newText });
+                        setTimeout(() => {
+                          textarea.focus();
+                          textarea.setSelectionRange(start + 2, start + 2);
+                        }, 0);
+                      }}
+                      className="px-2 py-1 text-sm hover:bg-gray-200 rounded"
+                      title="Yangi paragraf (New paragraph)"
+                    >
+                      ¶
+                    </button>
                   </div>
                   <textarea
                     id="description-textarea"

@@ -226,8 +226,8 @@ export const productsAPI = {
 
     const timeoutPromise = new Promise((_, reject) => {
       setTimeout(() => {
-        reject(new Error('Mahsulotni yangilash vaqti tugadi (30 soniya). Iltimos, qayta urinib ko\'ring.'));
-      }, 30000);
+        reject(new Error('Mahsulotni yangilash vaqti tugadi (60 soniya). Iltimos, qayta urinib ko\'ring.'));
+      }, 60000);
     });
 
     const { data, error } = await Promise.race([updatePromise, timeoutPromise]);
