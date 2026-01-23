@@ -1205,7 +1205,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
     const [editingProduct, setEditingProduct] = useState(null);
     const [uploadingImage, setUploadingImage] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const [allImages, setAllImages] = useState([]); // Array of all product images
+    // Load images from localStorage on mount (survives component recreation)
+    const [allImages, setAllImages] = useState(() => {
+      const saved = loadFromLocalStorage('admin_product_images_temp', []);
+      return saved;
+    });
     const [formErrors, setFormErrors] = useState({});
     const [showUrlInput, setShowUrlInput] = useState(false);
     const [imageUrl, setImageUrl] = useState('');
@@ -1274,9 +1278,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
       volume_pricing: null
     });
 
-    // Debug: Monitor allImages state changes
+    // Debug: Monitor allImages state changes and persist to localStorage
     useEffect(() => {
       console.log('🖼️ allImages state changed:', allImages.length, 'images', allImages);
+      saveToLocalStorage('admin_product_images_temp', allImages);
       if (allImages.length === 0) {
         console.trace('🐛 State reset to empty! Stack trace:');
       }
@@ -1616,12 +1621,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
         // Show success message
         toast.success(editingProduct ? 'Mahsulot yangilandi' : 'Mahsulot qo\'shildi');
 
-        console.log('🧹 Cleaning up form...');
-        // Reset form and close
+        // Clear temp images from localStorage
+        saveToLocalStorage('admin_product_images_temp', []);
         setShowForm(false);
         setEditingProduct(null);
         setAllImages([]);
         setFormErrors({});
+        
         setFormData({
           name: '',
           description: '',
@@ -1840,6 +1846,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   setShowForm(false);
                   setEditingProduct(null);
                   setAllImages([]);
+                  saveToLocalStorage('admin_product_images_temp', []);
                 }}
                 className="text-gray-400 hover:text-gray-600"
               >
