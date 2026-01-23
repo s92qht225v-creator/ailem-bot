@@ -1369,12 +1369,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
       const files = Array.from(e.target.files || []);
       if (files.length === 0) return;
 
+      setUploadingImage(true);
+
       try {
-        setUploadingImage(true);
         console.log(`📤 Uploading ${files.length} images to Supabase...`);
 
         const { storageAPI } = await import('../../services/api');
         const maxFileSize = 5 * 1024 * 1024; // 5MB limit
+        let uploadedCount = 0;
 
         for (let i = 0; i < files.length; i++) {
           const file = files[i];
@@ -1391,23 +1393,29 @@ const DesktopAdminPanel = ({ onLogout }) => {
             const result = await storageAPI.uploadProductImage(file);
             console.log('✅ Image uploaded:', result.url);
             setAllImages(prev => [...prev, result.url]);
+            uploadedCount++;
 
             // Small delay between uploads to avoid rate limiting
             if (i < files.length - 1) {
               await new Promise(resolve => setTimeout(resolve, 500));
             }
-          } catch (error) {
-            console.error(`❌ Failed to upload ${file.name}:`, error);
+          } catch (uploadError) {
+            console.error(`❌ Failed to upload ${file.name}:`, uploadError);
             toast.error(`${file.name} yuklashda xatolik`);
           }
         }
-        toast.success('Rasmlar yuklandi');
+
+        if (uploadedCount > 0) {
+          toast.success(`${uploadedCount} ta rasm yuklandi`);
+        }
       } catch (error) {
         console.error('❌ Image upload failed:', error);
         toast.error(`Rasm yuklashda xatolik: ${error.message}`);
       } finally {
         setUploadingImage(false);
-        e.target.value = '';
+        if (e.target) {
+          e.target.value = '';
+        }
       }
     };
 
