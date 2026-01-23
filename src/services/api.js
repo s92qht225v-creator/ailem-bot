@@ -1189,7 +1189,22 @@ export const storageAPI = {
 
       if (error) {
         console.error('❌ Supabase upload error:', error);
-        throw error;
+        console.error('Error details:', {
+          message: error.message,
+          statusCode: error.statusCode,
+          error: error.error
+        });
+        // Provide user-friendly error messages
+        if (error.message?.includes('Bucket not found')) {
+          throw new Error('Storage bucket not configured. Please create "product-images" bucket in Supabase.');
+        }
+        if (error.message?.includes('not allowed') || error.statusCode === 403) {
+          throw new Error('Storage permission denied. Check Supabase storage policies.');
+        }
+        if (error.message?.includes('JWT') || error.message?.includes('token')) {
+          throw new Error('Session expired. Please refresh the page.');
+        }
+        throw new Error(error.message || 'Upload failed');
       }
 
       // Get public URL
