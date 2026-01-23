@@ -13,6 +13,7 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
   const [loading, setLoading] = useState(true); // Start with true to check existing session
   const [adminUser, setAdminUser] = useState(null);
   const initialCheckDone = useRef(false);
+  const isAuthenticatedRef = useRef(false); // Track auth state for closure
 
   // Check for existing Supabase session on mount
   useEffect(() => {
@@ -108,6 +109,7 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
         console.log('Admin authenticated');
         setAdminUser(adminData);
         setIsAuthenticated(true);
+        isAuthenticatedRef.current = true;
         setLoading(false);
         initialCheckDone.current = true;
       } catch (err) {
@@ -141,8 +143,9 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
         return;
       }
 
-      // If already authenticated, don't re-verify on every event
-      if (isAuthenticated && event !== 'SIGNED_OUT') {
+      // If already authenticated, don't re-verify on every event (use ref for current value)
+      if (isAuthenticatedRef.current && event !== 'SIGNED_OUT') {
+        console.log('Already authenticated, skipping re-verification for event:', event);
         return;
       }
 
@@ -152,8 +155,9 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
 
       if (event === 'SIGNED_OUT' || !session) {
         setIsAuthenticated(false);
+        isAuthenticatedRef.current = false;
         setAdminUser(null);
-      } else if (event === 'SIGNED_IN' && session && !isAuthenticated) {
+      } else if (event === 'SIGNED_IN' && session && !isAuthenticatedRef.current) {
         // Only verify admin status on fresh sign-in
         const { data: adminData } = await supabase
           .from('admin_users')
@@ -166,6 +170,7 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
         if (adminData) {
           setAdminUser(adminData);
           setIsAuthenticated(true);
+          isAuthenticatedRef.current = true;
         } else {
           await supabase.auth.signOut();
           setError('You are not authorized as an admin');
