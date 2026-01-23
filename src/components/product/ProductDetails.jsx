@@ -557,10 +557,6 @@ const ProductDetails = ({ product, onAddToCart }) => {
               </span>
             )}
           </div>
-
-          <div className="text-gray-600 mb-4 prose prose-sm max-w-none">
-            <ReactMarkdown>{product.description || ''}</ReactMarkdown>
-          </div>
         </div>
 
         {/* Color Selection */}
@@ -650,6 +646,13 @@ const ProductDetails = ({ product, onAddToCart }) => {
             </button>
           </div>
         </div>
+
+        {/* Product Description */}
+        {product.description && (
+          <div className="text-gray-600 mb-4 prose prose-sm max-w-none">
+            <ReactMarkdown>{product.description}</ReactMarkdown>
+          </div>
+        )}
 
         {/* Add to Cart or Notify Me Button */}
         {currentStock === 0 ? (
