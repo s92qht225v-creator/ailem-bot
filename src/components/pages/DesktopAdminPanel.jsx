@@ -1274,6 +1274,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
       volume_pricing: null
     });
 
+    // Debug: Monitor allImages state changes
+    useEffect(() => {
+      console.log('🖼️ allImages state changed:', allImages.length, 'images', allImages);
+    }, [allImages]);
+
     // Get all existing tags from products for auto-suggest
     const allExistingTags = useMemo(() => {
       const tags = new Set();
@@ -1401,18 +1406,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
             const result = await storageAPI.uploadProductImage(file);
             console.log('✅ Image uploaded:', result.url);
-            try {
-              console.log('📝 About to update allImages state...');
-              setAllImages(prev => {
-                console.log('📝 Previous images:', prev);
-                const newImages = [...prev, result.url];
-                console.log('📝 New images:', newImages);
-                return newImages;
-              });
-              console.log('📝 State update scheduled successfully');
-            } catch (stateError) {
-              console.error('❌ State update error:', stateError);
-            }
+            
+            // Update state with new image
+            setAllImages(prev => {
+              const newImages = [...prev, result.url];
+              console.log('📝 State updated from', prev.length, 'to', newImages.length, 'images');
+              return newImages;
+            });
+            
             uploadedCount++;
 
             // Small delay between uploads to avoid rate limiting
