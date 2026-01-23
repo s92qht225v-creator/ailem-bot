@@ -1374,21 +1374,34 @@ const DesktopAdminPanel = ({ onLogout }) => {
         console.log(`📤 Uploading ${files.length} images to Supabase...`);
 
         const { storageAPI } = await import('../../services/api');
+        const maxFileSize = 5 * 1024 * 1024; // 5MB limit
 
-        for (const file of files) {
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
           try {
-            const uploadPromise = storageAPI.uploadProductImage(file);
-            const timeoutPromise = new Promise((_, reject) =>
-              setTimeout(() => reject(new Error('Upload timeout')), 60000)
-            );
+            // Check file size
+            if (file.size > maxFileSize) {
+              console.warn(`⚠️ File too large: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+              toast.error(`${file.name} juda katta (max 5MB)`);
+              continue;
+            }
 
-            const result = await Promise.race([uploadPromise, timeoutPromise]);
+            console.log(`📤 Uploading ${i + 1}/${files.length}: ${file.name} (${(file.size / 1024).toFixed(0)}KB)`);
+
+            const result = await storageAPI.uploadProductImage(file);
             console.log('✅ Image uploaded:', result.url);
             setAllImages(prev => [...prev, result.url]);
+
+            // Small delay between uploads to avoid rate limiting
+            if (i < files.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, 500));
+            }
           } catch (error) {
             console.error(`❌ Failed to upload ${file.name}:`, error);
+            toast.error(`${file.name} yuklashda xatolik`);
           }
         }
+        toast.success('Rasmlar yuklandi');
       } catch (error) {
         console.error('❌ Image upload failed:', error);
         toast.error(`Rasm yuklashda xatolik: ${error.message}`);
