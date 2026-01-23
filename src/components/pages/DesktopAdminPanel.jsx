@@ -60,6 +60,26 @@ const DesktopAdminPanel = ({ onLogout }) => {
   const [productFormImages, setProductFormImages] = useState([]);
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [productFormData, setProductFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    salePrice: '',
+    imageUrl: '',
+    additionalImages: '',
+    category: 'Bedsheets',
+    weight: '',
+    stock: '',
+    badge: '',
+    material: '',
+    colors: '',
+    sizes: '',
+    tags: '',
+    barcode: '',
+    inStock: true,
+    variants: [],
+    volume_pricing: null
+  });
   const { products, categories, orders, reviews, users, loading, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, reorderCategories, approveReview, deleteReview } = useContext(AdminContext);
   const toast = useToast();
   const confirm = useConfirm();
@@ -321,7 +341,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             {activeSection === 'audit-logs' && <AuditLogsSection />}
 
             {/* Inline components (complex, to be extracted later) */}
-            {activeSection === 'products' && <ProductsContent key="products-section" allImages={productFormImages} setAllImages={setProductFormImages} showForm={showProductForm} setShowForm={setShowProductForm} editingProduct={editingProduct} setEditingProduct={setEditingProduct} />}
+            {activeSection === 'products' && <ProductsContent key="products-section" allImages={productFormImages} setAllImages={setProductFormImages} showForm={showProductForm} setShowForm={setShowProductForm} editingProduct={editingProduct} setEditingProduct={setEditingProduct} formData={productFormData} setFormData={setProductFormData} />}
             {activeSection === 'categories' && <CategoriesContent />}
             {activeSection === 'promotions' && <PromotionsContent />}
             {activeSection === 'pickup-points' && <PickupPointsContent />}
@@ -1204,11 +1224,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
   }
 
   // Products Content with full functionality
-  function ProductsContent({ allImages, setAllImages, showForm, setShowForm, editingProduct, setEditingProduct }) {
-    // showForm and editingProduct now come from props (parent state)
+  function ProductsContent({ allImages, setAllImages, showForm, setShowForm, editingProduct, setEditingProduct, formData, setFormData }) {
+    // All form state now comes from props (parent state) to survive remounts
     const [uploadingImage, setUploadingImage] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    // allImages and setAllImages now come from props (parent state)
+    // formData, allImages, showForm, editingProduct all come from props
     const [formErrors, setFormErrors] = useState({});
     const [showUrlInput, setShowUrlInput] = useState(false);
     const [imageUrl, setImageUrl] = useState('');
@@ -1260,26 +1280,6 @@ const DesktopAdminPanel = ({ onLogout }) => {
         return matchesSearch && matchesCategory && matchesStock;
       });
     }, [products, searchQuery, categoryFilter, stockFilter]);
-    const [formData, setFormData] = useState({
-      name: '',
-      description: '',
-      price: '',
-      salePrice: '',
-      imageUrl: '',
-      additionalImages: '',
-      category: 'Bedsheets',
-      weight: '',
-      stock: '',
-      badge: '',
-      material: '',
-      colors: '',
-      sizes: '',
-      tags: '',
-      barcode: '',
-      inStock: true,
-      variants: [],
-      volume_pricing: null
-    });
 
     // Debug: Monitor allImages state changes
     useEffect(() => {
