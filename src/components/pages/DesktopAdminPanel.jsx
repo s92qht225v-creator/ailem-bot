@@ -1221,6 +1221,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
     // Filtered products based on search and filters
     const filteredProducts = useMemo(() => {
+      if (!products || !Array.isArray(products)) {
+        console.warn('⚠️ Products not available yet');
+        return [];
+      }
       return products.filter(product => {
         // Search filter - match name, description, or tags
         const matchesSearch = !searchQuery ||
