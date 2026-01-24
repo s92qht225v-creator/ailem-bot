@@ -43,10 +43,12 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
             isOutOfStock ? 'opacity-60' : ''
           }`}
           loading="lazy"
+          onContextMenu={(e) => e.preventDefault()}
           onError={(e) => {
             console.error('Failed to load image:', product.image);
             e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Found';
           }}
+          draggable={false}
         />
         {/* Out of Stock Overlay */}
         {isOutOfStock && (

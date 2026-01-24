@@ -99,6 +99,8 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
           src={banner.imageUrl}
           alt={banner.title}
           className="w-full h-full object-cover opacity-40"
+          onContextMenu={(e) => e.preventDefault()}
+          draggable={false}
         />
         <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-4">
           <h2 className="text-3xl font-bold mb-2 text-center">{banner.title}</h2>
@@ -129,6 +131,8 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
               src={banner.imageUrl}
               alt={banner.title}
               className="w-full h-full object-cover opacity-40"
+              onContextMenu={(e) => e.preventDefault()}
+              draggable={false}
             />
             <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-4">
               <h2 className="text-3xl font-bold mb-2 text-center">{banner.title}</h2>

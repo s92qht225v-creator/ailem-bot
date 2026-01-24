@@ -391,6 +391,8 @@ const ProductDetails = ({ product, onAddToCart }) => {
               touchAction: 'none',
               willChange: 'transform'
             }}
+            onContextMenu={(e) => e.preventDefault()}
+            draggable={false}
             onError={(e) => {
               console.error('Failed to load image:', images[currentImageIndex]);
               e.target.src = 'https://via.placeholder.com/600x400?text=Image+Not+Found';
@@ -440,6 +442,8 @@ const ProductDetails = ({ product, onAddToCart }) => {
                     src={image}
                     alt={`${product.name} - ${index + 1}`}
                     className="w-full h-full object-cover"
+                    onContextMenu={(e) => e.preventDefault()}
+                    draggable={false}
                     onError={(e) => {
                       e.target.src = 'https://via.placeholder.com/100x100?text=Img';
                     }}
