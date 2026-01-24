@@ -20,12 +20,37 @@ marked.setOptions({
   gfm: true
 });
 
-const ProductsSection = ({ allImages, setAllImages, showForm, setShowForm, editingProduct, setEditingProduct, formData, setFormData }) => {
+const ProductsSection = () => {
   const { products, categories, addProduct, updateProduct, deleteProduct } = useContext(AdminContext);
   const toast = useToast();
   const confirm = useConfirm();
 
-  // Local state
+  // Form state - all managed internally now
+  const [allImages, setAllImages] = useState([]);
+  const [showForm, setShowForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    price: '',
+    salePrice: '',
+    imageUrl: '',
+    additionalImages: '',
+    category: 'Bedsheets',
+    weight: '',
+    stock: '',
+    badge: '',
+    material: '',
+    colors: '',
+    sizes: '',
+    tags: '',
+    barcode: '',
+    inStock: true,
+    variants: [],
+    volume_pricing: null
+  });
+
+  // Other local state
   const [uploadingImage, setUploadingImage] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
