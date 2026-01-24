@@ -376,28 +376,23 @@ const ProductDetails = ({ product, onAddToCart }) => {
       <div className="bg-gray-50">
         {/* Main Image */}
         <div
-          className="relative aspect-[4/5] overflow-hidden"
-          style={{ touchAction: 'none' }}
+          ref={imageRef}
+          className="relative aspect-[4/5] bg-cover bg-center bg-no-repeat"
+          style={{
+            backgroundImage: `url(${images[currentImageIndex]})`,
+            touchAction: 'none',
+            willChange: 'transform',
+            WebkitTouchCallout: 'none',
+            WebkitUserSelect: 'none',
+            userSelect: 'none'
+          }}
+          role="img"
+          aria-label={product.name}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onContextMenu={(e) => e.preventDefault()}
         >
-          <img
-            ref={imageRef}
-            src={images[currentImageIndex]}
-            alt={product.name}
-            className="w-full h-full object-cover"
-            style={{
-              touchAction: 'none',
-              willChange: 'transform'
-            }}
-            onContextMenu={(e) => e.preventDefault()}
-            draggable={false}
-            onError={(e) => {
-              console.error('Failed to load image:', images[currentImageIndex]);
-              e.target.src = 'https://via.placeholder.com/600x400?text=Image+Not+Found';
-            }}
-          />
 
           {/* Navigation Arrows */}
           {images.length > 1 && (
@@ -432,23 +427,20 @@ const ProductDetails = ({ product, onAddToCart }) => {
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                  className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all bg-cover bg-center bg-no-repeat ${
                     currentImageIndex === index
                       ? 'border-accent shadow-lg scale-105'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
-                >
-                  <img
-                    src={image}
-                    alt={`${product.name} - ${index + 1}`}
-                    className="w-full h-full object-cover"
-                    onContextMenu={(e) => e.preventDefault()}
-                    draggable={false}
-                    onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/100x100?text=Img';
-                    }}
-                  />
-                </button>
+                  style={{
+                    backgroundImage: `url(${image})`,
+                    WebkitTouchCallout: 'none',
+                    WebkitUserSelect: 'none',
+                    userSelect: 'none'
+                  }}
+                  onContextMenu={(e) => e.preventDefault()}
+                  aria-label={`${product.name} - ${index + 1}`}
+                />
               ))}
             </div>
           </div>

@@ -36,19 +36,20 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
       }`}
     >
       <div className="relative">
-        <img
-          src={product.image}
-          alt={product.name}
-          className={`w-full aspect-[4/5] object-cover transition-opacity ${
+        <div 
+          className={`relative w-full aspect-[4/5] bg-cover bg-center bg-no-repeat transition-opacity ${
             isOutOfStock ? 'opacity-60' : ''
           }`}
-          loading="lazy"
-          onContextMenu={(e) => e.preventDefault()}
-          onError={(e) => {
-            console.error('Failed to load image:', product.image);
-            e.target.src = 'https://via.placeholder.com/400x300?text=Image+Not+Found';
+          style={{
+            backgroundImage: `url(${product.image})`,
+            WebkitTouchCallout: 'none',
+            WebkitUserSelect: 'none',
+            userSelect: 'none'
           }}
-          draggable={false}
+          role="img"
+          aria-label={product.name}
+          onContextMenu={(e) => e.preventDefault()}
+          onTouchStart={(e) => e.stopPropagation()}
         />
         {/* Out of Stock Overlay */}
         {isOutOfStock && (
