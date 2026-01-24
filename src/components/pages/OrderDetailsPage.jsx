@@ -3,8 +3,13 @@ import { formatPrice, formatDate, getStatusColor } from '../../utils/helpers';
 import { useBackButton } from '../../hooks/useBackButton';
 
 const OrderDetailsPage = ({ orderId, onNavigate }) => {
-  const { getOrderById } = useOrders();
+  const { getOrderById, orders } = useOrders();
   const order = getOrderById(orderId);
+
+  // Debug logging
+  console.log('🔍 OrderDetailsPage - orderId:', orderId);
+  console.log('🔍 OrderDetailsPage - order found:', order ? 'yes' : 'no');
+  console.log('🔍 OrderDetailsPage - available orders:', orders?.map(o => ({ id: o.id, dbId: o.dbId })));
 
   // Use native Telegram BackButton
   useBackButton(() => onNavigate('profile'));

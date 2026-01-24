@@ -11,7 +11,8 @@ export const useOrders = () => {
   };
 
   const getOrderById = (orderId) => {
-    return orders.find(order => order.id === orderId);
+    // Search by id (order_number) first, then fallback to dbId (UUID)
+    return orders.find(order => order.id === orderId || order.dbId === orderId);
   };
 
   const getOrdersByStatus = (status) => {
