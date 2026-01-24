@@ -422,7 +422,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
         {/* Thumbnail Gallery */}
         {images.length > 1 && (
           <div className="p-3 bg-white">
-            <div className="flex gap-3 overflow-x-auto pb-2 px-2 py-1">
+            <div className="flex gap-3 overflow-x-auto pb-2 px-2 pt-2">
               {images.map((image, index) => (
                 <button
                   key={index}
