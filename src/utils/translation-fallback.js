@@ -209,7 +209,9 @@ export const t = (key, params = {}) => {
     'orderDetails.statusApproved': 'Buyurtmangiz tasdiqlandi va tez orada jo\'natiladi!',
     'orderDetails.statusShipped': 'Buyurtmangiz yo\'lda! Tez orada yetkaziladi.',
     'orderDetails.statusDelivered': 'Buyurtmangiz yetkazildi. Xaridingiz uchun rahmat!',
-    'orderDetails.statusRejected': 'Afsuski, buyurtmangiz bekor qilindi. Qo\'shimcha ma\'lumot uchun biz bilan bog\'laning.'
+    'orderDetails.statusRejected': 'Afsuski, buyurtmangiz bekor qilindi. Qo\'shimcha ma\'lumot uchun biz bilan bog\'laning.',
+    'orderDetails.homeDelivery': 'Uyga yetkazish',
+    'orderDetails.pickup': 'Olib ketish'
   };
   
   let translation = translations[key] || key;

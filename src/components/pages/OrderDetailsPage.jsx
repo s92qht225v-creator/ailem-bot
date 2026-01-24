@@ -12,6 +12,16 @@ const OrderDetailsPage = ({ orderId, onNavigate }) => {
 
   // Helper to format courier/delivery method
   const formatDeliveryMethod = () => {
+    // Translate common duration values
+    const translateDuration = (duration) => {
+      if (!duration) return '';
+      const translations = {
+        'Home Delivery': t('orderDetails.homeDelivery'),
+        'Pickup': t('orderDetails.pickup'),
+      };
+      return translations[duration] || duration;
+    };
+
     // Helper to parse and format courier data
     const formatCourier = (courier) => {
       if (!courier) return null;
@@ -33,8 +43,9 @@ const OrderDetailsPage = ({ orderId, onNavigate }) => {
 
       // Now format the parsed object
       if (parsed?.name) {
-        return parsed.duration
-          ? `${parsed.name} - ${parsed.duration}`
+        const translatedDuration = translateDuration(parsed.duration);
+        return translatedDuration
+          ? `${parsed.name} - ${translatedDuration}`
           : parsed.name;
       }
       return null;
