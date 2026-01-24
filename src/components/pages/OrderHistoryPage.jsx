@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState, useRef } from 'react';
+import { useContext } from 'react';
 import { t } from "../../utils/translation-fallback";
 import { Package, ChevronLeft } from 'lucide-react';
 import { useOrders } from '../../hooks/useOrders';
@@ -8,32 +8,9 @@ import { AdminContext } from '../../context/AdminContext';
 
 const OrderHistoryPage = ({ onNavigate }) => {
   const { user } = useContext(UserContext);
-  const { reviews, loadAllData } = useContext(AdminContext);
+  const { reviews } = useContext(AdminContext);
   const { getUserOrders } = useOrders();
-  const [refreshing, setRefreshing] = useState(false);
-  const hasRefreshed = useRef(false);
   const userOrders = getUserOrders();
-
-  // Refresh orders when page loads - only once
-  useEffect(() => {
-    if (hasRefreshed.current) return;
-    hasRefreshed.current = true;
-
-    const refreshOrders = async () => {
-      setRefreshing(true);
-      try {
-        console.log('🔄 Refreshing orders...');
-        await loadAllData();
-        console.log('✅ Orders refreshed');
-      } catch (error) {
-        console.error('❌ Failed to refresh orders:', error);
-      } finally {
-        setRefreshing(false);
-      }
-    };
-
-    refreshOrders();
-  }, []); // Run once on mount
 
   // Get user's reviews
   const userReviews = reviews?.filter(review => (review.user_id || review.userId) === user.id) || [];
