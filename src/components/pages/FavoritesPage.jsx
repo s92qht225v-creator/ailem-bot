@@ -72,14 +72,18 @@ const FavoritesPage = ({ onNavigate }) => {
                 >
                   {/* Product Image */}
                   <div
-                    className="relative aspect-[4/5] cursor-pointer"
+                    className="relative aspect-[4/5] cursor-pointer bg-cover bg-center bg-no-repeat"
+                    style={{
+                      backgroundImage: `url(${product.image})`,
+                      WebkitTouchCallout: 'none',
+                      WebkitUserSelect: 'none',
+                      userSelect: 'none'
+                    }}
+                    role="img"
+                    aria-label={product.name}
                     onClick={() => onNavigate('product', { productId: product.id })}
+                    onContextMenu={(e) => e.preventDefault()}
                   >
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
 
                     {/* Discount Badge */}
                     {product.discount > 0 && (

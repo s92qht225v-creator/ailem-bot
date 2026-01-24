@@ -40,10 +40,17 @@ const CartPage = ({ onNavigate }) => {
                 className="flex gap-4 cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors"
                 onClick={() => onNavigate('product', { productId: item.id })}
               >
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-24 h-24 object-cover rounded-lg"
+                <div
+                  className="w-24 h-24 rounded-lg bg-cover bg-center bg-no-repeat flex-shrink-0"
+                  style={{
+                    backgroundImage: `url(${item.image})`,
+                    WebkitTouchCallout: 'none',
+                    WebkitUserSelect: 'none',
+                    userSelect: 'none'
+                  }}
+                  role="img"
+                  aria-label={item.name}
+                  onContextMenu={(e) => e.preventDefault()}
                 />
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-800 mb-1">{item.name}</h3>
