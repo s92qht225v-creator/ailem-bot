@@ -188,7 +188,28 @@ export const t = (key, params = {}) => {
     'payment.delivery': 'Yetkazib berish',
     'payment.total': 'Jami',
     'payment.noCheckoutData': 'Buyurtma ma\'lumotlari topilmadi',
-    'payment.backToCart': 'Savatga qaytish'
+    'payment.backToCart': 'Savatga qaytish',
+    // Order Details page
+    'orderDetails.title': 'Buyurtma tafsilotlari',
+    'orderDetails.notFound': 'Buyurtma topilmadi',
+    'orderDetails.backToProfile': 'Profilga qaytish',
+    'orderDetails.items': 'Mahsulotlar',
+    'orderDetails.orderItems': 'Buyurtma mahsulotlari',
+    'orderDetails.color': 'Rang',
+    'orderDetails.size': 'O\'lcham',
+    'orderDetails.qty': 'Soni',
+    'orderDetails.name': 'Ism',
+    'orderDetails.phone': 'Telefon',
+    'orderDetails.address': 'Manzil',
+    'orderDetails.city': 'Shahar',
+    'orderDetails.paymentSummary': 'To\'lov xulosasi',
+    'orderDetails.bonusPointsUsed': 'Ishlatilgan bonus ballari',
+    'orderDetails.orderStatus': 'Buyurtma holati',
+    'orderDetails.statusPending': 'Buyurtmangiz ko\'rib chiqilmoqda. Tasdiqlangandan keyin xabar beramiz.',
+    'orderDetails.statusApproved': 'Buyurtmangiz tasdiqlandi va tez orada jo\'natiladi!',
+    'orderDetails.statusShipped': 'Buyurtmangiz yo\'lda! Tez orada yetkaziladi.',
+    'orderDetails.statusDelivered': 'Buyurtmangiz yetkazildi. Xaridingiz uchun rahmat!',
+    'orderDetails.statusRejected': 'Afsuski, buyurtmangiz bekor qilindi. Qo\'shimcha ma\'lumot uchun biz bilan bog\'laning.'
   };
   
   let translation = translations[key] || key;
