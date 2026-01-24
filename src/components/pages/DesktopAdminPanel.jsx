@@ -341,18 +341,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             {activeSection === 'audit-logs' && <AuditLogsSection />}
 
             {/* Inline components (complex, to be extracted later) */}
-            {activeSection === 'products' && useMemo(() => (
-              <ProductsContent 
-                allImages={productFormImages} 
-                setAllImages={setProductFormImages} 
-                showForm={showProductForm} 
-                setShowForm={setShowProductForm} 
-                editingProduct={editingProduct} 
-                setEditingProduct={setEditingProduct} 
-                formData={productFormData} 
-                setFormData={setProductFormData} 
-              />
-            ), [productFormImages, productFormData, showProductForm, editingProduct])}
+            {activeSection === 'products' && <ProductsContent key="products-section" allImages={productFormImages} setAllImages={setProductFormImages} showForm={showProductForm} setShowForm={setShowProductForm} editingProduct={editingProduct} setEditingProduct={setEditingProduct} formData={productFormData} setFormData={setProductFormData} />}
             {activeSection === 'categories' && <CategoriesContent />}
             {activeSection === 'promotions' && <PromotionsContent />}
             {activeSection === 'pickup-points' && <PickupPointsContent />}
@@ -1234,8 +1223,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
     );
   }
 
-  // Products Content with full functionality
-  function ProductsContent({ allImages, setAllImages, showForm, setShowForm, editingProduct, setEditingProduct, formData, setFormData }) {
+  // Products Content with full functionality - memoized to prevent recreation
+  const ProductsContent = React.memo(function ProductsContent({ allImages, setAllImages, showForm, setShowForm, editingProduct, setEditingProduct, formData, setFormData }) {
     // All form state now comes from props (parent state) to survive remounts
     const [uploadingImage, setUploadingImage] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -2665,7 +2654,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         </div>
       </div>
     );
-  }
+  });
 
   function StockRequestsContent() {
     const [stockRequests, setStockRequests] = useState([]);
