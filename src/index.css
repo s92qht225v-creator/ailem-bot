@@ -103,6 +103,16 @@ body {
   overscroll-behavior-y: contain;
 }
 
+/* Disable context menu on images (prevents showing URLs on long-press) */
+img {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  pointer-events: auto;
+}
+
 /* Image lazy loading placeholder */
 img[loading="lazy"] {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);

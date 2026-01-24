@@ -258,6 +258,21 @@ function App() {
     }
   }, [navigate]); // Include navigate in dependencies
 
+  // Disable context menu on all images to prevent showing URLs
+  useEffect(() => {
+    const preventContextMenu = (e) => {
+      if (e.target.tagName === 'IMG') {
+        e.preventDefault();
+        return false;
+      }
+    };
+
+    document.addEventListener('contextmenu', preventContextMenu);
+    
+    return () => {
+      document.removeEventListener('contextmenu', preventContextMenu);
+    };
+  }, []);
 
   // Show loading screen while data is being fetched
   // Wait for actual loading to complete instead of using a timeout
