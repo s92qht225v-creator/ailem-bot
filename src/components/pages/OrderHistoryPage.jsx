@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useRef } from 'react';
 import { t } from "../../utils/translation-fallback";
 import { Package, ChevronLeft } from 'lucide-react';
 import { useOrders } from '../../hooks/useOrders';
@@ -11,10 +11,14 @@ const OrderHistoryPage = ({ onNavigate }) => {
   const { reviews, loadAllData } = useContext(AdminContext);
   const { getUserOrders } = useOrders();
   const [refreshing, setRefreshing] = useState(false);
+  const hasRefreshed = useRef(false);
   const userOrders = getUserOrders();
 
-  // Refresh orders when page loads
+  // Refresh orders when page loads - only once
   useEffect(() => {
+    if (hasRefreshed.current) return;
+    hasRefreshed.current = true;
+
     const refreshOrders = async () => {
       setRefreshing(true);
       try {
@@ -27,7 +31,7 @@ const OrderHistoryPage = ({ onNavigate }) => {
         setRefreshing(false);
       }
     };
-    
+
     refreshOrders();
   }, []); // Run once on mount
 
