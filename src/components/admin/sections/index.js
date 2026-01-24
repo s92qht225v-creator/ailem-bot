@@ -9,10 +9,10 @@ export { default as InventorySettingsSection } from './InventorySettingsSection'
 export { default as SettingsSection } from './SettingsSection';
 export { default as AuditLogsSection } from './AuditLogsSection';
 export { default as WalkInCustomersSection } from './WalkInCustomersSection';
+export { default as ProductsSection } from './ProductsSection';
 
 // These sections are still embedded in DesktopAdminPanel due to their complexity
 // They can be extracted later:
-// - ProductsSection
 // - CategoriesSection
 // - PickupPointsSection
 // - ShippingRatesSection
