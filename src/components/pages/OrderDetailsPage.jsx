@@ -12,21 +12,42 @@ const OrderDetailsPage = ({ orderId, onNavigate }) => {
 
   // Helper to format courier/delivery method
   const formatDeliveryMethod = () => {
+    // Helper to parse and format courier data
+    const formatCourier = (courier) => {
+      if (!courier) return null;
+
+      // If it's a string, try to parse as JSON
+      let parsed = courier;
+      if (typeof courier === 'string') {
+        // Check if it looks like JSON
+        if (courier.startsWith('{')) {
+          try {
+            parsed = JSON.parse(courier);
+          } catch {
+            return courier; // Return as-is if not valid JSON
+          }
+        } else {
+          return courier; // Plain string
+        }
+      }
+
+      // Now format the parsed object
+      if (parsed?.name) {
+        return parsed.duration
+          ? `${parsed.name} - ${parsed.duration}`
+          : parsed.name;
+      }
+      return null;
+    };
+
     // Check order.courier first
-    if (typeof order.courier === 'string') return order.courier;
-    if (order.courier?.name) {
-      return order.courier.duration
-        ? `${order.courier.name} - ${order.courier.duration}`
-        : order.courier.name;
-    }
+    const courierResult = formatCourier(order.courier);
+    if (courierResult) return courierResult;
+
     // Check deliveryInfo.courier
-    const diCourier = order.deliveryInfo?.courier;
-    if (typeof diCourier === 'string') return diCourier;
-    if (diCourier?.name) {
-      return diCourier.duration
-        ? `${diCourier.name} - ${diCourier.duration}`
-        : diCourier.name;
-    }
+    const diCourierResult = formatCourier(order.deliveryInfo?.courier);
+    if (diCourierResult) return diCourierResult;
+
     return 'N/A';
   };
 
