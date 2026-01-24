@@ -341,7 +341,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
             {activeSection === 'audit-logs' && <AuditLogsSection />}
 
             {/* Inline components (complex, to be extracted later) */}
-            {activeSection === 'products' && <ProductsContent key="products-section" allImages={productFormImages} setAllImages={setProductFormImages} showForm={showProductForm} setShowForm={setShowProductForm} editingProduct={editingProduct} setEditingProduct={setEditingProduct} formData={productFormData} setFormData={setProductFormData} />}
+            {activeSection === 'products' && useMemo(() => (
+              <ProductsContent 
+                allImages={productFormImages} 
+                setAllImages={setProductFormImages} 
+                showForm={showProductForm} 
+                setShowForm={setShowProductForm} 
+                editingProduct={editingProduct} 
+                setEditingProduct={setEditingProduct} 
+                formData={productFormData} 
+                setFormData={setProductFormData} 
+              />
+            ), [productFormImages, productFormData, showProductForm, editingProduct])}
             {activeSection === 'categories' && <CategoriesContent />}
             {activeSection === 'promotions' && <PromotionsContent />}
             {activeSection === 'pickup-points' && <PickupPointsContent />}
