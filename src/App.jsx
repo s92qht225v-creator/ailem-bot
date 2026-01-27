@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, lazy, Suspense, useRef, useCallback } from 'react';
+import { useState, useContext, useEffect, useRef, useCallback } from 'react';
 import { UserContext } from './context/UserContext';
 import { AdminContext } from './context/AdminContext';
 import BottomNav from './components/layout/BottomNav';
@@ -8,35 +8,21 @@ import HomePage from './components/pages/HomePage';
 import ShopPage from './components/pages/ShopPage';
 import CartPage from './components/pages/CartPage';
 
-// Lazy load with retry logic for chunk loading errors
-const lazyWithRetry = (importFn) => {
-  return lazy(() => 
-    importFn().catch((error) => {
-      // If chunk loading failed, reload the page to get fresh chunks
-      if (error.name === 'ChunkLoadError' || error.message.includes('Failed to fetch')) {
-        console.warn('⚠️ Chunk load error detected, reloading page...');
-        window.location.reload();
-        return new Promise(() => {}); // Never resolve to prevent further errors
-      }
-      throw error;
-    })
-  );
-};
-
-const ProductPage = lazyWithRetry(() => import('./components/pages/ProductPage'));
-const CheckoutPage = lazyWithRetry(() => import('./components/pages/CheckoutPage'));
-const PaymentPage = lazyWithRetry(() => import('./components/pages/PaymentPage'));
-const PaymentStatusPage = lazyWithRetry(() => import('./components/pages/PaymentStatusPage'));
-const AccountPage = lazyWithRetry(() => import('./components/pages/AccountPage'));
-const ProfilePage = lazyWithRetry(() => import('./components/pages/ProfilePage'));
-const OrderHistoryPage = lazyWithRetry(() => import('./components/pages/OrderHistoryPage'));
-const OrderDetailsPage = lazyWithRetry(() => import('./components/pages/OrderDetailsPage'));
-const MyReviewsPage = lazyWithRetry(() => import('./components/pages/MyReviewsPage'));
-const WriteReviewPage = lazyWithRetry(() => import('./components/pages/WriteReviewPage'));
-const FavoritesPage = lazyWithRetry(() => import('./components/pages/FavoritesPage'));
-const ReferralsPage = lazyWithRetry(() => import('./components/pages/ReferralsPage'));
-const AdminAuth = lazyWithRetry(() => import('./components/AdminAuth'));
-const CashierMode = lazyWithRetry(() => import('./components/cashier/CashierMode'));
+// Temporarily load all pages directly (no lazy loading) to debug module import error
+import ProductPage from './components/pages/ProductPage';
+import CheckoutPage from './components/pages/CheckoutPage';
+import PaymentPage from './components/pages/PaymentPage';
+import PaymentStatusPage from './components/pages/PaymentStatusPage';
+import AccountPage from './components/pages/AccountPage';
+import ProfilePage from './components/pages/ProfilePage';
+import OrderHistoryPage from './components/pages/OrderHistoryPage';
+import OrderDetailsPage from './components/pages/OrderDetailsPage';
+import MyReviewsPage from './components/pages/MyReviewsPage';
+import WriteReviewPage from './components/pages/WriteReviewPage';
+import FavoritesPage from './components/pages/FavoritesPage';
+import ReferralsPage from './components/pages/ReferralsPage';
+import AdminAuth from './components/AdminAuth';
+import CashierMode from './components/cashier/CashierMode';
 import { loadFromLocalStorage, saveToLocalStorage, removeFromLocalStorage } from './utils/helpers';
 import { initTelegramWebApp, getReferralCode } from './utils/telegram';
 
@@ -311,13 +297,7 @@ function App() {
   if (isCashier) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <Suspense fallback={
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        }>
-          <CashierMode />
-        </Suspense>
+        <CashierMode />
       </div>
     );
   }
@@ -326,69 +306,63 @@ function App() {
     <div className="min-h-screen bg-gray-50">
       {/* Main Content */}
       <main className="max-w-7xl mx-auto bg-white min-h-screen">
-        <Suspense fallback={
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        }>
-          {currentPage === 'home' && <HomePage onNavigate={navigate} />}
+        {currentPage === 'home' && <HomePage onNavigate={navigate} />}
 
-          {currentPage === 'shop' && (
-            <ShopPage
-              onNavigate={navigate}
-              initialCategory={pageData.category}
-            />
-          )}
+        {currentPage === 'shop' && (
+          <ShopPage
+            onNavigate={navigate}
+            initialCategory={pageData.category}
+          />
+        )}
 
-          {currentPage === 'product' && (
-            <ProductPage
-              productId={pageData.productId}
-              onNavigate={navigate}
-            />
-          )}
+        {currentPage === 'product' && (
+          <ProductPage
+            productId={pageData.productId}
+            onNavigate={navigate}
+          />
+        )}
 
-          {currentPage === 'cart' && <CartPage onNavigate={navigate} />}
+        {currentPage === 'cart' && <CartPage onNavigate={navigate} />}
 
-          {currentPage === 'checkout' && <CheckoutPage onNavigate={navigate} />}
+        {currentPage === 'checkout' && <CheckoutPage onNavigate={navigate} />}
 
-          {currentPage === 'payment' && (
-            <PaymentPage
-              checkoutData={pageData.checkoutData}
-              onNavigate={navigate}
-            />
-          )}
+        {currentPage === 'payment' && (
+          <PaymentPage
+            checkoutData={pageData.checkoutData}
+            onNavigate={navigate}
+          />
+        )}
 
-          {currentPage === 'paymentStatus' && (
-            <PaymentStatusPage
-              orderId={pageData.orderId}
-              paymentMethod={pageData.paymentMethod}
-              onNavigate={navigate}
-            />
-          )}
+        {currentPage === 'paymentStatus' && (
+          <PaymentStatusPage
+            orderId={pageData.orderId}
+            paymentMethod={pageData.paymentMethod}
+            onNavigate={navigate}
+          />
+        )}
 
-          {currentPage === 'account' && <AccountPage onNavigate={navigate} />}
+        {currentPage === 'account' && <AccountPage onNavigate={navigate} />}
 
-          {currentPage === 'profile' && <ProfilePage onNavigate={navigate} />}
+        {currentPage === 'profile' && <ProfilePage onNavigate={navigate} />}
 
-          {currentPage === 'orderHistory' && <OrderHistoryPage onNavigate={navigate} />}
+        {currentPage === 'orderHistory' && <OrderHistoryPage onNavigate={navigate} />}
 
-          {currentPage === 'orderDetails' && (
-            <OrderDetailsPage
-              orderId={pageData.orderId}
-              onNavigate={navigate}
-            />
-          )}
+        {currentPage === 'orderDetails' && (
+          <OrderDetailsPage
+            orderId={pageData.orderId}
+            onNavigate={navigate}
+          />
+        )}
 
-          {currentPage === 'myReviews' && <MyReviewsPage onNavigate={navigate} />}
+        {currentPage === 'myReviews' && <MyReviewsPage onNavigate={navigate} />}
 
-          {currentPage === 'writeReview' && <WriteReviewPage onNavigate={navigate} pageData={pageData} />}
+        {currentPage === 'writeReview' && <WriteReviewPage onNavigate={navigate} pageData={pageData} />}
 
-          {currentPage === 'favorites' && <FavoritesPage onNavigate={navigate} />}
+        {currentPage === 'favorites' && <FavoritesPage onNavigate={navigate} />}
 
-          {currentPage === 'referrals' && <ReferralsPage />}
+        {currentPage === 'referrals' && <ReferralsPage />}
 
-          {currentPage === 'admin' && <AdminAuth />}
-        </Suspense>
+        {currentPage === 'admin' && <AdminAuth />}
       </main>
 
       {/* Bottom Navigation - hidden only on admin page */}
