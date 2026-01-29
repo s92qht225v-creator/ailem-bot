@@ -444,7 +444,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
                   <img
                     src={image}
                     alt={`${product.name} - ${index + 1}`}
-                    className="w-full h-full object-contain bg-gray-50"
+                    className="w-full h-full object-cover object-center"
                     draggable="false"
                   />
                   {/* Selection indicator */}
