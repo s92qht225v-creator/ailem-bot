@@ -45,10 +45,12 @@ const ImageUploader = ({ value, onChange, label = 'Rasm' }) => {
     setUploading(true);
     try {
       const result = await storageAPI.uploadImage(file, 'a-plus');
+      console.log('📤 A+ Image upload result:', result);
+      console.log('📤 A+ Image URL:', result.url);
       onChange(result.url); // uploadImage returns { path, url, bucket }
     } catch (error) {
       console.error('Upload failed:', error);
-      alert('Rasm yuklashda xatolik');
+      alert('Rasm yuklashda xatolik: ' + error.message);
     } finally {
       setUploading(false);
     }
@@ -222,9 +224,12 @@ const GalleryEditor = ({ data, onChange }) => {
     setUploading(true);
     try {
       const result = await storageAPI.uploadImage(file, 'a-plus');
+      console.log('📤 A+ Gallery upload result:', result);
+      console.log('📤 A+ Gallery URL:', result.url);
       onChange({ ...data, images: [...images, result.url] }); // uploadImage returns { path, url, bucket }
     } catch (error) {
       console.error('Upload failed:', error);
+      alert('Rasm yuklashda xatolik: ' + error.message);
     } finally {
       setUploading(false);
     }

@@ -15,21 +15,26 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
  */
 
 // Individual module components
-const HeroModule = ({ data }) => (
-  <div className="relative w-full h-48 rounded-lg overflow-hidden mb-4">
-    <img
-      src={data.image}
-      alt={data.title || ''}
-      className="w-full h-full object-cover"
-    />
-    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
-      <div className="p-4 text-white">
-        {data.title && <h3 className="text-xl font-bold">{data.title}</h3>}
-        {data.subtitle && <p className="text-sm opacity-90">{data.subtitle}</p>}
+const HeroModule = ({ data }) => {
+  console.log('🖼️ HeroModule data:', data);
+  console.log('🖼️ HeroModule image URL:', data.image);
+  return (
+    <div className="relative w-full h-48 rounded-lg overflow-hidden mb-4">
+      <img
+        src={data.image}
+        alt={data.title || ''}
+        className="w-full h-full object-cover"
+        onError={(e) => console.error('❌ Image load error:', data.image, e)}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
+        <div className="p-4 text-white">
+          {data.title && <h3 className="text-xl font-bold">{data.title}</h3>}
+          {data.subtitle && <p className="text-sm opacity-90">{data.subtitle}</p>}
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const ImageTextModule = ({ data }) => (
   <div className={`flex flex-col ${data.imagePosition === 'right' ? 'md:flex-row-reverse' : 'md:flex-row'} gap-4 mb-4`}>
@@ -165,26 +170,40 @@ const moduleComponents = {
 
 // Main A+ Content renderer
 const APlusContent = ({ content }) => {
+  console.log('📦 APlusContent received:', content);
+  console.log('📦 APlusContent type:', typeof content);
+
   // Handle null/undefined content
-  if (!content) return null;
+  if (!content) {
+    console.log('📦 APlusContent: No content, returning null');
+    return null;
+  }
 
   // Parse if string
   let modules = content;
   if (typeof content === 'string') {
     try {
       modules = JSON.parse(content);
-    } catch {
+      console.log('📦 APlusContent parsed from string:', modules);
+    } catch (e) {
+      console.error('📦 APlusContent: Failed to parse JSON', e);
       return null;
     }
   }
 
   // Ensure modules is an array
   if (!modules?.modules || !Array.isArray(modules.modules)) {
+    console.log('📦 APlusContent: No modules array found');
     return null;
   }
 
   // Don't render if no modules
-  if (modules.modules.length === 0) return null;
+  if (modules.modules.length === 0) {
+    console.log('📦 APlusContent: Empty modules array');
+    return null;
+  }
+
+  console.log('📦 APlusContent rendering modules:', modules.modules);
 
   return (
     <div className="mt-6 pt-4 border-t border-gray-200">
