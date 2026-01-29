@@ -123,7 +123,7 @@ This handles Telegram Desktop's disabled localStorage gracefully.
 
 ```
 users: id, telegram_id, name, bonus_points, favorites, cart, role
-products: id, name, price, stock, variants, volume_pricing, category_name
+products: id, name, price, stock, variants, volume_pricing, category_name, a_plus_content
 orders: id, user_id, items, total, status, delivery_info, payment_method
 reviews: id, product_id, user_id, rating, comment, approved
 categories: id, name, image
@@ -231,7 +231,7 @@ VITE_CLICK_MERCHANT_ID
 
 ## Key Features
 
-1. **Products**: Variants (color/size), volume pricing, stock tracking
+1. **Products**: Variants (color/size), volume pricing, stock tracking, A+ Content
 2. **Cart**: Persistent, variant-aware, volume discounts
 3. **Orders**: Status flow (pending → approved → shipped → delivered)
 4. **Payments**: Payme, Click, manual screenshot verification
@@ -239,6 +239,53 @@ VITE_CLICK_MERCHANT_ID
 6. **Referrals**: Unique codes, commission on referred purchases
 7. **Admin**: Orders, products, reviews, analytics, settings
 8. **Cashier/POS**: Walk-in customer support, quick checkout
+9. **A+ Content**: Rich product descriptions with modular content blocks
+
+## A+ Content System
+
+A+ Content allows rich, modular product descriptions displayed below the product details. Stored as JSONB in the `a_plus_content` column.
+
+### Module Types
+
+| Type | Label | Description |
+|------|-------|-------------|
+| `hero` | Banner | Full-width image with overlay text |
+| `image_text` | Rasm + Matn | Image with text side-by-side |
+| `features` | Xususiyatlar | Grid of feature icons with descriptions |
+| `gallery` | Galereya | 2-column image grid |
+| `image_sequence` | Rasmlar ketma-ketligi | Seamless vertical images (for long infographics) |
+| `video` | Video | YouTube/Vimeo embed |
+| `text` | Matn bloki | Rich text/HTML block |
+| `comparison` | Taqqoslash jadvali | Comparison table |
+| `accordion` | Akkordeon (FAQ) | Collapsible sections |
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/components/product/APlusContent.jsx` | Renders A+ modules on product page |
+| `src/components/admin/shared/APlusEditor.jsx` | Admin editor for creating/editing modules |
+
+### Data Structure
+
+```javascript
+// a_plus_content JSONB structure
+{
+  "modules": [
+    { "type": "hero", "image": "url", "title": "...", "subtitle": "..." },
+    { "type": "image_sequence", "images": ["url1", "url2", ...] },
+    { "type": "video", "url": "https://youtube.com/watch?v=...", "title": "..." },
+    // ... more modules
+  ]
+}
+```
+
+### Image Recommendations
+
+- **Width**: 1000-1200px (scales to fit mobile)
+- **Format**: JPG for photos, PNG for graphics
+- **File size**: Under 500KB per image
+- **Image sequence**: All images should have same width for seamless display
 
 ## Notes
 
