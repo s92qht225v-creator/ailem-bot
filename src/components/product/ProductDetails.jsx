@@ -378,22 +378,25 @@ const ProductDetails = ({ product, onAddToCart }) => {
         {/* Main Image */}
         <div
           ref={imageRef}
-          className="relative aspect-[4/5] bg-cover bg-center bg-no-repeat"
+          className="relative aspect-[4/5] flex items-center justify-center bg-gray-100"
           style={{
-            backgroundImage: `url(${images[currentImageIndex]})`,
             touchAction: 'none',
             willChange: 'transform',
             WebkitTouchCallout: 'none',
             WebkitUserSelect: 'none',
             userSelect: 'none'
           }}
-          role="img"
-          aria-label={product.name}
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onContextMenu={(e) => e.preventDefault()}
         >
+          <img
+            src={images[currentImageIndex]}
+            alt={product.name}
+            className="max-w-full max-h-full object-contain"
+            draggable="false"
+          />
 
           {/* Navigation Arrows */}
           {images.length > 1 && (
