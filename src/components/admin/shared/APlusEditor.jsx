@@ -44,7 +44,7 @@ const ImageUploader = ({ value, onChange, label = 'Rasm' }) => {
 
     setUploading(true);
     try {
-      const url = await storageAPI.upload(file, 'products');
+      const url = await storageAPI.uploadImage(file, 'a-plus');
       onChange(url);
     } catch (error) {
       console.error('Upload failed:', error);
@@ -221,7 +221,7 @@ const GalleryEditor = ({ data, onChange }) => {
 
     setUploading(true);
     try {
-      const url = await storageAPI.upload(file, 'products');
+      const url = await storageAPI.uploadImage(file, 'a-plus');
       onChange({ ...data, images: [...images, url] });
     } catch (error) {
       console.error('Upload failed:', error);
