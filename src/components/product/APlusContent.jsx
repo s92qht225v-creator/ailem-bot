@@ -81,6 +81,22 @@ const GalleryModule = ({ data }) => (
   </div>
 );
 
+// Seamless vertical image sequence - perfect for long infographic-style content
+const ImageSequenceModule = ({ data }) => (
+  <div className="mb-4 -mx-4">
+    {data.images?.map((img, index) => (
+      <img
+        key={index}
+        src={typeof img === 'string' ? img : img.url}
+        alt=""
+        className="w-full block"
+        style={{ marginTop: index === 0 ? 0 : '-1px' }}
+        onError={(e) => console.error('❌ Sequence image load error:', img, e)}
+      />
+    ))}
+  </div>
+);
+
 const TextModule = ({ data }) => (
   <div className="mb-4">
     {data.title && <h4 className="font-semibold text-gray-800 mb-2">{data.title}</h4>}
@@ -163,6 +179,7 @@ const moduleComponents = {
   image_text: ImageTextModule,
   features: FeaturesModule,
   gallery: GalleryModule,
+  image_sequence: ImageSequenceModule,
   text: TextModule,
   comparison: ComparisonModule,
   accordion: AccordionModule,
@@ -227,6 +244,7 @@ export const MODULE_TYPES = [
   { type: 'image_text', label: 'Rasm + Matn', icon: '📝' },
   { type: 'features', label: 'Xususiyatlar', icon: '✨' },
   { type: 'gallery', label: 'Galereya', icon: '🖼️' },
+  { type: 'image_sequence', label: 'Rasmlar ketma-ketligi', icon: '📜' },
   { type: 'text', label: 'Matn bloki', icon: '📄' },
   { type: 'comparison', label: 'Taqqoslash jadvali', icon: '📊' },
   { type: 'accordion', label: 'Akkordeon (FAQ)', icon: '❓' },

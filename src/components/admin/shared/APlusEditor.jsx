@@ -7,6 +7,7 @@ const MODULE_TYPES = [
   { type: 'image_text', label: 'Rasm + Matn', icon: '📝' },
   { type: 'features', label: 'Xususiyatlar', icon: '✨' },
   { type: 'gallery', label: 'Galereya', icon: '🖼️' },
+  { type: 'image_sequence', label: 'Rasmlar ketma-ketligi', icon: '📜' },
   { type: 'text', label: 'Matn bloki', icon: '📄' },
   { type: 'comparison', label: 'Taqqoslash jadvali', icon: '📊' },
   { type: 'accordion', label: 'Akkordeon (FAQ)', icon: '❓' },
@@ -22,6 +23,8 @@ const getDefaultModuleData = (type) => {
     case 'features':
       return { type, items: [{ icon: '✨', title: '', description: '' }] };
     case 'gallery':
+      return { type, images: [] };
+    case 'image_sequence':
       return { type, images: [] };
     case 'text':
       return { type, title: '', content: '' };
@@ -267,6 +270,100 @@ const GalleryEditor = ({ data, onChange }) => {
   );
 };
 
+// Seamless vertical image sequence editor
+const ImageSequenceEditor = ({ data, onChange }) => {
+  const images = data.images || [];
+  const [uploading, setUploading] = useState(false);
+
+  const handleUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+      // Upload all selected files
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const result = await storageAPI.uploadImage(file, 'a-plus');
+        console.log('📤 A+ Sequence upload result:', result);
+        return result.url;
+      });
+      const newUrls = await Promise.all(uploadPromises);
+      onChange({ ...data, images: [...images, ...newUrls] });
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Rasm yuklashda xatolik: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = (index) => {
+    onChange({ ...data, images: images.filter((_, i) => i !== index) });
+  };
+
+  const moveImage = (index, direction) => {
+    const newImages = [...images];
+    const newIndex = index + direction;
+    if (newIndex < 0 || newIndex >= images.length) return;
+    [newImages[index], newImages[newIndex]] = [newImages[newIndex], newImages[index]];
+    onChange({ ...data, images: newImages });
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-gray-500">
+        Rasmlar vertikal ravishda bir-biriga ulanib ko'rinadi. Ko'p rasm tanlash mumkin.
+      </p>
+      <div className="space-y-2">
+        {images.map((img, index) => (
+          <div key={index} className="relative group">
+            <img src={img} alt="" className="w-full object-cover rounded-lg" />
+            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button
+                type="button"
+                onClick={() => moveImage(index, -1)}
+                disabled={index === 0}
+                className="p-1 bg-white/90 text-gray-700 rounded shadow hover:bg-white disabled:opacity-30"
+              >
+                <ChevronUp className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => moveImage(index, 1)}
+                disabled={index === images.length - 1}
+                className="p-1 bg-white/90 text-gray-700 rounded shadow hover:bg-white disabled:opacity-30"
+              >
+                <ChevronDown className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => removeImage(index)}
+                className="p-1 bg-red-500 text-white rounded shadow hover:bg-red-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <span className="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+              {index + 1}/{images.length}
+            </span>
+          </div>
+        ))}
+      </div>
+      <label className="flex items-center justify-center w-full h-16 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-accent">
+        <input type="file" accept="image/*" multiple onChange={handleUpload} className="hidden" />
+        {uploading ? (
+          <span className="text-sm text-gray-500">Yuklanmoqda...</span>
+        ) : (
+          <div className="flex items-center gap-2 text-gray-500">
+            <Plus className="w-5 h-5" />
+            <span className="text-sm">Rasmlar qo'shish</span>
+          </div>
+        )}
+      </label>
+    </div>
+  );
+};
+
 const TextEditor = ({ data, onChange }) => (
   <div className="space-y-3">
     <div>
@@ -455,6 +552,7 @@ const moduleEditors = {
   image_text: ImageTextEditor,
   features: FeaturesEditor,
   gallery: GalleryEditor,
+  image_sequence: ImageSequenceEditor,
   text: TextEditor,
   comparison: ComparisonEditor,
   accordion: AccordionEditor,
