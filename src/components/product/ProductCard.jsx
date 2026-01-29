@@ -61,7 +61,11 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
         )}
         {product.badge && !isOutOfStock && (
           <span className="absolute top-2 left-2 bg-accent text-white text-xs font-semibold px-2 py-1 rounded">
-            {t(`badges.${product.badge}`) || product.badge}
+            {(() => {
+              const translated = t(`badges.${product.badge}`);
+              // If translation returns the key itself, show the original badge
+              return translated.startsWith('badges.') ? product.badge : translated;
+            })()}
           </span>
         )}
         {discount > 0 && !isOutOfStock && (

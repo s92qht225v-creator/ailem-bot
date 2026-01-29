@@ -102,10 +102,16 @@ export const t = (key, params = {}) => {
     // Badges
     'badges.SALE': 'CHEGIRMA',
     'badges.NEW': 'YANGI',
+    'badges.NEW ARRIVAL': 'YANGI',
     'badges.LIMITED': 'CHEKLANGAN',
     'badges.BEST SELLER': 'TOP SOTILGAN',
+    'badges.BESTSELLER': 'TOP SOTILGAN',
     'badges.HOT': 'ISSIQ',
     'badges.TRENDING': 'MASHHUR',
+    'badges.POPULAR': 'MASHHUR',
+    'badges.DISCOUNT': 'CHEGIRMA',
+    'badges.PREMIUM': 'PREMIUM',
+    'badges.EXCLUSIVE': 'EKSKLYUZIV',
     // Reviews
     'reviews.maxPhotos': 'Faqat 5 tagacha rasm yuklash mumkin',
     'reviews.purchaseRequired': 'Faqat sotib olgan mahsulotlaringizga sharh qoldirishingiz mumkin',
