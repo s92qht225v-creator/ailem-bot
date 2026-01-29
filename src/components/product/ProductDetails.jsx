@@ -439,6 +439,11 @@ const ProductDetails = ({ product, onAddToCart }) => {
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                   style={{
+                    backgroundImage: `url(${image})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundColor: '#f3f4f6',
                     WebkitTouchCallout: 'none',
                     WebkitUserSelect: 'none',
                     userSelect: 'none'
@@ -446,12 +451,6 @@ const ProductDetails = ({ product, onAddToCart }) => {
                   onContextMenu={(e) => e.preventDefault()}
                   aria-label={`${product.name} - ${index + 1}`}
                 >
-                  <img
-                    src={image}
-                    alt={`${product.name} - ${index + 1}`}
-                    className="w-full h-full object-cover object-center"
-                    draggable="false"
-                  />
                   {/* Selection indicator */}
                   {currentImageIndex === index && (
                     <div className="absolute inset-0 bg-accent/20 flex items-center justify-center">
