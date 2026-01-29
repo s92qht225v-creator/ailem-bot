@@ -377,11 +377,9 @@ const ProductDetails = ({ product, onAddToCart }) => {
       <div className="bg-gray-50">
         {/* Main Image */}
         <div
-          ref={imageRef}
-          className="relative aspect-[4/5] flex items-center justify-center bg-gray-100"
+          className="relative aspect-[4/5] flex items-center justify-center bg-gray-100 overflow-hidden"
           style={{
             touchAction: 'none',
-            willChange: 'transform',
             WebkitTouchCallout: 'none',
             WebkitUserSelect: 'none',
             userSelect: 'none'
@@ -392,10 +390,14 @@ const ProductDetails = ({ product, onAddToCart }) => {
           onContextMenu={(e) => e.preventDefault()}
         >
           <img
+            ref={imageRef}
             src={images[currentImageIndex]}
             alt={product.name}
             className="max-w-full max-h-full object-contain"
             draggable="false"
+            style={{
+              transformOrigin: 'center center'
+            }}
           />
 
           {/* Navigation Arrows */}
