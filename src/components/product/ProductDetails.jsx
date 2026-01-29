@@ -428,13 +428,12 @@ const ProductDetails = ({ product, onAddToCart }) => {
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all bg-cover bg-center bg-no-repeat ${
+                  className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
                     currentImageIndex === index
                       ? 'border-accent shadow-lg scale-105 ring-2 ring-accent ring-offset-2'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                   style={{
-                    backgroundImage: `url(${image})`,
                     WebkitTouchCallout: 'none',
                     WebkitUserSelect: 'none',
                     userSelect: 'none'
@@ -442,6 +441,12 @@ const ProductDetails = ({ product, onAddToCart }) => {
                   onContextMenu={(e) => e.preventDefault()}
                   aria-label={`${product.name} - ${index + 1}`}
                 >
+                  <img
+                    src={image}
+                    alt={`${product.name} - ${index + 1}`}
+                    className="w-full h-full object-contain bg-gray-50"
+                    draggable="false"
+                  />
                   {/* Selection indicator */}
                   {currentImageIndex === index && (
                     <div className="absolute inset-0 bg-accent/20 flex items-center justify-center">
