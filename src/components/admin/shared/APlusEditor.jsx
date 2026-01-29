@@ -8,6 +8,7 @@ const MODULE_TYPES = [
   { type: 'features', label: 'Xususiyatlar', icon: '✨' },
   { type: 'gallery', label: 'Galereya', icon: '🖼️' },
   { type: 'image_sequence', label: 'Rasmlar ketma-ketligi', icon: '📜' },
+  { type: 'video', label: 'Video (YouTube/Vimeo)', icon: '🎬' },
   { type: 'text', label: 'Matn bloki', icon: '📄' },
   { type: 'comparison', label: 'Taqqoslash jadvali', icon: '📊' },
   { type: 'accordion', label: 'Akkordeon (FAQ)', icon: '❓' },
@@ -26,6 +27,8 @@ const getDefaultModuleData = (type) => {
       return { type, images: [] };
     case 'image_sequence':
       return { type, images: [] };
+    case 'video':
+      return { type, url: '', title: '' };
     case 'text':
       return { type, title: '', content: '' };
     case 'comparison':
@@ -364,6 +367,91 @@ const ImageSequenceEditor = ({ data, onChange }) => {
   );
 };
 
+// Video embed editor (YouTube/Vimeo)
+const VideoEditor = ({ data, onChange }) => {
+  // Extract video ID and detect platform
+  const getVideoPreview = (url) => {
+    if (!url) return null;
+
+    // YouTube patterns
+    const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (youtubeMatch) {
+      return {
+        platform: 'youtube',
+        id: youtubeMatch[1],
+        thumbnail: `https://img.youtube.com/vi/${youtubeMatch[1]}/mqdefault.jpg`
+      };
+    }
+
+    // Vimeo patterns
+    const vimeoMatch = url.match(/(?:vimeo\.com\/)(\d+)/);
+    if (vimeoMatch) {
+      return {
+        platform: 'vimeo',
+        id: vimeoMatch[1],
+        thumbnail: null // Vimeo requires API for thumbnails
+      };
+    }
+
+    return null;
+  };
+
+  const preview = getVideoPreview(data.url);
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <label className="text-sm font-medium text-gray-700">Video havolasi</label>
+        <input
+          type="text"
+          value={data.url || ''}
+          onChange={(e) => onChange({ ...data, url: e.target.value })}
+          className="w-full mt-1 p-2 border rounded-lg"
+          placeholder="https://youtube.com/watch?v=... yoki https://vimeo.com/..."
+        />
+        <p className="text-xs text-gray-500 mt-1">
+          YouTube yoki Vimeo havolasini kiriting
+        </p>
+      </div>
+
+      {preview && (
+        <div className="relative">
+          {preview.thumbnail ? (
+            <img
+              src={preview.thumbnail}
+              alt="Video preview"
+              className="w-full h-32 object-cover rounded-lg"
+            />
+          ) : (
+            <div className="w-full h-32 bg-gray-200 rounded-lg flex items-center justify-center">
+              <span className="text-gray-500">Vimeo video</span>
+            </div>
+          )}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
+              <div className="w-0 h-0 border-t-8 border-t-transparent border-l-12 border-l-white border-b-8 border-b-transparent ml-1"></div>
+            </div>
+          </div>
+          <span className="absolute bottom-2 left-2 bg-black/70 text-white text-xs px-2 py-1 rounded capitalize">
+            {preview.platform}
+          </span>
+        </div>
+      )}
+
+      <div>
+        <label className="text-sm font-medium text-gray-700">Sarlavha (ixtiyoriy)</label>
+        <input
+          type="text"
+          value={data.title || ''}
+          onChange={(e) => onChange({ ...data, title: e.target.value })}
+          className="w-full mt-1 p-2 border rounded-lg"
+          placeholder="Video sarlavhasi"
+        />
+      </div>
+    </div>
+  );
+};
+
 const TextEditor = ({ data, onChange }) => (
   <div className="space-y-3">
     <div>
@@ -553,6 +641,7 @@ const moduleEditors = {
   features: FeaturesEditor,
   gallery: GalleryEditor,
   image_sequence: ImageSequenceEditor,
+  video: VideoEditor,
   text: TextEditor,
   comparison: ComparisonEditor,
   accordion: AccordionEditor,

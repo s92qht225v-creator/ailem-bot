@@ -81,6 +81,50 @@ const GalleryModule = ({ data }) => (
   </div>
 );
 
+// Video embed module (YouTube/Vimeo)
+const VideoModule = ({ data }) => {
+  // Extract video embed URL
+  const getEmbedUrl = (url) => {
+    if (!url) return null;
+
+    // YouTube patterns
+    const youtubeMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (youtubeMatch) {
+      return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+    }
+
+    // Vimeo patterns
+    const vimeoMatch = url.match(/(?:vimeo\.com\/)(\d+)/);
+    if (vimeoMatch) {
+      return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+    }
+
+    return null;
+  };
+
+  const embedUrl = getEmbedUrl(data.url);
+
+  if (!embedUrl) {
+    return null;
+  }
+
+  return (
+    <div className="mb-4">
+      {data.title && <h4 className="font-semibold text-gray-800 mb-2">{data.title}</h4>}
+      <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+        <iframe
+          src={embedUrl}
+          title={data.title || 'Video'}
+          className="absolute top-0 left-0 w-full h-full rounded-lg"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        />
+      </div>
+    </div>
+  );
+};
+
 // Seamless vertical image sequence - perfect for long infographic-style content
 const ImageSequenceModule = ({ data }) => (
   <div className="mb-4 -mx-4">
@@ -180,6 +224,7 @@ const moduleComponents = {
   features: FeaturesModule,
   gallery: GalleryModule,
   image_sequence: ImageSequenceModule,
+  video: VideoModule,
   text: TextModule,
   comparison: ComparisonModule,
   accordion: AccordionModule,
@@ -245,6 +290,7 @@ export const MODULE_TYPES = [
   { type: 'features', label: 'Xususiyatlar', icon: '✨' },
   { type: 'gallery', label: 'Galereya', icon: '🖼️' },
   { type: 'image_sequence', label: 'Rasmlar ketma-ketligi', icon: '📜' },
+  { type: 'video', label: 'Video (YouTube/Vimeo)', icon: '🎬' },
   { type: 'text', label: 'Matn bloki', icon: '📄' },
   { type: 'comparison', label: 'Taqqoslash jadvali', icon: '📊' },
   { type: 'accordion', label: 'Akkordeon (FAQ)', icon: '❓' },
