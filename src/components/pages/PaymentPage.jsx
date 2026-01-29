@@ -373,6 +373,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
                 <CheckCircle className="w-5 h-5 text-accent" />
               )}
             </button>
+            {/* Click temporarily disabled - uncomment when ready
             <button
               onClick={() => setPaymentMethod('click')}
               className={`w-full p-4 border-2 rounded-lg flex items-center gap-3 transition-all ${
@@ -390,6 +391,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
                 <CheckCircle className="w-5 h-5 text-accent" />
               )}
             </button>
+            */}
           </div>
         </div>
 
@@ -413,7 +415,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
           </div>
         )}
 
-        {/* Click Payment Info */}
+        {/* Click Payment Info - temporarily disabled
         {paymentMethod === 'click' && (
           <div className="bg-white rounded-lg shadow-md p-4">
             <h3 className="text-lg font-semibold mb-3">{t('payment.click')}</h3>
@@ -431,6 +433,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
             </div>
           </div>
         )}
+        */}
 
         {/* Order Summary */}
         <div className="bg-white rounded-lg shadow-md p-4">
