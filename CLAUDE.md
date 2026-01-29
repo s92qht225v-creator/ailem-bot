@@ -133,7 +133,7 @@ categories: id, name, image
 
 ```javascript
 primary: '#111827'  // Dark gray
-accent: '#3B82F6'   // Blue
+accent: '#ed2224'   // Ailem Red (brand color)
 success: '#10B981'  // Green
 warning: '#F59E0B'  // Yellow
 error: '#EF4444'    // Red

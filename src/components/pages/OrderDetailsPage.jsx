@@ -193,7 +193,7 @@ const OrderDetailsPage = ({ orderId, onNavigate }) => {
           </div>
 
           {order.bonusPointsUsed > 0 && (
-            <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+            <div className="mt-3 p-3 bg-red-50 rounded-lg">
               <p className="text-sm text-gray-700">
                 <span className="font-semibold">{t('orderDetails.bonusPointsUsed')}:</span> {order.bonusPointsUsed} {t('profile.earnings')}
               </p>
@@ -215,7 +215,7 @@ const OrderDetailsPage = ({ orderId, onNavigate }) => {
             </p>
           )}
           {order.status === 'shipped' && (
-            <p className="text-sm text-blue-600 font-medium">
+            <p className="text-sm text-accent font-medium">
               {t('orderDetails.statusShipped')}
             </p>
           )}

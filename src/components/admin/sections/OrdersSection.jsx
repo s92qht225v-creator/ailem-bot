@@ -412,7 +412,7 @@ const OrdersSection = ({ onImageClick }) => {
 
         {/* Bulk Operation Progress */}
         {bulkProgress.isProcessing && (
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="p-4 bg-red-50 rounded-lg border border-blue-200">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-semibold text-blue-900">
                 {bulkProgress.action}: {bulkProgress.current} / {bulkProgress.total}
@@ -423,7 +423,7 @@ const OrdersSection = ({ onImageClick }) => {
             </div>
             <div className="w-full bg-blue-200 rounded-full h-2.5">
               <div
-                className="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+                className="bg-accent h-2.5 rounded-full transition-all duration-300"
                 style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
               />
             </div>
@@ -432,7 +432,7 @@ const OrdersSection = ({ onImageClick }) => {
         )}
 
         {selectedOrders.length > 0 && !bulkProgress.isProcessing && (
-          <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-blue-200">
             <span className="text-sm font-semibold text-blue-900">
               {selectedOrders.length} order(s) selected
             </span>
@@ -470,7 +470,7 @@ const OrdersSection = ({ onImageClick }) => {
             <button
               onClick={handleBulkAction}
               disabled={!bulkAction || bulkProgress.isProcessing}
-              className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {bulkProgress.isProcessing ? 'Processing...' : 'Apply'}
             </button>
@@ -513,7 +513,7 @@ const OrdersSection = ({ onImageClick }) => {
               </tr>
             ) : (
               filteredOrders.map((order) => (
-                <tr key={order.id} className={`hover:bg-gray-50 ${selectedOrders.includes(order.id) ? 'bg-blue-50' : ''}`}>
+                <tr key={order.id} className={`hover:bg-gray-50 ${selectedOrders.includes(order.id) ? 'bg-red-50' : ''}`}>
                   <td className="px-4 py-4">
                     <input
                       type="checkbox"
@@ -551,7 +551,7 @@ const OrdersSection = ({ onImageClick }) => {
                     <div className="flex gap-2 flex-wrap">
                       <button
                         onClick={() => setSelectedOrder(order)}
-                        className="text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+                        className="text-accent hover:text-red-800 font-medium whitespace-nowrap"
                       >
                         View
                       </button>
@@ -589,7 +589,7 @@ const OrdersSection = ({ onImageClick }) => {
                           </button>
                           <button
                             onClick={() => handleMarkShipped(order.id)}
-                            className="text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+                            className="text-accent hover:text-red-800 font-medium whitespace-nowrap"
                           >
                             Mark Shipped
                           </button>

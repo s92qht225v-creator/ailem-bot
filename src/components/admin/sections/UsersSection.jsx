@@ -139,7 +139,7 @@ const UsersSection = () => {
               <p className="text-sm text-gray-600 mb-1">Active Today</p>
               <p className="text-3xl font-bold text-gray-900">-</p>
             </div>
-            <TrendingUp className="w-12 h-12 text-blue-500" />
+            <TrendingUp className="w-12 h-12 text-accent" />
           </div>
         </div>
         <div className="bg-white rounded-lg shadow p-6">

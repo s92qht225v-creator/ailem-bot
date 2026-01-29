@@ -131,7 +131,7 @@ const ReviewsSection = () => {
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="w-10 h-10 bg-gradient-to-br from-red-400 to-red-700 rounded-full flex items-center justify-center text-white font-bold">
                         {(review.user_name || review.userName)?.charAt(0).toUpperCase() || 'U'}
                       </div>
                       <div>

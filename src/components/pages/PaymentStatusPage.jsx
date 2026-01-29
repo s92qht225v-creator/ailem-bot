@@ -32,7 +32,7 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
           </p>
           <button
             onClick={() => onNavigate('home')}
-            className="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition"
+            className="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
           >
             Back to Home
           </button>
@@ -169,7 +169,7 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
           <div className="space-y-3">
             <button
               onClick={() => onNavigate('payment', { checkoutData: order })}
-              className="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition"
+              className="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
             >
               {t('payment.tryAgain')}
             </button>
@@ -239,7 +239,7 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
           <p className="text-gray-700 mb-4 text-center">
             Your payment is taking longer than usual to confirm.
           </p>
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <div className="bg-red-50 border border-blue-200 rounded-lg p-4 mb-4">
             <p className="text-sm text-gray-700 mb-2">
               <strong>📱 Check your Telegram messages!</strong>
             </p>
@@ -253,7 +253,7 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
           <div className="space-y-3">
             <button
               onClick={resetAndRetry}
-              className="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition"
+              className="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition"
             >
               🔄 Check Again
             </button>

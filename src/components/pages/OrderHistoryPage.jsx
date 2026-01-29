@@ -38,7 +38,7 @@ const OrderHistoryPage = ({ onNavigate }) => {
             <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('orders.empty')}</h3>
             <button
               onClick={() => onNavigate('shop')}
-              className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+              className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
             >
               {t('nav.shop') || 'Start Shopping'}
             </button>
@@ -140,7 +140,7 @@ const OrderCard = ({ order, onViewDetails, onWriteReview, hasUnreviewedItems }) 
         {order.status === 'delivered' && hasUnreviewedItems && (
           <button
             onClick={onWriteReview}
-            className="w-full bg-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors"
+            className="w-full bg-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors"
           >
             {t('myReviews.writeReview')}
           </button>

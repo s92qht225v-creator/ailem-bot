@@ -55,7 +55,7 @@ button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid #3B82F6;
+  outline: 2px solid #ed2224;
   outline-offset: 2px;
 }
 
@@ -184,8 +184,8 @@ img[loading="lazy"] {
   --tg-theme-bg-color: #ffffff;
   --tg-theme-text-color: #000000;
   --tg-theme-hint-color: #999999;
-  --tg-theme-link-color: #3B82F6;
-  --tg-theme-button-color: #3B82F6;
+  --tg-theme-link-color: #ed2224;
+  --tg-theme-button-color: #ed2224;
   --tg-theme-button-text-color: #ffffff;
 }
 
@@ -216,7 +216,7 @@ select option {
 }
 
 select option:checked {
-  background: linear-gradient(#3B82F6, #3B82F6);
+  background: linear-gradient(#ed2224, #ed2224);
   color: white;
 }
 

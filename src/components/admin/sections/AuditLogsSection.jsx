@@ -165,7 +165,7 @@ const AuditLogsSection = () => {
             </span>
             <button
               onClick={clearFilters}
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-accent hover:text-red-800"
             >
               Clear all filters
             </button>
@@ -219,7 +219,7 @@ const AuditLogsSection = () => {
                       <td className="px-4 py-3">
                         <button
                           onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
-                          className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                          className="text-accent hover:text-red-800 flex items-center gap-1 text-sm"
                         >
                           {expandedLog === log.id ? 'Hide' : 'View'}
                           {expandedLog === log.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}

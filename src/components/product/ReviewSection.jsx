@@ -176,7 +176,7 @@ const ReviewSection = ({ product }) => {
 
           <button
             type="submit"
-            className="w-full bg-accent text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+            className="w-full bg-accent text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors"
           >
             {t('reviews.submit')}
           </button>

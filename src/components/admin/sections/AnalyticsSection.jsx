@@ -42,7 +42,7 @@ const AnalyticsSection = () => {
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center justify-between mb-2">
               <p className="text-sm text-gray-600">This Month</p>
-              <Calendar className="w-5 h-5 text-blue-500" />
+              <Calendar className="w-5 h-5 text-accent" />
             </div>
             <p className="text-3xl font-bold text-gray-900">{formatPrice(analytics.monthRevenue)}</p>
             <p className="text-sm text-gray-500 mt-2">{analytics.monthOrdersCount} orders</p>
@@ -84,7 +84,7 @@ const AnalyticsSection = () => {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-3">
                   <div
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all"
+                    className="bg-gradient-to-r from-accent to-red-700 h-3 rounded-full transition-all"
                     style={{ width: `${percentage}%` }}
                   ></div>
                 </div>
@@ -123,7 +123,7 @@ const AnalyticsSection = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <ShoppingBag className="w-5 h-5 text-blue-600" />
+                  <ShoppingBag className="w-5 h-5 text-accent" />
                 </div>
                 <span className="text-gray-700">Approved</span>
               </div>
@@ -197,7 +197,7 @@ const AnalyticsSection = () => {
               <div key={product.productId} className="bg-gray-50 rounded-lg overflow-hidden">
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 bg-gradient-to-br from-accent to-red-700 rounded-lg flex items-center justify-center text-white font-bold">
                       #{index + 1}
                     </div>
                     <div>

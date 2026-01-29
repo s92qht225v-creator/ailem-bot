@@ -340,7 +340,7 @@ const AdminAuth = ({ children, onAuthSuccess }) => {
             Secure authentication powered by Supabase Auth
           </div>
           {process.env.NODE_ENV === 'development' && (
-            <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
+            <div className="mt-2 p-2 bg-red-50 border border-blue-200 rounded text-xs text-blue-700">
               <strong>ℹ️ Setup Required:</strong><br />
               1. Run add-admin-auth.sql in Supabase<br />
               2. Create admin user in Supabase Dashboard<br />

@@ -95,7 +95,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
       id: 'dashboard',
       label: 'Dashboard',
       icon: Home,
-      color: 'text-blue-600'
+      color: 'text-accent'
     },
     {
       id: 'orders',
@@ -165,7 +165,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
       id: 'pickup-points',
       label: 'Pickup Points',
       icon: MapPin,
-      color: 'text-blue-600'
+      color: 'text-accent'
     },
     {
       id: 'shipping-rates',
@@ -796,7 +796,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
           {/* Bulk Actions Bar */}
           {selectedOrders.length > 0 && (
-            <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-blue-200">
               <span className="text-sm font-semibold text-blue-900">
                 {selectedOrders.length} order(s) selected
               </span>
@@ -834,7 +834,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <button
                 onClick={handleBulkAction}
                 disabled={!bulkAction}
-                className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Apply
               </button>
@@ -876,7 +876,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 </tr>
               ) : (
                 filteredOrders.map((order) => (
-                  <tr key={order.id} className={`hover:bg-gray-50 ${selectedOrders.includes(order.id) ? 'bg-blue-50' : ''}`}>
+                  <tr key={order.id} className={`hover:bg-gray-50 ${selectedOrders.includes(order.id) ? 'bg-red-50' : ''}`}>
                     <td className="px-4 py-4">
                       <input
                         type="checkbox"
@@ -905,7 +905,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       <div className="flex gap-2 flex-wrap">
                         <button 
                           onClick={() => handleViewOrder(order)}
-                          className="text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+                          className="text-accent hover:text-red-800 font-medium whitespace-nowrap"
                         >
                           View
                         </button>
@@ -945,7 +945,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                             </button>
                             <button
                               onClick={() => handleMarkShipped(order.id)}
-                              className="text-blue-600 hover:text-blue-800 font-medium whitespace-nowrap"
+                              className="text-accent hover:text-red-800 font-medium whitespace-nowrap"
                             >
                               Mark Shipped
                             </button>
@@ -1325,7 +1325,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="bg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            className="bg-accent hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Kategoriya qo'shish
@@ -1367,7 +1367,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <label className="block text-sm font-medium text-gray-700 mb-2">Kategoriya rasmi</label>
                 <div className="space-y-3">
                   <div>
-                    <label className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-blue-600 hover:to-blue-700 transition-all flex items-center justify-center gap-2">
+                    <label className="w-full bg-gradient-to-r from-accent to-red-700 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-red-700 hover:to-red-800 transition-all flex items-center justify-center gap-2">
                       <Upload className="w-5 h-5" />
                       <span>{uploadingImage ? 'Yuklanmoqda...' : 'Qurilmadan rasm yuklash'}</span>
                       <input
@@ -1410,7 +1410,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <div className="flex gap-4">
                 <button
                   type="submit"
-                  className="bg-accent hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                  className="bg-accent hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                 >
                   {editingCategory ? 'Kategoriyani yangilash' : 'Kategoriya qo\'shish'}
                 </button>
@@ -1451,7 +1451,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <div className="flex gap-2 mb-2">
                   <button
                     onClick={() => handleEdit(category)}
-                    className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    className="flex-1 bg-red-50 hover:bg-red-100 text-accent px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                   >
                     <Edit className="w-4 h-4" />
                     Edit
@@ -1494,7 +1494,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             <p className="text-gray-600 mb-4">Create your first category to organize products</p>
             <button
               onClick={() => setShowForm(true)}
-              className="bg-accent hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
+              className="bg-accent hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
             >
               <Plus className="w-5 h-5" />
               Add First Category
@@ -1629,7 +1629,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="w-10 h-10 bg-gradient-to-br from-red-400 to-red-700 rounded-full flex items-center justify-center text-white font-bold">
                           {(review.user_name || review.userName)?.charAt(0).toUpperCase() || 'U'}
                         </div>
                         <div>
@@ -1779,7 +1779,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <p className="text-sm text-gray-600 mb-1">With Orders</p>
                 <p className="text-3xl font-bold text-gray-900">{users.filter(u => u.totalOrders > 0).length}</p>
               </div>
-              <ShoppingBag className="w-12 h-12 text-blue-500" />
+              <ShoppingBag className="w-12 h-12 text-accent" />
             </div>
           </div>
         </div>
@@ -1917,7 +1917,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm text-gray-600">This Month</p>
-                <Calendar className="w-5 h-5 text-blue-500" />
+                <Calendar className="w-5 h-5 text-accent" />
               </div>
               <p className="text-3xl font-bold text-gray-900">{formatPrice(analytics.monthRevenue)}</p>
               <p className="text-sm text-gray-500 mt-2">{analytics.monthOrdersCount} orders</p>
@@ -1959,7 +1959,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3">
                     <div
-                      className="bg-gradient-to-r from-blue-500 to-blue-600 h-3 rounded-full transition-all"
+                      className="bg-gradient-to-r from-accent to-red-700 h-3 rounded-full transition-all"
                       style={{ width: `${percentage}%` }}
                     ></div>
                   </div>
@@ -1999,7 +1999,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <ShoppingBag className="w-5 h-5 text-blue-600" />
+                    <ShoppingBag className="w-5 h-5 text-accent" />
                   </div>
                   <span className="text-gray-700">Approved</span>
                 </div>
@@ -2074,7 +2074,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <div key={product.productId} className="bg-gray-50 rounded-lg overflow-hidden">
                   <div className="flex items-center justify-between p-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
+                      <div className="w-10 h-10 bg-gradient-to-br from-accent to-red-700 rounded-lg flex items-center justify-center text-white font-bold">
                         #{index + 1}
                       </div>
                       <div>
@@ -2342,7 +2342,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center gap-2"
+              className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
             >
               <Plus className="w-5 h-5" />
               Add Pickup Point
@@ -2481,7 +2481,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <div className="col-span-2 flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-accent text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+                  className="flex-1 bg-accent text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors"
                 >
                   {editingPoint ? 'Update Pickup Point' : 'Add Pickup Point'}
                 </button>
@@ -2530,7 +2530,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${
                       isCourierExpanded ? 'rotate-90' : ''
                     }`} />
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-red-700 flex items-center justify-center flex-shrink-0">
                       <Truck className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1 text-left">
@@ -2622,7 +2622,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                                   </button>
                                                   <button
                                                     onClick={() => handleEdit(point)}
-                                                    className="text-accent p-2 hover:bg-blue-50 rounded"
+                                                    className="text-accent p-2 hover:bg-red-50 rounded"
                                                   >
                                                     <Edit className="w-4 h-4" />
                                                   </button>
@@ -2797,7 +2797,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         {!showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="mb-4 bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center gap-2"
+            className="mb-4 bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
           >
             <Plus className="w-5 h-5" />
             Add Shipping Rate
@@ -2895,7 +2895,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <div className="col-span-2 flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-accent text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+                  className="flex-1 bg-accent text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors"
                 >
                   {editingRate ? 'Update Rate' : 'Add Rate'}
                 </button>
@@ -2968,7 +2968,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(rate)}
-                              className="text-accent p-2 hover:bg-blue-50 rounded"
+                              className="text-accent p-2 hover:bg-red-50 rounded"
                             >
                               <Edit className="w-5 h-5" />
                             </button>
@@ -3185,7 +3185,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <button
                 onClick={handleSaveAll}
                 disabled={saving}
-                className="bg-primary hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-primary hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? (
                   <>
@@ -3215,7 +3215,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             </div>
             <button
               onClick={handleAddBanner}
-              className="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
+              className="bg-primary hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
             >
               <Plus className="w-4 h-4" />
               Add Banner
@@ -3228,7 +3228,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <p className="text-gray-500 text-lg mb-4">No banners configured</p>
               <button
                 onClick={handleAddBanner}
-                className="bg-primary hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
+                className="bg-primary hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Create Your First Banner
@@ -3309,7 +3309,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                 className={`px-3 py-2 border-2 border-dashed rounded-lg cursor-pointer text-sm font-medium inline-flex items-center gap-2 ${
                                   uploadingImage === index
                                     ? 'bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500'
-                                    : 'hover:border-accent hover:bg-blue-50 border-gray-300 text-gray-700'
+                                    : 'hover:border-accent hover:bg-red-50 border-gray-300 text-gray-700'
                                 }`}
                               >
                                 {uploadingImage === index ? (
@@ -3323,7 +3323,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => setEditingBannerIndex(null)}
-                              className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
+                              className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
                             >
                               Done Editing
                             </button>
@@ -3362,7 +3362,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       {editingBannerIndex !== index && (
                         <button
                           onClick={() => setEditingBannerIndex(index)}
-                          className="p-2 text-accent hover:bg-blue-50 rounded transition-colors"
+                          className="p-2 text-accent hover:bg-red-50 rounded transition-colors"
                           title="Edit banner"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -3401,7 +3401,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           )}
 
           {banners.length > 0 && (
-            <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+            <div className="mt-4 p-4 bg-red-50 rounded-lg">
               <p className="text-xs text-blue-800 font-medium mb-1">💡 Carousel Preview</p>
               <p className="text-sm text-blue-900">
                 {banners.filter(b => b.enabled).length === 0 && 'No banners enabled. Enable at least one banner to display the carousel.'}
@@ -3467,7 +3467,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   }}
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-shadow"
                 />
-                <div className="mt-2 p-3 bg-blue-50 rounded-lg">
+                <div className="mt-2 p-3 bg-red-50 rounded-lg">
                   <p className="text-xs text-blue-800 font-medium">📅 Selected date:</p>
                   <p className="text-sm text-blue-900 font-semibold">
                     {new Date(saleTimer.endDate).toLocaleString('uz-UZ', {
@@ -3598,7 +3598,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   type="number"
                   value={bonusConfig.referralCommission}
                   onChange={(e) => saveBonusConfig({ ...bonusConfig, referralCommission: parseInt(e.target.value) || 0 })}
-                  className="w-32 px-4 py-3 border-2 border-blue-300 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-32 px-4 py-3 border-2 border-red-300 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-accent focus:border-accent"
                   min="0"
                   max="100"
                   step="1"
@@ -3653,7 +3653,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </h4>
               <ul className="text-sm text-gray-700 space-y-2">
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600 font-bold">•</span>
+                  <span className="text-accent font-bold">•</span>
                   <span>
                     <strong>Referral Commission:</strong> When a referred user makes their first order and it's approved,
                     the referrer receives {bonusConfig.referralCommission}% of the order total as commission
@@ -3865,7 +3865,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           <button
             onClick={checkInventory}
             disabled={checking}
-            className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="w-full py-3 bg-accent text-white rounded-lg hover:bg-red-800 transition-colors font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {checking ? (
               <>

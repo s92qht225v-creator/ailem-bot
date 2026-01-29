@@ -18,7 +18,7 @@ const CartPage = ({ onNavigate }) => {
         </p>
         <button
           onClick={() => onNavigate('shop')}
-          className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+          className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
         >
           {t('home.shopNow')}
         </button>
@@ -197,7 +197,7 @@ const CartPage = ({ onNavigate }) => {
           </div>
           <button
             onClick={() => onNavigate('checkout')}
-            className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+            className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-red-700 transition-colors"
           >
             {t('cart.checkout')}
           </button>

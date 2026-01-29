@@ -185,7 +185,7 @@ const InventorySettingsSection = () => {
         <button
           onClick={checkInventory}
           disabled={checking}
-          className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3 bg-accent text-white rounded-lg hover:bg-red-800 transition-colors font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {checking ? (
             <>

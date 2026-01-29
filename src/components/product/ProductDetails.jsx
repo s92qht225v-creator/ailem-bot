@@ -671,7 +671,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
             className={`w-full py-4 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2 mb-3 ${
               isSubscribed
                 ? 'bg-green-100 text-green-700 border-2 border-green-300'
-                : 'bg-blue-600 text-white hover:bg-blue-700'
+                : 'bg-accent text-white hover:bg-red-800'
             } disabled:opacity-50 disabled:cursor-not-allowed`}
           >
             {isSubscribing ? (
@@ -695,7 +695,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
           // In Stock - Show Add to Cart button
           <button
             onClick={handleAddToCart}
-            className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-blue-600 transition-colors flex items-center justify-center gap-2 mb-3"
+            className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-2 mb-3"
           >
             <ShoppingCart className="w-5 h-5" />
             {`${t('product.addToCart')} - ${formatPrice(totalPrice)}`}

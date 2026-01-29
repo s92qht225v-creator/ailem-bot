@@ -97,7 +97,7 @@ const BonusSettingsSection = () => {
                 type="number"
                 value={bonusConfig.referralCommission}
                 onChange={(e) => saveBonusConfig({ ...bonusConfig, referralCommission: parseInt(e.target.value) || 0 })}
-                className="w-32 px-4 py-3 border-2 border-blue-300 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-32 px-4 py-3 border-2 border-red-300 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-accent focus:border-accent"
                 min="0"
                 max="100"
                 step="1"
@@ -152,7 +152,7 @@ const BonusSettingsSection = () => {
             </h4>
             <ul className="text-sm text-gray-700 space-y-2">
               <li className="flex items-start gap-2">
-                <span className="text-blue-600 font-bold">•</span>
+                <span className="text-accent font-bold">•</span>
                 <span>
                   <strong>Referral Commission:</strong> When a referred user makes their first order and it's approved,
                   the referrer receives {bonusConfig.referralCommission}% of the order total as commission

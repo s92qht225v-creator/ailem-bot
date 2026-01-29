@@ -33,7 +33,7 @@ const ReferralsPage = ({ hideHeader = false }) => {
   return (
     <div className={hideHeader ? 'pt-16' : 'pb-20 pt-16 bg-gray-50 min-h-screen'}>
       {/* Header */}
-      <div className="bg-gradient-to-r from-accent to-blue-600 text-white p-6">
+      <div className="bg-gradient-to-r from-accent to-red-700 text-white p-6">
         <div className="text-center mb-6">
           <Users className="w-16 h-16 mx-auto mb-3" />
           <h2 className="text-2xl font-bold mb-2">Refer & Earn</h2>
@@ -79,7 +79,7 @@ const ReferralsPage = ({ hideHeader = false }) => {
             </button>
             <button
               onClick={handleShareLink}
-              className="flex items-center justify-center gap-2 bg-accent text-white py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+              className="flex items-center justify-center gap-2 bg-accent text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
             >
               <Share2 className="w-5 h-5" />
               Share

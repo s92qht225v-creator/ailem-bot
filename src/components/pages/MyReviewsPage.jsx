@@ -131,7 +131,7 @@ const MyReviewsPage = ({ onNavigate }) => {
             </p>
             <button
               onClick={() => onNavigate('shop')}
-              className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600 transition-colors"
+              className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
             >
               Start Shopping
             </button>
@@ -159,7 +159,7 @@ const PendingReviewCard = ({ item, onWriteReview }) => {
       </div>
       <button
         onClick={onWriteReview}
-        className="w-full mt-3 bg-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-blue-600 transition-colors"
+        className="w-full mt-3 bg-accent text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors"
       >
         {t('myReviews.writeReview')}
       </button>

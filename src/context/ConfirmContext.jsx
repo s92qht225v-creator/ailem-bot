@@ -16,15 +16,15 @@ const iconMap = {
   warning: <AlertTriangle className="w-6 h-6 text-yellow-500" />,
   success: <CheckCircle className="w-6 h-6 text-green-500" />,
   error: <XCircle className="w-6 h-6 text-red-500" />,
-  info: <HelpCircle className="w-6 h-6 text-blue-500" />
+  info: <HelpCircle className="w-6 h-6 text-accent" />
 };
 
 const buttonStyles = {
   danger: 'bg-red-600 hover:bg-red-700 text-white',
   warning: 'bg-yellow-500 hover:bg-yellow-600 text-white',
   success: 'bg-green-600 hover:bg-green-700 text-white',
-  info: 'bg-blue-600 hover:bg-blue-700 text-white',
-  default: 'bg-primary hover:bg-blue-600 text-white'
+  info: 'bg-accent hover:bg-red-800 text-white',
+  default: 'bg-primary hover:bg-red-700 text-white'
 };
 
 const ConfirmModal = ({ config, onConfirm, onCancel }) => {

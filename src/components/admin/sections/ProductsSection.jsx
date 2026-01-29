@@ -519,7 +519,7 @@ const ProductsSection = () => {
           </button>
           <button
             onClick={() => setShowForm(true)}
-            className="bg-accent hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            className="bg-accent hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
           >
             <Plus className="w-5 h-5" />
             Mahsulot qo'shish
@@ -763,7 +763,7 @@ const ProductsSection = () => {
 
             {/* Variant Stock Management */}
             {formData.variants.length > 0 && (
-              <div className={`md:col-span-2 border-2 rounded-lg p-4 ${formErrors.variants ? 'border-red-300 bg-red-50' : 'border-blue-200 bg-blue-50'}`}>
+              <div className={`md:col-span-2 border-2 rounded-lg p-4 ${formErrors.variants ? 'border-red-300 bg-red-50' : 'border-blue-200 bg-red-50'}`}>
                 <div className="flex items-center justify-between mb-3">
                   <label className={`block text-sm font-bold ${formErrors.variants ? 'text-red-900' : 'text-blue-900'}`}>
                     Variant inventarizatsiyasi ({formData.variants.length} ta variant)
@@ -786,11 +786,11 @@ const ProductsSection = () => {
                   {formData.variants.map((variant, idx) => (
                     <div
                       key={idx}
-                      className="flex items-start gap-3 bg-white p-3 rounded border hover:border-blue-300 transition-colors"
+                      className="flex items-start gap-3 bg-white p-3 rounded border hover:border-red-300 transition-colors"
                     >
                       <div className="flex-shrink-0">
                         {variant.image ? (
-                          <div className="relative w-16 h-16 rounded overflow-hidden border-2 border-blue-300">
+                          <div className="relative w-16 h-16 rounded overflow-hidden border-2 border-red-300">
                             <img
                               src={variant.image}
                               alt={`${variant.color} - ${variant.size}`}
@@ -806,7 +806,7 @@ const ProductsSection = () => {
                             </button>
                           </div>
                         ) : (
-                          <label className="w-16 h-16 flex items-center justify-center border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors">
+                          <label className="w-16 h-16 flex items-center justify-center border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-red-400 hover:bg-red-50 transition-colors">
                             <ImagePlus className="w-6 h-6 text-gray-400" />
                             <input
                               type="file"
@@ -908,7 +908,7 @@ const ProductsSection = () => {
                       </div>
 
                       {index === 0 && (
-                        <div className="absolute top-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded font-medium">
+                        <div className="absolute top-1 left-1 bg-accent text-white text-xs px-2 py-1 rounded font-medium">
                           Asosiy
                         </div>
                       )}
@@ -949,7 +949,7 @@ const ProductsSection = () => {
               )}
 
               <div className="flex gap-2 flex-wrap">
-                <label className={`flex-1 min-w-[200px] bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-blue-600 hover:to-blue-700 transition-all flex items-center justify-center gap-2 ${uploadingImage ? 'opacity-50 cursor-wait' : ''}`}>
+                <label className={`flex-1 min-w-[200px] bg-gradient-to-r from-accent to-red-700 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-red-700 hover:to-red-800 transition-all flex items-center justify-center gap-2 ${uploadingImage ? 'opacity-50 cursor-wait' : ''}`}>
                   <Upload className="w-5 h-5" />
                   <span>{uploadingImage ? 'Yuklanmoqda...' : (allImages.length === 0 ? 'Rasmlarni yuklash' : 'Rasm qo\'shish')}</span>
                   <input
@@ -1113,7 +1113,7 @@ const ProductsSection = () => {
                       </div>
                     ))}
 
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <div className="bg-red-50 border border-blue-200 rounded-lg p-3">
                       <p className="text-xs font-semibold text-blue-900 mb-2">📊 Ko'rinish:</p>
                       <div className="text-xs text-blue-800 space-y-1">
                         {formData.volume_pricing
@@ -1149,7 +1149,7 @@ const ProductsSection = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className={`bg-accent hover:bg-blue-600 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${submitting ? 'opacity-50 cursor-wait' : ''}`}
+                className={`bg-accent hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${submitting ? 'opacity-50 cursor-wait' : ''}`}
               >
                 {submitting && (
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -1312,7 +1312,7 @@ const ProductsSection = () => {
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleEdit(product)}
-                        className="text-blue-600 hover:text-blue-800"
+                        className="text-accent hover:text-red-800"
                       >
                         <Edit className="w-4 h-4" />
                       </button>

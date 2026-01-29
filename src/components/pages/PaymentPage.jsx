@@ -347,7 +347,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         <h2 className="text-2xl font-bold">{t('payment.title')}</h2>
 
         {/* Order Total */}
-        <div className="bg-gradient-to-r from-accent to-blue-600 text-white rounded-lg shadow-lg p-6 text-center">
+        <div className="bg-gradient-to-r from-accent to-red-700 text-white rounded-lg shadow-lg p-6 text-center">
           <p className="text-sm mb-2">{t('payment.totalAmount')}</p>
           <p className="text-4xl font-bold">{formatPrice(checkoutData.total)}</p>
         </div>
@@ -360,7 +360,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
               onClick={() => setPaymentMethod('telegram')}
               className={`w-full p-4 border-2 rounded-lg flex items-center gap-3 transition-all ${
                 paymentMethod === 'telegram'
-                  ? 'border-accent bg-blue-50'
+                  ? 'border-accent bg-red-50'
                   : 'border-gray-300 hover:border-accent'
               }`}
             >
@@ -378,7 +378,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
               onClick={() => setPaymentMethod('click')}
               className={`w-full p-4 border-2 rounded-lg flex items-center gap-3 transition-all ${
                 paymentMethod === 'click'
-                  ? 'border-accent bg-blue-50'
+                  ? 'border-accent bg-red-50'
                   : 'border-gray-300 hover:border-accent'
               }`}
             >
@@ -400,7 +400,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         {paymentMethod === 'telegram' && (
           <div className="bg-white rounded-lg shadow-md p-4">
             <h3 className="text-lg font-semibold mb-3">{t('payment.payme')}</h3>
-            <div className="bg-blue-50 border-l-4 border-accent p-4 rounded">
+            <div className="bg-red-50 border-l-4 border-accent p-4 rounded">
               <p className="text-sm text-gray-700 mb-2">
                 <strong className="text-accent">✅ {t('payment.securePayment')}</strong>
               </p>
@@ -419,7 +419,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         {paymentMethod === 'click' && (
           <div className="bg-white rounded-lg shadow-md p-4">
             <h3 className="text-lg font-semibold mb-3">{t('payment.click')}</h3>
-            <div className="bg-blue-50 border-l-4 border-accent p-4 rounded">
+            <div className="bg-red-50 border-l-4 border-accent p-4 rounded">
               <p className="text-sm text-gray-700 mb-2">
                 <strong className="text-accent">✅ {t('payment.securePayment')}</strong>
               </p>

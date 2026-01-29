@@ -259,7 +259,7 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
           <button
             type="submit"
             disabled={isSubmitting || rating === 0 || comment.length < 10}
-            className="w-full bg-accent text-white px-6 py-4 rounded-xl font-semibold hover:bg-blue-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+            className="w-full bg-accent text-white px-6 py-4 rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
             {isSubmitting ? 'Submitting...' : 'Submit Review'}
           </button>
