@@ -13,6 +13,7 @@ import { updateVariantStock, updateVariantImage, updateVariantPrice, getTotalVar
 import { storageAPI } from '../../../services/api';
 import { exportProducts } from '../../../utils/csvExport';
 import { notifyProductBackInStock } from '../../../services/stockNotifications';
+import APlusEditor from '../shared/APlusEditor';
 
 // Configure marked for proper line breaks
 marked.setOptions({
@@ -47,7 +48,8 @@ const ProductsSection = () => {
     barcode: '',
     inStock: true,
     variants: [],
-    volume_pricing: null
+    volume_pricing: null,
+    aPlusContent: null
   });
 
   // Other local state
@@ -285,7 +287,8 @@ const ProductsSection = () => {
         tags: formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
         variants: formData.variants || [],
         volume_pricing: formData.volume_pricing && formData.volume_pricing.length > 0 ? formData.volume_pricing : null,
-        barcode: formData.barcode || null
+        barcode: formData.barcode || null,
+        aPlusContent: formData.aPlusContent || null
       };
 
       if (editingProduct) {
@@ -356,7 +359,8 @@ const ProductsSection = () => {
         tags: '',
         inStock: true,
         variants: [],
-        volume_pricing: null
+        volume_pricing: null,
+        aPlusContent: null
       });
     } catch (error) {
       console.error('❌ Failed to save product:', error);
@@ -394,7 +398,8 @@ const ProductsSection = () => {
       barcode: product.barcode || '',
       inStock: product.inStock !== false,
       variants: product.variants || [],
-      volume_pricing: product.volume_pricing || null
+      volume_pricing: product.volume_pricing || null,
+      aPlusContent: product.aPlusContent || null
     });
     setShowForm(true);
   };
@@ -1127,6 +1132,16 @@ const ProductsSection = () => {
                     <p className="text-xs">Yuqoridagi "Daraja qo'shish" tugmasini bosing</p>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* A+ Content Section */}
+            <div className="md:col-span-2">
+              <div className="border border-gray-200 rounded-lg p-4">
+                <APlusEditor
+                  value={formData.aPlusContent}
+                  onChange={(value) => setFormData({ ...formData, aPlusContent: value })}
+                />
               </div>
             </div>
 

@@ -6,6 +6,7 @@ import { getVariantStock, getVariantPrice, getAvailableColors, getAvailableSizes
 import { UserContext } from '../../context/UserContext';
 import { getTelegramWebApp } from '../../utils/telegram';
 import { stockNotificationsAPI } from '../../services/api';
+import APlusContent from './APlusContent';
 
 const ProductDetails = ({ product, onAddToCart }) => {
   const { user } = useContext(UserContext);
@@ -709,6 +710,11 @@ const ProductDetails = ({ product, onAddToCart }) => {
           <Share2 className="w-5 h-5" />
           Ulashing va bonus oling 🎁
         </button>
+
+        {/* A+ Content */}
+        {product.aPlusContent && (
+          <APlusContent content={product.aPlusContent} />
+        )}
       </div>
 
     </div>

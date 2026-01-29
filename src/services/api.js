@@ -94,6 +94,7 @@ export const productsAPI = {
         originalPrice: product.original_price,
         reviewCount: product.review_count,
         variants: product.variants || [],
+        aPlusContent: product.a_plus_content,
         reviews: productReviews.map(r => ({
           id: r.id,
           userId: r.user_id,
@@ -132,6 +133,7 @@ export const productsAPI = {
       category: data.category_name,
       originalPrice: data.original_price,
       reviewCount: data.review_count,
+      aPlusContent: data.a_plus_content,
       variants: data.variants || [],
       reviews: (reviews || []).map(r => ({
         id: r.id,
@@ -169,6 +171,7 @@ export const productsAPI = {
       variants: product.variants || [],
       volume_pricing: product.volume_pricing || null,
       barcode: product.barcode || null,
+      a_plus_content: product.aPlusContent || null,
       rating: 0,
       review_count: 0
     };
@@ -188,6 +191,7 @@ export const productsAPI = {
       originalPrice: data.original_price,
       reviewCount: data.review_count,
       variants: data.variants || [],
+      aPlusContent: data.a_plus_content,
       reviews: []
     };
   },
@@ -215,6 +219,7 @@ export const productsAPI = {
     if (updates.variants !== undefined) dbUpdates.variants = updates.variants;
     if (updates.volume_pricing !== undefined) dbUpdates.volume_pricing = updates.volume_pricing;
     if (updates.barcode !== undefined) dbUpdates.barcode = updates.barcode;
+    if (updates.aPlusContent !== undefined) dbUpdates.a_plus_content = updates.aPlusContent;
 
     // Wrap in try-catch with manual timeout tracking
     let timeoutId;
@@ -260,6 +265,7 @@ export const productsAPI = {
         originalPrice: data.original_price,
         reviewCount: data.review_count,
         variants: data.variants || [],
+        aPlusContent: data.a_plus_content,
         reviews: (reviews || []).map(r => ({
           id: r.id,
           userId: r.user_id,
