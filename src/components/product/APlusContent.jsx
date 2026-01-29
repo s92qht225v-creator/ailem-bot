@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 /**
  * A+ Content Module Renderer
@@ -24,6 +25,7 @@ const HeroModule = ({ data }) => {
         src={data.image}
         alt={data.title || ''}
         className="w-full h-full object-cover"
+        loading="lazy"
         onError={(e) => console.error('❌ Image load error:', data.image, e)}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end">
@@ -37,15 +39,16 @@ const HeroModule = ({ data }) => {
 };
 
 const ImageTextModule = ({ data }) => (
-  <div className={`flex flex-col ${data.imagePosition === 'right' ? 'md:flex-row-reverse' : 'md:flex-row'} gap-4 mb-4`}>
-    <div className="w-full md:w-1/2">
+  <div className="flex flex-col gap-4 mb-4">
+    <div className="w-full">
       <img
         src={data.image}
         alt={data.title || ''}
         className="w-full h-40 object-cover rounded-lg"
+        loading="lazy"
       />
     </div>
-    <div className="w-full md:w-1/2 flex flex-col justify-center">
+    <div className="w-full flex flex-col justify-center">
       {data.title && <h4 className="font-semibold text-gray-800 mb-2">{data.title}</h4>}
       {data.text && <p className="text-sm text-gray-600">{data.text}</p>}
     </div>
@@ -76,6 +79,7 @@ const GalleryModule = ({ data }) => (
         src={typeof img === 'string' ? img : img.url}
         alt={typeof img === 'string' ? '' : img.caption || ''}
         className="w-full h-32 object-cover rounded-lg"
+        loading="lazy"
       />
     ))}
   </div>
@@ -119,6 +123,8 @@ const VideoModule = ({ data }) => {
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
+          sandbox="allow-scripts allow-same-origin allow-presentation"
+          loading="lazy"
         />
       </div>
     </div>
@@ -135,21 +141,30 @@ const ImageSequenceModule = ({ data }) => (
         alt=""
         className="w-full block"
         style={{ marginTop: index === 0 ? 0 : '-1px' }}
+        loading="lazy"
         onError={(e) => console.error('❌ Sequence image load error:', img, e)}
       />
     ))}
   </div>
 );
 
-const TextModule = ({ data }) => (
-  <div className="mb-4">
-    {data.title && <h4 className="font-semibold text-gray-800 mb-2">{data.title}</h4>}
-    <div
-      className="text-sm text-gray-600 prose prose-sm max-w-none"
-      dangerouslySetInnerHTML={{ __html: data.content }}
-    />
-  </div>
-);
+const TextModule = ({ data }) => {
+  // Sanitize HTML to prevent XSS attacks
+  const sanitizedContent = DOMPurify.sanitize(data.content || '', {
+    ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'ul', 'ol', 'li', 'a', 'h4', 'h5', 'h6'],
+    ALLOWED_ATTR: ['href', 'target', 'rel']
+  });
+
+  return (
+    <div className="mb-4">
+      {data.title && <h4 className="font-semibold text-gray-800 mb-2">{data.title}</h4>}
+      <div
+        className="text-sm text-gray-600 prose prose-sm max-w-none"
+        dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+      />
+    </div>
+  );
+};
 
 const ComparisonModule = ({ data }) => (
   <div className="mb-4 overflow-x-auto">

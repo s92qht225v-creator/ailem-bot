@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown, Image, X } from 'lucide-react';
 import { storageAPI } from '../../../services/api';
 
@@ -703,6 +703,21 @@ const ModuleEditor = ({ module, index, total, onChange, onRemove, onMoveUp, onMo
 // Main A+ Editor component
 const APlusEditor = ({ value, onChange }) => {
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  // Click-outside handler to close menu
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowAddMenu(false);
+      }
+    };
+
+    if (showAddMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showAddMenu]);
 
   // Parse value
   let content = { modules: [] };
@@ -776,7 +791,7 @@ const APlusEditor = ({ value, onChange }) => {
         </div>
       )}
 
-      <div className="relative">
+      <div className="relative" ref={menuRef}>
         <button
           type="button"
           onClick={() => setShowAddMenu(!showAddMenu)}
