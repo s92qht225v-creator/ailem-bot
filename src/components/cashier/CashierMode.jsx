@@ -24,7 +24,12 @@ import { UserContext } from '../../context/UserContext';
 import { productsAPI, ordersAPI, walkInCustomersAPI } from '../../services/api';
 import { formatPrice } from '../../utils/helpers';
 import { useToast } from '../../context/ToastContext';
-import { getVolumePricedUnit, calculateItemTotal, getVolumeDiscountDescription } from '../../utils/volumePricing';
+import {
+  getVolumePricedUnit,
+  getVolumeDiscountDescription,
+  getTierThreshold,
+  getTierGroupQuantity
+} from '../../utils/volumePricing';
 
 const CashierMode = () => {
   const { user } = useContext(UserContext);
@@ -358,34 +363,67 @@ const CashierMode = () => {
     setCart([]);
   };
 
-  // Calculate totals with volume pricing
+  // Group cart items by tier threshold for tier-based volume pricing
+  const groupCashierCartByTier = () => {
+    const tierGroups = {};
+    cart.forEach(item => {
+      const threshold = getTierThreshold(item.product.volume_pricing);
+      if (threshold !== null) {
+        if (!tierGroups[threshold]) {
+          tierGroups[threshold] = [];
+        }
+        tierGroups[threshold].push(item);
+      }
+    });
+    return tierGroups;
+  };
+
+  // Get combined quantity for an item's tier group
+  const getTierCombinedQty = (item) => {
+    const threshold = getTierThreshold(item.product.volume_pricing);
+    if (threshold === null) return item.quantity;
+
+    const tierGroups = groupCashierCartByTier();
+    const sameThresholdItems = tierGroups[threshold] || [];
+    return sameThresholdItems.reduce((total, i) => total + i.quantity, 0);
+  };
+
+  // Calculate totals with tier-based volume pricing
   const cartTotal = cart.reduce((sum, item) => {
     const basePrice = item.variant?.price || item.product.price;
     const volumePricing = item.product.volume_pricing;
-    const itemTotal = calculateItemTotal(item.quantity, basePrice, volumePricing);
+
+    // Use combined quantity from same-tier products
+    const combinedQty = getTierCombinedQty(item);
+    const effectivePrice = getVolumePricedUnit(combinedQty, basePrice, volumePricing);
+    const itemTotal = effectivePrice * item.quantity;
+
     console.log('💰 Cart item calculation:', {
       name: item.product.name,
       qty: item.quantity,
+      combinedQty,
       basePrice,
-      volumePricing,
+      effectivePrice,
       itemTotal
     });
     return sum + itemTotal;
   }, 0);
   const changeAmount = cashReceived ? Number(cashReceived) - cartTotal : 0;
 
-  // Helper to get effective price for display
+  // Helper to get effective price for display (using tier-based grouping)
   const getEffectivePrice = (item) => {
     const basePrice = item.variant?.price || item.product.price;
     const volumePricing = item.product.volume_pricing;
-    return getVolumePricedUnit(item.quantity, basePrice, volumePricing);
+    const combinedQty = getTierCombinedQty(item);
+    return getVolumePricedUnit(combinedQty, basePrice, volumePricing);
   };
 
-  // Helper to check if volume discount is applied
+  // Helper to check if volume discount is applied (using tier-based grouping)
   const getDiscount = (item) => {
     const basePrice = item.variant?.price || item.product.price;
     const volumePricing = item.product.volume_pricing;
-    return getVolumeDiscountDescription(item.quantity, basePrice, volumePricing);
+    const combinedQty = getTierCombinedQty(item);
+    return getVolumeDiscountDescription(combinedQty, basePrice, volumePricing);
   };
 
   // Process cash checkout
@@ -424,11 +462,13 @@ const CashierMode = () => {
         walk_in_customer_phone: selectedCustomer?.phone || customerPhone || null,
         items: cart.map(item => {
           const basePrice = item.variant?.price || item.product.price;
-          const effectivePrice = getVolumePricedUnit(item.quantity, basePrice, item.product.volume_pricing);
+          // Use tier-based combined quantity for effective price
+          const combinedQty = getTierCombinedQty(item);
+          const effectivePrice = getVolumePricedUnit(combinedQty, basePrice, item.product.volume_pricing);
           return {
             id: item.product.id,
             name: item.product.name,
-            price: effectivePrice, // Use volume-discounted price
+            price: effectivePrice, // Use tier-based volume-discounted price
             basePrice: basePrice, // Store original price for reference
             quantity: item.quantity,
             variant: item.variant,
@@ -672,7 +712,7 @@ const CashierMode = () => {
                 const discount = getDiscount(item);
                 const effectivePrice = getEffectivePrice(item);
                 const basePrice = item.variant?.price || item.product.price;
-                const itemTotal = calculateItemTotal(item.quantity, basePrice, item.product.volume_pricing);
+                const itemTotal = effectivePrice * item.quantity;
 
                 return (
                   <div key={index} className="flex items-center gap-3 p-2 bg-gray-50 rounded-lg">

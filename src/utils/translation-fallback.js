@@ -112,6 +112,10 @@ export const t = (key, params = {}) => {
     'badges.DISCOUNT': 'CHEGIRMA',
     'badges.PREMIUM': 'PREMIUM',
     'badges.EXCLUSIVE': 'EKSKLYUZIV',
+    'badges.2+': '2+',
+    'badges.3+': '3+',
+    'badges.4+': '4+',
+    'badges.5+': '5+',
     // Reviews
     'reviews.maxPhotos': 'Faqat 5 tagacha rasm yuklash mumkin',
     'reviews.purchaseRequired': 'Faqat sotib olgan mahsulotlaringizga sharh qoldirishingiz mumkin',

@@ -746,6 +746,10 @@ const ProductsSection = () => {
                 <option value="NEW ARRIVAL">YANGI KELDI</option>
                 <option value="SALE">CHEGIRMA</option>
                 <option value="LIMITED">CHEKLANGAN</option>
+                <option value="2+">2+ CHEGIRMA</option>
+                <option value="3+">3+ CHEGIRMA</option>
+                <option value="4+">4+ CHEGIRMA</option>
+                <option value="5+">5+ CHEGIRMA</option>
               </select>
             </div>
 

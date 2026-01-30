@@ -2,7 +2,11 @@ import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { t } from "../../utils/translation-fallback";
 import { useCart } from '../../hooks/useCart';
 import { formatPrice } from '../../utils/helpers';
-import { getVolumePricedUnit, calculateItemTotal } from '../../utils/volumePricing';
+import {
+  getEffectivePriceWithTierGrouping,
+  calculateItemTotalWithTierGrouping,
+  getTierGroupInfo
+} from '../../utils/volumePricing';
 import { getVariantStock } from '../../utils/variants';
 
 const CartPage = ({ onNavigate }) => {
@@ -138,12 +142,30 @@ const CartPage = ({ onNavigate }) => {
 
               <div className="mt-3 pt-3 border-t border-gray-200">
                 {(() => {
-                  const effectivePrice = getVolumePricedUnit(item.quantity, item.price, item.volume_pricing);
-                  const itemTotal = calculateItemTotal(item.quantity, item.price, item.volume_pricing);
+                  const effectivePrice = getEffectivePriceWithTierGrouping(item, cartItems);
+                  const itemTotal = calculateItemTotalWithTierGrouping(item, cartItems);
                   const hasDiscount = effectivePrice < item.price;
+                  const tierInfo = getTierGroupInfo(item, cartItems);
 
                   return (
                     <>
+                      {/* Show tier progress if item has volume pricing */}
+                      {tierInfo && !tierInfo.qualifies && (
+                        <div className="mb-2 bg-blue-50 border border-blue-200 rounded p-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-blue-700">
+                              {tierInfo.threshold}+ chegirma uchun:
+                            </span>
+                            <span className="font-bold text-blue-800">
+                              {tierInfo.combinedQty}/{tierInfo.threshold} dona
+                            </span>
+                          </div>
+                          <div className="text-xs text-blue-600 mt-1">
+                            Yana {tierInfo.remaining} dona qo'shing
+                            {tierInfo.itemsInGroup > 1 && ` (${tierInfo.itemsInGroup} xil mahsulot birlashtirilgan)`}
+                          </div>
+                        </div>
+                      )}
                       {hasDiscount && (
                         <div className="mb-2 bg-green-50 border border-green-200 rounded p-2">
                           <div className="flex items-center justify-between text-xs">
@@ -162,6 +184,11 @@ const CartPage = ({ onNavigate }) => {
                               {formatPrice((item.price - effectivePrice) * item.quantity)}
                             </span>
                           </div>
+                          {tierInfo && tierInfo.itemsInGroup > 1 && (
+                            <div className="text-xs text-green-600 mt-1">
+                              {tierInfo.itemsInGroup} xil mahsulot birlashtirilgan ({tierInfo.combinedQty} dona jami)
+                            </div>
+                          )}
                         </div>
                       )}
                       <div className="flex justify-between items-center">

@@ -2,7 +2,7 @@ import { createContext, useState, useEffect, useContext } from 'react';
 import { saveToLocalStorage, loadFromLocalStorage } from '../utils/helpers';
 import { usersAPI } from '../services/api';
 import { UserContext } from './UserContext';
-import { calculateItemTotal } from '../utils/volumePricing';
+import { calculateItemTotalWithTierGrouping } from '../utils/volumePricing';
 
 export const CartContext = createContext();
 
@@ -137,8 +137,9 @@ export const CartProvider = ({ children }) => {
 
   const getCartTotal = () => {
     return cartItems.reduce((total, item) => {
-      // Calculate price considering volume discounts
-      const itemTotal = calculateItemTotal(item.quantity, item.price, item.volume_pricing);
+      // Calculate price considering tier-based volume discounts
+      // Items with same tier threshold combine their quantities
+      const itemTotal = calculateItemTotalWithTierGrouping(item, cartItems);
       return total + itemTotal;
     }, 0);
   };
