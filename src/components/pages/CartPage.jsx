@@ -178,7 +178,7 @@ const CartPage = ({ onNavigate }) => {
                           </div>
                           <div className="flex items-center justify-between text-xs mt-1">
                             <span className="text-green-700">
-                              Tejashingiz:
+                              Tejadingiz:
                             </span>
                             <span className="font-bold text-green-800">
                               {formatPrice((item.price - effectivePrice) * item.quantity)}
