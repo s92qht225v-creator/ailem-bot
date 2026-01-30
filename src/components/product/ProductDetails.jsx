@@ -428,40 +428,50 @@ const ProductDetails = ({ product, onAddToCart }) => {
         {/* Thumbnail Gallery */}
         {images.length > 1 && (
           <div className="p-3 bg-white">
-            <div className="flex gap-3 overflow-x-auto pb-2 px-2 pt-2">
+            <div className="flex gap-3 overflow-x-auto pb-4 px-2 pt-2">
               {images.map((image, index) => (
-                <button
+                <div
                   key={index}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`relative flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                    currentImageIndex === index
-                      ? 'border-accent shadow-lg scale-105 ring-2 ring-accent ring-offset-2'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  style={{
-                    backgroundImage: `url(${image})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundColor: '#f3f4f6',
-                    WebkitTouchCallout: 'none',
-                    WebkitUserSelect: 'none',
-                    userSelect: 'none'
-                  }}
-                  onContextMenu={(e) => e.preventDefault()}
-                  aria-label={`${product.name} - ${index + 1}`}
+                  className="flex-shrink-0"
+                  style={{ padding: '4px' }}
                 >
-                  {/* Selection indicator */}
-                  {currentImageIndex === index && (
-                    <div className="absolute inset-0 bg-accent/20 flex items-center justify-center">
-                      <div className="bg-accent rounded-full p-1">
-                        <svg className="w-4 h-4 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
-                          <path d="M5 13l4 4L19 7"></path>
-                        </svg>
+                  <button
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`relative w-20 h-20 rounded-lg transition-all ${
+                      currentImageIndex === index
+                        ? 'ring-2 ring-accent ring-offset-2 shadow-lg'
+                        : 'border-2 border-gray-200 hover:border-gray-300'
+                    }`}
+                    style={{
+                      WebkitTouchCallout: 'none',
+                      WebkitUserSelect: 'none',
+                      userSelect: 'none'
+                    }}
+                    onContextMenu={(e) => e.preventDefault()}
+                    aria-label={`${product.name} - ${index + 1}`}
+                  >
+                    <div
+                      className="absolute inset-0 rounded-lg"
+                      style={{
+                        backgroundImage: `url(${image})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundColor: '#f3f4f6'
+                      }}
+                    />
+                    {/* Selection indicator */}
+                    {currentImageIndex === index && (
+                      <div className="absolute inset-0 bg-accent/20 rounded-lg flex items-center justify-center">
+                        <div className="bg-accent rounded-full p-1">
+                          <svg className="w-4 h-4 text-white" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" viewBox="0 0 24 24" stroke="currentColor">
+                            <path d="M5 13l4 4L19 7"></path>
+                          </svg>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </button>
+                    )}
+                  </button>
+                </div>
               ))}
             </div>
           </div>
