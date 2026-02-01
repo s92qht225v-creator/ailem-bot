@@ -281,9 +281,15 @@ const ProductsSection = () => {
         weight: formData.weight ? parseFloat(formData.weight) : null,
         stock: parseInt(formData.stock) || 0,
         badge: formData.badge || null,
-        material: formData.material,
-        colors: formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c) : [],
-        sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) : [],
+        material: formData.material || null,
+        colors: formData.colors ? formData.colors.split(',').map(c => c.trim()).filter(c => c) :
+          (formData.variants && formData.variants.length > 0
+            ? [...new Set(formData.variants.map(v => v.color).filter(Boolean))]
+            : []),
+        sizes: formData.sizes ? formData.sizes.split(',').map(s => s.trim()).filter(s => s) :
+          (formData.variants && formData.variants.length > 0
+            ? [...new Set(formData.variants.map(v => v.size).filter(Boolean))]
+            : []),
         tags: formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
         variants: formData.variants || [],
         volume_pricing: formData.volume_pricing && formData.volume_pricing.length > 0 ? formData.volume_pricing : null,
@@ -392,8 +398,16 @@ const ProductsSection = () => {
       stock: product.stock ? product.stock.toString() : '',
       badge: product.badge || '',
       material: product.material || '',
-      colors: product.colors ? product.colors.join(', ') : '',
-      sizes: product.sizes ? product.sizes.join(', ') : '',
+      colors: product.colors && product.colors.length > 0
+        ? product.colors.join(', ')
+        : (product.variants && product.variants.length > 0
+          ? [...new Set(product.variants.map(v => v.color).filter(Boolean))].join(', ')
+          : ''),
+      sizes: product.sizes && product.sizes.length > 0
+        ? product.sizes.join(', ')
+        : (product.variants && product.variants.length > 0
+          ? [...new Set(product.variants.map(v => v.size).filter(Boolean))].join(', ')
+          : ''),
       tags: product.tags ? product.tags.join(', ') : '',
       barcode: product.barcode || '',
       inStock: product.inStock !== false,
