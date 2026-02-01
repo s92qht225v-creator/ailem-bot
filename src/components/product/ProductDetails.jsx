@@ -11,8 +11,8 @@ import APlusContent from './APlusContent';
 const ProductDetails = ({ product, onAddToCart }) => {
   const { user } = useContext(UserContext);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [selectedColor, setSelectedColor] = useState(product.colors?.[0] || null);
-  const [selectedSize, setSelectedSize] = useState(product.sizes?.[0] || null);
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedSize, setSelectedSize] = useState(null);
   const [quantity, setQuantity] = useState(1);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
@@ -31,6 +31,15 @@ const ProductDetails = ({ product, onAddToCart }) => {
 
   // Check if product uses variant tracking (must be declared first)
   const hasVariants = product.variants && product.variants.length > 0;
+
+  // Get colors and sizes - prefer product arrays, but fall back to extracting from variants
+  const productColors = product.colors && product.colors.length > 0
+    ? product.colors
+    : (hasVariants ? [...new Set(product.variants.map(v => v.color).filter(Boolean))] : []);
+
+  const productSizes = product.sizes && product.sizes.length > 0
+    ? product.sizes
+    : (hasVariants ? [...new Set(product.variants.map(v => v.size).filter(Boolean))] : []);
 
   // Get current variant if both color and size are selected
   const currentVariant = hasVariants && selectedColor && selectedSize
@@ -82,12 +91,12 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const priceRange = hasVariants ? getVariantPriceRange(product.variants, product.price) : null;
 
   // Get available colors (those with stock)
-  const availableColors = hasVariants ? getAvailableColors(product.variants) : (product.colors || []);
+  const availableColors = hasVariants ? getAvailableColors(product.variants) : productColors;
 
   // Get available sizes for selected color
   const availableSizes = hasVariants && selectedColor
     ? getAvailableSizesForColor(product.variants, selectedColor)
-    : (product.sizes || []);
+    : productSizes;
 
   // Reset selected color/size when product changes
   useEffect(() => {
@@ -97,10 +106,10 @@ const ProductDetails = ({ product, onAddToCart }) => {
       const sizesForColor = getAvailableSizesForColor(product.variants, availableColors[0]);
       setSelectedSize(sizesForColor[0] || null);
     } else {
-      setSelectedColor(product.colors?.[0] || null);
-      setSelectedSize(product.sizes?.[0] || null);
+      setSelectedColor(productColors[0] || null);
+      setSelectedSize(productSizes[0] || null);
     }
-  }, [product.id]);
+  }, [product.id, hasVariants, productColors, productSizes]);
 
   // Reset to first image when variant changes
   useEffect(() => {
@@ -589,13 +598,13 @@ const ProductDetails = ({ product, onAddToCart }) => {
         </div>
 
         {/* Color Selection */}
-        {product.colors && product.colors.length > 0 && (
+        {productColors.length > 0 && (
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t('product.selectColor')}: {selectedColor}
             </label>
             <div className="flex gap-2 flex-wrap">
-              {product.colors.map((color) => {
+              {productColors.map((color) => {
                 // Check if this color has stock in ANY size
                 const isAvailable = !hasVariants || product.variants.some(v => {
                   const matchesColor = v.color?.toLowerCase() === color.toLowerCase();
@@ -623,13 +632,13 @@ const ProductDetails = ({ product, onAddToCart }) => {
         )}
 
         {/* Size Selection */}
-        {product.sizes && product.sizes.length > 0 && (
+        {productSizes.length > 0 && (
           <div className="mb-4">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               {t('product.selectSize')}: {selectedSize}
             </label>
             <div className="flex gap-2 flex-wrap">
-              {product.sizes.map((size) => {
+              {productSizes.map((size) => {
                 const isAvailable = !hasVariants || availableSizes.includes(size);
                 return (
                   <button
