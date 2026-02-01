@@ -100,16 +100,18 @@ const ProductDetails = ({ product, onAddToCart }) => {
 
   // Reset selected color/size when product changes
   useEffect(() => {
-    if (hasVariants && availableColors.length > 0) {
-      setSelectedColor(availableColors[0]);
-      // Reset size too since available sizes depend on selected color
-      const sizesForColor = getAvailableSizesForColor(product.variants, availableColors[0]);
-      setSelectedSize(sizesForColor[0] || null);
-    } else {
+    if (hasVariants) {
+      const colors = getAvailableColors(product.variants);
+      if (colors.length > 0) {
+        setSelectedColor(colors[0]);
+        const sizesForColor = getAvailableSizesForColor(product.variants, colors[0]);
+        setSelectedSize(sizesForColor[0] || null);
+      }
+    } else if (productColors.length > 0 || productSizes.length > 0) {
       setSelectedColor(productColors[0] || null);
       setSelectedSize(productSizes[0] || null);
     }
-  }, [product.id, hasVariants, productColors, productSizes]);
+  }, [product.id]);
 
   // Reset to first image when variant changes
   useEffect(() => {
