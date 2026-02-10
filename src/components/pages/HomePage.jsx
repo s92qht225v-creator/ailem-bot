@@ -94,16 +94,16 @@ const HomePage = ({ onNavigate }) => {
       {/* Categories */}
       <div className="px-4 mb-6 pt-6">
         <h3 className="text-xl font-bold mb-4">{t('nav.categories')}</h3>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-3">
           {categories && categories.length > 0 ? categories.filter(category => category.visible !== false).map((category) => (
             <button
               key={category.id}
               onClick={() => {
                 onNavigate('shop', { category: category.name });
               }}
-              className="flex flex-col items-center gap-2 p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              className="flex flex-col items-center justify-center gap-3 p-5 bg-white rounded-2xl border-2 border-gray-100 hover:border-accent hover:shadow-lg transition-all aspect-square"
             >
-              <div className="w-16 h-16 flex items-center justify-center">
+              <div className="w-20 h-20 flex items-center justify-center">
                 <img
                   src={category.image}
                   alt={category.name}
@@ -113,7 +113,7 @@ const HomePage = ({ onNavigate }) => {
                   }}
                 />
               </div>
-              <span className="text-xs font-medium text-gray-800 text-center uppercase leading-tight">
+              <span className="text-xs font-semibold text-gray-900 text-center uppercase leading-tight">
                 {category.name}
               </span>
             </button>
