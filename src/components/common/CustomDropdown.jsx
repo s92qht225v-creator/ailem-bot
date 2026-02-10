@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { t } from "../../utils/translation-fallback";
 import { ChevronDown, Check } from 'lucide-react';
 
@@ -37,15 +38,29 @@ const CustomDropdown = ({
   // Get button position for fixed positioning of dropdown
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
 
+  // Update dropdown position when it opens or window scrolls/resizes
   useEffect(() => {
-    if (isOpen && dropdownRef.current) {
-      const rect = dropdownRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX,
-        width: rect.width
-      });
-    }
+    if (!isOpen || !dropdownRef.current) return;
+
+    const updatePosition = () => {
+      if (dropdownRef.current) {
+        const rect = dropdownRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom,
+          left: rect.left,
+          width: rect.width
+        });
+      }
+    };
+
+    updatePosition();
+    window.addEventListener('scroll', updatePosition, true);
+    window.addEventListener('resize', updatePosition);
+
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true);
+      window.removeEventListener('resize', updatePosition);
+    };
   }, [isOpen]);
 
   return (
@@ -66,8 +81,8 @@ const CustomDropdown = ({
         />
       </button>
 
-      {/* Dropdown Panel */}
-      {isOpen && (
+      {/* Dropdown Panel - Render via Portal to escape overflow container */}
+      {isOpen && createPortal(
         <>
           {/* Backdrop */}
           <div
@@ -75,7 +90,7 @@ const CustomDropdown = ({
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Options Panel - Fixed positioning to break out of overflow container */}
+          {/* Options Panel - Fixed positioning via Portal */}
           <div
             className="fixed bg-white rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto border border-gray-200 animate-fade-in"
             style={{
@@ -106,7 +121,8 @@ const CustomDropdown = ({
               </button>
             ))}
           </div>
-        </>
+        </>,
+        document.body
       )}
 
       {/* Hidden input for form validation */}
