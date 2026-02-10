@@ -999,6 +999,27 @@ COMMENT ON COLUMN products.visible IS 'Controls whether product is shown to cust
 
 ---
 
+**Volume Pricing Mobile Layout** (Fixed 2026-02-10):
+- Added `flex-wrap` to volume pricing tier display to prevent badge squishing on mobile
+- Added `whitespace-nowrap` to tejang (savings) badge to keep text intact
+- Location: `src/components/product/ProductDetails.jsx` line 558
+- Ensures proper wrapping of "5+ dona: har biri 175 000 so'm | 15 000 so'm tejang"
+
+**Profile Bonus Card** (Updated 2026-02-10):
+- Changed from green gradient (`from-success to-green-600`) to red gradient (`from-accent to-red-600`)
+- Matches primary brand color for visual consistency
+- Location: `src/components/pages/ProfilePage.jsx`
+
+**Favorites Page - Variant Handling** (Fixed 2026-02-10):
+- Smart "Add to Cart" button behavior based on product variants
+- Products WITH variants (colors/sizes) → Navigate to product details for variant selection
+- Products WITHOUT variants → Add directly to cart (quick action)
+- Prevents accidental addition of unwanted variant combinations
+- Better UX flow consistent with e-commerce standards
+- Location: `src/components/pages/FavoritesPage.jsx` `handleAddToCart` function
+
+---
+
 **Last Updated**: 2026-02-10
 **Version**: 1.0.22
 **Maintained By**: Ailem Development Team

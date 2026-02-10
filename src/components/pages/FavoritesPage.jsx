@@ -20,11 +20,19 @@ const FavoritesPage = ({ onNavigate }) => {
   const handleAddToCart = (product) => {
     if (!product) return;
 
-    // Get default color and size if available
-    const defaultColor = product.colors?.[0];
-    const defaultSize = product.sizes?.[0];
+    // Check if product has variants (colors or sizes)
+    const hasVariants = (product.variants && product.variants.length > 0) ||
+                       (product.colors && product.colors.length > 0) ||
+                       (product.sizes && product.sizes.length > 0);
 
-    addToCart(product, 1, defaultColor, defaultSize);
+    // If product has variants, navigate to product page for variant selection
+    if (hasVariants) {
+      onNavigate('product', { productId: product.id });
+      return;
+    }
+
+    // For products without variants, add directly to cart
+    addToCart(product, 1, null, null);
   };
 
   // Show loading state if products not loaded

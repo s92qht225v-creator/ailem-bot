@@ -104,7 +104,7 @@ const CustomDropdown = ({
           <div
             className="dropdown-panel fixed bg-white rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto border border-gray-200 animate-fade-in"
             style={{
-              top: `${dropdownPosition.top + 8}px`,
+              top: `${dropdownPosition.top + 4}px`,
               left: `${dropdownPosition.left}px`,
               width: `${dropdownPosition.width}px`
             }}
