@@ -577,7 +577,18 @@ updated_at TIMESTAMP
 
 **Important**: API layer automatically transforms between database snake_case and app camelCase.
 
-## Custom Tailwind Colors
+## Design System
+
+### Typography
+
+**Font Family**: Plus Jakarta Sans (Google Fonts)
+- **Weights**: 400 (regular), 500 (medium), 600 (semi-bold), 700 (bold)
+- **Source**: Google Fonts CDN (preconnected for performance)
+- **Fallback**: system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif
+- **Configuration**: `tailwind.config.js` - fontFamily.sans
+- **Import**: `index.html` - Google Fonts link with font-display: swap
+
+### Custom Tailwind Colors
 
 ```javascript
 colors: {
@@ -588,6 +599,10 @@ colors: {
   error: '#EF4444',     // Red - errors
 }
 ```
+
+### Layout Constraints
+- **Max Width**: 448px (mobile viewport for Telegram Mini App)
+- **Mobile-First**: All designs optimized for mobile screens
 
 ## Common Code Patterns
 
@@ -846,9 +861,10 @@ UPDATE categories SET visible = true WHERE visible IS NULL;
 - Test in Telegram Mobile App (not just desktop)
 - Check audit logs for admin action issues
 
-## Notes
+## Design & UI Notes
 
 - **Mobile-First**: Design optimized for max-width 448px (Telegram WebView)
+- **Font**: Plus Jakarta Sans (400-700 weights) from Google Fonts
 - **Uzbek Localization**: All UI text in Uzbek (Cyrillic)
 - **UZS Currency**: All prices in Uzbek Som (formatted with spaces: 150 000 so'm)
 - **Date Format**: DD.MM.YYYY (Uzbek standard)
