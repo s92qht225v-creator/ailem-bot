@@ -94,7 +94,7 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
   if (activeBanners.length === 1) {
     const banner = activeBanners[0];
     return (
-      <div className="relative h-64 bg-gradient-to-r from-primary to-gray-700 mx-4 mb-6 rounded-lg overflow-hidden">
+      <div className="relative h-64 bg-gradient-to-r from-primary to-gray-700 mx-4 mb-6 rounded-2xl overflow-hidden">
         <img
           src={banner.imageUrl}
           alt={banner.title}
@@ -113,7 +113,7 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
   // Multiple banners - full carousel
   return (
     <div 
-      className="relative h-64 bg-gradient-to-r from-primary to-gray-700 mx-4 mb-6 rounded-lg overflow-hidden group"
+      className="relative h-64 bg-gradient-to-r from-primary to-gray-700 mx-4 mb-6 rounded-2xl overflow-hidden group"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
