@@ -931,6 +931,26 @@ UPDATE categories SET visible = true WHERE visible IS NULL;
 - **QR Codes**: html5-qrcode for camera scanning
 - **Printing**: Browser print API for labels/slips
 
+### Recent Design Updates (2026-02-10)
+
+**Homepage Redesign**:
+- **Background**: Light gray (#f5f5f5) for entire page with white cards for floating effect
+- **Border Radius**: Increased to `rounded-2xl` for banners, categories, and product cards
+- **Shadows**: Added `shadow-sm` to category cards, `shadow-md` to product cards
+- **Category Cards**:
+  - Square aspect ratio (`aspect-square`) with fixed text height (`h-8`)
+  - Border: 2px gray-100 with accent hover effect
+  - Icon size: 80x80px (w-20 h-20)
+  - Text: xs, semibold, uppercase, center-aligned
+- **Spacing**: Reduced margins between sections (mb-4 throughout)
+- **Filters**: Horizontally scrollable on shop page with `overflow-x-auto`
+
+**Category Visibility System**:
+- Admin can toggle category visibility with Eye/EyeOff icons
+- Hidden categories shown with "Yashirilgan" badge in admin panel
+- Customer views automatically filter to show only visible categories
+- Database: `visible` BOOLEAN column (default: true)
+
 ---
 
 **Last Updated**: 2026-02-10
