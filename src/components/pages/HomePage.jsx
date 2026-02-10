@@ -76,7 +76,7 @@ const HomePage = ({ onNavigate }) => {
   }
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 bg-[#f5f5f5] min-h-screen">
       {/* Logo Space */}
       <div className="pt-16"></div>
 
@@ -92,16 +92,16 @@ const HomePage = ({ onNavigate }) => {
       )}
 
       {/* Categories */}
-      <div className="px-4 mb-6 pt-6 pb-6 bg-[#f5f5f5] -mx-4">
-        <h3 className="text-xl font-bold mb-4 px-4">{t('nav.categories')}</h3>
-        <div className="grid grid-cols-3 gap-3 px-4">
+      <div className="px-4 mb-6 pt-6 pb-6">
+        <h3 className="text-xl font-bold mb-4">{t('nav.categories')}</h3>
+        <div className="grid grid-cols-3 gap-3">
           {categories && categories.length > 0 ? categories.filter(category => category.visible !== false).map((category) => (
             <button
               key={category.id}
               onClick={() => {
                 onNavigate('shop', { category: category.name });
               }}
-              className="flex flex-col items-center justify-center gap-3 p-5 bg-white rounded-2xl border-2 border-gray-100 hover:border-accent hover:shadow-lg transition-all aspect-square"
+              className="flex flex-col items-center justify-center gap-3 p-5 bg-white rounded-2xl border-2 border-gray-100 shadow-sm hover:border-accent hover:shadow-lg transition-all aspect-square"
             >
               <div className="w-20 h-20 flex items-center justify-center">
                 <img
