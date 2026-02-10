@@ -158,7 +158,7 @@ const CustomDropdown = ({
           {/* Options Panel - Fixed positioning via Portal */}
           <div
             ref={panelRef}
-            className="dropdown-panel fixed bg-white rounded-xl shadow-lg z-50 max-h-80 overflow-hidden border border-gray-200"
+            className="dropdown-panel fixed bg-white rounded-xl shadow-lg z-50 max-h-80 overflow-y-auto border border-gray-200"
             style={{
               top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
@@ -168,32 +168,30 @@ const CustomDropdown = ({
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="overflow-y-auto max-h-80">
-              {options.map((option, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelect(option);
-                  }}
-                  className={`w-full px-4 py-4 text-left text-base transition-colors flex items-center justify-between ${
-                    value === option
-                      ? 'bg-accent text-white font-semibold'
-                      : 'text-gray-900 hover:bg-gray-50'
-                  } ${
-                    index === 0 ? 'rounded-t-xl' : ''
-                  } ${
-                    index === options.length - 1 ? 'rounded-b-xl' : 'border-b border-gray-100'
-                  }`}
-                >
-                  <span>{option}</span>
-                  {value === option && (
-                    <Check className="w-5 h-5" />
-                  )}
-                </button>
-              ))}
-            </div>
+            {options.map((option, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelect(option);
+                }}
+                className={`w-full px-4 py-4 text-left text-base transition-colors flex items-center justify-between ${
+                  value === option
+                    ? 'bg-accent text-white font-semibold'
+                    : 'text-gray-900 hover:bg-gray-50'
+                } ${
+                  index === 0 ? 'rounded-t-xl' : ''
+                } ${
+                  index === options.length - 1 ? 'rounded-b-xl' : 'border-b border-gray-100'
+                }`}
+              >
+                <span>{option}</span>
+                {value === option && (
+                  <Check className="w-5 h-5" />
+                )}
+              </button>
+            ))}
           </div>
         </>,
         document.body
