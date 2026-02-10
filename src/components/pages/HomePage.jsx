@@ -92,8 +92,8 @@ const HomePage = ({ onNavigate }) => {
       )}
 
       {/* Categories */}
-      <div className="px-4 mb-4 pt-4 pb-4">
-        <h3 className="text-xl font-bold mb-4">{t('nav.categories')}</h3>
+      <div className="px-4 mb-4">
+        <h3 className="text-xl font-bold mb-4 mt-4">{t('nav.categories')}</h3>
         <div className="grid grid-cols-3 gap-3">
           {categories && categories.length > 0 ? categories.filter(category => category.visible !== false).map((category) => (
             <button
