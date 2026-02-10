@@ -42,8 +42,8 @@ const CustomDropdown = ({
   };
 
   const selectedOption = options.find(opt => opt === value);
-  const displayValue = (value === 'All' || !value) ? placeholder : selectedOption;
-  const isPlaceholder = (value === 'All' || !value);
+  const displayValue = (value === t('shop.all') || !value) ? placeholder : selectedOption;
+  const isPlaceholder = (value === t('shop.all') || !value);
 
   // Get button position for fixed positioning of dropdown
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });

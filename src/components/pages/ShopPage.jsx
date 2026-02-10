@@ -54,7 +54,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
         materials.add(product.material);
       }
     });
-    return ['All', ...Array.from(materials).sort()];
+    return [t('shop.all'), ...Array.from(materials).sort()];
   }, [allProducts]);
 
   const availableColors = useMemo(() => {
@@ -64,7 +64,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
         product.colors.forEach(color => colors.add(color));
       }
     });
-    return ['All', ...Array.from(colors).sort()];
+    return [t('shop.all'), ...Array.from(colors).sort()];
   }, [allProducts]);
 
   const availableSizes = useMemo(() => {
@@ -74,7 +74,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
         product.sizes.forEach(size => sizes.add(size));
       }
     });
-    return ['All', ...Array.from(sizes)];
+    return [t('shop.all'), ...Array.from(sizes)];
   }, [allProducts]);
 
   // Generate autocomplete suggestions based on search query

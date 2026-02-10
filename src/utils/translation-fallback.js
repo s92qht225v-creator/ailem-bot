@@ -46,6 +46,7 @@ export const t = (key, params = {}) => {
     // Shop page
     'header.searchPlaceholder': 'Mahsulotlarni qidirish...',
     'shop.filters': 'Filtrlar',
+    'shop.all': 'Hammasi',
     'product.material': 'Material',
     'product.colors': 'Ranglar',
     'product.sizes': 'O\'lchamlar',

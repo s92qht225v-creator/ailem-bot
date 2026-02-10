@@ -1,5 +1,7 @@
+import { t } from '../../utils/translation-fallback';
+
 const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }) => {
-  const allCategories = ['All', ...categories];
+  const allCategories = [t('shop.all'), ...categories];
 
   return (
     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">

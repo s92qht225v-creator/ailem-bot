@@ -2,17 +2,18 @@ import { useContext, useState, useMemo, useEffect } from 'react';
 import { AdminContext } from '../context/AdminContext';
 import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
 import { getTotalVariantStock } from '../utils/variants';
+import { t } from '../utils/translation-fallback';
 
 export const useProducts = () => {
   const { products, orders } = useContext(AdminContext);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(() => {
-    return loadFromLocalStorage('selectedCategory', 'All');
+    return loadFromLocalStorage('selectedCategory', t('shop.all'));
   });
-  const [selectedPriceRange, setSelectedPriceRange] = useState('All');
-  const [selectedMaterial, setSelectedMaterial] = useState('All');
-  const [selectedColor, setSelectedColor] = useState('All');
-  const [selectedSize, setSelectedSize] = useState('All');
+  const [selectedPriceRange, setSelectedPriceRange] = useState(t('shop.all'));
+  const [selectedMaterial, setSelectedMaterial] = useState(t('shop.all'));
+  const [selectedColor, setSelectedColor] = useState(t('shop.all'));
+  const [selectedSize, setSelectedSize] = useState(t('shop.all'));
   const [sortBy, setSortBy] = useState('newest');
 
   // Save category to localStorage whenever it changes
@@ -30,12 +31,12 @@ export const useProducts = () => {
     };
 
     // Filter by category
-    if (selectedCategory !== 'All') {
+    if (selectedCategory !== t('shop.all')) {
       filtered = filtered.filter(product => product.category === selectedCategory);
     }
 
     // Filter by price range
-    if (selectedPriceRange !== 'All') {
+    if (selectedPriceRange !== t('shop.all')) {
       filtered = filtered.filter(product => {
         const price = product.price;
         switch (selectedPriceRange) {
@@ -56,21 +57,21 @@ export const useProducts = () => {
     }
 
     // Filter by material
-    if (selectedMaterial !== 'All') {
+    if (selectedMaterial !== t('shop.all')) {
       filtered = filtered.filter(product =>
         product.material && product.material.toLowerCase() === selectedMaterial.toLowerCase()
       );
     }
 
     // Filter by color
-    if (selectedColor !== 'All') {
+    if (selectedColor !== t('shop.all')) {
       filtered = filtered.filter(product =>
         product.colors && product.colors.includes(selectedColor)
       );
     }
 
     // Filter by size
-    if (selectedSize !== 'All') {
+    if (selectedSize !== t('shop.all')) {
       filtered = filtered.filter(product =>
         product.sizes && product.sizes.includes(selectedSize)
       );
