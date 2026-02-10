@@ -31,7 +31,7 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
   return (
     <div
       onClick={() => onView(product.id)}
-      className={`bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer ${
+      className={`bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer ${
         isOutOfStock ? 'opacity-90' : ''
       }`}
     >
