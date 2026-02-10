@@ -126,8 +126,14 @@ users: id, telegram_id, name, bonus_points, favorites, cart, role
 products: id, name, price, stock, variants, volume_pricing, category_name, a_plus_content
 orders: id, user_id, items, total, status, delivery_info, payment_method
 reviews: id, product_id, user_id, rating, comment, approved
-categories: id, name, image
+categories: id, name, image, visible
 ```
+
+### Categories Table
+- `visible` (BOOLEAN, default: true): Controls whether a category is displayed to customers
+  - `true`: Category appears on homepage and shop filters
+  - `false`: Category is hidden from customers but remains manageable in admin panel
+  - All existing categories default to visible
 
 ## Custom Colors (Tailwind)
 
@@ -240,6 +246,7 @@ VITE_CLICK_MERCHANT_ID
 7. **Admin**: Orders, products, reviews, analytics, settings
 8. **Cashier/POS**: Walk-in customer support, quick checkout
 9. **A+ Content**: Rich product descriptions with modular content blocks
+10. **Category Visibility**: Show/hide categories from customer view while keeping products manageable
 
 ## A+ Content System
 
@@ -286,6 +293,50 @@ A+ Content allows rich, modular product descriptions displayed below the product
 - **Format**: JPG for photos, PNG for graphics
 - **File size**: Under 500KB per image
 - **Image sequence**: All images should have same width for seamless display
+
+## Category Management
+
+### Category Visibility Toggle
+
+Admins can show/hide categories from customer-facing views without deleting them.
+
+**API Method**:
+```javascript
+import { categoriesAPI } from '../services/api';
+
+// Toggle visibility
+await categoriesAPI.toggleVisibility(categoryId, true);  // Show
+await categoriesAPI.toggleVisibility(categoryId, false); // Hide
+```
+
+**Context Method**:
+```javascript
+import { AdminContext } from '../context/AdminContext';
+
+const { toggleCategoryVisibility } = useContext(AdminContext);
+await toggleCategoryVisibility(categoryId, false); // Hide category
+```
+
+**Admin UI**:
+- Located in Admin Panel → Categories section
+- Each category card has Eye/EyeOff toggle button
+- Hidden categories show "Yashirilgan" badge and appear dimmed
+- Toggle button text: "Ko'rsatish" (Show) / "Yashirish" (Hide)
+
+**Customer Views**:
+- HomePage: `categories.filter(c => c.visible !== false)`
+- ShopPage: `categories.filter(c => c.visible !== false)`
+- Hidden categories are completely filtered from customer view
+- Products in hidden categories remain accessible via search/direct links
+
+**Migration Required**:
+When deploying this feature, run the migration in Supabase SQL Editor:
+```sql
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS visible BOOLEAN DEFAULT true;
+UPDATE categories SET visible = true WHERE visible IS NULL;
+```
+
+Migration file: `supabase-migrations/add-categories-visible.sql`
 
 ## Notes
 
