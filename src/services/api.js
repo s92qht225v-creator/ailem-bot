@@ -305,6 +305,28 @@ export const productsAPI = {
     if (error) throw error;
   },
 
+  // Toggle product visibility
+  async toggleVisibility(id, visible) {
+    const { data, error } = await supabase
+      .from('products')
+      .update({ visible })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Map database fields back to app format
+    return {
+      ...data,
+      category: data.category_name,
+      originalPrice: data.original_price,
+      reviewCount: data.review_count,
+      variants: data.variants || [],
+      aPlusContent: data.a_plus_content
+    };
+  },
+
   // Get product by barcode (for cashier scanner)
   // Searches both product-level barcode and variant barcodes
   async getByBarcode(barcode) {

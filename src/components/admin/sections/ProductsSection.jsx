@@ -3,7 +3,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { marked } from 'marked';
 import {
-  Edit, Trash2, Copy, Plus, ChevronRight, Upload, AlertTriangle, X, Download, Search, ImagePlus
+  Edit, Trash2, Copy, Plus, ChevronRight, Upload, AlertTriangle, X, Download, Search, ImagePlus, Eye, EyeOff
 } from 'lucide-react';
 import { AdminContext } from '../../../context/AdminContext';
 import { useToast } from '../../../context/ToastContext';
@@ -22,7 +22,7 @@ marked.setOptions({
 });
 
 const ProductsSection = () => {
-  const { products, categories, addProduct, updateProduct, deleteProduct } = useContext(AdminContext);
+  const { products, categories, addProduct, updateProduct, deleteProduct, toggleProductVisibility } = useContext(AdminContext);
   const toast = useToast();
   const confirm = useConfirm();
 
@@ -434,6 +434,17 @@ const ProductsSection = () => {
         console.error('❌ Failed to delete product:', error);
         toast.error('Mahsulotni o\'chirishda xatolik. Qayta urinib ko\'ring.');
       }
+    }
+  };
+
+  const handleToggleVisibility = async (product) => {
+    const newVisibility = product.visible === false ? true : false;
+    try {
+      await toggleProductVisibility(product.id, newVisibility);
+      toast.success(newVisibility ? 'Mahsulot ko\'rsatildi' : 'Mahsulot yashirildi');
+    } catch (error) {
+      console.error('❌ Failed to toggle product visibility:', error);
+      toast.error('Ko\'rinishni o\'zgartirishda xatolik');
     }
   };
 
@@ -1372,6 +1383,13 @@ const ProductsSection = () => {
                   </td>
                   <td className="px-6 py-4 text-sm">
                     <div className="flex gap-2">
+                      <button
+                        onClick={() => handleToggleVisibility(product)}
+                        className={product.visible === false ? 'text-gray-400 hover:text-gray-600' : 'text-green-600 hover:text-green-800'}
+                        title={product.visible === false ? 'Ko\'rsatish' : 'Yashirish'}
+                      >
+                        {product.visible === false ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                       <button
                         onClick={() => handleEdit(product)}
                         className="text-accent hover:text-red-800"

@@ -433,12 +433,28 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
+  const toggleProductVisibility = async (productId, visible) => {
+    try {
+      const updatedProduct = await productsAPI.toggleVisibility(productId, visible);
+      setProducts(prev =>
+        prev.map(product =>
+          product.id === productId ? { ...product, visible } : product
+        )
+      );
+      return updatedProduct;
+    } catch (err) {
+      console.error('Failed to toggle product visibility:', err);
+      throw err;
+    }
+  };
+
   // Don't memoize - functions are stable and memoization causes issues
   const contextValue = {
     products,
     addProduct,
     updateProduct,
     deleteProduct,
+    toggleProductVisibility,
     categories,
     addCategory,
     updateCategory,

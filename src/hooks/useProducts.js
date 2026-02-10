@@ -30,6 +30,9 @@ export const useProducts = () => {
       return hasVariants ? getTotalVariantStock(product.variants) : (product.stock || 0);
     };
 
+    // Filter out hidden products (only show visible products to customers)
+    filtered = filtered.filter(product => product.visible !== false);
+
     // Filter by category
     if (selectedCategory !== t('shop.all')) {
       filtered = filtered.filter(product => product.category === selectedCategory);
