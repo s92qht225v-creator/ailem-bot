@@ -59,6 +59,19 @@ export const categoriesAPI = {
       .eq('id', id);
 
     if (error) throw error;
+  },
+
+  // Toggle category visibility
+  async toggleVisibility(id, visible) {
+    const { data, error } = await supabase
+      .from('categories')
+      .update({ visible })
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
   }
 };
 

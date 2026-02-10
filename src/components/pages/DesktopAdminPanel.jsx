@@ -57,7 +57,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const { products, categories, orders, reviews, users, loading, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, reorderCategories, approveReview, deleteReview } = useContext(AdminContext);
+  const { products, categories, orders, reviews, users, loading, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, reorderCategories, toggleCategoryVisibility, approveReview, deleteReview } = useContext(AdminContext);
   const toast = useToast();
   const confirm = useConfirm();
 
@@ -1315,6 +1315,16 @@ const DesktopAdminPanel = ({ onLogout }) => {
       reorderCategories(reorderedCategoriesArray);
     };
 
+    const handleToggleVisibility = async (categoryId, currentVisibility) => {
+      try {
+        await toggleCategoryVisibility(categoryId, !currentVisibility);
+        toast.success(!currentVisibility ? 'Kategoriya ko\'rsatilmoqda' : 'Kategoriya yashirildi');
+      } catch (error) {
+        console.error('❌ Failed to toggle category visibility:', error);
+        toast.error('Kategoriya holatini o\'zgartirishda xatolik');
+      }
+    };
+
     return (
       <div className="space-y-6">
         {/* Header Actions */}
@@ -1432,8 +1442,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category, index) => (
-            <div key={category.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+            <div key={category.id} className={`bg-white rounded-lg shadow hover:shadow-lg transition-shadow ${category.visible === false ? 'opacity-60 ring-2 ring-gray-300' : ''}`}>
               <div className="aspect-square relative overflow-hidden rounded-t-lg bg-gray-50">
+                {category.visible === false && (
+                  <div className="absolute top-2 right-2 bg-gray-800 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 z-10">
+                    <EyeOff className="w-3 h-3" />
+                    Yashirilgan
+                  </div>
+                )}
                 {category.image ? (
                   <img
                     src={category.image}
@@ -1462,6 +1478,28 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   >
                     <Trash2 className="w-4 h-4" />
                     Delete
+                  </button>
+                </div>
+                <div className="flex gap-2 mb-2">
+                  <button
+                    onClick={() => handleToggleVisibility(category.id, category.visible !== false)}
+                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                      category.visible === false
+                        ? 'bg-green-50 hover:bg-green-100 text-green-700'
+                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {category.visible === false ? (
+                      <>
+                        <Eye className="w-4 h-4" />
+                        Ko'rsatish
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="w-4 h-4" />
+                        Yashirish
+                      </>
+                    )}
                   </button>
                 </div>
                 <div className="flex gap-2">

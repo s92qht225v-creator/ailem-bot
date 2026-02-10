@@ -170,7 +170,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
   };
 
   const categoryNames = useMemo(() =>
-    categories?.map(c => c.name) || [],
+    categories?.filter(c => c.visible !== false).map(c => c.name) || [],
     [categories]
   );
 

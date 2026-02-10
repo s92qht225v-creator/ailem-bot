@@ -95,7 +95,7 @@ const HomePage = ({ onNavigate }) => {
       <div className="px-4 mb-6 pt-6">
         <h3 className="text-xl font-bold mb-4">{t('nav.categories')}</h3>
         <div className="grid grid-cols-3 gap-4">
-          {categories && categories.length > 0 ? categories.map((category) => (
+          {categories && categories.length > 0 ? categories.filter(category => category.visible !== false).map((category) => (
             <button
               key={category.id}
               onClick={() => {

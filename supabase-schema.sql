@@ -11,6 +11,7 @@ CREATE TABLE categories (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT NOT NULL,
   image TEXT NOT NULL,
+  visible BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

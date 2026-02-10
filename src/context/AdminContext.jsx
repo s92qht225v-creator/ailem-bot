@@ -418,6 +418,21 @@ export const AdminProvider = ({ children }) => {
     saveToLocalStorage('categoryOrder', reorderedCategories.map(cat => cat.id));
   };
 
+  const toggleCategoryVisibility = async (categoryId, visible) => {
+    try {
+      const updatedCategory = await categoriesAPI.toggleVisibility(categoryId, visible);
+      setCategories(prev =>
+        prev.map(category =>
+          category.id === categoryId ? updatedCategory : category
+        )
+      );
+      return updatedCategory;
+    } catch (err) {
+      console.error('Failed to toggle category visibility:', err);
+      throw err;
+    }
+  };
+
   // Don't memoize - functions are stable and memoization causes issues
   const contextValue = {
     products,
@@ -429,6 +444,7 @@ export const AdminProvider = ({ children }) => {
     updateCategory,
     deleteCategory,
     reorderCategories,
+    toggleCategoryVisibility,
     orders,
     addOrder,
     updateOrderStatus,
