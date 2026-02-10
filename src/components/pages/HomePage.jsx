@@ -85,14 +85,14 @@ const HomePage = ({ onNavigate }) => {
 
       {/* Countdown Timer - Only show if timer is enabled */}
       {saleTimer && saleTimer.enabled && saleEndDate && (
-        <div className="bg-white shadow-md py-6 px-4 mb-6">
+        <div className="bg-white shadow-md py-6 px-4 mb-4">
           <h3 className="text-center font-semibold text-gray-700 mb-3">{t('home.saleEnds')}</h3>
           <CountdownTimer endDate={saleEndDate} />
         </div>
       )}
 
       {/* Categories */}
-      <div className="px-4 mb-6 pt-6 pb-6">
+      <div className="px-4 mb-4 pt-4 pb-4">
         <h3 className="text-xl font-bold mb-4">{t('nav.categories')}</h3>
         <div className="grid grid-cols-3 gap-3">
           {categories && categories.length > 0 ? categories.filter(category => category.visible !== false).map((category) => (
