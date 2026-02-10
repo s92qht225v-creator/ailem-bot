@@ -243,9 +243,9 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
         {/* Filters Section - Horizontal Scroll */}
         <div>
           <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('shop.filters')}</h3>
-          <div className="flex gap-3 pb-2 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-3 pb-2 overflow-x-auto scrollbar-hide overflow-y-visible">
             {/* Material Dropdown */}
-            <div className="flex-1 min-w-[140px] relative z-10">
+            <div className="flex-1 min-w-[140px] relative z-30">
               <CustomDropdown
                 value={selectedMaterial}
                 onChange={setSelectedMaterial}
@@ -255,7 +255,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
             </div>
 
             {/* Colors Dropdown */}
-            <div className="flex-1 min-w-[120px] relative z-10">
+            <div className="flex-1 min-w-[120px] relative z-20">
               <CustomDropdown
                 value={selectedColor}
                 onChange={setSelectedColor}
