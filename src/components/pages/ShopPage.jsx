@@ -51,6 +51,9 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
   const getFilteredProductsForOptions = () => {
     let filtered = [...allProducts];
 
+    // Filter out hidden products (only show visible products)
+    filtered = filtered.filter(product => product.visible !== false);
+
     // Apply category filter
     if (selectedCategory !== t('shop.all')) {
       filtered = filtered.filter(product => product.category === selectedCategory);
