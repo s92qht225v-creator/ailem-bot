@@ -988,6 +988,14 @@ COMMENT ON COLUMN products.visible IS 'Controls whether product is shown to cust
   - Dropdown panel escapes parent's stacking context and overflow constraints
 - **Click Handling**: Added `stopPropagation` to option buttons and dropdown panel to prevent backdrop from blocking clicks
 - **Dynamic Positioning**: Dropdown position updates on scroll/resize using `getBoundingClientRect()`
+- **Border-Radius Preservation**: Applied `overflow-y-auto` directly to dropdown panel (not nested div)
+  - Prevents `rounded-xl` corners from being clipped
+  - File: `src/components/common/CustomDropdown.jsx`
+- **Focus Ring Fix**: Added `pt-1 px-1 -ml-1` to filter container in ShopPage
+  - `pt-1 px-1`: Provides space for `focus:ring-2` to render without clipping
+  - `-ml-1`: Negative margin maintains alignment with other elements
+  - Fixes focus ring clipping on top and left edges inside `overflow-x-auto` container
+  - File: `src/components/pages/ShopPage.jsx` line 291
 - **Smart Filter Options**: Dropdowns only show options with available products
   - Materials: Filtered by selected category + visible products
   - Colors: Filtered by selected category + material + visible products
