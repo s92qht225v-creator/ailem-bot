@@ -57,7 +57,7 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
 
       {/* Total Bonus Points Card */}
       <div className="px-4 pt-2">
-        <div className="bg-gradient-to-r from-success to-green-600 text-white rounded-xl shadow-md p-6 text-center">
+        <div className="bg-gradient-to-r from-accent to-red-600 text-white rounded-xl shadow-md p-6 text-center">
           <Award className="w-12 h-12 mx-auto mb-3" />
           <p className="text-sm opacity-90 mb-2">Jami bonus ballar</p>
           <p className="text-4xl font-bold">{formatPrice(user.bonusPoints)}</p>

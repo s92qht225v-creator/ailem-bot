@@ -213,6 +213,7 @@ barcode TEXT  -- For POS scanning
 variants JSONB DEFAULT '[]'  -- [{color, size, stock, price, image, sku, barcode}]
 volume_pricing JSONB  -- [{min_qty, max_qty, price}]
 a_plus_content JSONB  -- Rich content modules
+visible BOOLEAN DEFAULT true  -- Show/hide from customers
 rating NUMERIC(3,2) DEFAULT 0
 review_count INTEGER DEFAULT 0
 created_at TIMESTAMP
@@ -353,6 +354,7 @@ updated_at TIMESTAMP
 - `create(product)` - Create new product
 - `update(id, updates)` - Update product
 - `delete(id)` - Delete product
+- `toggleVisibility(id, visible)` - Show/hide product from customers
 - `findByBarcode(barcode)` - POS barcode lookup (supports variant barcodes)
 
 ### ordersAPI
@@ -426,6 +428,7 @@ updated_at TIMESTAMP
 - **A+ Content**: 9 rich content module types for enhanced product descriptions
 - **Barcodes**: Product and variant barcode support for POS
 - **Stock Tracking**: Real-time inventory with low-stock alerts
+- **Visibility Toggle**: Show/hide products from customer views (Eye/EyeOff icons)
 - **Tags**: Searchable keywords for product discovery
 - **Images**: Multi-image support with main image designation
 
@@ -886,6 +889,18 @@ UPDATE categories SET visible = true WHERE visible IS NULL;
 
 **How to run**: Copy SQL to Supabase SQL Editor and execute
 
+### add-products-visible.sql
+```sql
+-- Add visible column to products table
+ALTER TABLE products ADD COLUMN IF NOT EXISTS visible BOOLEAN DEFAULT true;
+UPDATE products SET visible = true WHERE visible IS NULL;
+COMMENT ON COLUMN products.visible IS 'Controls whether product is shown to customers. Admin panel shows all products.';
+```
+
+**When to run**: Before deploying product visibility toggle feature
+
+**How to run**: Copy SQL to Supabase SQL Editor and execute
+
 ## Project Statistics
 
 - **Total Files**: 101 JavaScript/React files
@@ -951,6 +966,22 @@ UPDATE categories SET visible = true WHERE visible IS NULL;
 - Customer views automatically filter to show only visible categories
 - Database: `visible` BOOLEAN column (default: true)
 
+**Product Visibility System** (Added 2026-02-10):
+- **Admin Control**: Toggle product visibility with Eye/EyeOff icons in ProductsSection
+  - Button order: Visibility | Edit | Duplicate | Delete
+  - Colors: Green (Eye) for visible, Gray (EyeOff) for hidden
+  - Toast messages: "Mahsulot ko'rsatildi" / "Mahsulot yashirildi"
+- **Customer Filtering**: Hidden products automatically excluded from all customer views
+  - Shop page product grid
+  - Search and autocomplete results
+  - Featured products section
+  - Filter dropdown options (materials, colors, sizes)
+- **Admin Visibility**: Admin panel shows ALL products for management (including hidden)
+- **Database**: `visible` BOOLEAN column (default: true) in products table
+- **Pattern**: Use `product.visible !== false` to handle undefined/null gracefully
+- **Filter Options**: Hidden products don't contribute attributes to dropdown options
+  - Implemented in `getFilteredProductsForOptions()` in ShopPage.jsx
+
 **Shop Page Dropdown Filters** (Fixed 2026-02-10):
 - **Portal Rendering**: CustomDropdown uses React Portal (`createPortal`) to render dropdown panel directly to `document.body`
   - Fixes issue where `overflow-x-auto` on parent container clipped fixed-position dropdowns
@@ -958,9 +989,9 @@ UPDATE categories SET visible = true WHERE visible IS NULL;
 - **Click Handling**: Added `stopPropagation` to option buttons and dropdown panel to prevent backdrop from blocking clicks
 - **Dynamic Positioning**: Dropdown position updates on scroll/resize using `getBoundingClientRect()`
 - **Smart Filter Options**: Dropdowns only show options with available products
-  - Materials: Filtered by selected category
-  - Colors: Filtered by selected category + material
-  - Sizes: Filtered by selected category + material + color
+  - Materials: Filtered by selected category + visible products
+  - Colors: Filtered by selected category + material + visible products
+  - Sizes: Filtered by selected category + material + color + visible products
   - Prevents selecting filter combinations with no results
 - **Uzbek Localization**: All "All" options translated to "Hammasi"
   - Translation key: `'shop.all': 'Hammasi'`

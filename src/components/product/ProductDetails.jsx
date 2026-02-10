@@ -555,7 +555,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
                 {product.volume_pricing
                   .sort((a, b) => a.min_qty - b.min_qty)
                   .map((tier, idx) => (
-                  <div key={idx} className="text-sm text-green-800 flex items-center gap-2">
+                  <div key={idx} className="text-sm text-green-800 flex items-center gap-2 flex-wrap">
                     <span className="font-medium">
                       {tier.min_qty}{tier.max_qty ? `-${tier.max_qty}` : '+'} dona:
                     </span>
@@ -563,7 +563,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
                       har biri {formatPrice(tier.price)}
                     </span>
                     {tier.price < product.price && (
-                      <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full whitespace-nowrap">
                         {formatPrice(product.price - tier.price)} tejang
                       </span>
                     )}
