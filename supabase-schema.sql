@@ -36,6 +36,7 @@ CREATE TABLE products (
   sizes TEXT[] DEFAULT '{}',
   tags TEXT[] DEFAULT '{}',
   variants JSONB DEFAULT '[]',
+  visible BOOLEAN DEFAULT true,
   rating NUMERIC(3, 2) DEFAULT 0,
   review_count INTEGER DEFAULT 0,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
