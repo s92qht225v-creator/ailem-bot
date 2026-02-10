@@ -46,36 +46,78 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
     return map;
   }, [products, favorites, isFavorite]);
 
-  // Extract unique materials and colors from all products
+  // Extract unique materials, colors, and sizes from products matching current filters
+  // This ensures we only show filter options that have available products
+  const getFilteredProductsForOptions = () => {
+    let filtered = [...allProducts];
+
+    // Apply category filter
+    if (selectedCategory !== t('shop.all')) {
+      filtered = filtered.filter(product => product.category === selectedCategory);
+    }
+
+    return filtered;
+  };
+
   const availableMaterials = useMemo(() => {
     const materials = new Set();
-    allProducts.forEach(product => {
+    const filteredProducts = getFilteredProductsForOptions();
+
+    filteredProducts.forEach(product => {
       if (product.material) {
         materials.add(product.material);
       }
     });
-    return [t('shop.all'), ...Array.from(materials).sort()];
-  }, [allProducts]);
+
+    return materials.size > 0 ? [t('shop.all'), ...Array.from(materials).sort()] : [t('shop.all')];
+  }, [allProducts, selectedCategory]);
 
   const availableColors = useMemo(() => {
     const colors = new Set();
-    allProducts.forEach(product => {
+    const filteredProducts = getFilteredProductsForOptions();
+
+    // Also apply material filter for colors
+    let productsForColors = filteredProducts;
+    if (selectedMaterial !== t('shop.all')) {
+      productsForColors = productsForColors.filter(product =>
+        product.material && product.material.toLowerCase() === selectedMaterial.toLowerCase()
+      );
+    }
+
+    productsForColors.forEach(product => {
       if (product.colors) {
         product.colors.forEach(color => colors.add(color));
       }
     });
-    return [t('shop.all'), ...Array.from(colors).sort()];
-  }, [allProducts]);
+
+    return colors.size > 0 ? [t('shop.all'), ...Array.from(colors).sort()] : [t('shop.all')];
+  }, [allProducts, selectedCategory, selectedMaterial]);
 
   const availableSizes = useMemo(() => {
     const sizes = new Set();
-    allProducts.forEach(product => {
+    const filteredProducts = getFilteredProductsForOptions();
+
+    // Apply material and color filters for sizes
+    let productsForSizes = filteredProducts;
+    if (selectedMaterial !== t('shop.all')) {
+      productsForSizes = productsForSizes.filter(product =>
+        product.material && product.material.toLowerCase() === selectedMaterial.toLowerCase()
+      );
+    }
+    if (selectedColor !== t('shop.all')) {
+      productsForSizes = productsForSizes.filter(product =>
+        product.colors && product.colors.includes(selectedColor)
+      );
+    }
+
+    productsForSizes.forEach(product => {
       if (product.sizes) {
         product.sizes.forEach(size => sizes.add(size));
       }
     });
-    return [t('shop.all'), ...Array.from(sizes)];
-  }, [allProducts]);
+
+    return sizes.size > 0 ? [t('shop.all'), ...Array.from(sizes)] : [t('shop.all')];
+  }, [allProducts, selectedCategory, selectedMaterial, selectedColor]);
 
   // Generate autocomplete suggestions based on search query
   useEffect(() => {
