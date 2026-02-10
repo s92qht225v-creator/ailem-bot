@@ -422,12 +422,69 @@ updated_at TIMESTAMP
 
 ### 1. Product Management
 - **Variants System**: Color + Size combinations with independent stock/price/images
-- **Volume Pricing**: Tier-based bulk discounts with multi-product grouping
+- **Volume Pricing**: Tier-based bulk discounts with intelligent multi-product grouping
 - **A+ Content**: 9 rich content module types for enhanced product descriptions
 - **Barcodes**: Product and variant barcode support for POS
 - **Stock Tracking**: Real-time inventory with low-stock alerts
 - **Tags**: Searchable keywords for product discovery
 - **Images**: Multi-image support with main image designation
+
+#### Volume Pricing System (Bulk Ordering)
+
+**Overview**: Tier-based discount system that rewards bulk purchases with lower per-unit prices.
+
+**How It Works**:
+1. **Tier Structure**: Products can have multiple price tiers defined by quantity ranges
+   - Each tier has: `min_qty` (minimum), `max_qty` (maximum or null for unlimited), `price` (per unit)
+   - Example: 1-9 units = 100,000 so'm, 10-49 units = 90,000 so'm, 50+ units = 80,000 so'm
+
+2. **Tier Grouping** (Advanced Feature):
+   - Products with the **same tier threshold** are grouped together
+   - Combined quantities from multiple products count toward the discount
+   - Example: Product A (2 units) + Product B (8 units) = 10 combined → both get 10+ tier discount
+
+3. **Automatic Calculation**:
+   - Cart automatically applies the best price based on total quantity
+   - Works across multiple products with matching tier thresholds
+   - Real-time updates as quantities change
+
+**Admin Configuration**:
+- Set up in ProductsSection → Volume Pricing editor
+- Add multiple tiers with min/max quantities and prices
+- Visual preview shows pricing structure
+- Sorted by min_qty for proper tier hierarchy
+
+**Customer Experience**:
+- **Progress Indicator**: Shows how many more items needed for next discount tier
+  - "10+ chegirma uchun: 8/10 dona" (8 of 10 needed for discount)
+  - "Yana 2 dona qo'shing" (Add 2 more items)
+- **Group Info**: When multiple products combine: "(3 xil mahsulot birlashtirilgan)"
+- **Savings Display**: Green badge shows discount amount per item and total savings
+- **Badge on Product**: Shows "2+", "3+", "5+" etc. badges on product cards
+
+**Implementation** (`src/utils/volumePricing.js`):
+- `getTierThreshold()` - Get threshold for grouping products
+- `getVolumePricedUnit()` - Calculate effective price per unit
+- `groupItemsByTier()` - Group cart items by matching thresholds
+- `getTierGroupQuantity()` - Calculate combined quantity
+- `calculateItemTotalWithTierGrouping()` - Final price with grouping
+- `getTierGroupInfo()` - UI display information (progress, remaining, qualifies)
+
+**Database Storage**:
+```javascript
+// products.volume_pricing (JSONB)
+[
+  { min_qty: 1, max_qty: 9, price: 100000 },
+  { min_qty: 10, max_qty: 49, price: 90000 },
+  { min_qty: 50, max_qty: null, price: 80000 }  // null = unlimited
+]
+```
+
+**Business Logic**:
+- Encourages bulk purchases without complex coupon codes
+- Increases average order value
+- Cross-product discounts incentivize buying variety
+- Transparent pricing - customers see savings in real-time
 
 ### 2. Shopping Cart
 - **Variant-Aware**: Supports color + size selections
