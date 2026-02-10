@@ -951,6 +951,21 @@ UPDATE categories SET visible = true WHERE visible IS NULL;
 - Customer views automatically filter to show only visible categories
 - Database: `visible` BOOLEAN column (default: true)
 
+**Shop Page Dropdown Filters** (Fixed 2026-02-10):
+- **Portal Rendering**: CustomDropdown uses React Portal (`createPortal`) to render dropdown panel directly to `document.body`
+  - Fixes issue where `overflow-x-auto` on parent container clipped fixed-position dropdowns
+  - Dropdown panel escapes parent's stacking context and overflow constraints
+- **Click Handling**: Added `stopPropagation` to option buttons and dropdown panel to prevent backdrop from blocking clicks
+- **Dynamic Positioning**: Dropdown position updates on scroll/resize using `getBoundingClientRect()`
+- **Smart Filter Options**: Dropdowns only show options with available products
+  - Materials: Filtered by selected category
+  - Colors: Filtered by selected category + material
+  - Sizes: Filtered by selected category + material + color
+  - Prevents selecting filter combinations with no results
+- **Uzbek Localization**: All "All" options translated to "Hammasi"
+  - Translation key: `'shop.all': 'Hammasi'`
+  - Applied across CategoryFilter, ShopPage, useProducts hook, CustomDropdown
+
 ---
 
 **Last Updated**: 2026-02-10
