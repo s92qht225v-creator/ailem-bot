@@ -3,7 +3,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { marked } from 'marked';
 import {
-  Edit, Trash2, Plus, ChevronRight, Upload, AlertTriangle, X, Download, Search, ImagePlus
+  Edit, Trash2, Copy, Plus, ChevronRight, Upload, AlertTriangle, X, Download, Search, ImagePlus
 } from 'lucide-react';
 import { AdminContext } from '../../../context/AdminContext';
 import { useToast } from '../../../context/ToastContext';
@@ -435,6 +435,50 @@ const ProductsSection = () => {
         toast.error('Mahsulotni o\'chirishda xatolik. Qayta urinib ko\'ring.');
       }
     }
+  };
+
+  const handleDuplicate = (product) => {
+    // Create a duplicate with modified name
+    const duplicatedProduct = {
+      ...product,
+      name: `${product.name} (Nusxa)`,
+      barcode: '', // Clear barcode to avoid duplicates
+    };
+
+    // Remove id and other auto-generated fields
+    delete duplicatedProduct.id;
+    delete duplicatedProduct.createdAt;
+    delete duplicatedProduct.created_at;
+
+    // Set up form with duplicated data
+    setEditingProduct(null); // Not editing, creating new
+    const productImages = duplicatedProduct.images || [duplicatedProduct.image || duplicatedProduct.imageUrl];
+    setAllImages(productImages.filter(url => url));
+
+    setFormData({
+      name: duplicatedProduct.name,
+      description: duplicatedProduct.description || '',
+      price: duplicatedProduct.price?.toString() || '',
+      salePrice: duplicatedProduct.salePrice?.toString() || '',
+      imageUrl: duplicatedProduct.image || duplicatedProduct.imageUrl || '',
+      additionalImages: duplicatedProduct.images?.slice(1).join(',') || '',
+      category: duplicatedProduct.category || 'Bedsheets',
+      weight: duplicatedProduct.weight?.toString() || '',
+      stock: duplicatedProduct.stock?.toString() || '',
+      badge: duplicatedProduct.badge || '',
+      material: duplicatedProduct.material || '',
+      colors: duplicatedProduct.colors?.join(', ') || '',
+      sizes: duplicatedProduct.sizes?.join(', ') || '',
+      tags: duplicatedProduct.tags?.join(', ') || '',
+      barcode: '', // Clear barcode
+      inStock: duplicatedProduct.inStock !== false,
+      variants: duplicatedProduct.variants || [],
+      volume_pricing: duplicatedProduct.volume_pricing || null,
+      aPlusContent: duplicatedProduct.aPlusContent || duplicatedProduct.a_plus_content || null
+    });
+
+    setShowForm(true);
+    toast.info('Mahsulot nusxalandi. Tahrirlang va saqlang.');
   };
 
   const handleColorsOrSizesChange = (field, value) => {
@@ -1331,14 +1375,23 @@ const ProductsSection = () => {
                       <button
                         onClick={() => handleEdit(product)}
                         className="text-accent hover:text-red-800"
+                        title="Tahrirlash"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
+                        onClick={() => handleDuplicate(product)}
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Nusxalash"
+                      >
+                        <Copy className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => handleDelete(product.id)}
                         className="text-red-600 hover:text-red-800"
+                        title="O'chirish"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
