@@ -113,7 +113,7 @@ const HomePage = ({ onNavigate }) => {
                   }}
                 />
               </div>
-              <span className="text-xs font-semibold text-gray-900 text-center uppercase leading-tight">
+              <span className="text-xs font-semibold text-gray-900 text-center uppercase leading-tight h-8 flex items-center justify-center">
                 {category.name}
               </span>
             </button>
