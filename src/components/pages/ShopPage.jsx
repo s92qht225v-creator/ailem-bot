@@ -288,7 +288,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
         {/* Filters Section - Horizontal Scroll */}
         <div>
           <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('shop.filters')}</h3>
-          <div className="flex gap-3 pb-2 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-3 pb-2 pt-1 pl-1 -ml-1 overflow-x-auto scrollbar-hide">
             {/* Material Dropdown */}
             <div className="flex-1 min-w-[140px]">
               <CustomDropdown
