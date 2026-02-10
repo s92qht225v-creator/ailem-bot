@@ -55,9 +55,39 @@ const CustomDropdown = ({
     const updatePosition = () => {
       if (dropdownRef.current) {
         const rect = dropdownRef.current.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const dropdownHeight = 320; // max-h-80 = 320px
+        const spacing = 4;
+
+        // Calculate initial position
+        let top = rect.bottom + spacing;
+        let left = rect.left;
+
+        // Adjust if dropdown would go off the right edge
+        if (left + rect.width > viewportWidth) {
+          left = viewportWidth - rect.width - 8; // 8px padding from edge
+        }
+
+        // Adjust if dropdown would go off the bottom edge
+        if (top + dropdownHeight > viewportHeight) {
+          // Position above the button instead
+          top = rect.top - dropdownHeight - spacing;
+        }
+
+        // Ensure left doesn't go negative
+        if (left < 8) {
+          left = 8;
+        }
+
+        // Ensure top doesn't go negative
+        if (top < 8) {
+          top = 8;
+        }
+
         setDropdownPosition({
-          top: rect.bottom,
-          left: rect.left,
+          top,
+          left,
           width: rect.width
         });
       }
@@ -104,7 +134,7 @@ const CustomDropdown = ({
           <div
             className="dropdown-panel fixed bg-white rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto border border-gray-200 animate-fade-in"
             style={{
-              top: `${dropdownPosition.top + 4}px`,
+              top: `${dropdownPosition.top}px`,
               left: `${dropdownPosition.left}px`,
               width: `${dropdownPosition.width}px`
             }}
