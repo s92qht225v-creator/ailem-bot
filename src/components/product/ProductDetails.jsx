@@ -385,7 +385,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
   return (
     <div className="bg-white">
       {/* Image Gallery */}
-      <div className="bg-gray-50">
+      <div className="bg-gray-50 pt-16">
         {/* Main Image */}
         <div
           className="relative aspect-[4/5] flex items-center justify-center bg-gray-100 overflow-hidden"
