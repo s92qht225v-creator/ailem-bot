@@ -240,7 +240,7 @@ VITE_CLICK_MERCHANT_ID
 1. **Products**: Variants (color/size), volume pricing, stock tracking, A+ Content
 2. **Cart**: Persistent, variant-aware, volume discounts
 3. **Orders**: Status flow (pending → approved → shipped → delivered)
-4. **Payments**: Payme, Click, manual screenshot verification
+4. **Payments**: Payme (active), Click (temporarily disabled), manual screenshot verification
 5. **Bonus Points**: Earn on purchase, redeem up to 20% of order
 6. **Referrals**: Unique codes, commission on referred purchases
 7. **Admin**: Orders, products, reviews, analytics, settings
@@ -337,6 +337,34 @@ UPDATE categories SET visible = true WHERE visible IS NULL;
 ```
 
 Migration file: `supabase-migrations/add-categories-visible.sql`
+
+## Payment Integration
+
+### Active Payment Methods
+
+**Payme** (Primary - Active):
+- Integrated via Telegram Mini App payment button
+- Automatic order approval via webhook
+- Supports all Uzbek payment cards
+- File: `src/components/pages/PaymentPage.jsx`
+
+**Click** (Temporarily Disabled):
+- Payment button commented out in PaymentPage.jsx (lines 376-394)
+- Backend integration remains functional
+- To enable: Uncomment the Click payment button section
+- File: `src/components/pages/PaymentPage.jsx`
+
+**Manual Payment Verification**:
+- Customers can upload payment screenshots
+- Admin manually approves orders after verification
+- Located in Admin Panel → Orders section
+
+### Payment Flow
+1. Customer selects payment method on PaymentPage
+2. Order created with `status: 'pending'`
+3. For Payme: Redirects to Telegram payment → Webhook approves order
+4. For manual: Admin verifies screenshot → Manually approves order
+5. Approved orders reduce inventory and trigger customer notifications
 
 ## Notes
 
