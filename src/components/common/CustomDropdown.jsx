@@ -16,15 +16,25 @@ const CustomDropdown = ({
 
   // Close dropdown when clicking outside
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      // Check if click is on the dropdown button or inside the dropdown panel
+      const isDropdownButton = dropdownRef.current && dropdownRef.current.contains(event.target);
+      const isDropdownPanel = event.target.closest('.dropdown-panel');
+
+      if (!isDropdownButton && !isDropdownPanel) {
         setIsOpen(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
+    // Use timeout to avoid immediate closing when opening
+    setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 0);
+
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isOpen]);
 
   const handleSelect = (optionValue) => {
     onChange(optionValue);
@@ -92,18 +102,22 @@ const CustomDropdown = ({
 
           {/* Options Panel - Fixed positioning via Portal */}
           <div
-            className="fixed bg-white rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto border border-gray-200 animate-fade-in"
+            className="dropdown-panel fixed bg-white rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto border border-gray-200 animate-fade-in"
             style={{
               top: `${dropdownPosition.top + 8}px`,
               left: `${dropdownPosition.left}px`,
               width: `${dropdownPosition.width}px`
             }}
+            onClick={(e) => e.stopPropagation()}
           >
             {options.map((option, index) => (
               <button
                 key={index}
                 type="button"
-                onClick={() => handleSelect(option)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelect(option);
+                }}
                 className={`w-full px-4 py-4 text-left text-base transition-colors flex items-center justify-between ${
                   value === option
                     ? 'bg-accent text-white font-semibold'
