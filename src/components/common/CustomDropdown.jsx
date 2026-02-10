@@ -34,6 +34,20 @@ const CustomDropdown = ({
   const displayValue = (value === 'All' || !value) ? placeholder : selectedOption;
   const isPlaceholder = (value === 'All' || !value);
 
+  // Get button position for fixed positioning of dropdown
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+
+  useEffect(() => {
+    if (isOpen && dropdownRef.current) {
+      const rect = dropdownRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+  }, [isOpen]);
+
   return (
     <div ref={dropdownRef} className={`relative ${className}`}>
       {/* Dropdown Button */}
@@ -61,8 +75,15 @@ const CustomDropdown = ({
             onClick={() => setIsOpen(false)}
           />
 
-          {/* Options Panel */}
-          <div className="absolute left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto border border-gray-200 animate-fade-in">
+          {/* Options Panel - Fixed positioning to break out of overflow container */}
+          <div
+            className="fixed bg-white rounded-xl shadow-2xl z-50 max-h-80 overflow-y-auto border border-gray-200 animate-fade-in"
+            style={{
+              top: `${dropdownPosition.top + 8}px`,
+              left: `${dropdownPosition.left}px`,
+              width: `${dropdownPosition.width}px`
+            }}
+          >
             {options.map((option, index) => (
               <button
                 key={index}
