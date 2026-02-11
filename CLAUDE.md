@@ -843,14 +843,55 @@ npm run preview  # Preview production build locally
 
 ## Performance Optimizations
 
-1. **API Caching**: Response caching with TTL in `apiCache.js`
-2. **Lazy Loading**: Code splitting for routes
-3. **Image Optimization**: `OptimizedImage` component with lazy loading
-4. **Debounced Search**: 300ms debounce in ShopPage search
-5. **Memoization**: `useMemo` for expensive calculations (filtering, sorting)
-6. **Pagination**: Audit logs use 25-item pages
-7. **Timeout Protection**: 10-second max wait on all API calls
-8. **localStorage Caching**: Settings and categories cached locally
+### Major Optimizations (2026-02-11)
+
+1. **Code Splitting / Lazy Loading**: 12 non-critical pages lazy-loaded with `React.lazy()` + `Suspense`
+   - Critical pages (HomePage, ShopPage, CartPage) remain eagerly loaded
+   - Reduced initial bundle from 1,420 KB to 426 KB (70% reduction)
+   - File: `src/App.jsx`
+
+2. **AdminContext Memoization**: Context value wrapped in `useMemo` to prevent unnecessary consumer re-renders
+   - Dependencies: `[products, categories, orders, reviews, users, loading, error]`
+   - Prevents all context consumers from re-rendering when unrelated state changes
+   - File: `src/context/AdminContext.jsx`
+
+3. **Duplicate Reviews Fetch Eliminated**: `productsAPI.getAll()` accepts optional `preloadedReviews` parameter
+   - `AdminContext.loadAllData()` fetches reviews first, passes approved ones to productsAPI
+   - Saves one full Supabase query on app startup
+   - File: `src/services/api.js`, `src/context/AdminContext.jsx`
+
+4. **Debounced Cart Sync**: Supabase cart sync debounced to 500ms after last change
+   - localStorage saves instantly (no user-perceived lag)
+   - Rapid quantity changes batch into single API call (e.g., 5 taps = 1 call)
+   - File: `src/context/CartContext.jsx`
+
+5. **Native Image Lazy Loading**: ProductCard uses `<img loading="lazy">` instead of CSS `background-image`
+   - Browser natively defers off-screen image loading
+   - File: `src/components/product/ProductCard.jsx`
+
+6. **Console.log Stripping**: Production builds strip all `console.*` and `debugger` statements via esbuild
+   - Configured in `vite.config.js` → `build.esbuild.drop: ['console', 'debugger']`
+   - 284 console calls removed from production bundle
+   - Dev mode (`npm run dev`) still shows all logs normally
+
+7. **Component Memoization**: Key components wrapped in `React.memo()`
+   - `ProductCard` - prevents re-render when parent state changes
+   - `CategoryFilter` - prevents re-render on ShopPage filter changes
+   - `Carousel` - uses `useMemo` and `useCallback` for slides/handlers
+
+### Existing Optimizations
+
+8. **Debounced Search**: 300ms debounce in ShopPage search
+9. **Memoization**: `useMemo` for expensive calculations (filtering, sorting)
+10. **Pagination**: Audit logs use 25-item pages
+11. **Timeout Protection**: 10-second max wait on all API calls
+12. **localStorage Caching**: Settings and categories cached locally
+
+### Removed (Dead Code Cleanup)
+
+- **apiCache.js**: Deleted - was never imported anywhere, data already kept in React context memory
+- **Vercel Analytics / Speed Insights**: Removed for performance - packages uninstalled
+- **Microsoft Clarity**: Tracking script and identify call removed
 
 ## Security Considerations
 
