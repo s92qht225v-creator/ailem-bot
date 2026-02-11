@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext, useRef } from 'react';
 import { saveToLocalStorage, loadFromLocalStorage } from '../utils/helpers';
 import { usersAPI } from '../services/api';
 import { UserContext } from './UserContext';
@@ -59,25 +59,31 @@ export const CartProvider = ({ children }) => {
     loadCart();
   }, [user?.id]); // Only depend on user.id, not entire user object
 
-  // Save cart to localStorage and Supabase whenever it changes
+  // Save cart to localStorage immediately, debounce Supabase sync
+  const syncTimer = useRef(null);
   useEffect(() => {
     if (!cartLoaded || !user?.id) return;
 
-    const userId = user.id; // Capture ID to avoid closure issues
+    const userId = user.id;
 
-    // Save to localStorage for all users (fallback)
+    // Save to localStorage immediately (fast, no network)
     saveToLocalStorage('cart', cartItems);
 
-    // Sync to Supabase for real users
+    // Debounce Supabase sync - wait 500ms after last change
     if (userId !== 'demo-1') {
-      usersAPI.updateCart(userId, cartItems)
-        .then(() => console.log('💾 Cart synced to Supabase'))
-        .catch(err => {
-          console.error('❌ Failed to sync cart to Supabase:', err);
-          console.log('💾 Cart saved to localStorage as fallback');
-        });
+      clearTimeout(syncTimer.current);
+      syncTimer.current = setTimeout(() => {
+        usersAPI.updateCart(userId, cartItems)
+          .then(() => console.log('💾 Cart synced to Supabase'))
+          .catch(err => {
+            console.error('❌ Failed to sync cart to Supabase:', err);
+            console.log('💾 Cart saved to localStorage as fallback');
+          });
+      }, 500);
     }
-  }, [cartItems, user?.id, cartLoaded]); // Only depend on user.id, not entire user object
+
+    return () => clearTimeout(syncTimer.current);
+  }, [cartItems, user?.id, cartLoaded]);
 
   const addToCart = (product, quantity = 1, selectedColor = null, selectedSize = null, variantPrice = null) => {
     setCartItems(prev => {
