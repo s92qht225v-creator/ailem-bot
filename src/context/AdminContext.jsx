@@ -26,13 +26,17 @@ export const AdminProvider = ({ children }) => {
 
       console.log('🔄 Loading data from Supabase...');
 
-      const [productsData, categoriesData, ordersData, usersData, reviewsData] = await Promise.all([
-        productsAPI.getAll().catch(e => { console.error('Products error:', e); return []; }),
+      // Fetch reviews first, then pass to productsAPI.getAll() to avoid duplicate fetch
+      const [reviewsData, categoriesData, ordersData, usersData] = await Promise.all([
+        reviewsAPI.getAll().catch(e => { console.error('Reviews error:', e); return []; }),
         categoriesAPI.getAll().catch(e => { console.error('Categories error:', e); return []; }),
         ordersAPI.getAll().catch(e => { console.error('Orders error:', e); return []; }),
-        usersAPI.getAll().catch(e => { console.error('Users error:', e); return []; }),
-        reviewsAPI.getAll().catch(e => { console.error('Reviews error:', e); return []; })
+        usersAPI.getAll().catch(e => { console.error('Users error:', e); return []; })
       ]);
+
+      // Pass approved reviews to productsAPI so it doesn't fetch them again
+      const approvedReviews = (reviewsData || []).filter(r => r.approved);
+      const productsData = await productsAPI.getAll(approvedReviews).catch(e => { console.error('Products error:', e); return []; });
 
       console.log('✅ Data loaded:', {
         products: productsData?.length || 0,

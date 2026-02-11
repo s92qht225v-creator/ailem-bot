@@ -80,8 +80,8 @@ export const categoriesAPI = {
 // ============================================
 
 export const productsAPI = {
-  // Get all products
-  async getAll() {
+  // Get all products (accepts optional pre-fetched reviews to avoid duplicate fetch)
+  async getAll(preloadedReviews) {
     const { data: products, error } = await supabase
       .from('products')
       .select('*')
@@ -89,13 +89,17 @@ export const productsAPI = {
 
     if (error) throw error;
 
-    // Fetch reviews for all products
-    const { data: reviews, error: reviewsError } = await supabase
-      .from('reviews')
-      .select('*')
-      .eq('approved', true);
+    // Use pre-fetched reviews if provided, otherwise fetch them
+    let reviews = preloadedReviews;
+    if (!reviews) {
+      const { data: reviewsData, error: reviewsError } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('approved', true);
 
-    if (reviewsError) console.error('Failed to fetch reviews:', reviewsError);
+      if (reviewsError) console.error('Failed to fetch reviews:', reviewsError);
+      reviews = reviewsData;
+    }
 
     // Map database fields to match app expectations
     return products.map(product => {
