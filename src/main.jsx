@@ -1,12 +1,8 @@
 import ReactDOM from 'react-dom/client'
-import { inject } from '@vercel/analytics'
-import { injectSpeedInsights } from '@vercel/speed-insights'
+import { Analytics } from '@vercel/analytics/react'
+import { SpeedInsights } from '@vercel/speed-insights/react'
 import App from './App.jsx'
 import './index.css'
-
-// Vercel Analytics & Speed Insights
-inject()
-injectSpeedInsights()
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import { CartProvider } from './context/CartContext.jsx'
 import { UserProvider } from './context/UserContext.jsx'
@@ -26,6 +22,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               <ShippingRatesProvider>
                 <CartProvider>
                   <App />
+                  <Analytics />
+                  <SpeedInsights />
                 </CartProvider>
               </ShippingRatesProvider>
             </PickupPointsProvider>
