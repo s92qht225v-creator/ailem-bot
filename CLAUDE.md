@@ -1028,6 +1028,64 @@ COMMENT ON COLUMN products.visible IS 'Controls whether product is shown to cust
 
 ---
 
-**Last Updated**: 2026-02-10
+### Updates (2026-02-11)
+
+**Hidden Products - Complete Filtering** (Fixed 2026-02-11):
+- Hidden products now filtered from ALL customer-facing views:
+  - **Homepage featured products**: `useProducts.js` - `featuredProducts` calculation (3 code paths)
+  - **Favorites page**: `FavoritesPage.jsx` - `favoriteProducts` filter
+  - **Recommendations**: `recommendations.js` - All 6 recommendation functions
+    - `getRelatedProducts`, `getSameCategoryProducts`, `getSimilarTagProducts`
+    - `getSimilarPriceProducts`, `getBestSellerProducts`, `getFrequentlyBoughtTogether`
+- Pattern: `product.visible !== false` applied consistently everywhere
+
+**Homepage Banner** (Updated 2026-02-11):
+- Removed grey overlay (`opacity-40`) from banner images
+- Removed dark gradient background (`from-primary to-gray-700`)
+- Removed text overlay (title/subtitle) — banners have text baked into images
+- Added `shadow-md` for floating card effect
+- Location: `src/components/common/Carousel.jsx`
+
+**Analytics & Monitoring** (Added 2026-02-11):
+- **Vercel Analytics**: `<Analytics />` component in `main.jsx`
+  - Tracks visitors, page views, countries, devices, referrals
+  - Package: `@vercel/analytics`
+- **Vercel Speed Insights**: `<SpeedInsights />` component in `main.jsx`
+  - Tracks Core Web Vitals (LCP, FID, CLS)
+  - Package: `@vercel/speed-insights`
+- **Microsoft Clarity**: Tracking script in `index.html`
+  - Project ID: `vfrudex78d`
+  - Session recordings, heatmaps, click maps, rage clicks, dead clicks
+  - Custom identifier tags sessions with Telegram user ID and name
+  - Identification call in `UserContext.jsx`: `window.clarity('identify', telegramId, null, null, name)`
+- **Enable in dashboards**:
+  - Vercel: Project → Analytics tab → Enable; Speed Insights tab → Enable
+  - Clarity: clarity.microsoft.com → Dashboard
+
+**Security - XSS Fix** (Fixed 2026-02-11):
+- Added DOMPurify sanitization to product descriptions in `ProductDetails.jsx`
+- `dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}`
+- Prevents script injection via product descriptions
+- DOMPurify was already used in `APlusContent.jsx`, now consistent across all HTML rendering
+
+**Dropdown Positioning** (Fixed 2026-02-11):
+- Multiple iterations to fix dropdown clipping on mobile:
+  - Switched from `useEffect` to `useLayoutEffect` for pre-paint positioning
+  - Added `visualViewport` API for accurate mobile measurements
+  - Simplified positioning logic with `requestAnimationFrame`
+  - Reduced shadow from `shadow-2xl` to `shadow-lg`
+  - Applied `overflow-y-auto` directly to panel (not nested div) for border-radius preservation
+  - Focus ring fix: `pt-1 px-1 -ml-1` on filter container in ShopPage
+- Location: `src/components/common/CustomDropdown.jsx`, `src/components/pages/ShopPage.jsx`
+
+**Git Branching Workflow** (Established 2026-02-11):
+- Live app now deployed — use feature branches for new development
+- Workflow: `git checkout -b feature/name` → develop → push → test preview URL → merge to main
+- Vercel auto-generates preview URLs for branches
+- Never push risky changes directly to `main`
+
+---
+
+**Last Updated**: 2026-02-11
 **Version**: 1.0.22
 **Maintained By**: Ailem Development Team
