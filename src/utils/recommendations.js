@@ -53,9 +53,10 @@ export const getRelatedProducts = (currentProduct, allProducts, limit = 6) => {
     return [];
   }
   
-  // Filter out current product and out of stock items
-  const candidates = allProducts.filter(product => 
-    product.id !== currentProduct.id && 
+  // Filter out current product, hidden products, and out of stock items
+  const candidates = allProducts.filter(product =>
+    product.id !== currentProduct.id &&
+    product.visible !== false &&
     product.stock > 0
   );
   
@@ -92,8 +93,9 @@ export const getSameCategoryProducts = (currentProduct, allProducts, limit = 6) 
   }
   
   return allProducts
-    .filter(product => 
+    .filter(product =>
       product.id !== currentProduct.id &&
+      product.visible !== false &&
       product.category === currentProduct.category &&
       product.stock > 0
     )
@@ -117,7 +119,7 @@ export const getSimilarTagProducts = (currentProduct, allProducts, limit = 6) =>
   
   return allProducts
     .filter(product => {
-      if (product.id === currentProduct.id || product.stock <= 0) {
+      if (product.id === currentProduct.id || product.visible === false || product.stock <= 0) {
         return false;
       }
       if (!product.tags || product.tags.length === 0) {
@@ -160,8 +162,9 @@ export const getSimilarPriceProducts = (currentProduct, allProducts, priceVarian
   const maxPrice = currentProduct.price * (1 + priceVariance);
   
   return allProducts
-    .filter(product => 
+    .filter(product =>
       product.id !== currentProduct.id &&
+      product.visible !== false &&
       product.price >= minPrice &&
       product.price <= maxPrice &&
       product.stock > 0
@@ -191,8 +194,9 @@ export const getBestSellerProducts = (allProducts, currentProduct, limit = 6) =>
   }
   
   return allProducts
-    .filter(product => 
+    .filter(product =>
       product.id !== currentProduct?.id &&
+      product.visible !== false &&
       product.stock > 0
     )
     .sort((a, b) => {
@@ -293,7 +297,7 @@ export const getFrequentlyBoughtTogether = (currentProduct, allProducts, orders 
   
   const recommendations = sortedProductIds
     .map(id => allProducts.find(p => p.id === id))
-    .filter(p => p && p.stock > 0)
+    .filter(p => p && p.visible !== false && p.stock > 0)
     .slice(0, limit);
   
   // Fill with related products if not enough
