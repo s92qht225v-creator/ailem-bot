@@ -6,6 +6,7 @@ import { getVariantStock, getVariantPrice, getAvailableColors, getAvailableSizes
 import { UserContext } from '../../context/UserContext';
 import { getTelegramWebApp } from '../../utils/telegram';
 import { stockNotificationsAPI } from '../../services/api';
+import DOMPurify from 'dompurify';
 import APlusContent from './APlusContent';
 
 const ProductDetails = ({ product, onAddToCart }) => {
@@ -691,7 +692,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
         {product.description && (
           <div
             className="text-gray-600 mb-4 prose prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: product.description }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(product.description) }}
           />
         )}
 
