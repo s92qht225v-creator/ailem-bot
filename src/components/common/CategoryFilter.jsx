@@ -1,6 +1,7 @@
+import { memo } from 'react';
 import { t } from '../../utils/translation-fallback';
 
-const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }) => {
+const CategoryFilter = memo(({ categories, selectedCategory, onCategoryChange }) => {
   const allCategories = [t('shop.all'), ...categories];
 
   return (
@@ -20,6 +21,8 @@ const CategoryFilter = ({ categories, selectedCategory, onCategoryChange }) => {
       ))}
     </div>
   );
-};
+});
+
+CategoryFilter.displayName = 'CategoryFilter';
 
 export default CategoryFilter;
