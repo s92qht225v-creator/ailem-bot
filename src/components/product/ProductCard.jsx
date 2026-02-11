@@ -36,21 +36,20 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
       }`}
     >
       <div className="relative">
-        <div 
-          className={`relative w-full aspect-[4/5] bg-cover bg-center bg-no-repeat transition-opacity ${
-            isOutOfStock ? 'opacity-60' : ''
-          }`}
-          style={{
-            backgroundImage: `url(${product.image})`,
-            WebkitTouchCallout: 'none',
-            WebkitUserSelect: 'none',
-            userSelect: 'none'
-          }}
-          role="img"
-          aria-label={product.name}
-          onContextMenu={(e) => e.preventDefault()}
-          onTouchStart={(e) => e.stopPropagation()}
-        />
+        <div className="relative w-full aspect-[4/5]">
+          <img
+            src={product.image}
+            alt={product.name}
+            loading="lazy"
+            className={`w-full h-full object-cover ${isOutOfStock ? 'opacity-60' : ''}`}
+            style={{
+              WebkitTouchCallout: 'none',
+              WebkitUserSelect: 'none',
+              userSelect: 'none'
+            }}
+            onContextMenu={(e) => e.preventDefault()}
+          />
+        </div>
         {/* Out of Stock Overlay */}
         {isOutOfStock && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
