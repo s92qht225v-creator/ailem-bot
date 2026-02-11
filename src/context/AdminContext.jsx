@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useMemo } from 'react';
+import { createContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { categoriesAPI, productsAPI, ordersAPI, reviewsAPI, usersAPI } from '../services/api';
 import { decreaseVariantStock, updateVariantStock, getTotalVariantStock } from '../utils/variants';
 import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
@@ -448,8 +448,8 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
-  // Don't memoize - functions are stable and memoization causes issues
-  const contextValue = {
+  // Memoize context value to prevent unnecessary re-renders of consumers
+  const contextValue = useMemo(() => ({
     products,
     addProduct,
     updateProduct,
@@ -476,7 +476,7 @@ export const AdminProvider = ({ children }) => {
     loading,
     error,
     loadAllData
-  };
+  }), [products, categories, orders, reviews, users, loading, error]);
 
   return (
     <AdminContext.Provider value={contextValue}>
