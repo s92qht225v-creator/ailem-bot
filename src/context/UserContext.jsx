@@ -92,6 +92,11 @@ export const UserProvider = ({ children }) => {
 
           setUser(appUser);
 
+          // Tag Clarity session with user identity
+          if (window.clarity) {
+            window.clarity('identify', appUser.telegramId, null, null, appUser.name);
+          }
+
           // Load user's favorites - prioritize database (source of truth for real users)
           const dbFavorites = normalizeFavorites(dbUser.favorites || []);
           console.log('📥 Loading favorites from database:', dbFavorites);
