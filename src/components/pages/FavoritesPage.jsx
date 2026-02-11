@@ -14,7 +14,7 @@ const FavoritesPage = ({ onNavigate }) => {
   // Get favorite products by matching against favorites array
   const favoriteProducts = useMemo(() => {
     if (!allProducts || !favorites) return [];
-    return allProducts.filter(product => favorites.includes(product?.id));
+    return allProducts.filter(product => favorites.includes(product?.id) && product.visible !== false);
   }, [allProducts, favorites]);
 
   const handleAddToCart = (product) => {
