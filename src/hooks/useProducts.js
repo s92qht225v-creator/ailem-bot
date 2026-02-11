@@ -156,6 +156,7 @@ export const useProducts = () => {
 
     // Sort products by sales count
     const productsWithSales = products
+      .filter(product => product.visible !== false) // Only visible products
       .filter(product => getProductStock(product) > 0) // Only in-stock products
       .map(product => ({
         ...product,
@@ -169,7 +170,7 @@ export const useProducts = () => {
     // Fallback: if no sales data, show products with BEST SELLER badge or newest products
     if (topSellers.length === 0) {
       const badgedProducts = products
-        .filter(p => p.badge === 'BEST SELLER' && getProductStock(p) > 0)
+        .filter(p => p.visible !== false && p.badge === 'BEST SELLER' && getProductStock(p) > 0)
         .slice(0, 6);
 
       if (badgedProducts.length > 0) {
@@ -178,7 +179,7 @@ export const useProducts = () => {
 
       // Last fallback: show newest in-stock products
       return products
-        .filter(p => getProductStock(p) > 0)
+        .filter(p => p.visible !== false && getProductStock(p) > 0)
         .slice(0, 6);
     }
 
