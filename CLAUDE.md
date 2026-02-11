@@ -1046,21 +1046,11 @@ COMMENT ON COLUMN products.visible IS 'Controls whether product is shown to cust
 - Added `shadow-md` for floating card effect
 - Location: `src/components/common/Carousel.jsx`
 
-**Analytics & Monitoring** (Added 2026-02-11):
-- **Vercel Analytics**: `<Analytics />` component in `main.jsx`
-  - Tracks visitors, page views, countries, devices, referrals
-  - Package: `@vercel/analytics`
-- **Vercel Speed Insights**: `<SpeedInsights />` component in `main.jsx`
-  - Tracks Core Web Vitals (LCP, FID, CLS)
-  - Package: `@vercel/speed-insights`
-- **Microsoft Clarity**: Tracking script in `index.html`
-  - Project ID: `vfrudex78d`
-  - Session recordings, heatmaps, click maps, rage clicks, dead clicks
-  - Custom identifier tags sessions with Telegram user ID and name
-  - Identification call in `UserContext.jsx`: `window.clarity('identify', telegramId, null, null, name)`
-- **Enable in dashboards**:
-  - Vercel: Project → Analytics tab → Enable; Speed Insights tab → Enable
-  - Clarity: clarity.microsoft.com → Dashboard
+**Analytics & Monitoring** (Removed 2026-02-11):
+- All third-party analytics tools removed for performance reasons
+- Removed: Vercel Analytics, Vercel Speed Insights, Microsoft Clarity
+- Packages uninstalled: `@vercel/analytics`, `@vercel/speed-insights`
+- Clarity script removed from `index.html`, identify call removed from `UserContext.jsx`
 
 **Security - XSS Fix** (Fixed 2026-02-11):
 - Added DOMPurify sanitization to product descriptions in `ProductDetails.jsx`
