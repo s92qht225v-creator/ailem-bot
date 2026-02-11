@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { t } from "../../utils/translation-fallback";
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
@@ -94,18 +93,14 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
   if (activeBanners.length === 1) {
     const banner = activeBanners[0];
     return (
-      <div className="relative h-64 bg-gradient-to-r from-primary to-gray-700 mx-4 mb-6 rounded-2xl overflow-hidden">
+      <div className="relative h-64 mx-4 mb-6 rounded-2xl overflow-hidden">
         <img
           src={banner.imageUrl}
           alt={banner.title}
-          className="w-full h-full object-cover opacity-40"
+          className="w-full h-full object-cover"
           onContextMenu={(e) => e.preventDefault()}
           draggable={false}
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-4">
-          <h2 className="text-3xl font-bold mb-2 text-center">{banner.title}</h2>
-          <p className="text-lg mb-4">{banner.subtitle}</p>
-        </div>
       </div>
     );
   }
@@ -113,7 +108,7 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
   // Multiple banners - full carousel
   return (
     <div 
-      className="relative h-64 bg-gradient-to-r from-primary to-gray-700 mx-4 mb-6 rounded-2xl overflow-hidden group"
+      className="relative h-64 mx-4 mb-6 rounded-2xl overflow-hidden group"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={handleTouchStart}
@@ -130,14 +125,10 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
             <img
               src={banner.imageUrl}
               alt={banner.title}
-              className="w-full h-full object-cover opacity-40"
+              className="w-full h-full object-cover"
               onContextMenu={(e) => e.preventDefault()}
               draggable={false}
             />
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-white px-4">
-              <h2 className="text-3xl font-bold mb-2 text-center">{banner.title}</h2>
-              <p className="text-lg mb-4">{banner.subtitle}</p>
-            </div>
           </div>
         ))}
       </div>
