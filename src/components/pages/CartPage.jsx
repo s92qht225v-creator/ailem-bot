@@ -45,7 +45,7 @@ const CartPage = ({ onNavigate }) => {
                 onClick={() => onNavigate('product', { productId: item.id })}
               >
                 <div
-                  className="w-24 h-24 rounded-lg bg-cover bg-center bg-no-repeat flex-shrink-0"
+                  className="w-20 aspect-[4/5] rounded-lg bg-cover bg-center bg-no-repeat flex-shrink-0"
                   style={{
                     backgroundImage: `url(${item.image})`,
                     WebkitTouchCallout: 'none',
