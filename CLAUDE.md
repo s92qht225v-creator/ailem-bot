@@ -1115,8 +1115,21 @@ COMMENT ON COLUMN products.visible IS 'Controls whether product is shown to cust
 - Vercel auto-generates preview URLs for branches
 - Never push risky changes directly to `main`
 
+### Updates (2026-02-12)
+
+**Telegram Notification - Support Handle** (Updated 2026-02-12):
+- Order rejection message now includes `@ailem_yordam` support handle
+- Location: `src/services/telegram.js` (rejected case)
+
+**MyReviewsPage - Uzbek Translation** (Fixed 2026-02-12):
+- Translated English empty state strings to Uzbek:
+  - "No delivered orders yet" → "Yetkazilgan buyurtmalar yo'q"
+  - "You can write reviews after your orders are delivered" → "Buyurtmalaringiz yetkazilgandan so'ng sharh yozishingiz mumkin"
+  - "Start Shopping" → "Xarid qilish"
+- Location: `src/components/pages/MyReviewsPage.jsx`
+
 ---
 
-**Last Updated**: 2026-02-11
+**Last Updated**: 2026-02-12
 **Version**: 1.0.22
 **Maintained By**: Ailem Development Team
