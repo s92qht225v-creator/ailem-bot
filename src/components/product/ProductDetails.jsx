@@ -401,13 +401,13 @@ const ProductDetails = ({ product, onAddToCart }) => {
           onTouchEnd={handleTouchEnd}
           onContextMenu={(e) => e.preventDefault()}
         >
-          <img
+          <div
             ref={imageRef}
-            src={images[currentImageIndex]}
-            alt={product.name}
-            className="max-w-full max-h-full object-contain"
-            draggable="false"
+            className="w-full h-full bg-contain bg-center bg-no-repeat"
+            role="img"
+            aria-label={product.name}
             style={{
+              backgroundImage: `url(${images[currentImageIndex]})`,
               transformOrigin: 'center center'
             }}
           />
