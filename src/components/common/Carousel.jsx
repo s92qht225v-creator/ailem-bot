@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { proxyImageUrl } from '../../utils/helpers';
 
 const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
@@ -95,7 +96,7 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
     return (
       <div className="relative h-64 mx-4 mb-6 rounded-2xl overflow-hidden shadow-md">
         <img
-          src={banner.imageUrl}
+          src={proxyImageUrl(banner.imageUrl)}
           alt={banner.title}
           className="w-full h-full object-cover"
           onContextMenu={(e) => e.preventDefault()}
@@ -123,7 +124,7 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
         {activeBanners.map((banner, index) => (
           <div key={index} className="min-w-full h-full relative">
             <img
-              src={banner.imageUrl}
+              src={proxyImageUrl(banner.imageUrl)}
               alt={banner.title}
               className="w-full h-full object-cover"
               onContextMenu={(e) => e.preventDefault()}

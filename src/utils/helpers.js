@@ -1,3 +1,11 @@
+// Proxy image URL to hide Supabase URLs from Telegram long-press menu
+export const proxyImageUrl = (url) => {
+  if (!url) return url;
+  // Only proxy Supabase URLs
+  if (!url.includes('supabase.co')) return url;
+  return `/api/image?url=${encodeURIComponent(url)}`;
+};
+
 // Safe localStorage wrapper for Telegram Desktop compatibility
 // Telegram Desktop disables localStorage in WebView, causing DOMException
 const safeLocalStorage = (() => {
