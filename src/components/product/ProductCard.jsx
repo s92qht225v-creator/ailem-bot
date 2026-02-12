@@ -2,7 +2,7 @@ import { Star, Heart } from 'lucide-react';
 import { t } from "../../utils/translation-fallback";
 import { formatPrice, calculateDiscountPercentage } from '../../utils/helpers';
 import { getTotalVariantStock } from '../../utils/variants';
-import { memo } from 'react';
+import { memo, useRef, useState, useEffect } from 'react';
 
 const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => {
   const discount = calculateDiscountPercentage(product.originalPrice, product.price);
@@ -28,6 +28,26 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
     : (product.stock || 0);
   const isOutOfStock = currentStock === 0;
 
+  // Lazy load image via IntersectionObserver (background-image doesn't support loading="lazy")
+  const imgRef = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const el = imgRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div
       onClick={() => onView(product.id)}
@@ -36,20 +56,21 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
       }`}
     >
       <div className="relative">
-        <div className="relative w-full aspect-[4/5]">
-          <img
-            src={product.image}
-            alt={product.name}
-            loading="lazy"
-            className={`w-full h-full object-cover ${isOutOfStock ? 'opacity-60' : ''}`}
-            style={{
-              WebkitTouchCallout: 'none',
-              WebkitUserSelect: 'none',
-              userSelect: 'none'
-            }}
-            onContextMenu={(e) => e.preventDefault()}
-          />
-        </div>
+        <div
+          ref={imgRef}
+          className={`relative w-full aspect-[4/5] bg-cover bg-center bg-no-repeat ${
+            isOutOfStock ? 'opacity-60' : ''
+          }`}
+          style={{
+            backgroundImage: isVisible ? `url(${product.image})` : 'none',
+            WebkitTouchCallout: 'none',
+            WebkitUserSelect: 'none',
+            userSelect: 'none'
+          }}
+          role="img"
+          aria-label={product.name}
+          onContextMenu={(e) => e.preventDefault()}
+        />
         {/* Out of Stock Overlay */}
         {isOutOfStock && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/40">
