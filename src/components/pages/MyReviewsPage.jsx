@@ -125,15 +125,15 @@ const MyReviewsPage = ({ onNavigate }) => {
         {deliveredOrders.length === 0 && (
           <div className="bg-white rounded-xl p-12 text-center">
             <Package className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500 mb-2">No delivered orders yet</p>
+            <p className="text-gray-500 mb-2">Yetkazilgan buyurtmalar yo'q</p>
             <p className="text-sm text-gray-400 mb-6">
-              You can write reviews after your orders are delivered
+              Buyurtmalaringiz yetkazilgandan so'ng sharh yozishingiz mumkin
             </p>
             <button
               onClick={() => onNavigate('shop')}
               className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
             >
-              Start Shopping
+              Xarid qilish
             </button>
           </div>
         )}

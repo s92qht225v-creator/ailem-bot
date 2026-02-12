@@ -149,7 +149,7 @@ Kechirasiz, <b>#${order.id}</b> raqamli buyurtmangiz bajarilmadi.
 
 💰 Summa: ${order.total} so'm
 
-Bonus ballaringiz qaytarildi. Savollaringiz bo'lsa, qo'llab-quvvatlash xizmatiga murojaat qiling.
+Bonus ballaringiz qaytarildi. Savollaringiz bo'lsa, @ailem_yordam qo'llab-quvvatlash xizmatiga murojaat qiling.
       `.trim();
       break;
 
