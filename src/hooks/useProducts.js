@@ -128,15 +128,14 @@ export const useProducts = () => {
     return products.find(product => product.id === id || product.id === parseInt(id));
   };
 
-  // Prevent featured products from flickering when orders arrive after initial render
-  const featuredRef = useRef(null);
-  const hadOrdersRef = useRef(false);
+  // Lock featured products after first render to prevent flicker when deferred orders arrive
+  const featuredLockedRef = useRef(false);
 
   // Calculate best sellers based on actual order data
   const featuredProducts = useMemo(() => {
-    // If we already computed with orders data, keep it locked to prevent flicker
-    if (featuredRef.current && hadOrdersRef.current) {
-      return featuredRef.current;
+    // Once locked, never recalculate — prevents flicker from deferred orders arriving
+    if (featuredLockedRef.current) {
+      return featuredLockedRef.current;
     }
 
     // Helper to get stock
@@ -196,12 +195,11 @@ export const useProducts = () => {
       result = topSellers;
     }
 
-    // Track if this calculation had orders data
-    if (orders && orders.length > 0) {
-      hadOrdersRef.current = true;
+    // Lock after first meaningful calculation (products loaded) — never recalculate
+    if (products.length > 0) {
+      featuredLockedRef.current = result;
     }
 
-    featuredRef.current = result;
     return result;
   }, [products, orders]);
 
