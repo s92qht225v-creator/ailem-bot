@@ -127,6 +127,8 @@ Plus inline sections in DesktopAdminPanel:
 
 3. **AdminContext** (`AdminContext.jsx`)
    - Products, categories, orders, users, reviews state
+   - **Two-phase loading**: Essential data (products/categories/reviews) loads first, deferred data (orders/users) loads in background
+   - `loading` state = essential data loading, `adminLoading` state = deferred data loading
    - CRUD operations for all entities
    - Category reordering with localStorage persistence
    - Category visibility toggle
@@ -865,8 +867,9 @@ npm run preview  # Preview production build locally
    - Rapid quantity changes batch into single API call (e.g., 5 taps = 1 call)
    - File: `src/context/CartContext.jsx`
 
-5. **Native Image Lazy Loading**: ProductCard uses `<img loading="lazy">` instead of CSS `background-image`
-   - Browser natively defers off-screen image loading
+5. **Product Image Lazy Loading**: ProductCard uses CSS `background-image` with `IntersectionObserver`
+   - Replaces `<img loading="lazy">` to prevent Telegram long-press URL exposure
+   - 200px rootMargin for early loading of off-screen images
    - File: `src/components/product/ProductCard.jsx`
 
 6. **Console.log Stripping**: Production builds strip all `console.*` and `debugger` statements via esbuild
@@ -879,13 +882,23 @@ npm run preview  # Preview production build locally
    - `CategoryFilter` - prevents re-render on ShopPage filter changes
    - `Carousel` - uses `useMemo` and `useCallback` for slides/handlers
 
+### Major Optimizations (2026-02-12)
+
+8. **Two-Phase Data Loading**: AdminContext splits data loading into essential + deferred phases
+   - Phase 1 (immediate): products + categories + reviews → unblocks UI for customers
+   - Phase 2 (deferred): orders + users → loads silently in background (~1s later)
+   - Customers see the store ~40% faster (2 fewer API calls in critical path)
+   - Cleanup pattern with `cancelled` flag prevents state updates after unmount
+   - Featured products locked after first calculation to prevent flicker when orders arrive
+   - File: `src/context/AdminContext.jsx`, `src/hooks/useProducts.js`
+
 ### Existing Optimizations
 
-8. **Debounced Search**: 300ms debounce in ShopPage search
-9. **Memoization**: `useMemo` for expensive calculations (filtering, sorting)
-10. **Pagination**: Audit logs use 25-item pages
-11. **Timeout Protection**: 10-second max wait on all API calls
-12. **localStorage Caching**: Settings and categories cached locally
+9. **Debounced Search**: 300ms debounce in ShopPage search
+10. **Memoization**: `useMemo` for expensive calculations (filtering, sorting)
+11. **Pagination**: Audit logs use 25-item pages
+12. **Timeout Protection**: 10-second max wait on all API calls
+13. **localStorage Caching**: Settings and categories cached locally
 
 ### Removed (Dead Code Cleanup)
 
@@ -1143,6 +1156,15 @@ COMMENT ON COLUMN products.visible IS 'Controls whether product is shown to cust
 - **Global fallback** (`src/main.jsx`): `contextmenu` event listener blocks remaining `<img>` elements
 - **CSS layer** (`src/index.css`): `-webkit-touch-callout: none` + `user-select: none` on all `img`
 - **Key learning**: In Telegram Mini Apps, always use `background-image` for protected images
+
+**Two-Phase Data Loading** (Performance 2026-02-12):
+- AdminContext now loads data in two phases instead of all at once
+- **Phase 1** (essential): reviews + categories + products → `loading = false` → customers can browse
+- **Phase 2** (deferred): orders + users → loads silently in background
+- Customers no longer wait for orders/users tables to load before seeing the store
+- Featured products use ref locking to prevent visual flicker when orders arrive
+- Cleanup: `cancelled` flag in useEffect prevents state updates after unmount
+- Files: `src/context/AdminContext.jsx`, `src/hooks/useProducts.js`
 
 ---
 

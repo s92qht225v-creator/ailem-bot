@@ -1,4 +1,4 @@
-import { useContext, useState, useMemo, useEffect } from 'react';
+import { useContext, useState, useMemo, useEffect, useRef } from 'react';
 import { AdminContext } from '../context/AdminContext';
 import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
 import { getTotalVariantStock } from '../utils/variants';
@@ -128,8 +128,17 @@ export const useProducts = () => {
     return products.find(product => product.id === id || product.id === parseInt(id));
   };
 
+  // Prevent featured products from flickering when orders arrive after initial render
+  const featuredRef = useRef(null);
+  const hadOrdersRef = useRef(false);
+
   // Calculate best sellers based on actual order data
   const featuredProducts = useMemo(() => {
+    // If we already computed with orders data, keep it locked to prevent flicker
+    if (featuredRef.current && hadOrdersRef.current) {
+      return featuredRef.current;
+    }
+
     // Helper to get stock
     const getProductStock = (product) => {
       const hasVariants = product.variants && product.variants.length > 0;
@@ -167,6 +176,8 @@ export const useProducts = () => {
     // If we have sales data, return top sellers
     const topSellers = productsWithSales.filter(p => p.totalSold > 0).slice(0, 6);
 
+    let result;
+
     // Fallback: if no sales data, show products with BEST SELLER badge or newest products
     if (topSellers.length === 0) {
       const badgedProducts = products
@@ -174,16 +185,24 @@ export const useProducts = () => {
         .slice(0, 6);
 
       if (badgedProducts.length > 0) {
-        return badgedProducts;
+        result = badgedProducts;
+      } else {
+        // Last fallback: show newest in-stock products
+        result = products
+          .filter(p => p.visible !== false && getProductStock(p) > 0)
+          .slice(0, 6);
       }
-
-      // Last fallback: show newest in-stock products
-      return products
-        .filter(p => p.visible !== false && getProductStock(p) > 0)
-        .slice(0, 6);
+    } else {
+      result = topSellers;
     }
 
-    return topSellers;
+    // Track if this calculation had orders data
+    if (orders && orders.length > 0) {
+      hadOrdersRef.current = true;
+    }
+
+    featuredRef.current = result;
+    return result;
   }, [products, orders]);
 
   const getFeaturedProducts = () => featuredProducts;

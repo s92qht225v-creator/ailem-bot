@@ -12,41 +12,34 @@ export const AdminProvider = ({ children }) => {
   const [users, setUsers] = useState([]);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [adminLoading, setAdminLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load all data from Supabase on mount
-  useEffect(() => {
-    loadAllData();
-  }, []);
-
-  const loadAllData = async () => {
+  // Phase 1: Essential data (products, categories, reviews) — unblocks the UI
+  const loadEssentialData = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log('🔄 Loading data from Supabase...');
+      console.log('🔄 Loading essential data from Supabase...');
 
-      // Fetch reviews first, then pass to productsAPI.getAll() to avoid duplicate fetch
-      const [reviewsData, categoriesData, ordersData, usersData] = await Promise.all([
+      const [reviewsData, categoriesData] = await Promise.all([
         reviewsAPI.getAll().catch(e => { console.error('Reviews error:', e); return []; }),
         categoriesAPI.getAll().catch(e => { console.error('Categories error:', e); return []; }),
-        ordersAPI.getAll().catch(e => { console.error('Orders error:', e); return []; }),
-        usersAPI.getAll().catch(e => { console.error('Users error:', e); return []; })
       ]);
 
       // Pass approved reviews to productsAPI so it doesn't fetch them again
       const approvedReviews = (reviewsData || []).filter(r => r.approved);
       const productsData = await productsAPI.getAll(approvedReviews).catch(e => { console.error('Products error:', e); return []; });
 
-      console.log('✅ Data loaded:', {
+      console.log('✅ Essential data loaded:', {
         products: productsData?.length || 0,
         categories: categoriesData?.length || 0,
-        orders: ordersData?.length || 0,
-        users: usersData?.length || 0,
         reviews: reviewsData?.length || 0
       });
 
       setProducts(productsData || []);
+      setReviews(reviewsData || []);
 
       // Apply saved category order from localStorage
       const savedOrder = loadFromLocalStorage('categoryOrder');
@@ -70,25 +63,56 @@ export const AdminProvider = ({ children }) => {
       } else {
         setCategories(categoriesData || []);
       }
-
-      console.log('🔍 AdminContext setting orders (first 3):',
-        (ordersData || []).slice(0, 3).map(o => ({
-          id: o.id,
-          created_at: o.created_at,
-          createdAt: o.createdAt,
-          status: o.status
-        }))
-      );
-      setOrders(ordersData || []);
-      setUsers(usersData || []);
-      setReviews(reviewsData || []);
     } catch (err) {
-      console.error('❌ Failed to load data:', err);
+      console.error('❌ Failed to load essential data:', err);
       setError(err.message);
     } finally {
       setLoading(false);
-      console.log('✅ Loading complete');
+      console.log('✅ Essential loading complete — UI unblocked');
     }
+  };
+
+  // Phase 2: Deferred data (orders, users) — loads silently in background
+  const loadDeferredData = async () => {
+    try {
+      setAdminLoading(true);
+
+      console.log('🔄 Loading deferred data (orders, users)...');
+
+      const [ordersData, usersData] = await Promise.all([
+        ordersAPI.getAll().catch(e => { console.error('Orders error:', e); return []; }),
+        usersAPI.getAll().catch(e => { console.error('Users error:', e); return []; }),
+      ]);
+
+      console.log('✅ Deferred data loaded:', {
+        orders: ordersData?.length || 0,
+        users: usersData?.length || 0
+      });
+
+      setOrders(ordersData || []);
+      setUsers(usersData || []);
+    } catch (err) {
+      console.error('❌ Failed to load deferred data:', err);
+    } finally {
+      setAdminLoading(false);
+    }
+  };
+
+  // On mount: load essential first (unblocks UI), then deferred in background
+  useEffect(() => {
+    let cancelled = false;
+
+    loadEssentialData().then(() => {
+      if (!cancelled) loadDeferredData();
+    });
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // Full refresh for admin panel refresh button
+  const loadAllData = async () => {
+    await loadEssentialData();
+    await loadDeferredData();
   };
 
   // Product management
@@ -478,9 +502,10 @@ export const AdminProvider = ({ children }) => {
     users,
     updateUserBonusPoints,
     loading,
+    adminLoading,
     error,
     loadAllData
-  }), [products, categories, orders, reviews, users, loading, error]);
+  }), [products, categories, orders, reviews, users, loading, adminLoading, error]);
 
   return (
     <AdminContext.Provider value={contextValue}>
