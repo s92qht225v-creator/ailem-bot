@@ -1,6 +1,6 @@
 import { Star, Heart } from 'lucide-react';
 import { t } from "../../utils/translation-fallback";
-import { formatPrice, calculateDiscountPercentage, proxyImageUrl } from '../../utils/helpers';
+import { formatPrice, calculateDiscountPercentage } from '../../utils/helpers';
 import { getTotalVariantStock } from '../../utils/variants';
 import { memo } from 'react';
 
@@ -38,7 +38,7 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
       <div className="relative">
         <div className="relative w-full aspect-[4/5]">
           <img
-            src={proxyImageUrl(product.image)}
+            src={product.image}
             alt={product.name}
             loading="lazy"
             className={`w-full h-full object-cover ${isOutOfStock ? 'opacity-60' : ''}`}

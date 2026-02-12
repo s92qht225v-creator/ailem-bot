@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext, useRef } from 'react';
 import { t } from "../../utils/translation-fallback";
 import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, Share2, Bell, BellOff } from 'lucide-react';
-import { formatPrice, proxyImageUrl } from '../../utils/helpers';
+import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getVariantPrice, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant, getVariantPriceRange, hasVariantPricing } from '../../utils/variants';
 import { UserContext } from '../../context/UserContext';
 import { getTelegramWebApp } from '../../utils/telegram';
@@ -403,7 +403,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
         >
           <img
             ref={imageRef}
-            src={proxyImageUrl(images[currentImageIndex])}
+            src={images[currentImageIndex]}
             alt={product.name}
             className="max-w-full max-h-full object-contain"
             draggable="false"
@@ -465,7 +465,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
                     <div
                       className="absolute inset-0 rounded-lg"
                       style={{
-                        backgroundImage: `url(${proxyImageUrl(image)})`,
+                        backgroundImage: `url(${image})`,
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         backgroundRepeat: 'no-repeat',
