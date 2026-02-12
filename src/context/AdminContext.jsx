@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { categoriesAPI, productsAPI, ordersAPI, reviewsAPI, usersAPI } from '../services/api';
+import { essentialDataAPI, categoriesAPI, productsAPI, ordersAPI, reviewsAPI, usersAPI } from '../services/api';
 import { decreaseVariantStock, updateVariantStock, getTotalVariantStock } from '../utils/variants';
 import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
 
@@ -15,23 +15,17 @@ export const AdminProvider = ({ children }) => {
   const [adminLoading, setAdminLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Phase 1: Essential data (products, categories, reviews) — unblocks the UI
+  // Phase 1: Essential data (products, categories, reviews) — single RPC call
   // lightweight=true (default) for customer browsing, false for admin panel
   const loadEssentialData = async ({ lightweight = true } = {}) => {
     try {
       setLoading(true);
       setError(null);
 
-      console.log('🔄 Loading essential data from Supabase...');
+      console.log('🔄 Loading essential data from Supabase (single RPC)...');
 
-      const [reviewsData, categoriesData] = await Promise.all([
-        reviewsAPI.getAll().catch(e => { console.error('Reviews error:', e); return []; }),
-        categoriesAPI.getAll().catch(e => { console.error('Categories error:', e); return []; }),
-      ]);
-
-      // Pass approved reviews to productsAPI so it doesn't fetch them again
-      const approvedReviews = (reviewsData || []).filter(r => r.approved);
-      const productsData = await productsAPI.getAll(approvedReviews, { lightweight }).catch(e => { console.error('Products error:', e); return []; });
+      const { products: productsData, categories: categoriesData, reviews: reviewsData } =
+        await essentialDataAPI.getAll({ lightweight });
 
       console.log('✅ Essential data loaded:', {
         products: productsData?.length || 0,
