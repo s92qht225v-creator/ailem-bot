@@ -43,8 +43,6 @@ export const initTelegramWebApp = async () => {
       if (tg.disableVerticalSwipes && typeof tg.disableVerticalSwipes === 'function') {
         tg.disableVerticalSwipes();
       }
-      // Disable context menu on images to prevent showing URLs on long-press
-      disableImageContextMenu();
     } catch (error) {
       console.error('Error initializing Telegram WebApp:', error);
     }
@@ -323,24 +321,6 @@ export const disableVerticalSwipes = () => {
   if (tg?.disableVerticalSwipes) {
     tg.disableVerticalSwipes();
   }
-};
-
-// Disable context menu on images (prevents long-press showing URLs)
-export const disableImageContextMenu = () => {
-  document.addEventListener('contextmenu', (e) => {
-    if (e.target.tagName === 'IMG') {
-      e.preventDefault();
-      e.stopPropagation();
-      return false;
-    }
-  }, true);
-  
-  // Also prevent touchstart from triggering context menu
-  document.addEventListener('touchstart', (e) => {
-    if (e.target.tagName === 'IMG') {
-      e.target.style.webkitTouchCallout = 'none';
-    }
-  }, { passive: true });
 };
 
 // Enable vertical swipes (allows swipe-down to minimize)
