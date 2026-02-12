@@ -81,10 +81,16 @@ export const categoriesAPI = {
 
 export const productsAPI = {
   // Get all products (accepts optional pre-fetched reviews to avoid duplicate fetch)
-  async getAll(preloadedReviews) {
+  async getAll(preloadedReviews, { lightweight = true } = {}) {
+    // Lightweight: exclude heavy columns not needed for browsing/cart
+    // Full: needed for admin panel editing (description, a_plus_content, images)
+    const columns = lightweight
+      ? 'id, name, price, original_price, image, stock, category_name, material, colors, sizes, tags, badge, visible, variants, volume_pricing, rating, review_count, barcode, created_at'
+      : '*';
+
     const { data: products, error } = await supabase
       .from('products')
-      .select('*')
+      .select(columns)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -111,7 +117,7 @@ export const productsAPI = {
         originalPrice: product.original_price,
         reviewCount: product.review_count,
         variants: product.variants || [],
-        aPlusContent: product.a_plus_content,
+        ...(product.a_plus_content !== undefined && { aPlusContent: product.a_plus_content }),
         reviews: productReviews.map(r => ({
           id: r.id,
           userId: r.user_id,

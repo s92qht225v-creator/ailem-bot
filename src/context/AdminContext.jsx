@@ -16,7 +16,8 @@ export const AdminProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   // Phase 1: Essential data (products, categories, reviews) — unblocks the UI
-  const loadEssentialData = async () => {
+  // lightweight=true (default) for customer browsing, false for admin panel
+  const loadEssentialData = async ({ lightweight = true } = {}) => {
     try {
       setLoading(true);
       setError(null);
@@ -30,7 +31,7 @@ export const AdminProvider = ({ children }) => {
 
       // Pass approved reviews to productsAPI so it doesn't fetch them again
       const approvedReviews = (reviewsData || []).filter(r => r.approved);
-      const productsData = await productsAPI.getAll(approvedReviews).catch(e => { console.error('Products error:', e); return []; });
+      const productsData = await productsAPI.getAll(approvedReviews, { lightweight }).catch(e => { console.error('Products error:', e); return []; });
 
       console.log('✅ Essential data loaded:', {
         products: productsData?.length || 0,
@@ -99,19 +100,21 @@ export const AdminProvider = ({ children }) => {
   };
 
   // On mount: load essential first (unblocks UI), then deferred in background
+  // Admin gets full data (needs description, images, a_plus_content for editing)
   useEffect(() => {
     let cancelled = false;
+    const isAdmin = window.location.search.includes('admin=true');
 
-    loadEssentialData().then(() => {
+    loadEssentialData({ lightweight: !isAdmin }).then(() => {
       if (!cancelled) loadDeferredData();
     });
 
     return () => { cancelled = true; };
   }, []);
 
-  // Full refresh for admin panel refresh button
+  // Full refresh for admin panel refresh button (loads all columns for editing)
   const loadAllData = async () => {
-    await loadEssentialData();
+    await loadEssentialData({ lightweight: false });
     await loadDeferredData();
   };
 

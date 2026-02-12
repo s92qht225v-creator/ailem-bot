@@ -1,14 +1,34 @@
+import { useState, useEffect } from 'react';
 import ProductDetails from '../product/ProductDetails';
 import ReviewSection from '../product/ReviewSection';
 import RelatedProducts from '../product/RelatedProducts';
 import { useProducts } from '../../hooks/useProducts';
 import { useCart } from '../../hooks/useCart';
 import { useBackButton } from '../../hooks/useBackButton';
+import { productsAPI } from '../../services/api';
 
 const ProductPage = ({ productId, onNavigate }) => {
   const { getProductById, selectedCategory } = useProducts();
   const { addToCart } = useCart();
-  const product = getProductById(productId);
+  const baseProduct = getProductById(productId);
+  const [fullProduct, setFullProduct] = useState(null);
+
+  // Fetch full product data (description, images, a_plus_content) on mount
+  useEffect(() => {
+    if (!productId) return;
+    let cancelled = false;
+
+    productsAPI.getById(productId).then(data => {
+      if (!cancelled) setFullProduct(data);
+    }).catch(err => {
+      console.error('Failed to load full product:', err);
+    });
+
+    return () => { cancelled = true; };
+  }, [productId]);
+
+  // Merge: use full product when loaded, fall back to lightweight base
+  const product = fullProduct || baseProduct;
 
   const handleBackToShop = () => {
     onNavigate('shop', { category: selectedCategory });
