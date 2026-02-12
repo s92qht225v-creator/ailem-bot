@@ -1,3 +1,4 @@
+import { useContext, useMemo } from 'react';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { t } from "../../utils/translation-fallback";
 import { useCart } from '../../hooks/useCart';
@@ -8,11 +9,22 @@ import {
   getTierGroupInfo
 } from '../../utils/volumePricing';
 import { getVariantStock } from '../../utils/variants';
+import { AdminContext } from '../../context/AdminContext';
 
 const CartPage = ({ onNavigate }) => {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
+  const { products } = useContext(AdminContext);
 
-  if (cartItems.length === 0) {
+  // Filter out hidden products — cart stores snapshots, check live visibility
+  const visibleCartItems = useMemo(() => {
+    if (!products.length) return cartItems;
+    return cartItems.filter(item => {
+      const liveProduct = products.find(p => p.id === item.id);
+      return !liveProduct || liveProduct.visible !== false;
+    });
+  }, [cartItems, products]);
+
+  if (visibleCartItems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-screen pb-20 px-4">
         <ShoppingBag className="w-24 h-24 text-gray-300 mb-4" />
@@ -30,14 +42,17 @@ const CartPage = ({ onNavigate }) => {
     );
   }
 
-  const subtotal = getCartTotal();
+  // Calculate subtotal only for visible items
+  const subtotal = visibleCartItems.reduce((total, item) => {
+    return total + calculateItemTotalWithTierGrouping(item, visibleCartItems);
+  }, 0);
 
   return (
     <div className="pb-40">
       <div className="px-4 py-4">
         {/* Cart Items */}
         <div className="space-y-4 mb-6">
-          {cartItems.map((item) => (
+          {visibleCartItems.map((item) => (
             <div key={item.cartItemId} className="bg-white rounded-lg shadow-md p-4">
               {/* Clickable Product Area */}
               <div
@@ -142,10 +157,10 @@ const CartPage = ({ onNavigate }) => {
 
               <div className="mt-3 pt-3 border-t border-gray-200">
                 {(() => {
-                  const effectivePrice = getEffectivePriceWithTierGrouping(item, cartItems);
-                  const itemTotal = calculateItemTotalWithTierGrouping(item, cartItems);
+                  const effectivePrice = getEffectivePriceWithTierGrouping(item, visibleCartItems);
+                  const itemTotal = calculateItemTotalWithTierGrouping(item, visibleCartItems);
                   const hasDiscount = effectivePrice < item.price;
-                  const tierInfo = getTierGroupInfo(item, cartItems);
+                  const tierInfo = getTierGroupInfo(item, visibleCartItems);
 
                   return (
                     <>

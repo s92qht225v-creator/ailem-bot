@@ -7,9 +7,19 @@ import { useProducts } from '../../hooks/useProducts';
 
 const BottomNav = ({ currentPage, onNavigate }) => {
   const { favorites } = useContext(UserContext);
-  const { getCartItemsCount } = useCart();
+  const { cartItems } = useCart();
   const { allProducts } = useProducts();
-  const cartCount = getCartItemsCount();
+
+  // Count only visible cart items (hidden products excluded)
+  const cartCount = useMemo(() => {
+    if (!allProducts.length) return cartItems.reduce((c, i) => c + i.quantity, 0);
+    return cartItems
+      .filter(item => {
+        const liveProduct = allProducts.find(p => p.id === item.id);
+        return !liveProduct || liveProduct.visible !== false;
+      })
+      .reduce((count, item) => count + item.quantity, 0);
+  }, [cartItems, allProducts]);
 
   // Count only favorites that match existing products
   const favoritesCount = useMemo(() => {

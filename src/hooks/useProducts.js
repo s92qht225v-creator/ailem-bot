@@ -1,8 +1,13 @@
-import { useContext, useState, useMemo, useEffect, useRef } from 'react';
+import { useContext, useState, useMemo, useEffect } from 'react';
 import { AdminContext } from '../context/AdminContext';
 import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
 import { getTotalVariantStock } from '../utils/variants';
 import { t } from '../utils/translation-fallback';
+
+// Module-level lock: persists across all hook instances and re-mounts
+// Prevents featured products from changing when navigating back to homepage
+let featuredProductsCache = null;
+let featuredHadOrders = false;
 
 export const useProducts = () => {
   const { products, orders } = useContext(AdminContext);
@@ -128,14 +133,12 @@ export const useProducts = () => {
     return products.find(product => product.id === id || product.id === parseInt(id));
   };
 
-  // Lock featured products after first render to prevent flicker when deferred orders arrive
-  const featuredLockedRef = useRef(false);
-
   // Calculate best sellers based on actual order data
   const featuredProducts = useMemo(() => {
-    // Once locked, never recalculate — prevents flicker from deferred orders arriving
-    if (featuredLockedRef.current) {
-      return featuredLockedRef.current;
+    // If already locked with order data, return cached result
+    // Module-level cache persists across hook instances and re-mounts
+    if (featuredProductsCache && featuredHadOrders) {
+      return featuredProductsCache;
     }
 
     // Helper to get stock
@@ -195,9 +198,12 @@ export const useProducts = () => {
       result = topSellers;
     }
 
-    // Lock after first meaningful calculation (products loaded) — never recalculate
+    // Cache the result; only permanently lock once we have orders data
     if (products.length > 0) {
-      featuredLockedRef.current = result;
+      featuredProductsCache = result;
+      if (validOrders.length > 0) {
+        featuredHadOrders = true;
+      }
     }
 
     return result;
