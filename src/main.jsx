@@ -10,6 +10,13 @@ import { ShippingRatesProvider } from './context/ShippingRatesContext.jsx'
 import { ToastProvider } from './context/ToastContext.jsx'
 import { ConfirmProvider } from './context/ConfirmContext.jsx'
 
+// Prevent long-press context menu on images globally (blocks Supabase URL exposure)
+document.addEventListener('contextmenu', (e) => {
+  if (e.target.tagName === 'IMG') {
+    e.preventDefault();
+  }
+});
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <ErrorBoundary>
     <ToastProvider>
