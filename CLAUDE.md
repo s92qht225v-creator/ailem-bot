@@ -1128,6 +1128,22 @@ COMMENT ON COLUMN products.visible IS 'Controls whether product is shown to cust
   - "Start Shopping" → "Xarid qilish"
 - Location: `src/components/pages/MyReviewsPage.jsx`
 
+**Image Long-Press Protection** (Fixed 2026-02-12):
+- Telegram WebView bypasses JS/CSS context menu prevention on `<img>` tags
+- **Solution**: Use CSS `background-image` instead of `<img>` for product images
+  - Telegram's native long-press handler only targets `<img>` elements
+  - `background-image` on `<div>` is invisible to the native handler
+- **ProductCard** (`src/components/product/ProductCard.jsx`):
+  - `background-image` with `IntersectionObserver` for lazy loading (200px rootMargin)
+  - Replaced native `loading="lazy"` which only works on `<img>`
+- **ProductDetails** (`src/components/product/ProductDetails.jsx`):
+  - Main image switched from `<img>` to `background-image` div
+  - Pinch-to-zoom transforms still work (CSS `transform` applies to any element)
+  - Thumbnails were already `background-image` (no change needed)
+- **Global fallback** (`src/main.jsx`): `contextmenu` event listener blocks remaining `<img>` elements
+- **CSS layer** (`src/index.css`): `-webkit-touch-callout: none` + `user-select: none` on all `img`
+- **Key learning**: In Telegram Mini Apps, always use `background-image` for protected images
+
 ---
 
 **Last Updated**: 2026-02-12
