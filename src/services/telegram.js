@@ -103,7 +103,24 @@ export const notifyUserOrderStatus = async (order, status) => {
 
   switch (status) {
     case 'approved':
-      message = `
+      if (order.deliveryInfo?.type === 'self_pickup') {
+        message = `
+🎉 <b>Buyurtma tasdiqlandi!</b>
+
+Sizning <b>#${order.id}</b> raqamli buyurtmangiz tasdiqlandi!
+
+📦 Mahsulotlar: ${order.items.length} ta
+💰 Jami: ${order.total} so'm
+
+🏪 <b>O'zi olib ketish</b>
+📍 Yunusobod-19, 44 dom, Toshkent
+🕐 Ish vaqti: 09:00 - 18:00
+📞 +998 99 221 11 12
+
+Buyurtmangizni do'kondan olib ketishingiz mumkin. Xarid uchun rahmat! 🛍️
+        `.trim();
+      } else {
+        message = `
 🎉 <b>Buyurtma tasdiqlandi!</b>
 
 Sizning <b>#${order.id}</b> raqamli buyurtmangiz tasdiqlandi!
@@ -113,7 +130,8 @@ Sizning <b>#${order.id}</b> raqamli buyurtmangiz tasdiqlandi!
 🚚 Yetkazib beruvchi: ${order.courier}
 
 Buyurtmangiz tez orada jo'natiladi. Xarid uchun rahmat! 🛍️
-      `.trim();
+        `.trim();
+      }
       break;
 
     case 'shipped':
@@ -178,21 +196,25 @@ export const notifyUserNewOrder = async (order) => {
     .map(item => `  • ${item.productName || item.name} (x${item.quantity})`)
     .join('\n');
 
+  const isSelfPickup = order.deliveryInfo?.type === 'self_pickup';
+  const deliveryLine = isSelfPickup
+    ? `🏪 <b>O'zi olib ketish:</b> Yunusobod-19, 44 dom, Toshkent`
+    : `🚚 <b>Courier:</b> ${order.courier}\n📍 <b>Delivery:</b> ${order.deliveryInfo?.city || 'N/A'}`;
+
   const message = `
-✅ <b>Order Received!</b>
+✅ <b>Buyurtma qabul qilindi!</b>
 
-Thank you for your order! 🎉
+Buyurtmangiz uchun rahmat! 🎉
 
-Order ID: <b>#${order.id}</b>
+Buyurtma raqami: <b>#${order.id}</b>
 
-📦 <b>Items:</b>
+📦 <b>Mahsulotlar:</b>
 ${items}
 
-💰 <b>Total:</b> ${order.total} so'm
-🚚 <b>Courier:</b> ${order.courier}
-📍 <b>Delivery:</b> ${order.deliveryInfo?.city || 'N/A'}
+💰 <b>Jami:</b> ${order.total} so'm
+${deliveryLine}
 
-⏰ Your order is pending approval. You'll be notified once it's approved and ready to ship!
+⏰ Buyurtmangiz tasdiqlanishi kutilmoqda. Tasdiqlangandan so'ng xabar beramiz!
   `.trim();
 
   return await sendTelegramMessage(userChatId, message);
@@ -213,21 +235,25 @@ export const notifyAdminNewOrder = async (order) => {
     .map(item => `  • ${item.productName || item.name} (x${item.quantity}) - ${item.price} so'm`)
     .join('\n');
 
+  const isSelfPickupAdmin = order.deliveryInfo?.type === 'self_pickup';
+  const deliveryLineAdmin = isSelfPickupAdmin
+    ? `🏪 <b>O'zi olib ketish</b>`
+    : `🚚 <b>Courier:</b> ${order.courier}\n📍 <b>Location:</b> ${order.deliveryInfo?.city || 'N/A'}`;
+
   const message = `
-🔔 <b>New Order Received!</b>
+🔔 <b>Yangi buyurtma!</b>
 
-Order ID: <b>#${order.id}</b>
-Customer: ${order.userName}
-Phone: ${order.userPhone}
+Buyurtma raqami: <b>#${order.id}</b>
+Mijoz: ${order.userName}
+Telefon: ${order.userPhone}
 
-📦 <b>Items:</b>
+📦 <b>Mahsulotlar:</b>
 ${items}
 
-💰 <b>Total:</b> ${order.total} so'm
-🚚 <b>Courier:</b> ${order.courier}
-📍 <b>Location:</b> ${order.deliveryInfo?.city || 'N/A'}
+💰 <b>Jami:</b> ${order.total} so'm
+${deliveryLineAdmin}
 
-⏰ Please review and approve the order.
+⏰ Iltimos, buyurtmani ko'rib chiqing va tasdiqlang.
   `.trim();
 
   return await sendTelegramMessage(adminChatId, message);
