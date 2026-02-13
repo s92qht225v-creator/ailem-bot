@@ -395,14 +395,12 @@ const CheckoutPage = ({ onNavigate }) => {
                   <MapPin className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-semibold text-gray-900">{SELF_PICKUP_ADDRESS.name}</p>
-                    <p className="text-sm text-gray-700 mt-1">{SELF_PICKUP_ADDRESS.address}</p>
-                    <div className="mt-2 space-y-1 text-sm text-gray-600">
-                      <span>Ish vaqti: {SELF_PICKUP_ADDRESS.workingHours}</span>
-                      <span className="flex items-center gap-1">
-                        <Phone className="w-4 h-4 flex-shrink-0" />
-                        {SELF_PICKUP_ADDRESS.phone}
-                      </span>
-                    </div>
+                    <p className="text-sm text-gray-600 mt-2">{SELF_PICKUP_ADDRESS.address}</p>
+                    <p className="text-sm text-gray-600 mt-2">Ish vaqti: {SELF_PICKUP_ADDRESS.workingHours}</p>
+                    <a href={`tel:${SELF_PICKUP_ADDRESS.phone.replace(/\s/g, '')}`} className="flex items-center gap-1 text-sm text-gray-600 mt-2">
+                      <Phone className="w-4 h-4 flex-shrink-0" />
+                      {SELF_PICKUP_ADDRESS.phone}
+                    </a>
                   </div>
                 </div>
               </div>
