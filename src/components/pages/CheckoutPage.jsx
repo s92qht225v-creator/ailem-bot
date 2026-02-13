@@ -397,7 +397,7 @@ const CheckoutPage = ({ onNavigate }) => {
                     <p className="font-semibold text-gray-900">{SELF_PICKUP_ADDRESS.name}</p>
                     <p className="text-sm text-gray-600 mt-2">{SELF_PICKUP_ADDRESS.address}</p>
                     <p className="text-sm text-gray-600 mt-2">Ish vaqti: {SELF_PICKUP_ADDRESS.workingHours}</p>
-                    <a href={`tel:${SELF_PICKUP_ADDRESS.phone.replace(/\s/g, '')}`} className="flex items-center gap-1 text-sm text-gray-600 mt-2">
+                    <a href={`tel:${SELF_PICKUP_ADDRESS.phone.replace(/\s/g, '')}`} className="flex items-center gap-1 text-sm text-accent font-medium mt-2">
                       <Phone className="w-4 h-4 flex-shrink-0" />
                       {SELF_PICKUP_ADDRESS.phone}
                     </a>
