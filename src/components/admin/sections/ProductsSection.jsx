@@ -293,8 +293,8 @@ const ProductsSection = () => {
             : []),
         tags: formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
         variants: formData.variants || [],
-        // Clear product-level volume_pricing only when variants have their own per-variant pricing
-        volume_pricing: (formData.variants?.length > 0 && formData.variants.some(v => v.volume_pricing?.length > 0))
+        // Clear product-level volume_pricing when variants exist (per-variant pricing takes over)
+        volume_pricing: formData.variants?.length > 0
           ? null
           : (formData.volume_pricing && formData.volume_pricing.length > 0 ? formData.volume_pricing : null),
         barcode: formData.barcode || null,
@@ -1198,8 +1198,8 @@ const ProductsSection = () => {
 
             </div>
 
-            {/* Volume Pricing Section - show when no variants, OR when variants exist but none have per-variant pricing */}
-            {(formData.variants.length === 0 || !formData.variants.some(v => v.volume_pricing?.length > 0)) && (
+            {/* Volume Pricing Section - only for products WITHOUT variants */}
+            {formData.variants.length === 0 && (
             <div className="md:col-span-2 border-t border-gray-200 pt-6">
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
                 <div className="flex items-center justify-between mb-3">
