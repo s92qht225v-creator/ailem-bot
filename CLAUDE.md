@@ -4,7 +4,7 @@
 
 **Ailem** is a full-featured Telegram Mini App e-commerce platform for selling home textiles (bedsheets, pillows, curtains, towels) in Uzbekistan. It features comprehensive customer shopping, admin management, POS/cashier functionality, and advanced engagement features.
 
-- **Version**: 1.0.24
+- **Version**: 1.0.25
 - **Primary Language**: Uzbek (Cyrillic)
 - **Platform**: Telegram Mini App
 - **Target Market**: Uzbekistan (UZS currency)
@@ -453,8 +453,16 @@ updated_at TIMESTAMP
    - Works across multiple products with matching tier thresholds
    - Real-time updates as quantities change
 
+**Per-Variant Volume Pricing** (Added 2026-02-13):
+- Products **without variants**: use product-level `volume_pricing` (unchanged)
+- Products **with variants**: each variant has its own `volume_pricing` array inside the variant JSONB
+- Admin: product-level editor hidden when variants exist; collapsible "Hajm narxi" editor per variant card
+- Cart/Checkout resolve **live** volume_pricing from product data (not stale cart snapshots)
+- On save, product-level `volume_pricing` is automatically cleared when variants exist
+
 **Admin Configuration**:
-- Set up in ProductsSection → Volume Pricing editor
+- **Products without variants**: ProductsSection → Volume Pricing editor (product-level)
+- **Products with variants**: Click "💰 Hajm narxi" on each variant card → add tiers per variant
 - Add multiple tiers with min/max quantities and prices
 - Visual preview shows pricing structure
 - Sorted by min_qty for proper tier hierarchy
@@ -477,12 +485,16 @@ updated_at TIMESTAMP
 
 **Database Storage**:
 ```javascript
-// products.volume_pricing (JSONB)
+// Products WITHOUT variants — product-level (products.volume_pricing JSONB)
 [
   { min_qty: 1, max_qty: 9, price: 100000 },
   { min_qty: 10, max_qty: 49, price: 90000 },
   { min_qty: 50, max_qty: null, price: 80000 }  // null = unlimited
 ]
+
+// Products WITH variants — per-variant (inside products.variants JSONB)
+{ color: "Kulrang", size: "140x70", stock: 9, price: 55000,
+  volume_pricing: [{ min_qty: 5, max_qty: null, price: 50000 }] }
 ```
 
 **Business Logic**:
@@ -1300,8 +1312,35 @@ CREATE TABLE IF NOT EXISTS admin_users (
 - Showed raw key "cart.continueShopping" on empty cart page
 - Fix: Added `'cart.continueShopping': 'Xaridni davom ettirish'` to translation-fallback.js
 
+**Storage Image Cleanup on Deletion** (Feature 2026-02-13):
+- Deleting products/categories from admin now also deletes images from Supabase Storage
+- `extractStoragePath()` helper converts CDN URLs to storage paths
+- `deleteProduct`: cleans up main image, additional images, and variant images
+- `deleteCategory`: cleans up category image
+- Non-blocking: image cleanup failures don't prevent DB deletion (`Promise.allSettled`)
+- Files: `src/services/api.js`, `src/context/AdminContext.jsx`
+
+**Storage RLS Policies Fix** (Infrastructure 2026-02-13):
+- Image uploads from admin failed with "new row violates row-level security policy"
+- Root cause: `product-images` bucket RLS policies not migrated from old Singapore project
+- Fix: Created 4 permissive policies (SELECT/INSERT/UPDATE/DELETE) for `product-images` bucket
+- SQL file: `fix-storage-rls.sql`
+
+**Per-Variant Volume Pricing** (Feature 2026-02-13):
+- Products with variants now support independent volume pricing tiers per variant
+- Products without variants continue using product-level pricing (unchanged)
+- Admin: product-level volume pricing editor hidden when variants exist; collapsible "💰 Hajm narxi" editor per variant card
+- `handleVariantVolumePricingChange()` handler updates variant JSONB
+- On save, product-level `volume_pricing` automatically cleared when variants exist
+- Customer: `activeVolumePricing` resolves variant-specific tiers, falls back to product-level
+- `handleAddToCart` overrides `product.volume_pricing` with variant's before adding to cart
+- Cart/Checkout: resolve live `volume_pricing` from product data to prevent stale cart snapshots
+- POS: `CashierMode.addToCart` also overrides with variant volume pricing
+- No database migration needed — `volume_pricing` stored inside existing `variants` JSONB
+- Files: `ProductsSection.jsx`, `ProductDetails.jsx`, `CartPage.jsx`, `CheckoutPage.jsx`, `CashierMode.jsx`
+
 ---
 
 **Last Updated**: 2026-02-13
-**Version**: 1.0.24
+**Version**: 1.0.25
 **Maintained By**: Ailem Development Team
