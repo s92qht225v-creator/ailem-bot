@@ -122,12 +122,13 @@ const OrdersSection = ({ onImageClick }) => {
 
     if (confirmed) {
       try {
+        const wasApproved = order.status === 'approved';
         const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 3 });
         const bonusPercentage = bonusConfig?.purchaseBonus || 3;
-        const earnedPoints = Math.round((order.total * bonusPercentage) / 100);
+        const earnedPoints = Math.round(((order.subtotal || order.total) * bonusPercentage) / 100);
 
         await rejectOrder(orderId, async (rejectedOrder) => {
-          if (rejectedOrder.userId && earnedPoints > 0) {
+          if (wasApproved && rejectedOrder.userId && earnedPoints > 0) {
             try {
               await updateUserBonusPoints(rejectedOrder.userId, -earnedPoints);
             } catch (err) {
