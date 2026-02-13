@@ -396,13 +396,13 @@ const CheckoutPage = ({ onNavigate }) => {
                   <div>
                     <p className="font-semibold text-gray-900">{SELF_PICKUP_ADDRESS.name}</p>
                     <p className="text-sm text-gray-700 mt-1">{SELF_PICKUP_ADDRESS.address}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                    <div className="mt-2 space-y-1 text-sm text-gray-600">
                       <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {SELF_PICKUP_ADDRESS.workingHours}
+                        <Clock className="w-4 h-4 flex-shrink-0" />
+                        Ish vaqti: {SELF_PICKUP_ADDRESS.workingHours}
                       </span>
                       <span className="flex items-center gap-1">
-                        <Phone className="w-4 h-4" />
+                        <Phone className="w-4 h-4 flex-shrink-0" />
                         {SELF_PICKUP_ADDRESS.phone}
                       </span>
                     </div>
