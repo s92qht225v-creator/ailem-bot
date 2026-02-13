@@ -293,7 +293,10 @@ const ProductsSection = () => {
             : []),
         tags: formData.tags ? formData.tags.split(',').map(t => t.trim().toLowerCase()).filter(t => t) : [],
         variants: formData.variants || [],
-        volume_pricing: formData.volume_pricing && formData.volume_pricing.length > 0 ? formData.volume_pricing : null,
+        // Clear product-level volume_pricing when variants have their own
+        volume_pricing: formData.variants?.length > 0
+          ? null
+          : (formData.volume_pricing && formData.volume_pricing.length > 0 ? formData.volume_pricing : null),
         barcode: formData.barcode || null,
         aPlusContent: formData.aPlusContent || null
       };
