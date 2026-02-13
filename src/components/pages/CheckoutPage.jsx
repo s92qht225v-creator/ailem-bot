@@ -379,9 +379,6 @@ const CheckoutPage = ({ onNavigate }) => {
           <div className="space-y-4">
             {/* Courier Service Dropdown */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                1. {t('checkout.selectCourierService')}
-              </label>
               <CustomDropdown
                 value={pickupCourier}
                 onChange={(value) => setPickupCourier(value)}
@@ -411,9 +408,6 @@ const CheckoutPage = ({ onNavigate }) => {
                     </div>
                   </div>
                 </div>
-                <p className="text-sm text-green-700 font-medium mt-3">
-                  Yetkazib berish: Bepul
-                </p>
               </div>
             )}
 
