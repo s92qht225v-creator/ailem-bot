@@ -29,6 +29,7 @@ export const t = (key, params = {}) => {
     'common.loading': 'Yuklanmoqda...',
     'cart.title': 'Savat',
     'cart.empty': 'Savatda hech narsa yo\'q',
+    'cart.continueShopping': 'Xaridni davom ettirish',
     'cart.checkout': 'Buyurtma berish',
     'cart.bonusPoints': 'Bonus ballari',
     'cart.availableBonus': 'Mavjud: {points} ball',
