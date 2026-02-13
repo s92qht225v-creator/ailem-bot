@@ -58,6 +58,7 @@ const ProductsSection = () => {
   const [formErrors, setFormErrors] = useState({});
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [imageUrl, setImageUrl] = useState('');
+  const [expandedVP, setExpandedVP] = useState(new Set());
   const [tagSuggestions, setTagSuggestions] = useState([]);
   const [showTagSuggestions, setShowTagSuggestions] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -520,6 +521,7 @@ const ProductsSection = () => {
             stock: existing?.stock || 0,
             price: existing?.price || null,
             image: existing?.image || null,
+            volume_pricing: existing?.volume_pricing || null,
             sku: `${color.substring(0, 3).toUpperCase()}-${size.substring(0, 1).toUpperCase()}`
           });
         });
@@ -547,6 +549,16 @@ const ProductsSection = () => {
     const updatedVariants = formData.variants.map(v => {
       if (v.color?.toLowerCase() === color.toLowerCase() && v.size?.toLowerCase() === size.toLowerCase()) {
         return { ...v, barcode: barcode || null };
+      }
+      return v;
+    });
+    setFormData({ ...formData, variants: updatedVariants });
+  };
+
+  const handleVariantVolumePricingChange = (color, size, newTiers) => {
+    const updatedVariants = formData.variants.map(v => {
+      if (v.color?.toLowerCase() === color.toLowerCase() && v.size?.toLowerCase() === size.toLowerCase()) {
+        return { ...v, volume_pricing: newTiers && newTiers.length > 0 ? newTiers : null };
       }
       return v;
     });
@@ -933,6 +945,107 @@ const ProductsSection = () => {
                             />
                           </div>
                         </div>
+                        {/* Per-variant volume pricing */}
+                        {(() => {
+                          const vpKey = `${variant.color}-${variant.size}`;
+                          const isExpanded = expandedVP.has(vpKey);
+                          const tiers = variant.volume_pricing || [];
+                          const variantBasePrice = variant.price || parseFloat(formData.salePrice || formData.price) || 0;
+
+                          return (
+                            <div className="mt-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const next = new Set(expandedVP);
+                                  if (isExpanded) next.delete(vpKey); else next.add(vpKey);
+                                  setExpandedVP(next);
+                                }}
+                                className={`text-xs px-2 py-1 rounded flex items-center gap-1 transition-colors ${
+                                  tiers.length > 0
+                                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                              >
+                                💰 Hajm narxi {tiers.length > 0 && `(${tiers.length})`}
+                                <ChevronRight className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                              </button>
+
+                              {isExpanded && (
+                                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded space-y-2">
+                                  {tiers.map((tier, tIdx) => (
+                                    <div key={tIdx} className="flex items-center gap-1.5 text-xs">
+                                      <input
+                                        type="number"
+                                        min="1"
+                                        value={tier.min_qty}
+                                        onChange={(e) => {
+                                          const updated = [...tiers];
+                                          updated[tIdx] = { ...updated[tIdx], min_qty: parseInt(e.target.value) || 1 };
+                                          handleVariantVolumePricingChange(variant.color, variant.size, updated);
+                                        }}
+                                        className="w-14 px-1.5 py-1 border rounded text-xs"
+                                        placeholder="Min"
+                                      />
+                                      <span className="text-gray-400">-</span>
+                                      <input
+                                        type="number"
+                                        min={tier.min_qty}
+                                        value={tier.max_qty || ''}
+                                        onChange={(e) => {
+                                          const updated = [...tiers];
+                                          updated[tIdx] = { ...updated[tIdx], max_qty: e.target.value ? parseInt(e.target.value) : null };
+                                          handleVariantVolumePricingChange(variant.color, variant.size, updated);
+                                        }}
+                                        className="w-14 px-1.5 py-1 border rounded text-xs"
+                                        placeholder="∞"
+                                      />
+                                      <span className="text-gray-400">=</span>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        value={tier.price}
+                                        onChange={(e) => {
+                                          const updated = [...tiers];
+                                          updated[tIdx] = { ...updated[tIdx], price: parseFloat(e.target.value) || 0 };
+                                          handleVariantVolumePricingChange(variant.color, variant.size, updated);
+                                        }}
+                                        className="w-20 px-1.5 py-1 border rounded text-xs"
+                                        placeholder="Narx"
+                                      />
+                                      <span className="text-gray-400">so'm</span>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const updated = tiers.filter((_, i) => i !== tIdx);
+                                          handleVariantVolumePricingChange(variant.color, variant.size, updated);
+                                        }}
+                                        className="text-red-500 hover:text-red-700 p-0.5"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  ))}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newTier = {
+                                        min_qty: tiers.length > 0 ? (tiers[tiers.length - 1].max_qty || tiers[tiers.length - 1].min_qty) + 1 : 2,
+                                        max_qty: null,
+                                        price: variantBasePrice
+                                      };
+                                      handleVariantVolumePricingChange(variant.color, variant.size, [...tiers, newTier]);
+                                    }}
+                                    className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 flex items-center gap-1"
+                                  >
+                                    <Plus className="w-3 h-3" /> Daraja
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+
                         {variant.image && (
                           <div className="mt-1 text-xs text-green-600 flex items-center gap-1">
                             <ImagePlus className="w-3 h-3" />
@@ -946,7 +1059,7 @@ const ProductsSection = () => {
 
                 <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
                   <p className="text-xs text-yellow-800">
-                    💡 <strong>Eslatma:</strong> Har bir variant uchun alohida narx va ombor miqdorini belgilashingiz mumkin.
+                    💡 <strong>Eslatma:</strong> Har bir variant uchun alohida narx, ombor va hajm narxlashni belgilashingiz mumkin.
                     Agar narx bo'sh qoldirilsa, asosiy narx ishlatiladi.
                   </p>
                 </div>
@@ -1082,7 +1195,8 @@ const ProductsSection = () => {
 
             </div>
 
-            {/* Volume Pricing Section */}
+            {/* Volume Pricing Section - only for products WITHOUT variants */}
+            {formData.variants.length === 0 && (
             <div className="md:col-span-2 border-t border-gray-200 pt-6">
               <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
                 <div className="flex items-center justify-between mb-3">
@@ -1207,6 +1321,7 @@ const ProductsSection = () => {
                 )}
               </div>
             </div>
+            )}
 
             {/* A+ Content Section */}
             <div className="md:col-span-2">

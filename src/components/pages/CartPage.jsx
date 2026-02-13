@@ -8,20 +8,37 @@ import {
   calculateItemTotalWithTierGrouping,
   getTierGroupInfo
 } from '../../utils/volumePricing';
-import { getVariantStock } from '../../utils/variants';
+import { getVariantStock, findVariant } from '../../utils/variants';
 import { AdminContext } from '../../context/AdminContext';
 
 const CartPage = ({ onNavigate }) => {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
   const { products } = useContext(AdminContext);
 
-  // Filter out hidden products — cart stores snapshots, check live visibility
+  // Filter out hidden products and resolve live volume_pricing from product data
+  // Cart stores snapshots — volume_pricing may be stale if admin changed it
   const visibleCartItems = useMemo(() => {
     if (!products.length) return cartItems;
-    return cartItems.filter(item => {
-      const liveProduct = products.find(p => p.id === item.id);
-      return !liveProduct || liveProduct.visible !== false;
-    });
+    return cartItems
+      .filter(item => {
+        const liveProduct = products.find(p => p.id === item.id);
+        return !liveProduct || liveProduct.visible !== false;
+      })
+      .map(item => {
+        const liveProduct = products.find(p => p.id === item.id);
+        if (!liveProduct) return item;
+
+        // Resolve live volume_pricing: variant-level first, then product-level
+        let liveVolumePricing = liveProduct.volume_pricing;
+        if (item.selectedColor && item.selectedSize && liveProduct.variants?.length > 0) {
+          const liveVariant = findVariant(liveProduct.variants, item.selectedColor, item.selectedSize);
+          if (liveVariant?.volume_pricing?.length > 0) {
+            liveVolumePricing = liveVariant.volume_pricing;
+          }
+        }
+
+        return { ...item, volume_pricing: liveVolumePricing };
+      });
   }, [cartItems, products]);
 
   if (visibleCartItems.length === 0) {

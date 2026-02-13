@@ -310,16 +310,21 @@ const CashierMode = () => {
 
   // Cart functions
   const addToCart = useCallback((product, variant = null) => {
+    // Use variant's volume_pricing if available
+    const effectiveProduct = (variant?.volume_pricing?.length > 0)
+      ? { ...product, volume_pricing: variant.volume_pricing }
+      : product;
+
     console.log('🛒 Adding to cart:', {
-      name: product.name,
-      price: product.price,
-      volume_pricing: product.volume_pricing,
+      name: effectiveProduct.name,
+      price: effectiveProduct.price,
+      volume_pricing: effectiveProduct.volume_pricing,
       variant: variant
     });
 
     setCart(prev => {
       const existingIndex = prev.findIndex(item =>
-        item.product.id === product.id &&
+        item.product.id === effectiveProduct.id &&
         JSON.stringify(item.variant) === JSON.stringify(variant)
       );
 
@@ -330,10 +335,10 @@ const CashierMode = () => {
       }
 
       return [...prev, {
-        product,
+        product: effectiveProduct,
         variant,
         quantity: 1,
-        price: variant?.price || product.price
+        price: variant?.price || effectiveProduct.price
       }];
     });
   }, []);

@@ -47,8 +47,13 @@ const ProductDetails = ({ product, onAddToCart }) => {
     ? findVariant(product.variants, selectedColor, selectedSize)
     : null;
 
+  // Get active volume pricing: variant's own, or product-level fallback
+  const activeVolumePricing = (hasVariants && currentVariant?.volume_pricing?.length > 0)
+    ? currentVariant.volume_pricing
+    : product.volume_pricing;
+
   // Use variant image if available, otherwise use product images
-  const images = currentVariant?.image 
+  const images = currentVariant?.image
     ? [currentVariant.image, ...(product.images || [product.image])]
     : (product.images || [product.image]);
 
@@ -281,7 +286,13 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const handleAddToCart = () => {
     // Pass variant price if available
     const variantPrice = currentVariant?.price || null;
-    onAddToCart(product, quantity, selectedColor, selectedSize, variantPrice);
+
+    // Override product's volume_pricing with variant's if available
+    const productForCart = (currentVariant?.volume_pricing?.length > 0)
+      ? { ...product, volume_pricing: currentVariant.volume_pricing }
+      : product;
+
+    onAddToCart(productForCart, quantity, selectedColor, selectedSize, variantPrice);
   };
 
   // Check if user is subscribed to stock notifications
@@ -545,7 +556,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
           </div>
 
           {/* Volume Pricing Display */}
-          {product.volume_pricing && product.volume_pricing.length > 0 && (
+          {activeVolumePricing && activeVolumePricing.length > 0 && (
             <div className="mb-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-sm font-bold text-green-900">
@@ -553,7 +564,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
                 </span>
               </div>
               <div className="space-y-1">
-                {product.volume_pricing
+                {activeVolumePricing
                   .sort((a, b) => a.min_qty - b.min_qty)
                   .map((tier, idx) => (
                   <div key={idx} className="text-sm text-green-800 flex items-center gap-2 flex-wrap">
@@ -563,9 +574,9 @@ const ProductDetails = ({ product, onAddToCart }) => {
                     <span className="font-bold text-green-900">
                       har biri {formatPrice(tier.price)}
                     </span>
-                    {tier.price < product.price && (
+                    {tier.price < currentPrice && (
                       <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full whitespace-nowrap">
-                        {formatPrice(product.price - tier.price)} tejang
+                        {formatPrice(currentPrice - tier.price)} tejang
                       </span>
                     )}
                   </div>

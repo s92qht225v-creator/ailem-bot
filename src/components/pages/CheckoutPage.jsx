@@ -1,11 +1,14 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, useMemo } from 'react';
 import { t } from "../../utils/translation-fallback";
 import { MapPin, Clock, Phone } from 'lucide-react';
 import { useCart } from '../../hooks/useCart';
 import { UserContext } from '../../context/UserContext';
+import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
 import { ShippingRatesContext } from '../../context/ShippingRatesContext';
 import { formatPrice, bonusPointsToDollars, calculateMaxBonusUsage } from '../../utils/helpers';
+import { calculateItemTotalWithTierGrouping } from '../../utils/volumePricing';
+import { findVariant } from '../../utils/variants';
 import { useBackButton } from '../../hooks/useBackButton';
 import CustomDropdown from '../common/CustomDropdown';
 import { usersAPI } from '../../services/api';
@@ -36,6 +39,7 @@ const TASHKENT_DISTRICTS = [
 const CheckoutPage = ({ onNavigate }) => {
   const { getCartTotal, cartItems } = useCart();
   const { user } = useContext(UserContext);
+  const { products } = useContext(AdminContext);
   const {
     getCourierServices,
     getStatesByCourier,
@@ -152,7 +156,26 @@ const CheckoutPage = ({ onNavigate }) => {
     }
   }, [pickupCourier, pickupState, pickupCity, getPickupPointsByCourierStateCity]);
 
-  const subtotal = getCartTotal();
+  // Resolve live volume_pricing from product data (cart snapshots may be stale)
+  const liveCartItems = useMemo(() => {
+    if (!products.length) return cartItems;
+    return cartItems.map(item => {
+      const liveProduct = products.find(p => p.id === item.id);
+      if (!liveProduct) return item;
+      let liveVolumePricing = liveProduct.volume_pricing;
+      if (item.selectedColor && item.selectedSize && liveProduct.variants?.length > 0) {
+        const liveVariant = findVariant(liveProduct.variants, item.selectedColor, item.selectedSize);
+        if (liveVariant?.volume_pricing?.length > 0) {
+          liveVolumePricing = liveVariant.volume_pricing;
+        }
+      }
+      return { ...item, volume_pricing: liveVolumePricing };
+    });
+  }, [cartItems, products]);
+
+  const subtotal = liveCartItems.reduce((total, item) => {
+    return total + calculateItemTotalWithTierGrouping(item, liveCartItems);
+  }, 0);
 
   // Calculate total weight from cart items (default to 0.5kg if weight not specified)
   const totalWeight = cartItems.reduce((total, item) => {
