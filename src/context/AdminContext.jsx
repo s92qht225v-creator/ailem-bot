@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect, useMemo, useCallback } from 'react';
-import { essentialDataAPI, categoriesAPI, productsAPI, ordersAPI, reviewsAPI, usersAPI } from '../services/api';
+import { essentialDataAPI, categoriesAPI, productsAPI, ordersAPI, reviewsAPI, usersAPI, storageAPI, extractStoragePath } from '../services/api';
 import { decreaseVariantStock, updateVariantStock, getTotalVariantStock } from '../utils/variants';
 import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
 
@@ -142,6 +142,22 @@ export const AdminProvider = ({ children }) => {
 
   const deleteProduct = async (productId) => {
     try {
+      const product = products.find(p => p.id === productId);
+
+      // Clean up storage images (non-blocking)
+      if (product) {
+        const imageUrls = [];
+        if (product.image) imageUrls.push(product.image);
+        if (product.images?.length) imageUrls.push(...product.images);
+        if (product.variants?.length) {
+          product.variants.forEach(v => { if (v.image) imageUrls.push(v.image); });
+        }
+        const paths = imageUrls.map(extractStoragePath).filter(Boolean);
+        if (paths.length) {
+          await Promise.allSettled(paths.map(p => storageAPI.deleteImage(p)));
+        }
+      }
+
       await productsAPI.delete(productId);
       setProducts(prev => prev.filter(product => product.id !== productId));
     } catch (err) {
@@ -429,6 +445,16 @@ export const AdminProvider = ({ children }) => {
 
   const deleteCategory = async (categoryId) => {
     try {
+      const category = categories.find(c => c.id === categoryId);
+
+      // Clean up storage image (non-blocking)
+      if (category?.image) {
+        const path = extractStoragePath(category.image);
+        if (path) {
+          try { await storageAPI.deleteImage(path); } catch (e) { /* non-blocking */ }
+        }
+      }
+
       await categoriesAPI.delete(categoryId);
       setCategories(prev => {
         const updated = prev.filter(category => category.id !== categoryId);

@@ -1272,6 +1272,16 @@ export const pickupPointsAPI = {
 // STORAGE API (Image Upload)
 // ============================================
 
+// Extract storage path from full Supabase URL
+// e.g. "https://xxx.supabase.co/storage/v1/object/public/product-images/products/123.jpg" → "products/123.jpg"
+export const extractStoragePath = (url) => {
+  if (!url) return null;
+  const marker = '/product-images/';
+  const idx = url.indexOf(marker);
+  if (idx === -1) return null;
+  return url.substring(idx + marker.length);
+};
+
 export const storageAPI = {
   // Upload image to Supabase Storage
   async uploadImage(file, folder = 'products', bucket = 'product-images') {
