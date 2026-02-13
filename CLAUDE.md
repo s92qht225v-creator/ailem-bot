@@ -4,7 +4,7 @@
 
 **Ailem** is a full-featured Telegram Mini App e-commerce platform for selling home textiles (bedsheets, pillows, curtains, towels) in Uzbekistan. It features comprehensive customer shopping, admin management, POS/cashier functionality, and advanced engagement features.
 
-- **Version**: 1.0.22
+- **Version**: 1.0.24
 - **Primary Language**: Uzbek (Cyrillic)
 - **Platform**: Telegram Mini App
 - **Target Market**: Uzbekistan (UZS currency)
@@ -559,13 +559,19 @@ updated_at TIMESTAMP
 - **Image Upload**: Category images to Supabase Storage
 - **Filtering**: Customer views auto-filter hidden categories
 
-### 9. Shipping Integration
-- **Yandex Delivery**: Tashkent only (11 districts)
-- **Multiple Couriers**: Configurable courier list
+### 9. Shipping & Delivery Integration
+- **Self-Pickup ("O'zi olib ketish")**: Free pickup from store (Yunusobod-19, 44 dom, Toshkent)
+  - First option in courier dropdown, delivery fee = 0
+  - Shows static store address card with working hours and clickable phone
+  - `deliveryInfo.type = 'self_pickup'`
+  - File: `src/components/pages/CheckoutPage.jsx` (SELF_PICKUP_ADDRESS constant)
+- **Yandex Delivery**: Tashkent only (11 districts), manual address entry
+- **Multiple Couriers**: Configurable courier list with cascading state → city → pickup point
 - **Regional Rates**: Courier pricing by region and weight
-- **Pickup Points**: Self-pickup locations
+- **Pickup Points**: Delivery pickup locations (UzPost, etc.)
 - **Postpaid Option**: Pay on delivery support
 - **Cost Calculation**: Automatic based on courier/region/weight
+- **Delivery Types**: `'self_pickup'` | `'home_delivery'` (Yandex) | `'pickup'` (other couriers)
 
 ### 10. Analytics & Reporting
 - **Revenue Metrics**: Total, monthly, weekly, average order value
@@ -1266,8 +1272,36 @@ CREATE TABLE IF NOT EXISTS admin_users (
 - Fix: Updated banner URLs in `app_settings` table to point to new Mumbai project (`jbdzhwenzedlwbdpguyt`)
 - Lesson: When migrating Supabase projects, also rewrite URLs inside JSONB columns (`app_settings.banners[]`, `app_settings.sale_banner`)
 
+**Bonus Points Bug Fixes** (Bug Fix 2026-02-13):
+- **Root Cause**: Two duplicate `handleReject` functions existed — one in `DesktopAdminPanel.jsx` (fixed) and one in `OrdersSection.jsx` (unfixed)
+- **Bug 1**: `OrdersSection.jsx` `handleReject` deducted bonus for ALL rejections, including pending (unpaid) orders
+  - Fix: Added `wasApproved` guard (`order.status === 'approved'`) — only deduct bonus when rejecting a previously approved order
+- **Bug 2**: Used `order.total` (includes shipping) instead of `order.subtotal` for bonus calculation
+  - Fix: Changed to `order.subtotal || order.total` across all bonus calculation points
+- **Bug 3**: Payme webhook (`api/payme-webhook.js`) also used `order.total` for bonus awarding
+  - Fix: Changed to `order.subtotal || order.total`
+- Files: `src/components/admin/sections/OrdersSection.jsx`, `api/payme-webhook.js`
+
+**Self-Pickup Delivery Option** (Feature 2026-02-13):
+- Added "O'zi olib ketish" as first option in checkout courier dropdown
+- When selected, shows a static store address card (no cascading dropdowns):
+  - Store name: AILEM Do'koni
+  - Address: Yunusobod-19, 44 dom, Toshkent
+  - Working hours: 09:00 - 18:00
+  - Clickable phone: +998 99 221 11 12
+- Delivery fee = 0 (free)
+- `deliveryInfo.type = 'self_pickup'` stored on order
+- No extra validation needed (just courier selection sufficient)
+- Excluded from shipping rate lookup and cascading state/city/pickup-point dropdowns
+- File: `src/components/pages/CheckoutPage.jsx` (SELF_PICKUP_ADDRESS constant, special-cased like Yandex)
+
+**Missing Translation Key** (Bug Fix 2026-02-13):
+- `cart.continueShopping` key was used in `CartPage.jsx` but missing from `translation-fallback.js`
+- Showed raw key "cart.continueShopping" on empty cart page
+- Fix: Added `'cart.continueShopping': 'Xaridni davom ettirish'` to translation-fallback.js
+
 ---
 
 **Last Updated**: 2026-02-13
-**Version**: 1.0.23
+**Version**: 1.0.24
 **Maintained By**: Ailem Development Team
