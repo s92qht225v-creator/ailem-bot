@@ -145,7 +145,7 @@ Xarid uchun rahmat! 🎉
       message = `
 ❌ <b>Buyurtma bekor qilindi</b>
 
-Kechirasiz, <b>#${order.id}</b> raqamli buyurtmangiz bajarilmadi.
+Kechirasiz, <b>#${order.id}</b> raqamli buyurtmangiz to'lov qilinmagani uchun bekor qilindi.
 
 💰 Summa: ${order.total} so'm
 
