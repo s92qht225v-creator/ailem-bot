@@ -239,9 +239,10 @@ async function awardBonusPoints(order) {
       purchaseBonusPercentage = settings.bonus_config.purchaseBonus;
       console.log(`ℹ️ Using configured bonus: ${purchaseBonusPercentage}%`);
     }
-    const purchaseBonusPoints = Math.round((order.total * purchaseBonusPercentage) / 100);
+    const bonusBase = order.subtotal || order.total; // Use subtotal (excludes shipping)
+    const purchaseBonusPoints = Math.round((bonusBase * purchaseBonusPercentage) / 100);
 
-    console.log(`💰 Awarding bonus: ${purchaseBonusPoints} points to user ${userId} (${purchaseBonusPercentage}% of ${order.total})`);
+    console.log(`💰 Awarding bonus: ${purchaseBonusPoints} points to user ${userId} (${purchaseBonusPercentage}% of ${bonusBase})`);
 
     // Get current user bonus points
     const { data: user, error: userError } = await supabase

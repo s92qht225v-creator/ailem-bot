@@ -16,7 +16,7 @@
 - **Styling**: Tailwind CSS 3.4.3 with custom brand colors
 - **Icons**: Lucide React 0.344.0
 - **State Management**: React Context API (7 contexts)
-- **Backend**: Supabase (PostgreSQL + Storage + Realtime)
+- **Backend**: Supabase (PostgreSQL + Storage + Realtime) — Mumbai region (ap-south-1)
 - **Payment Gateways**: Payme (active), Click.uz (ready but disabled)
 - **Platform SDK**: Telegram Mini Apps SDK
 - **Deployment**: Vercel
@@ -785,8 +785,8 @@ console.log('💳 Processing Payme payment...', { orderId, amount });
 ## Environment Variables
 
 ```bash
-# Supabase Backend
-VITE_SUPABASE_URL=https://your-project.supabase.co
+# Supabase Backend (Mumbai region — ap-south-1)
+VITE_SUPABASE_URL=https://jbdzhwenzedlwbdpguyt.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-key
 
 # Telegram Bot (for notifications)
@@ -830,7 +830,7 @@ npm run preview  # Preview production build locally
 ### Platform
 - **Hosting**: Vercel
 - **Domain**: www.ailem.uz
-- **Region**: Optimized for Uzbekistan
+- **Database**: Supabase (Mumbai, ap-south-1) — project `jbdzhwenzedlwbdpguyt`
 - **Protocol**: HTTPS required for Telegram Mini Apps
 
 ### Pre-Deployment Checklist
@@ -889,8 +889,31 @@ npm run preview  # Preview production build locally
    - Phase 2 (deferred): orders + users → loads silently in background (~1s later)
    - Customers see the store ~40% faster (2 fewer API calls in critical path)
    - Cleanup pattern with `cancelled` flag prevents state updates after unmount
-   - Featured products locked after first calculation to prevent flicker when orders arrive
    - File: `src/context/AdminContext.jsx`, `src/hooks/useProducts.js`
+
+9. **Single RPC Call**: `get_essential_data(lightweight)` combines products + categories + reviews into 1 DB call
+   - Saves ~2 extra network round-trips (~1.3s from Uzbekistan)
+   - `lightweight=true` omits heavy columns (description, images, a_plus_content) for browsing
+   - Full product data fetched on-demand when user opens ProductPage (`productsAPI.getById()`)
+   - Migration file: `supabase-migrations/add-get-essential-data-rpc.sql`
+   - Files: `src/services/api.js` (essentialDataAPI), `src/context/AdminContext.jsx`
+
+10. **Supabase Region Migration**: Moved from Singapore (ap-southeast-1) to Mumbai (ap-south-1)
+    - ~700ms closer to Uzbekistan users (~400-600ms vs ~1,300ms)
+    - 147 storage files migrated, 73 DB image URLs rewritten
+    - Old project deleted, new project: `jbdzhwenzedlwbdpguyt`
+    - **Note**: JSONB fields (`app_settings.banners`) also contain storage URLs — must be rewritten separately
+
+11. **Featured Products Module-Level Cache**: Prevents flicker when navigating back to homepage
+    - `useRef` was per-hook-instance — new ref on re-mount caused recalculation
+    - Module-level variables persist across all hook instances and re-mounts
+    - Only locks permanently after orders data arrives
+    - File: `src/hooks/useProducts.js`
+
+12. **Hidden Products Cart Filtering**: Cart cross-references live product visibility
+    - Cart stores snapshots — hidden products no longer appear in cart display
+    - BottomNav badge count also excludes hidden products
+    - Files: `src/components/pages/CartPage.jsx`, `src/components/layout/BottomNav.jsx`
 
 ### Existing Optimizations
 
@@ -909,13 +932,17 @@ npm run preview  # Preview production build locally
 ## Security Considerations
 
 1. **localStorage Wrapper**: Detects Telegram Desktop, uses in-memory fallback
-2. **Admin Authentication**: `AdminAuth` component protects admin routes
+2. **Admin Authentication**: Supabase Auth (JWT) + `admin_users` table (two-factor gate)
+   - Login: `supabase.auth.signInWithPassword()` → verify in `admin_users` table
+   - Admin URL: `https://www.ailem.uz?admin=true`
+   - Admin users created via Supabase Admin API (not self-service)
 3. **Audit Logging**: All admin actions logged with email/timestamp
 4. **Payment Verification**: Status polling before order confirmation
 5. **Data Validation**: Server-side validation for all inputs
 6. **RLS Policies**: Row-level security in Supabase
 7. **API Field Mapping**: Prevents direct database pattern exposure
 8. **Role-Based Access**: Customer vs Cashier vs Admin roles
+9. **XSS Prevention**: DOMPurify sanitization on product descriptions
 
 ## Known Issues & Limitations
 
@@ -954,6 +981,34 @@ COMMENT ON COLUMN products.visible IS 'Controls whether product is shown to cust
 **When to run**: Before deploying product visibility toggle feature
 
 **How to run**: Copy SQL to Supabase SQL Editor and execute
+
+### add-get-essential-data-rpc.sql
+```sql
+-- Combined RPC function that fetches products + categories + reviews in one call
+-- Accepts `lightweight` boolean parameter (default true)
+-- lightweight=true omits description, images, a_plus_content for browsing
+CREATE OR REPLACE FUNCTION get_essential_data(lightweight boolean DEFAULT true)
+RETURNS jsonb AS $$ ... $$;
+```
+
+**When to run**: Before deploying single RPC optimization
+
+**How to run**: Copy SQL to Supabase SQL Editor and execute
+
+### add-admin-auth.sql
+```sql
+-- Admin authentication table (links auth.users to admin role)
+CREATE TABLE IF NOT EXISTS admin_users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  role TEXT NOT NULL DEFAULT 'admin',
+  UNIQUE(user_id)
+);
+```
+
+**When to run**: Before deploying Supabase Auth admin panel
+
+**How to run**: Copy SQL to Supabase SQL Editor and execute. Then create admin user via Supabase Dashboard or Admin API.
 
 ## Project Statistics
 
@@ -1162,12 +1217,57 @@ COMMENT ON COLUMN products.visible IS 'Controls whether product is shown to cust
 - **Phase 1** (essential): reviews + categories + products → `loading = false` → customers can browse
 - **Phase 2** (deferred): orders + users → loads silently in background
 - Customers no longer wait for orders/users tables to load before seeing the store
-- Featured products use ref locking to prevent visual flicker when orders arrive
 - Cleanup: `cancelled` flag in useEffect prevents state updates after unmount
 - Files: `src/context/AdminContext.jsx`, `src/hooks/useProducts.js`
 
+**Single RPC Call** (Performance 2026-02-12):
+- `get_essential_data(lightweight)` combines products + categories + reviews into 1 database call
+- Eliminates ~2 extra network round-trips (~1.3s savings from Uzbekistan)
+- `lightweight=true` omits heavy columns (description, images, a_plus_content) for browsing
+- Full product data fetched on-demand when user opens ProductPage
+- ProductPage shows lightweight data instantly, swaps to full when loaded
+- Files: `src/services/api.js`, `src/context/AdminContext.jsx`, `src/components/pages/ProductPage.jsx`
+
+**Supabase Region Migration** (Infrastructure 2026-02-12):
+- Migrated from Singapore (`ap-southeast-1`) to Mumbai (`ap-south-1`)
+- ~700ms closer to Uzbekistan users (~400-600ms vs ~1,300ms)
+- Full migration: pg_dump → pg_restore + 147 storage files + 73 DB URL rewrites
+- Vercel env vars updated to new project
+- Admin auth user recreated (Supabase auth not included in pg_dump)
+- Old Singapore project deleted
+
+**Featured Products Flicker Fix** (Bug Fix 2026-02-12):
+- Featured products changed when navigating back to homepage (tablecloths → tights)
+- Root cause: `useRef` is per-hook-instance — new ref created on re-mount
+- Fix: Module-level cache variables persist across all hook instances
+- Only locks permanently after orders data arrives (allows one fallback → real data update)
+- File: `src/hooks/useProducts.js`
+
+**Hidden Products in Cart** (Bug Fix 2026-02-12):
+- Hidden products appeared in cart because cart stores product snapshots
+- Fix: CartPage cross-references cart items against live product visibility from AdminContext
+- BottomNav cart badge also excludes hidden products
+- Volume pricing calculations use filtered visible items only
+- Files: `src/components/pages/CartPage.jsx`, `src/components/layout/BottomNav.jsx`
+
+**Admin Authentication** (Infrastructure 2026-02-12):
+- Migrated from hardcoded password to Supabase Auth (JWT-based)
+- Two-factor gate: `supabase.auth.signInWithPassword()` + `admin_users` table check
+- Admin URL: `https://www.ailem.uz?admin=true`
+- Session persistence via Supabase JWT tokens
+- File: `src/components/AdminAuth.jsx`, `add-admin-auth.sql`
+
+### Updates (2026-02-13)
+
+**Banner Images Fix** (Bug Fix 2026-02-13):
+- Banners not showing on homepage after Supabase migration
+- Root cause: `app_settings.banners` JSONB contained image URLs pointing to old deleted Singapore project (`cjicnsltjuatduzuwgoo`)
+- During migration, only product/category image columns were rewritten — JSONB fields in `app_settings` were missed
+- Fix: Updated banner URLs in `app_settings` table to point to new Mumbai project (`jbdzhwenzedlwbdpguyt`)
+- Lesson: When migrating Supabase projects, also rewrite URLs inside JSONB columns (`app_settings.banners[]`, `app_settings.sale_banner`)
+
 ---
 
-**Last Updated**: 2026-02-12
-**Version**: 1.0.22
+**Last Updated**: 2026-02-13
+**Version**: 1.0.23
 **Maintained By**: Ailem Development Team

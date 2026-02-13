@@ -372,7 +372,11 @@ export const AdminProvider = ({ children }) => {
   // User management
   const updateUserBonusPoints = async (userId, points) => {
     try {
-      const user = users.find(u => u.id === userId);
+      // Try in-memory first, fall back to DB fetch (users may not be loaded yet in Phase 2)
+      let user = users.find(u => u.id === userId);
+      if (!user) {
+        user = await usersAPI.getById(userId);
+      }
       if (!user) throw new Error('User not found');
 
       const newPoints = Math.max(0, (user.bonusPoints || user.bonus_points || 0) + points);

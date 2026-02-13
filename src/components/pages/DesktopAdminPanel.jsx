@@ -490,11 +490,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
             try {
               const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 3, referralCommission: 10 });
               const purchaseBonusPercentage = bonusConfig?.purchaseBonus || 3;
-              const purchaseBonusPoints = Math.round((order.total * purchaseBonusPercentage) / 100);
+              const bonusBase = order.subtotal || order.total; // Use subtotal (excludes shipping)
+              const purchaseBonusPoints = Math.round((bonusBase * purchaseBonusPercentage) / 100);
 
               // Award bonus points to customer
               await updateUserBonusPoints(order.userId, purchaseBonusPoints);
-              console.log(`💰 Purchase bonus: Customer earned ${purchaseBonusPoints} points (${purchaseBonusPercentage}% of ${order.total})`);
+              console.log(`💰 Purchase bonus: Customer earned ${purchaseBonusPoints} points (${purchaseBonusPercentage}% of ${bonusBase})`);
 
               // Check if this user was referred by someone and reward the referrer
               const customer = await usersAPI.getById(order.userId);
@@ -511,7 +512,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
                   // Calculate referral commission
                   const commissionPercentage = bonusConfig?.referralCommission || 10;
-                  const commissionAmount = Math.round((order.total * commissionPercentage) / 100);
+                  const commissionAmount = Math.round((bonusBase * commissionPercentage) / 100);
 
                   // Reward the referrer
                   const newReferrals = (referrer.referrals || 0) + 1;
@@ -561,18 +562,22 @@ const DesktopAdminPanel = ({ onLogout }) => {
       });
       if (confirmed) {
         try {
-          // Calculate bonus points that were awarded
-          const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 3 });
-          const bonusPercentage = bonusConfig?.purchaseBonus || 3;
-          const earnedPoints = Math.round((order.total * bonusPercentage) / 100);
+          // Only refund bonus points if order was previously approved (bonus was actually awarded)
+          const wasApproved = order.status === 'approved';
 
-          // Reject the order and refund bonus points
+          // Reject the order and refund bonus points only if they were awarded
           await rejectOrder(orderId, async (rejectedOrder) => {
-            if (rejectedOrder.userId && earnedPoints > 0) {
-              // Deduct the bonus points that were awarded
+            if (wasApproved && rejectedOrder.userId) {
               try {
-                await updateUserBonusPoints(rejectedOrder.userId, -earnedPoints);
-                console.log(`✅ Refunded ${earnedPoints} bonus points from user ${rejectedOrder.userId}`);
+                const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 3 });
+                const bonusPercentage = bonusConfig?.purchaseBonus || 3;
+                const refundBase = order.subtotal || order.total;
+                const earnedPoints = Math.round((refundBase * bonusPercentage) / 100);
+
+                if (earnedPoints > 0) {
+                  await updateUserBonusPoints(rejectedOrder.userId, -earnedPoints);
+                  console.log(`✅ Refunded ${earnedPoints} bonus points from user ${rejectedOrder.userId}`);
+                }
               } catch (err) {
                 console.error('Failed to refund bonus points:', err);
               }
