@@ -37,7 +37,7 @@ const TASHKENT_DISTRICTS = [
 ];
 
 const CheckoutPage = ({ onNavigate }) => {
-  const { getCartTotal, cartItems } = useCart();
+  const { cartItems } = useCart();
   const { user } = useContext(UserContext);
   const { products } = useContext(AdminContext);
   const {
@@ -163,13 +163,17 @@ const CheckoutPage = ({ onNavigate }) => {
       const liveProduct = products.find(p => p.id === item.id);
       if (!liveProduct) return item;
       let liveVolumePricing = liveProduct.volume_pricing;
+      let liveWeight = liveProduct.weight;
       if (item.selectedColor && item.selectedSize && liveProduct.variants?.length > 0) {
         const liveVariant = findVariant(liveProduct.variants, item.selectedColor, item.selectedSize);
         if (liveVariant?.volume_pricing?.length > 0) {
           liveVolumePricing = liveVariant.volume_pricing;
         }
+        if (liveVariant?.weight) {
+          liveWeight = liveVariant.weight;
+        }
       }
-      return { ...item, volume_pricing: liveVolumePricing };
+      return { ...item, volume_pricing: liveVolumePricing, weight: liveWeight };
     });
   }, [cartItems, products]);
 
@@ -178,7 +182,7 @@ const CheckoutPage = ({ onNavigate }) => {
   }, 0);
 
   // Calculate total weight from cart items (default to 0.5kg if weight not specified)
-  const totalWeight = cartItems.reduce((total, item) => {
+  const totalWeight = liveCartItems.reduce((total, item) => {
     const itemWeight = item.weight || 0.5; // Default 0.5kg per item if not specified
     return total + (itemWeight * item.quantity);
   }, 0);

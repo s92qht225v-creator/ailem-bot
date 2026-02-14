@@ -310,9 +310,12 @@ const CashierMode = () => {
 
   // Cart functions
   const addToCart = useCallback((product, variant = null) => {
-    // Use variant's volume_pricing if available
-    const effectiveProduct = (variant?.volume_pricing?.length > 0)
-      ? { ...product, volume_pricing: variant.volume_pricing }
+    // Use variant's volume_pricing and weight if available
+    const overrides = {};
+    if (variant?.volume_pricing?.length > 0) overrides.volume_pricing = variant.volume_pricing;
+    if (variant?.weight) overrides.weight = variant.weight;
+    const effectiveProduct = Object.keys(overrides).length > 0
+      ? { ...product, ...overrides }
       : product;
 
     console.log('🛒 Adding to cart:', {

@@ -524,6 +524,7 @@ const ProductsSection = () => {
             stock: existing?.stock || 0,
             price: existing?.price || null,
             image: existing?.image || null,
+            weight: existing?.weight || null,
             volume_pricing: existing?.volume_pricing || null,
             sku: `${color.substring(0, 3).toUpperCase()}-${size.substring(0, 1).toUpperCase()}`
           });
@@ -946,6 +947,27 @@ const ProductsSection = () => {
                               className="w-28 px-2 py-1 border rounded text-sm font-mono"
                               placeholder="Shtrix-kod"
                             />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-gray-600 w-12">Vazni:</span>
+                            <input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={variant.weight || ''}
+                              onChange={(e) => {
+                                const updatedVariants = formData.variants.map(v => {
+                                  if (v.color?.toLowerCase() === variant.color.toLowerCase() && v.size?.toLowerCase() === variant.size.toLowerCase()) {
+                                    return { ...v, weight: e.target.value ? parseFloat(e.target.value) : null };
+                                  }
+                                  return v;
+                                });
+                                setFormData({ ...formData, variants: updatedVariants });
+                              }}
+                              className="w-20 px-2 py-1 border rounded text-sm"
+                              placeholder={formData.weight || '0.5'}
+                            />
+                            <span className="text-xs text-gray-400">kg</span>
                           </div>
                         </div>
                         {/* Per-variant volume pricing */}

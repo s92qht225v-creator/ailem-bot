@@ -287,10 +287,14 @@ const ProductDetails = ({ product, onAddToCart }) => {
     // Pass variant price if available
     const variantPrice = currentVariant?.price || null;
 
-    // Override product's volume_pricing with variant's if available
-    const productForCart = (currentVariant?.volume_pricing?.length > 0)
-      ? { ...product, volume_pricing: currentVariant.volume_pricing }
-      : product;
+    // Override product fields with variant's if available
+    let productForCart = product;
+    if (currentVariant) {
+      const overrides = {};
+      if (currentVariant.volume_pricing?.length > 0) overrides.volume_pricing = currentVariant.volume_pricing;
+      if (currentVariant.weight) overrides.weight = currentVariant.weight;
+      if (Object.keys(overrides).length > 0) productForCart = { ...product, ...overrides };
+    }
 
     onAddToCart(productForCart, quantity, selectedColor, selectedSize, variantPrice);
   };
