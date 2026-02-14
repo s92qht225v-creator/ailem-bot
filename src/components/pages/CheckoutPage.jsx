@@ -103,8 +103,11 @@ const CheckoutPage = ({ onNavigate }) => {
   const [availableCities, setAvailableCities] = useState([]);
   const [availablePickupPoints, setAvailablePickupPoints] = useState([]);
 
-  // Get all courier services including Yandex and self-pickup
-  const allCouriers = ["O'zi olib ketish", 'Yandex', ...getCourierServices()];
+  // BTS specific state
+  const [btsAddress, setBtsAddress] = useState('');
+
+  // Get all courier services including Yandex, BTS, and self-pickup
+  const allCouriers = ["O'zi olib ketish", 'Yandex', 'BTS', ...getCourierServices()];
 
   // Use native Telegram BackButton
   useBackButton(() => onNavigate('cart'));
@@ -113,6 +116,7 @@ const CheckoutPage = ({ onNavigate }) => {
   useEffect(() => {
     setYandexDistrict('');
     setYandexAddress('');
+    setBtsAddress('');
     setPickupState('');
     setPickupCity('');
     setSelectedPickupPoint(null);
@@ -123,7 +127,7 @@ const CheckoutPage = ({ onNavigate }) => {
 
   // Update available states when non-Yandex/non-self-pickup courier is selected
   useEffect(() => {
-    if (pickupCourier && pickupCourier !== 'Yandex' && pickupCourier !== "O'zi olib ketish") {
+    if (pickupCourier && pickupCourier !== 'Yandex' && pickupCourier !== "O'zi olib ketish" && pickupCourier !== 'BTS') {
       const states = getStatesByCourier(pickupCourier);
       console.log('🔍 Checkout Debug:', {
         pickupCourier,
@@ -139,7 +143,7 @@ const CheckoutPage = ({ onNavigate }) => {
 
   // Update available cities when state changes
   useEffect(() => {
-    if (pickupCourier && pickupCourier !== 'Yandex' && pickupCourier !== "O'zi olib ketish" && pickupState) {
+    if (pickupCourier && pickupCourier !== 'Yandex' && pickupCourier !== "O'zi olib ketish" && pickupCourier !== 'BTS' && pickupState) {
       const cities = getCitiesByCourierAndState(pickupCourier, pickupState);
       setAvailableCities(cities);
       setPickupCity('');
@@ -149,7 +153,7 @@ const CheckoutPage = ({ onNavigate }) => {
 
   // Update available pickup points when city changes
   useEffect(() => {
-    if (pickupCourier && pickupCourier !== 'Yandex' && pickupCourier !== "O'zi olib ketish" && pickupState && pickupCity) {
+    if (pickupCourier && pickupCourier !== 'Yandex' && pickupCourier !== "O'zi olib ketish" && pickupCourier !== 'BTS' && pickupState && pickupCity) {
       const points = getPickupPointsByCourierStateCity(pickupCourier, pickupState, pickupCity);
       setAvailablePickupPoints(points);
       setSelectedPickupPoint(null);
@@ -195,14 +199,14 @@ const CheckoutPage = ({ onNavigate }) => {
     return pickupState || selectedPickupPoint?.state || '';
   };
 
-  const deliveryFee = pickupCourier === "O'zi olib ketish"
+  const deliveryFee = (pickupCourier === "O'zi olib ketish" || pickupCourier === 'BTS')
     ? 0
     : (pickupCourier && getDeliveryState()
       ? calculateShippingCost(pickupCourier, getDeliveryState(), totalWeight)
       : 0);
 
   // Get the shipping rate to check payment type
-  const selectedRate = (pickupCourier && pickupCourier !== "O'zi olib ketish" && getDeliveryState())
+  const selectedRate = (pickupCourier && pickupCourier !== "O'zi olib ketish" && pickupCourier !== 'BTS' && getDeliveryState())
     ? getRate(pickupCourier, getDeliveryState())
     : null;
   const isShippingPrepaid = selectedRate?.paymentType !== 'postpaid';
@@ -263,6 +267,11 @@ const CheckoutPage = ({ onNavigate }) => {
       }
     } else if (pickupCourier === "O'zi olib ketish") {
       // No extra validation — store address is fixed
+    } else if (pickupCourier === 'BTS') {
+      if (!btsAddress) {
+        alert('Manzilni kiriting');
+        return;
+      }
     } else {
       // Other couriers validation
       if (!selectedPickupPoint) {
@@ -305,6 +314,14 @@ const CheckoutPage = ({ onNavigate }) => {
         city: 'Tashkent',
         state: 'Tashkent Region',
         type: 'home_delivery',
+        fullName: formData.fullName,
+        phone: formData.phone
+      };
+    } else if (pickupCourier === 'BTS') {
+      deliveryInfo = {
+        courier: pickupCourier,
+        address: btsAddress,
+        type: 'bts_delivery',
         fullName: formData.fullName,
         phone: formData.phone
       };
@@ -470,8 +487,32 @@ const CheckoutPage = ({ onNavigate }) => {
               </>
             )}
 
+            {/* BTS: Manual Address + Postpaid delivery */}
+            {pickupCourier === 'BTS' && (
+              <>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    2. Yetkazish manzilini kiriting
+                  </label>
+                  <textarea
+                    value={btsAddress}
+                    onChange={(e) => setBtsAddress(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
+                    rows="3"
+                    placeholder="Viloyat, shahar, ko'cha, uy raqami..."
+                    required
+                  />
+                </div>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                  <p className="text-blue-800 font-medium">
+                    Yetkazib berish to'lovi mahsulotni olishda to'lanadi
+                  </p>
+                </div>
+              </>
+            )}
+
             {/* Other Couriers: State → City → Pickup Point */}
-            {pickupCourier && pickupCourier !== 'Yandex' && pickupCourier !== "O'zi olib ketish" && (
+            {pickupCourier && pickupCourier !== 'Yandex' && pickupCourier !== "O'zi olib ketish" && pickupCourier !== 'BTS' && (
               <>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
