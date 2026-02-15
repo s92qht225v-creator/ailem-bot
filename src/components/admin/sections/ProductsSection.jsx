@@ -452,11 +452,37 @@ const ProductsSection = () => {
     }
   };
 
-  const handleNotifyNewProduct = async (product) => {
+  const handleNotifyNewProduct = async (product, testMode = false) => {
+    if (testMode) {
+      // Test mode: send only to admin
+      const chatId = localStorage.getItem('admin_telegram_chat_id') || '8370090674';
+      if (!chatId) return;
+
+      try {
+        toast.info('Test bildirishnoma yuborilmoqda...');
+        const { sendTelegramPhoto } = await import('../../../services/telegram');
+        const price = Number(product.price).toLocaleString('uz-UZ').replace(/,/g, ' ');
+        const caption = `🆕 <b>Yangi mahsulot!</b>\n\n<b>${product.name}</b>\n💰 ${price} so'm`;
+        const result = await sendTelegramPhoto(chatId.trim(), product.image, caption);
+        if (result.success) {
+          toast.success('Test bildirishnoma yuborildi!');
+        } else {
+          toast.error(`Yuborilmadi: ${result.error}`);
+          // Clear saved chat ID if it failed (might be wrong)
+          localStorage.removeItem('admin_telegram_chat_id');
+        }
+      } catch (error) {
+        console.error('❌ Failed to send test notification:', error);
+        toast.error('Test bildirishnoma yuborishda xatolik');
+      }
+      return;
+    }
+
+    // Full mode: send to all users
     const confirmed = await confirm({
       title: 'Bildirishnoma yuborish',
-      message: `"${product.name}" haqida barcha foydalanuvchilarga bildirishnoma yuborilsinmi?`,
-      confirmText: 'Yuborish',
+      message: `"${product.name}" haqida barcha foydalanuvchilarga (${users.length} ta) bildirishnoma yuborilsinmi?`,
+      confirmText: 'Hammaga yuborish',
       cancelText: 'Bekor qilish'
     });
 
@@ -1555,9 +1581,16 @@ const ProductsSection = () => {
                         {product.visible === false ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                       <button
+                        onClick={() => handleNotifyNewProduct(product, true)}
+                        className="text-purple-400 hover:text-purple-600"
+                        title="Test yuborish (faqat o'zim)"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                      </button>
+                      <button
                         onClick={() => handleNotifyNewProduct(product)}
                         className="text-purple-600 hover:text-purple-800"
-                        title="Bildirishnoma yuborish"
+                        title="Hammaga yuborish"
                       >
                         <Send className="w-4 h-4" />
                       </button>
