@@ -4,7 +4,7 @@
 
 **Ailem** is a full-featured Telegram Mini App e-commerce platform for selling home textiles (bedsheets, pillows, curtains, towels) in Uzbekistan. It features comprehensive customer shopping, admin management, POS/cashier functionality, and advanced engagement features.
 
-- **Version**: 1.0.25
+- **Version**: 1.0.26
 - **Primary Language**: Uzbek (Cyrillic)
 - **Platform**: Telegram Mini App
 - **Target Market**: Uzbekistan (UZS currency)
@@ -578,12 +578,17 @@ updated_at TIMESTAMP
   - `deliveryInfo.type = 'self_pickup'`
   - File: `src/components/pages/CheckoutPage.jsx` (SELF_PICKUP_ADDRESS constant)
 - **Yandex Delivery**: Tashkent only (11 districts), manual address entry
+- **BTS Delivery**: Manual address entry, postpaid (delivery paid on package pickup)
+  - Delivery fee = 0 in order total (postpaid)
+  - `deliveryInfo.type = 'bts_delivery'`
+  - Excluded from shipping rate lookup and cascading dropdowns (like Yandex/self-pickup)
+  - File: `src/components/pages/CheckoutPage.jsx`
 - **Multiple Couriers**: Configurable courier list with cascading state → city → pickup point
 - **Regional Rates**: Courier pricing by region and weight
 - **Pickup Points**: Delivery pickup locations (UzPost, etc.)
 - **Postpaid Option**: Pay on delivery support
 - **Cost Calculation**: Automatic based on courier/region/weight
-- **Delivery Types**: `'self_pickup'` | `'home_delivery'` (Yandex) | `'pickup'` (other couriers)
+- **Delivery Types**: `'self_pickup'` | `'home_delivery'` (Yandex) | `'bts_delivery'` (BTS) | `'pickup'` (other couriers)
 
 ### 10. Analytics & Reporting
 - **Revenue Metrics**: Total, monthly, weekly, average order value
@@ -865,9 +870,11 @@ npm run preview  # Preview production build locally
 
 ### Major Optimizations (2026-02-11)
 
-1. **Code Splitting / Lazy Loading**: 12 non-critical pages lazy-loaded with `React.lazy()` + `Suspense`
+1. **Code Splitting / Lazy Loading**: 14 non-critical pages lazy-loaded with `lazyWithRetry()` + `Suspense`
    - Critical pages (HomePage, ShopPage, CartPage) remain eagerly loaded
    - Reduced initial bundle from 1,420 KB to 426 KB (70% reduction)
+   - `lazyWithRetry()` wrapper auto-reloads the page once on chunk load failure (stale cache after deployment)
+   - Uses `sessionStorage('chunk_reload')` flag to prevent infinite reload loops
    - File: `src/App.jsx`
 
 2. **AdminContext Memoization**: Context value wrapped in `useMemo` to prevent unnecessary consumer re-renders
@@ -1339,8 +1346,58 @@ CREATE TABLE IF NOT EXISTS admin_users (
 - No database migration needed — `volume_pricing` stored inside existing `variants` JSONB
 - Files: `ProductsSection.jsx`, `ProductDetails.jsx`, `CartPage.jsx`, `CheckoutPage.jsx`, `CashierMode.jsx`
 
+### Updates (2026-02-15)
+
+**Per-Variant Weight** (Feature 2026-02-15):
+- Each variant can have its own `weight` field inside the variant JSONB
+- Products without variants use product-level `weight` (unchanged)
+- Admin: weight input per variant card in ProductsSection
+- `handleAddToCart` overrides `product.weight` with variant's weight before adding to cart
+- Cart/Checkout resolve live weight from product data (not stale cart snapshots)
+- POS: `CashierMode.addToCart` also resolves variant weight
+- No database migration — stored inside existing `variants` JSONB
+- Files: `ProductsSection.jsx`, `ProductDetails.jsx`, `CartPage.jsx`, `CheckoutPage.jsx`, `CashierMode.jsx`
+
+**BTS Delivery Option** (Feature 2026-02-15):
+- Added BTS as delivery method in checkout with manual address entry
+- Postpaid delivery — delivery fee = 0 in order total (paid on package pickup)
+- `deliveryInfo.type = 'bts_delivery'` stored on order
+- Excluded from shipping rate lookup and cascading state/city/pickup-point dropdowns
+- UI: textarea for address input with postpaid notice
+- File: `src/components/pages/CheckoutPage.jsx`
+
+**New Product Notification** (Feature 2026-02-15):
+- Admin can send Telegram notification (photo + name + price) to all bot users
+- Two buttons per product row in admin panel:
+  - Small purple Send icon: **Test mode** — sends only to admin (chat ID `8370090674`, stored in localStorage)
+  - Regular purple Send icon: **Full mode** — sends to all users with confirmation dialog showing user count
+- `sendTelegramPhoto()` function sends photo via Telegram Bot API `sendPhoto`
+- `notifyAllUsersNewProduct()` loops through users with 50ms delay (Telegram rate limit ~30 msgs/sec)
+- Skips invalid chat IDs (`demo-1`, non-numeric)
+- Files: `src/services/telegram.js`, `src/components/admin/sections/ProductsSection.jsx`
+
+**Lazy Chunk Auto-Reload** (Infrastructure 2026-02-15):
+- `lazyWithRetry()` wrapper replaces bare `React.lazy()` for all lazy-loaded pages
+- On chunk load failure (stale cache after deployment), auto-reloads page once
+- Uses `sessionStorage('chunk_reload')` flag to prevent infinite reload loops
+- Solves "TypeError: text/html is not a valid JavaScript MIME type" after deployments
+- File: `src/App.jsx`
+
+**Vercel Rewrite Fix** (Infrastructure 2026-02-15):
+- SPA catch-all rewrite `/(.*) → /index.html` was serving HTML for missing JS chunks
+- Old lazy chunks from previous deployments returned HTML instead of 404
+- Fix: negative lookahead `/((?!assets|api).*)` excludes `/assets/` and `/api/` from catch-all
+- Missing asset requests now properly return 404
+- **Lesson**: Vercel `path-to-regexp` doesn't support `(?!pattern)` directly — must wrap in capture group: `((?!pattern).*)`
+- File: `vercel.json`
+
+**Shop Page Single Column Layout** (UI 2026-02-15):
+- Changed product grid from `grid-cols-2` to `grid-cols-1` on mobile
+- Products now display one per row on mobile screens
+- File: `src/components/pages/ShopPage.jsx`
+
 ---
 
-**Last Updated**: 2026-02-13
-**Version**: 1.0.25
+**Last Updated**: 2026-02-15
+**Version**: 1.0.26
 **Maintained By**: Ailem Development Team
