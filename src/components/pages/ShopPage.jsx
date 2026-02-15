@@ -380,7 +380,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
             <p className="text-gray-400 text-sm mt-2">{t('shop.noResults')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
