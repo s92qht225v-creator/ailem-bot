@@ -3,7 +3,7 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { marked } from 'marked';
 import {
-  Edit, Trash2, Copy, Plus, ChevronRight, Upload, AlertTriangle, X, Download, Search, ImagePlus, Eye, EyeOff
+  Edit, Trash2, Copy, Plus, ChevronRight, Upload, AlertTriangle, X, Download, Search, ImagePlus, Eye, EyeOff, Send
 } from 'lucide-react';
 import { AdminContext } from '../../../context/AdminContext';
 import { useToast } from '../../../context/ToastContext';
@@ -22,7 +22,7 @@ marked.setOptions({
 });
 
 const ProductsSection = () => {
-  const { products, categories, addProduct, updateProduct, deleteProduct, toggleProductVisibility } = useContext(AdminContext);
+  const { products, categories, users, addProduct, updateProduct, deleteProduct, toggleProductVisibility } = useContext(AdminContext);
   const toast = useToast();
   const confirm = useConfirm();
 
@@ -449,6 +449,30 @@ const ProductsSection = () => {
     } catch (error) {
       console.error('❌ Failed to toggle product visibility:', error);
       toast.error('Ko\'rinishni o\'zgartirishda xatolik');
+    }
+  };
+
+  const handleNotifyNewProduct = async (product) => {
+    const confirmed = await confirm({
+      title: 'Bildirishnoma yuborish',
+      message: `"${product.name}" haqida barcha foydalanuvchilarga bildirishnoma yuborilsinmi?`,
+      confirmText: 'Yuborish',
+      cancelText: 'Bekor qilish'
+    });
+
+    if (!confirmed) return;
+
+    try {
+      toast.info('Bildirishnomalar yuborilmoqda...');
+      const { notifyAllUsersNewProduct } = await import('../../../services/telegram');
+      const result = await notifyAllUsersNewProduct(product, users);
+      toast.success(`${result.sent} ta foydalanuvchiga yuborildi`);
+      if (result.failed > 0) {
+        toast.warning(`${result.failed} ta yuborilmadi`);
+      }
+    } catch (error) {
+      console.error('❌ Failed to send notifications:', error);
+      toast.error('Bildirishnoma yuborishda xatolik');
     }
   };
 
@@ -1529,6 +1553,13 @@ const ProductsSection = () => {
                         title={product.visible === false ? 'Ko\'rsatish' : 'Yashirish'}
                       >
                         {product.visible === false ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
+                      <button
+                        onClick={() => handleNotifyNewProduct(product)}
+                        className="text-purple-600 hover:text-purple-800"
+                        title="Bildirishnoma yuborish"
+                      >
+                        <Send className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleEdit(product)}

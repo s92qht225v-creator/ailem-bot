@@ -398,3 +398,75 @@ export const getBotConfig = () => {
     isConfigured: !!getBotToken() && !!getAdminChatId()
   };
 };
+
+/**
+ * Send photo via Telegram Bot API
+ */
+export const sendTelegramPhoto = async (chatId, photoUrl, caption, options = {}) => {
+  const botToken = getBotToken();
+
+  if (!botToken) {
+    return { success: false, error: 'Bot token not configured' };
+  }
+
+  if (!chatId) {
+    return { success: false, error: 'Chat ID not provided' };
+  }
+
+  try {
+    const url = `https://api.telegram.org/bot${botToken}/sendPhoto`;
+
+    const payload = {
+      chat_id: chatId,
+      photo: photoUrl,
+      caption,
+      parse_mode: 'HTML',
+      ...options
+    };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.description || 'Failed to send Telegram photo');
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error('❌ Failed to send Telegram photo:', error);
+    return { success: false, error: error.message };
+  }
+};
+
+/**
+ * Notify all users about a new product (image + price)
+ */
+export const notifyAllUsersNewProduct = async (product, users) => {
+  const price = Number(product.price).toLocaleString('uz-UZ').replace(/,/g, ' ');
+  const caption = `🆕 <b>Yangi mahsulot!</b>\n\n<b>${product.name}</b>\n💰 ${price} so'm`;
+
+  let sent = 0;
+  let failed = 0;
+
+  for (const user of users) {
+    const chatId = user.telegramId;
+    if (!chatId || chatId === 'demo-1' || isNaN(Number(chatId))) continue;
+
+    const result = await sendTelegramPhoto(chatId, product.image, caption);
+    if (result.success) {
+      sent++;
+    } else {
+      failed++;
+    }
+
+    // Small delay to respect Telegram rate limits (~30 msgs/sec)
+    await new Promise(r => setTimeout(r, 50));
+  }
+
+  return { sent, failed, total: users.length };
+};
