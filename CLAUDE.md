@@ -1396,6 +1396,14 @@ CREATE TABLE IF NOT EXISTS admin_users (
 - Products now display one per row on mobile screens
 - File: `src/components/pages/ShopPage.jsx`
 
+**Cart Clearing Fix — Payment Flow** (Bug Fix 2026-02-15):
+- Previously `clearCart()` was called in `PaymentPage.jsx` immediately when opening Payme — before payment was confirmed
+- If user cancelled or closed Payme without paying, their cart was already empty
+- Fix: Removed `clearCart()` from `PaymentPage.jsx` (both Payme and Click handlers)
+- Cart is now cleared in `PaymentStatusPage.jsx` only when order status is confirmed as `'approved'`
+- User's cart stays intact if they cancel, close, or fail payment
+- Files: `src/components/pages/PaymentPage.jsx`, `src/components/pages/PaymentStatusPage.jsx`
+
 ---
 
 **Last Updated**: 2026-02-15
