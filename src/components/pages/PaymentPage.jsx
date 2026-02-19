@@ -11,7 +11,7 @@ import { generatePaymeLink } from '../../services/payme';
 import { generateClickLink } from '../../services/click';
 
 const PaymentPage = ({ checkoutData, onNavigate }) => {
-  const { cartItems, clearCart } = useCart();
+  const { cartItems } = useCart();
   const { user, updateBonusPoints } = useContext(UserContext);
   const { addOrder } = useContext(AdminContext);
 
@@ -161,16 +161,14 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       console.log('   a=<amount_in_tiyin>');
       console.log('═══════════════════════════════════════════════');
 
-      // Clear cart immediately
-      clearCart();
-
       // Store pending payment info for status check when user returns
+      // Cart will be cleared on PaymentStatusPage after payment is confirmed
       saveToLocalStorage('pendingPayment', {
         orderId,
         paymentMethod: 'payme',
         timestamp: Date.now()
       });
-      
+
       // Open payment in Telegram WebView or external browser
       if (window.Telegram?.WebApp) {
         console.log('📱 Opening Payme in Telegram WebApp');
@@ -278,10 +276,8 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       console.log('Payment URL:', paymentUrl);
       console.log('═══════════════════════════════════════════════');
 
-      // Clear cart immediately
-      clearCart();
-
       // Store pending payment info for status check when user returns
+      // Cart will be cleared on PaymentStatusPage after payment is confirmed
       saveToLocalStorage('pendingPayment', {
         orderId,
         paymentMethod: 'click',

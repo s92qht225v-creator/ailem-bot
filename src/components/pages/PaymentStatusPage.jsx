@@ -2,8 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { t } from "../../utils/translation-fallback";
 import { CheckCircle, Loader } from 'lucide-react';
 import { ordersAPI } from '../../services/api';
+import { useCart } from '../../hooks/useCart';
 
 const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
+  const { clearCart } = useCart();
   const [status, setStatus] = useState('checking'); // checking, success, failed, timeout
   const [order, setOrder] = useState(null);
   const [checkCount, setCheckCount] = useState(0);
@@ -53,6 +55,7 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
 
       if (orderData.status === 'approved') {
         console.log('✅ Payment successful!');
+        clearCart();
         setStatus('success');
         setOrder(orderData);
 
