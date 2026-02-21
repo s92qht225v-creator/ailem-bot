@@ -5,6 +5,7 @@ import { formatPrice, generateOrderNumber, saveToLocalStorage, loadFromLocalStor
 import { useCart } from '../../hooks/useCart';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
+
 import { useBackButton } from '../../hooks/useBackButton';
 import { useMainButton } from '../../hooks/useMainButton';
 import { generatePaymeLink } from '../../services/payme';
@@ -12,7 +13,7 @@ import { generateClickLink } from '../../services/click';
 
 const PaymentPage = ({ checkoutData, onNavigate }) => {
   const { cartItems } = useCart();
-  const { user, updateBonusPoints } = useContext(UserContext);
+  const { user } = useContext(UserContext);
   const { addOrder } = useContext(AdminContext);
 
   // Use native Telegram BackButton
@@ -109,17 +110,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       await addOrder(order);
       console.log('✅ Order created:', orderId);
 
-      // Deduct bonus points from user if they used any
-      if (checkoutData.bonusPointsUsed > 0) {
-        try {
-          // updateBonusPoints takes a delta (negative value to deduct)
-          await updateBonusPoints(-checkoutData.bonusPointsUsed);
-          console.log(`✅ Deducted ${checkoutData.bonusPointsUsed} bonus points from user`);
-        } catch (err) {
-          console.error('❌ Failed to deduct bonus points:', err);
-          // Don't fail the order creation if bonus deduction fails
-        }
-      }
+      // Bonus points will be deducted in PaymentStatusPage after payment is confirmed
 
       // Build return URL that redirects to payment status page
       // Using app URL with hash navigation for compatibility
@@ -243,17 +234,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       await addOrder(order);
       console.log('✅ Order created:', orderId);
 
-      // Deduct bonus points from user if they used any
-      if (checkoutData.bonusPointsUsed > 0) {
-        try {
-          // updateBonusPoints takes a delta (negative value to deduct)
-          await updateBonusPoints(-checkoutData.bonusPointsUsed);
-          console.log(`✅ Deducted ${checkoutData.bonusPointsUsed} bonus points from user`);
-        } catch (err) {
-          console.error('❌ Failed to deduct bonus points:', err);
-          // Don't fail the order creation if bonus deduction fails
-        }
-      }
+      // Bonus points will be deducted in PaymentStatusPage after payment is confirmed
 
       // Build return URL that redirects to payment status page
       const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';

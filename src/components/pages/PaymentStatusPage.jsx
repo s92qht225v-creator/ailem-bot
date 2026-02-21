@@ -1,11 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useContext } from 'react';
 import { t } from "../../utils/translation-fallback";
 import { CheckCircle, Loader } from 'lucide-react';
 import { ordersAPI } from '../../services/api';
 import { useCart } from '../../hooks/useCart';
+import { UserContext } from '../../context/UserContext';
 
 const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
   const { clearCart } = useCart();
+  const { updateBonusPoints } = useContext(UserContext);
   const [status, setStatus] = useState('checking'); // checking, success, failed, timeout
   const [order, setOrder] = useState(null);
   const [checkCount, setCheckCount] = useState(0);
@@ -56,6 +58,17 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
       if (orderData.status === 'approved') {
         console.log('✅ Payment successful!');
         clearCart();
+
+        // Deduct bonus points if used in this order
+        if (orderData.bonusPointsUsed > 0) {
+          try {
+            await updateBonusPoints(-orderData.bonusPointsUsed);
+            console.log(`✅ Deducted ${orderData.bonusPointsUsed} bonus points`);
+          } catch (err) {
+            console.error('❌ Failed to deduct bonus points:', err);
+          }
+        }
+
         setStatus('success');
         setOrder(orderData);
 
