@@ -1,5 +1,5 @@
 import { useState, useContext } from 'react';
-import { Users as UsersIcon, TrendingUp, ShoppingBag, ChevronRight, Download, UserCog, Store } from 'lucide-react';
+import { Users as UsersIcon, TrendingUp, ShoppingBag, ChevronRight, Download, UserCog, Store, Plus, Minus } from 'lucide-react';
 import { AdminContext } from '../../../context/AdminContext';
 import { formatDate } from '../../../utils/helpers';
 import { exportUsers } from '../../../utils/csvExport';
@@ -8,12 +8,15 @@ import { useToast } from '../../../context/ToastContext';
 import { logAuditAction, AUDIT_ACTIONS } from '../../../services/auditLog';
 
 const UsersSection = () => {
-  const { users, refreshUsers } = useContext(AdminContext);
+  const { users, refreshUsers, updateUserBonusPoints } = useContext(AdminContext);
   const toast = useToast();
   const [expandedUser, setExpandedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [updatingRole, setUpdatingRole] = useState(null);
+  const [bonusEditUser, setBonusEditUser] = useState(null);
+  const [bonusAmount, setBonusAmount] = useState('');
+  const [updatingBonus, setUpdatingBonus] = useState(false);
 
   const filteredUsers = users.filter(user => {
     const matchesSearch =
@@ -61,6 +64,36 @@ const UsersSection = () => {
       toast.error(`Rolni yangilashda xatolik: ${error.message}`);
     } finally {
       setUpdatingRole(null);
+    }
+  };
+
+  const handleBonusUpdate = async (userId, delta) => {
+    const amount = parseInt(bonusAmount);
+    if (!amount || amount <= 0) {
+      toast.error('Miqdorni kiriting');
+      return;
+    }
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    const actualDelta = delta === 'add' ? amount : -amount;
+    const currentPoints = user.bonusPoints || 0;
+    if (delta === 'deduct' && amount > currentPoints) {
+      toast.error(`Foydalanuvchida faqat ${currentPoints} ball bor`);
+      return;
+    }
+
+    setUpdatingBonus(true);
+    try {
+      await updateUserBonusPoints(userId, actualDelta);
+      toast.success(`${user.name}: ${delta === 'add' ? '+' : '-'}${amount} ball`);
+      setBonusEditUser(null);
+      setBonusAmount('');
+    } catch (error) {
+      console.error('Failed to update bonus points:', error);
+      toast.error('Ballni yangilashda xatolik');
+    } finally {
+      setUpdatingBonus(false);
     }
   };
 
@@ -174,7 +207,47 @@ const UsersSection = () => {
                   <div className="flex items-center gap-3">
                     <div className="text-right">
                       <p className="text-sm text-gray-500">Bonus Points</p>
-                      <p className="text-xl font-bold text-indigo-600">{user.bonusPoints || 0}</p>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => {
+                            setBonusEditUser(bonusEditUser === user.id ? null : user.id);
+                            setBonusAmount('');
+                          }}
+                          className="text-xl font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                          title="Ballni o'zgartirish"
+                        >
+                          {user.bonusPoints || 0}
+                        </button>
+                      </div>
+                      {bonusEditUser === user.id && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <input
+                            type="number"
+                            min="1"
+                            value={bonusAmount}
+                            onChange={(e) => setBonusAmount(e.target.value)}
+                            placeholder="0"
+                            className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                            autoFocus
+                          />
+                          <button
+                            onClick={() => handleBonusUpdate(user.id, 'add')}
+                            disabled={updatingBonus}
+                            className="p-1 bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50"
+                            title="Qo'shish"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleBonusUpdate(user.id, 'deduct')}
+                            disabled={updatingBonus}
+                            className="p-1 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50"
+                            title="Ayirish"
+                          >
+                            <Minus className="w-4 h-4" />
+                          </button>
+                        </div>
+                      )}
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-500">Orders</p>
