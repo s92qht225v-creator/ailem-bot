@@ -2,6 +2,7 @@ import { useState, useContext, useEffect, useRef, useCallback, Suspense, lazy } 
 import { UserContext } from './context/UserContext';
 import { AdminContext } from './context/AdminContext';
 import BottomNav from './components/layout/BottomNav';
+import Header from './components/layout/Header';
 
 // Critical pages - load immediately
 import HomePage from './components/pages/HomePage';
@@ -36,30 +37,92 @@ const MyReviewsPage = lazyWithRetry(() => import('./components/pages/MyReviewsPa
 const WriteReviewPage = lazyWithRetry(() => import('./components/pages/WriteReviewPage'));
 const FavoritesPage = lazyWithRetry(() => import('./components/pages/FavoritesPage'));
 const ReferralsPage = lazyWithRetry(() => import('./components/pages/ReferralsPage'));
+const LoginPage = lazyWithRetry(() => import('./components/pages/LoginPage'));
 const AdminAuth = lazyWithRetry(() => import('./components/AdminAuth'));
 const CashierMode = lazyWithRetry(() => import('./components/cashier/CashierMode'));
 import { loadFromLocalStorage, saveToLocalStorage, removeFromLocalStorage } from './utils/helpers';
-import { initTelegramWebApp, getReferralCode } from './utils/telegram';
+
+// Map page names to URL paths
+const PAGE_TO_PATH = {
+  home: '/',
+  shop: '/shop',
+  cart: '/cart',
+  checkout: '/checkout',
+  payment: '/payment',
+  paymentStatus: '/payment/status',
+  account: '/account',
+  profile: '/profile',
+  orderHistory: '/orders',
+  myReviews: '/reviews',
+  favorites: '/favorites',
+  referrals: '/referrals',
+  login: '/login',
+  admin: '/admin',
+};
+
+// Parse URL path to page name + data
+function parseURL() {
+  const path = window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
+
+  // Admin detection — ?admin=true query param takes priority
+  if (params.get('admin') === 'true' || path === '/admin') {
+    return { page: 'admin', data: {} };
+  }
+
+  // Product deep links: /product/:id
+  const productMatch = path.match(/^\/product\/(.+)$/);
+  if (productMatch) {
+    return { page: 'product', data: { productId: productMatch[1] } };
+  }
+
+  // Order details: /orders/:id
+  const orderMatch = path.match(/^\/orders\/(.+)$/);
+  if (orderMatch) {
+    return { page: 'orderDetails', data: { orderId: orderMatch[1] } };
+  }
+
+  // Reviews write: /reviews/write
+  if (path === '/reviews/write') {
+    return { page: 'writeReview', data: {} };
+  }
+
+  // Payment status: /payment/status?order=X&method=Y
+  if (path === '/payment/status') {
+    return {
+      page: 'paymentStatus',
+      data: {
+        orderId: params.get('order'),
+        paymentMethod: params.get('method')
+      }
+    };
+  }
+
+  // Reverse lookup: path → page name
+  for (const [pageName, pagePath] of Object.entries(PAGE_TO_PATH)) {
+    if (path === pagePath) {
+      return { page: pageName, data: {} };
+    }
+  }
+
+  // Unknown path → default to home
+  return { page: 'home', data: {} };
+}
 
 function App() {
   const { loading: adminLoading, error: adminError } = useContext(AdminContext);
-  // Initialize page state - admin detection happens in useEffect
   const [currentPage, setCurrentPage] = useState('home');
-
-  // Initialize pageData as empty object to avoid hydration mismatch
-  // Load from localStorage in useEffect after mount
   const [pageData, setPageData] = useState({});
 
   const { user, setReferredBy } = useContext(UserContext);
 
   // Check if user is a cashier
   const isCashier = user?.role === 'cashier';
-  
-  // Track if Telegram has been initialized to prevent duplicate runs
-  const telegramInitialized = useRef(false);
 
-  // Load pageData from localStorage after mount to avoid hydration mismatch
-  // Use a ref to track if we've already loaded from localStorage
+  // Track if referral has been processed
+  const referralProcessed = useRef(false);
+
+  // Load pageData from localStorage after mount
   const initialLoadDone = useRef(false);
 
   useEffect(() => {
@@ -73,193 +136,143 @@ function App() {
     initialLoadDone.current = true;
   }, []);
 
+  // Navigate function — pushState routing
   const navigate = useCallback((page, data = {}) => {
     setCurrentPage(page);
     setPageData(data);
-    
-    // Handle admin page navigation
+
+    // Build the URL path
+    let path;
     if (page === 'admin') {
-      // Add admin parameter to URL instead of hash
-      const currentUrl = new URL(window.location);
-      currentUrl.searchParams.set('admin', 'true');
-      window.history.pushState({}, '', currentUrl);
+      path = '/?admin=true';
+    } else if (page === 'product' && data.productId) {
+      path = `/product/${data.productId}`;
+    } else if (page === 'orderDetails' && data.orderId) {
+      path = `/orders/${data.orderId}`;
+    } else if (page === 'paymentStatus') {
+      const params = new URLSearchParams();
+      if (data.orderId) params.set('order', data.orderId);
+      if (data.paymentMethod) params.set('method', data.paymentMethod);
+      path = `/payment/status?${params}`;
+    } else if (page === 'writeReview') {
+      path = '/reviews/write';
     } else {
-      // Remove admin parameter and use hash for other pages
-      const currentUrl = new URL(window.location);
-      currentUrl.searchParams.delete('admin');
-      currentUrl.hash = `/${page}`;
-      window.history.pushState({}, '', currentUrl);
-      
-      // Save to localStorage (safe for Telegram Desktop)
+      path = PAGE_TO_PATH[page] || `/${page}`;
+    }
+
+    window.history.pushState({ page, data }, '', path);
+
+    // Save to localStorage for page data persistence
+    if (page !== 'admin') {
       saveToLocalStorage('currentPage', page);
       saveToLocalStorage('pageData', data);
     }
-    
+
     window.scrollTo(0, 0);
   }, []);
 
-  // Monitor URL for admin parameter on mount and URL changes only
+  // URL parsing on mount + popstate handler
   useEffect(() => {
-    const checkAdminParam = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const adminParam = urlParams.get('admin');
-      const isAdminParam = adminParam === 'true';
+    // Backward compatibility: redirect hash-based URLs to pathname URLs
+    if (window.location.hash.startsWith('#')) {
+      const hash = window.location.hash;
+      // Handle old format: /#paymentStatus?order=X&method=Y or /#/shop
+      const hashParts = hash.replace('#', '').replace('/', '').split('?');
+      const hashPage = hashParts[0];
+      const hashQuery = hashParts[1] ? `?${hashParts[1]}` : '';
 
-      // Use callback form to avoid dependency on currentPage
-      if (isAdminParam) {
-        setCurrentPage((prev) => {
-          if (prev !== 'admin') {
-            console.log('🔍 Admin access detected - switching to admin page');
-            return 'admin';
-          }
-          return prev;
-        });
+      if (hashPage) {
+        const newPath = PAGE_TO_PATH[hashPage] || `/${hashPage}`;
+        window.history.replaceState({}, '', newPath + hashQuery);
+      }
+    }
+
+    // Parse initial URL
+    const { page, data } = parseURL();
+    setCurrentPage(page);
+    if (Object.keys(data).length > 0) setPageData(data);
+
+    // Handle browser back/forward
+    const handlePopState = (event) => {
+      if (event.state?.page) {
+        setCurrentPage(event.state.page);
+        setPageData(event.state.data || {});
       } else {
-        setCurrentPage((prev) => {
-          if (prev === 'admin') {
-            console.log('🏠 Admin param removed - returning to home');
-            return 'home';
-          }
-          return prev;
-        });
-      }
-    };
-    
-    // Check immediately
-    checkAdminParam();
-    
-    // Check on URL changes
-    const handleURLChange = () => {
-      checkAdminParam();
-      
-      // Handle hash changes for regular navigation (only if not admin)
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('admin') !== 'true') {
-        const hash = window.location.hash.slice(1).replace('/', '');
-        if (hash) {
-          setCurrentPage((prev) => {
-            return hash !== prev ? (hash || 'home') : prev;
-          });
-        }
+        const parsed = parseURL();
+        setCurrentPage(parsed.page);
+        setPageData(parsed.data);
       }
     };
 
-    window.addEventListener('hashchange', handleURLChange);
-    window.addEventListener('popstate', handleURLChange);
-    
-    return () => {
-      window.removeEventListener('hashchange', handleURLChange);
-      window.removeEventListener('popstate', handleURLChange);
-    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Note: localStorage saving is handled in the navigate() function
-  // No need for a separate useEffect that watches currentPage/pageData changes
-
-  // Initialize Telegram WebApp and handle referral codes
+  // Handle referral codes from URL (?ref=CODE)
   useEffect(() => {
-    // Only run once
-    if (telegramInitialized.current) {
-      return;
-    }
-    
-    const initApp = async () => {
-      try {
-        const tg = await initTelegramWebApp();
+    if (referralProcessed.current || !user || user.isGuest) return;
 
-        if (tg) {
-          console.log('✅ Telegram WebApp initialized');
-          telegramInitialized.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const refCode = params.get('ref');
 
-          // Check for referral code
-          const refCode = getReferralCode();
-          if (refCode && user) {
-            // Prevent self-referral
-            if (refCode === user.referralCode) {
-              if (tg.showAlert) {
-                tg.showAlert('❌ You cannot use your own referral code!');
-              }
-              return;
-            }
+    if (refCode) {
+      referralProcessed.current = true;
 
-            // Save referral code if user hasn't been referred before
-            if (!user.referredBy && setReferredBy) {
-              await setReferredBy(refCode);
-              if (tg.showAlert) {
-                tg.showAlert('🎉 Welcome! You\'ve been referred by a friend!\n\nYou\'ll earn bonus points from your purchases!');
-              }
-            }
-          }
-        }
-      } catch (error) {
-        console.error('❌ Error initializing Telegram:', error);
+      // Clean ref param from URL
+      const url = new URL(window.location);
+      url.searchParams.delete('ref');
+      window.history.replaceState({}, '', url.pathname + url.search);
+
+      // Prevent self-referral
+      if (refCode === user.referralCode) {
+        alert('Siz o\'zingizning referral kodingizni ishlata olmaysiz!');
+        return;
       }
-    };
 
-    // Only init if user is available
-    if (user) {
-      initApp();
+      // Save referral code if user hasn't been referred before
+      if (!user.referredBy && setReferredBy) {
+        setReferredBy(refCode).then(() => {
+          alert('Xush kelibsiz! Siz do\'stingiz orqali taklif qilindingiz!');
+        });
+      }
     }
-  }, [user?.id]); // Only depend on user.id, not entire user object
+  }, [user?.id]);
 
   // Check for pending payment when app loads
   useEffect(() => {
-    // First check if we have URL parameters (coming back from Payme/Click)
     const urlParams = new URLSearchParams(window.location.search);
+    const pathname = window.location.pathname;
 
-    // Parse hash to extract page and query parameters
+    // Also check hash for backward compat (old payment return URLs)
     const hash = window.location.hash;
     const hashParts = hash.split('?');
-    const hashPage = hashParts[0].replace('#', '').replace('/', '');
     const hashParams = hashParts[1] ? new URLSearchParams(hashParts[1]) : null;
 
-    // Check both URL and hash for parameters (Payme/Click use hash with query params)
     const urlOrderId = urlParams.get('order') || (hashParams && hashParams.get('order'));
     const urlPaymentMethod = urlParams.get('method') || (hashParams && hashParams.get('method'));
 
-    console.log('🔍 Payment return detection:', {
-      hash,
-      hashPage,
-      urlOrderId,
-      urlPaymentMethod,
-      hasHashParams: !!hashParams,
-      fullURL: window.location.href
-    });
-
     if (urlOrderId && urlPaymentMethod) {
-      console.log('✅ Detected payment return from URL/hash params');
-      // Clear the pending payment flag
       removeFromLocalStorage('pendingPayment');
-
-      // Navigate to payment status page with URL params
       navigate('paymentStatus', { orderId: urlOrderId, paymentMethod: urlPaymentMethod });
       return;
     }
 
-    // Otherwise check localStorage for pending payment
+    // Check localStorage for pending payment
     const pendingPayment = loadFromLocalStorage('pendingPayment');
 
     if (pendingPayment) {
       const { orderId, paymentMethod, timestamp } = pendingPayment;
-
-      // Only check if payment was initiated recently (within 1 hour)
       const oneHourAgo = Date.now() - 60 * 60 * 1000;
       if (timestamp > oneHourAgo) {
-        console.log('✅ Found pending payment in localStorage:', { orderId, paymentMethod });
-        // Clear the pending payment flag
         removeFromLocalStorage('pendingPayment');
-
-        // Navigate to payment status page
         navigate('paymentStatus', { orderId, paymentMethod });
       } else {
-        // Payment too old, clear it
-        console.log('⏰ Pending payment expired, clearing');
         removeFromLocalStorage('pendingPayment');
       }
     }
-  }, [navigate]); // Include navigate in dependencies
+  }, [navigate]);
 
-  // Disable context menu on all images to prevent showing URLs
+  // Disable context menu on all images
   useEffect(() => {
     const preventContextMenu = (e) => {
       if (e.target.tagName === 'IMG') {
@@ -269,21 +282,17 @@ function App() {
     };
 
     document.addEventListener('contextmenu', preventContextMenu);
-    
-    return () => {
-      document.removeEventListener('contextmenu', preventContextMenu);
-    };
+    return () => document.removeEventListener('contextmenu', preventContextMenu);
   }, []);
 
   // Show loading screen while data is being fetched
-  // Wait for actual loading to complete instead of using a timeout
   if (adminLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-primary to-accent flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-white mx-auto mb-4"></div>
-          <h2 className="text-white text-xl font-semibold mb-2">Loading Ailem Store...</h2>
-          <p className="text-white/80 text-sm">Connecting to database</p>
+          <h2 className="text-white text-xl font-semibold mb-2">Ailem yuklanmoqda...</h2>
+          <p className="text-white/80 text-sm">Ma'lumotlar bazasiga ulanmoqda</p>
         </div>
       </div>
     );
@@ -295,13 +304,13 @@ function App() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="text-center max-w-md">
           <div className="text-red-500 text-6xl mb-4">⚠️</div>
-          <h2 className="text-gray-800 text-xl font-semibold mb-2">Failed to Load Data</h2>
+          <h2 className="text-gray-800 text-xl font-semibold mb-2">Ma'lumotlarni yuklashda xatolik</h2>
           <p className="text-gray-600 text-sm mb-4">{adminError}</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
           >
-            Retry
+            Qayta urinish
           </button>
         </div>
       </div>
@@ -326,10 +335,20 @@ function App() {
     );
   }
 
+  // Pages that should hide the global header (they have their own)
+  const hideGlobalHeader = ['admin', 'login'].includes(currentPage);
+  // Pages that should hide the bottom nav
+  const hideBottomNav = ['admin', 'login', 'payment', 'paymentStatus', 'checkout'].includes(currentPage);
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Global Header — hidden on admin and login pages */}
+      {!hideGlobalHeader && (
+        <Header onNavigate={navigate} currentPage={currentPage} />
+      )}
+
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto bg-white min-h-screen">
+      <main className="max-w-6xl mx-auto bg-white min-h-screen">
         <Suspense fallback={<PageLoader />}>
           {currentPage === 'home' && <HomePage onNavigate={navigate} />}
 
@@ -385,14 +404,21 @@ function App() {
 
           {currentPage === 'favorites' && <FavoritesPage onNavigate={navigate} />}
 
-          {currentPage === 'referrals' && <ReferralsPage />}
+          {currentPage === 'referrals' && <ReferralsPage onNavigate={navigate} />}
+
+          {currentPage === 'login' && (
+            <LoginPage
+              onNavigate={navigate}
+              returnTo={pageData.returnTo}
+            />
+          )}
 
           {currentPage === 'admin' && <AdminAuth />}
         </Suspense>
       </main>
 
-      {/* Bottom Navigation - hidden only on admin page */}
-      {currentPage !== 'admin' && (
+      {/* Bottom Navigation */}
+      {!hideBottomNav && (
         <BottomNav currentPage={currentPage} onNavigate={navigate} />
       )}
     </div>
@@ -400,4 +426,3 @@ function App() {
 }
 
 export default App;
-// Force rebuild 1769968548

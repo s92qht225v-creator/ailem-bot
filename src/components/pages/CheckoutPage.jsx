@@ -281,7 +281,7 @@ const CheckoutPage = ({ onNavigate }) => {
     }
 
     // Save phone number to user profile if not already saved
-    if (user.id && user.id !== 'demo-1') {
+    if (user.id && !user.isGuest) {
       const cleanPhone = formData.phone.replace(/\s/g, ''); // Remove spaces
       if (!user.phone || user.phone !== cleanPhone) {
         try {
@@ -596,32 +596,34 @@ const CheckoutPage = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Bonus Points */}
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold mb-4">{t('cart.bonusPoints')}</h3>
+        {/* Bonus Points — hidden for guest users */}
+        {!user.isGuest && (
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <h3 className="text-lg font-semibold mb-4">{t('cart.bonusPoints')}</h3>
 
-          <div className="mb-3">
-            <p className="text-sm text-gray-600">
-              {t('cart.availableBonus', { points: user.bonusPoints })}
-            </p>
-            <p className="text-sm text-gray-600">
-              {t('cart.maxBonus', { points: availableBonusPoints })}
-              {' = '}{formatPrice(bonusPointsToDollars(availableBonusPoints))}
-            </p>
+            <div className="mb-3">
+              <p className="text-sm text-gray-600">
+                {t('cart.availableBonus', { points: user.bonusPoints })}
+              </p>
+              <p className="text-sm text-gray-600">
+                {t('cart.maxBonus', { points: availableBonusPoints })}
+                {' = '}{formatPrice(bonusPointsToDollars(availableBonusPoints))}
+              </p>
+            </div>
+
+            {availableBonusPoints > 0 && (
+              <label className="flex items-center gap-3 p-3 border-2 border-gray-300 rounded-lg cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useBonusPoints}
+                  onChange={(e) => setUseBonusPoints(e.target.checked)}
+                  className="w-5 h-5 text-accent"
+                />
+                <span>{t('cart.applyBonus')} ({formatPrice(bonusDiscount)})</span>
+              </label>
+            )}
           </div>
-
-          {availableBonusPoints > 0 && (
-            <label className="flex items-center gap-3 p-3 border-2 border-gray-300 rounded-lg cursor-pointer">
-              <input
-                type="checkbox"
-                checked={useBonusPoints}
-                onChange={(e) => setUseBonusPoints(e.target.checked)}
-                className="w-5 h-5 text-accent"
-              />
-              <span>{t('cart.applyBonus')} ({formatPrice(bonusDiscount)})</span>
-            </label>
-          )}
-        </div>
+        )}
 
         {/* Order Summary */}
         <div className="bg-white rounded-lg shadow-md p-4">

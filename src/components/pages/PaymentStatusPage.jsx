@@ -1,13 +1,13 @@
 import { useState, useEffect, useCallback, useContext } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { CheckCircle, Loader } from 'lucide-react';
+import { CheckCircle, Loader, LogIn } from 'lucide-react';
 import { ordersAPI } from '../../services/api';
 import { useCart } from '../../hooks/useCart';
 import { UserContext } from '../../context/UserContext';
 
 const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
   const { clearCart } = useCart();
-  const { updateBonusPoints } = useContext(UserContext);
+  const { user, updateBonusPoints } = useContext(UserContext);
   const [status, setStatus] = useState('checking'); // checking, success, failed, timeout
   const [order, setOrder] = useState(null);
   const [checkCount, setCheckCount] = useState(0);
@@ -72,10 +72,13 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
         setStatus('success');
         setOrder(orderData);
 
-        // Auto-redirect to order details page after 4 seconds
-        setTimeout(() => {
-          onNavigate('orderDetails', { orderId });
-        }, 4000);
+        // Auto-redirect to order details page after 4 seconds (only for logged-in users)
+        // Guest users see a login prompt instead
+        if (!user?.isGuest) {
+          setTimeout(() => {
+            onNavigate('orderDetails', { orderId });
+          }, 4000);
+        }
         return true; // Payment confirmed
       } else if (orderData.status === 'rejected' || orderData.status === 'failed') {
         console.log('❌ Payment failed/rejected');
@@ -235,9 +238,26 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
             </div>
           </div>
         )}
-        <p className="text-sm text-gray-500 mt-6">
-          {t('payment.redirecting')}
-        </p>
+        {user?.isGuest && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-6 max-w-md w-full">
+            <h3 className="font-semibold text-blue-800 mb-2">Buyurtmani saqlang!</h3>
+            <p className="text-sm text-blue-700 mb-3">
+              Telegram orqali kiring va buyurtma tarixini ko'ring, bonus ball to'plang.
+            </p>
+            <button
+              onClick={() => onNavigate('login', { returnTo: 'orderHistory' })}
+              className="flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 transition w-full"
+            >
+              <LogIn className="w-4 h-4" />
+              Kirish
+            </button>
+          </div>
+        )}
+        {!user?.isGuest && (
+          <p className="text-sm text-gray-500 mt-6">
+            {t('payment.redirecting')}
+          </p>
+        )}
       </div>
     );
   }
@@ -255,12 +275,12 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
           <p className="text-gray-700 mb-4 text-center">
             Your payment is taking longer than usual to confirm.
           </p>
-          <div className="bg-red-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
             <p className="text-sm text-gray-700 mb-2">
-              <strong>📱 Check your Telegram messages!</strong>
+              <strong>📱 To'lov tasdiqlanishi kutilmoqda</strong>
             </p>
             <p className="text-sm text-gray-600">
-              You'll receive a notification when your payment is confirmed.
+              To'lov tasdiqlanganda bildirishnoma olasiz.
             </p>
           </div>
           <p className="text-sm text-gray-600 mb-6 text-center">

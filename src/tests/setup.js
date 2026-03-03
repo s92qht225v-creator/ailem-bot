@@ -7,41 +7,6 @@ afterEach(() => {
   cleanup();
 });
 
-// Mock Telegram WebApp API
-global.window = global.window || {};
-global.window.Telegram = {
-  WebApp: {
-    ready: vi.fn(),
-    expand: vi.fn(),
-    close: vi.fn(),
-    MainButton: {
-      show: vi.fn(),
-      hide: vi.fn(),
-      setText: vi.fn(),
-      onClick: vi.fn(),
-      offClick: vi.fn(),
-      showProgress: vi.fn(),
-      hideProgress: vi.fn()
-    },
-    BackButton: {
-      show: vi.fn(),
-      hide: vi.fn(),
-      onClick: vi.fn(),
-      offClick: vi.fn()
-    },
-    showAlert: vi.fn(),
-    showConfirm: vi.fn(),
-    initDataUnsafe: {
-      user: {
-        id: 999999,
-        first_name: 'Test',
-        last_name: 'User',
-        username: 'testuser'
-      }
-    }
-  }
-};
-
 // Mock environment variables
 process.env.VITE_SUPABASE_URL = 'https://test.supabase.co';
 process.env.VITE_SUPABASE_ANON_KEY = 'test-anon-key';

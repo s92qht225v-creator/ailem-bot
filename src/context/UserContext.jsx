@@ -1,7 +1,6 @@
 import { createContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { usersAPI } from '../services/api';
 import { generateReferralCode, saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage } from '../utils/helpers';
-import { getTelegramUser, isInTelegram } from '../utils/telegram';
 
 export const UserContext = createContext();
 
@@ -28,149 +27,208 @@ export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [favorites, setFavorites] = useState([]); // Start empty, load from Supabase
   const [loading, setLoading] = useState(true);
-  
+
   // Use ref to avoid recreating callbacks when user changes
   const userRef = useRef(user);
   useEffect(() => {
     userRef.current = user;
   }, [user]);
 
-  // Initialize user from Telegram WebApp or create demo user
+  // Initialize user — check for cached session or default to guest
   useEffect(() => {
     initializeUser();
   }, []);
 
-  // Save favorites to localStorage only for demo user
+  // Save favorites to localStorage only for guest users
   useEffect(() => {
-    if (user?.id === 'demo-1') {
+    if (user?.isGuest) {
       saveToLocalStorage('favorites', favorites);
     }
-  }, [favorites, user?.id]); // Only depend on user.id, not entire user object
+  }, [favorites, user?.isGuest]);
 
   const initializeUser = async () => {
     try {
       setLoading(true);
 
-      // Check if running in Telegram
-      if (isInTelegram()) {
-        console.log('🔵 Running in Telegram, fetching user data...');
-        const tgUser = getTelegramUser();
+      // Check for cached logged-in user
+      const cachedUser = loadFromLocalStorage('cachedUser');
+      if (cachedUser && cachedUser.telegramId) {
+        console.log('🔵 Restoring cached user session:', cachedUser.name);
+        setUser(cachedUser);
 
-        if (tgUser && tgUser.id) {
-          console.log('✅ Telegram user found:', tgUser);
-
-          // Prepare user data for Supabase
-          const fullName = `${tgUser.firstName || ''} ${tgUser.lastName || ''}`.trim();
-          const telegramUserData = {
-            telegramId: tgUser.id.toString(),
-            name: fullName || tgUser.username || `User ${tgUser.id}`,
-            username: tgUser.username || `user${tgUser.id}`,
-            photoUrl: tgUser.photoUrl || '',
-            referralCode: generateReferralCode(tgUser.firstName || tgUser.username || tgUser.id.toString()),
-            referredBy: null // Will be set from URL param in App.jsx
-          };
-
-          // Get or create user in Supabase
-          const dbUser = await usersAPI.getOrCreate(telegramUserData);
-          console.log('✅ User synced with Supabase:', dbUser);
-
-          // Map database fields to app format
-          const appUser = {
-            id: dbUser.id,
-            telegramId: dbUser.telegram_id,
-            name: dbUser.name,
-            username: dbUser.username,
-            phone: dbUser.phone,
-            photoUrl: dbUser.photo_url,
-            bonusPoints: dbUser.bonus_points || 0,
-            referralCode: dbUser.referral_code,
-            referrals: dbUser.referrals || 0,
-            referredBy: dbUser.referred_by,
-            totalOrders: dbUser.total_orders || 0,
-            role: dbUser.role || 'customer'
-          };
-
-          setUser(appUser);
-
-          // Load user's favorites - prioritize database (source of truth for real users)
+        // Load favorites from Supabase for logged-in users
+        try {
+          const dbUser = await usersAPI.getById(cachedUser.id);
           const dbFavorites = normalizeFavorites(dbUser.favorites || []);
-          console.log('📥 Loading favorites from database:', dbFavorites);
           setFavorites(dbFavorites);
-          
-          // Clear any stale localStorage favorites to avoid confusion
           removeFromLocalStorage('favorites');
 
-          // Cache the user locally for faster subsequent loads
-          saveToLocalStorage('cachedUser', appUser);
-          return;
+          // Update cached user with latest data from DB
+          const updatedUser = {
+            ...cachedUser,
+            bonusPoints: dbUser.bonus_points ?? cachedUser.bonusPoints,
+            referrals: dbUser.referrals ?? cachedUser.referrals,
+            referredBy: dbUser.referred_by ?? cachedUser.referredBy,
+            totalOrders: dbUser.total_orders ?? cachedUser.totalOrders,
+            phone: dbUser.phone || cachedUser.phone,
+            role: dbUser.role || cachedUser.role
+          };
+          setUser(updatedUser);
+          saveToLocalStorage('cachedUser', updatedUser);
+        } catch (err) {
+          console.error('Failed to refresh user data from Supabase:', err);
+          // Use cached favorites as fallback
+          const cachedFavs = normalizeFavorites(loadFromLocalStorage('favorites', []));
+          setFavorites(cachedFavs);
         }
+        return;
       }
 
-      console.log('⚠️ Not in Telegram or no Telegram user, using demo user');
-      // Fallback to demo user (for development/testing)
-      const demoUser = loadFromLocalStorage('demoUser') || {
-        id: 'demo-1',
-        name: 'Demo User',
-        username: 'demo_user',
-        bonusPoints: 250,
-        referralCode: generateReferralCode('Demo User'),
-        referrals: 3,
+      // Default to guest user
+      console.log('👤 Starting as guest user');
+      const guestUser = {
+        id: 'guest-' + Date.now(),
+        name: 'Mehmon',
+        username: 'guest',
+        isGuest: true,
+        bonusPoints: 0,
+        referralCode: null,
+        referrals: 0,
         referredBy: null,
         role: 'customer'
       };
 
-      setUser(demoUser);
+      setUser(guestUser);
 
-      // Load demo user favorites from localStorage
-      const demoFavorites = normalizeFavorites(loadFromLocalStorage('favorites', []));
-      console.log('📥 Loading favorites from localStorage (demo user):', demoFavorites);
-      setFavorites(demoFavorites);
+      // Load guest favorites from localStorage
+      const guestFavorites = normalizeFavorites(loadFromLocalStorage('favorites', []));
+      setFavorites(guestFavorites);
 
-      saveToLocalStorage('demoUser', demoUser);
     } catch (err) {
-      console.error('❌ Failed to initialize user:', err);
-      // Fallback to demo user
-      const demoUser = {
-        id: 'demo-1',
-        name: 'Demo User',
-        username: 'demo_user',
-        bonusPoints: 250,
-        referralCode: generateReferralCode('Demo User'),
-        referrals: 3,
+      console.error('Failed to initialize user:', err);
+      // Fallback to guest user
+      const guestUser = {
+        id: 'guest-' + Date.now(),
+        name: 'Mehmon',
+        username: 'guest',
+        isGuest: true,
+        bonusPoints: 0,
+        referralCode: null,
+        referrals: 0,
         referredBy: null,
         role: 'customer'
       };
-      setUser(demoUser);
-      // Load demo user favorites from localStorage
-      const demoFavorites = normalizeFavorites(loadFromLocalStorage('favorites', []));
-      setFavorites(demoFavorites);
+      setUser(guestUser);
+      const guestFavorites = normalizeFavorites(loadFromLocalStorage('favorites', []));
+      setFavorites(guestFavorites);
     } finally {
       setLoading(false);
     }
   };
 
+  // Login via Telegram Login Widget
+  const loginWithTelegram = useCallback(async (telegramData) => {
+    try {
+      const response = await fetch('/api/auth/telegram-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(telegramData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Login failed');
+      }
+
+      const { user: appUser } = await response.json();
+
+      // Merge guest cart before switching user
+      const guestCart = loadFromLocalStorage('cart', []);
+
+      const loggedInUser = {
+        ...appUser,
+        isGuest: false
+      };
+
+      setUser(loggedInUser);
+      saveToLocalStorage('cachedUser', loggedInUser);
+
+      // Load favorites from server response or fetch from DB
+      const dbFavorites = normalizeFavorites(appUser.favorites || []);
+      setFavorites(dbFavorites);
+      removeFromLocalStorage('favorites');
+
+      // Merge guest cart with server cart
+      if (guestCart.length > 0) {
+        try {
+          const dbCart = appUser.cart || [];
+          const mergedCart = [...dbCart];
+
+          for (const guestItem of guestCart) {
+            const existing = mergedCart.find(
+              item => item.id === guestItem.id &&
+                item.selectedColor === guestItem.selectedColor &&
+                item.selectedSize === guestItem.selectedSize
+            );
+            if (existing) {
+              existing.quantity += guestItem.quantity;
+            } else {
+              mergedCart.push(guestItem);
+            }
+          }
+
+          await usersAPI.updateCart(appUser.id, mergedCart);
+          saveToLocalStorage('cart', mergedCart);
+        } catch (err) {
+          console.error('Failed to merge carts:', err);
+        }
+      }
+
+      return loggedInUser;
+    } catch (err) {
+      console.error('Telegram login failed:', err);
+      throw err;
+    }
+  }, []);
+
+  // Logout — revert to guest
+  const logout = useCallback(() => {
+    removeFromLocalStorage('cachedUser');
+    removeFromLocalStorage('favorites');
+    removeFromLocalStorage('cart');
+
+    const guestUser = {
+      id: 'guest-' + Date.now(),
+      name: 'Mehmon',
+      username: 'guest',
+      isGuest: true,
+      bonusPoints: 0,
+      referralCode: null,
+      referrals: 0,
+      referredBy: null,
+      role: 'customer'
+    };
+
+    setUser(guestUser);
+    setFavorites([]);
+  }, []);
+
   const updateBonusPoints = useCallback(async (points) => {
     const currentUser = userRef.current;
-    if (!currentUser) return;
+    if (!currentUser || currentUser.isGuest) return;
 
     try {
       const newPoints = currentUser.bonusPoints + points;
 
-      // Update in Supabase if real user
-      if (currentUser.id !== 'demo-1') {
-        await usersAPI.updateBonusPoints(currentUser.id, newPoints);
-      }
+      await usersAPI.updateBonusPoints(currentUser.id, newPoints);
 
-      // Update local state
       setUser(prev => ({
         ...prev,
         bonusPoints: newPoints
       }));
 
-      // Save demo user to localStorage
-      if (currentUser.id === 'demo-1') {
-        saveToLocalStorage('demoUser', { ...currentUser, bonusPoints: newPoints });
-      }
+      // Update cache
+      saveToLocalStorage('cachedUser', { ...currentUser, bonusPoints: newPoints });
     } catch (err) {
       console.error('Failed to update bonus points:', err);
     }
@@ -178,16 +236,12 @@ export const UserProvider = ({ children }) => {
 
   const setReferredBy = useCallback(async (referralCode) => {
     const currentUser = userRef.current;
-    // Only set if user hasn't been referred before
-    if (!currentUser?.referredBy) {
-      // Update in Supabase if real user
-      if (currentUser?.id && currentUser.id !== 'demo-1') {
-        try {
-          await usersAPI.update(currentUser.id, { referred_by: referralCode });
-          console.log('✅ Referred by saved to Supabase:', referralCode);
-        } catch (err) {
-          console.error('❌ Failed to save referred_by to Supabase:', err);
-        }
+    if (!currentUser?.referredBy && currentUser && !currentUser.isGuest) {
+      try {
+        await usersAPI.update(currentUser.id, { referred_by: referralCode });
+        console.log('Referred by saved to Supabase:', referralCode);
+      } catch (err) {
+        console.error('Failed to save referred_by to Supabase:', err);
       }
 
       setUser(prev => ({
@@ -195,16 +249,13 @@ export const UserProvider = ({ children }) => {
         referredBy: referralCode
       }));
 
-      // Save to localStorage for demo user
-      if (currentUser?.id === 'demo-1') {
-        saveToLocalStorage('demoUser', { ...currentUser, referredBy: referralCode });
-      }
+      saveToLocalStorage('cachedUser', { ...currentUser, referredBy: referralCode });
     }
   }, []);
 
   const addReferral = useCallback(async (referredUserId, referredUserName, orderTotal = 0) => {
     const currentUser = userRef.current;
-    if (!currentUser) return;
+    if (!currentUser || currentUser.isGuest) return;
 
     try {
       // Get configured commission percentage from localStorage
@@ -215,30 +266,18 @@ export const UserProvider = ({ children }) => {
       const newReferrals = currentUser.referrals + 1;
       const newBonusPoints = currentUser.bonusPoints + commissionAmount;
 
-      // Update in Supabase if real user
-      if (currentUser.id !== 'demo-1') {
-        await usersAPI.incrementReferrals(currentUser.id);
-        await usersAPI.updateBonusPoints(currentUser.id, newBonusPoints);
-        console.log('✅ Referral synced with Supabase');
-      }
+      await usersAPI.incrementReferrals(currentUser.id);
+      await usersAPI.updateBonusPoints(currentUser.id, newBonusPoints);
 
-      // Update local state
       setUser(prev => ({
         ...prev,
         referrals: newReferrals,
         bonusPoints: newBonusPoints
       }));
 
-      // Save to localStorage for demo user
-      if (currentUser.id === 'demo-1') {
-        saveToLocalStorage('demoUser', {
-          ...currentUser,
-          referrals: newReferrals,
-          bonusPoints: newBonusPoints
-        });
-      }
+      saveToLocalStorage('cachedUser', { ...currentUser, referrals: newReferrals, bonusPoints: newBonusPoints });
     } catch (err) {
-      console.error('❌ Failed to add referral:', err);
+      console.error('Failed to add referral:', err);
     }
   }, []);
 
@@ -249,34 +288,26 @@ export const UserProvider = ({ children }) => {
     setFavorites(prevFavorites => {
       const currentFavorites = normalizeFavorites(prevFavorites);
       const isFav = currentFavorites.includes(normalizedId);
-      console.log('🔄 Toggle favorite:', { productId: normalizedId, isFav });
 
       const updatedFavorites = isFav
         ? currentFavorites.filter(id => id !== normalizedId)
         : [...currentFavorites, normalizedId];
 
-      console.log('✅ Local favorites updated:', updatedFavorites);
-
-      // Sync to Supabase for real users, localStorage for demo users
+      // Sync to Supabase for logged-in users, localStorage for guests
       const currentUser = userRef.current;
-      if (currentUser?.id && currentUser.id !== 'demo-1') {
+      if (currentUser?.id && !currentUser.isGuest) {
         usersAPI.updateFavorites(currentUser.id, updatedFavorites)
-          .then(() => console.log('💾 Favorites synced to Supabase'))
           .catch(err => {
-            console.error('❌ Failed to sync favorites to Supabase:', err);
-            // Save to localStorage as fallback
+            console.error('Failed to sync favorites to Supabase:', err);
             saveToLocalStorage('favorites', updatedFavorites);
-            console.log('💾 Favorites saved to localStorage as fallback');
           });
       } else {
-        // Demo user - save to localStorage
         saveToLocalStorage('favorites', updatedFavorites);
-        console.log('💾 Demo user favorites saved to localStorage');
       }
 
       return updatedFavorites;
     });
-  }, []); // No dependencies - use ref
+  }, []);
 
   const favoritesSet = useMemo(() => new Set(normalizeFavorites(favorites)), [favorites]);
 
@@ -289,12 +320,8 @@ export const UserProvider = ({ children }) => {
   const clearUserData = useCallback(() => {
     removeFromLocalStorage('cachedUser');
     removeFromLocalStorage('favorites');
-    removeFromLocalStorage('demoUser');
   }, []);
 
-
-  // Don't memoize - causes infinite loops in dev mode
-  // Functions are already stable via useCallback
   const contextValue = {
     user,
     setUser,
@@ -305,7 +332,9 @@ export const UserProvider = ({ children }) => {
     toggleFavorite,
     isFavorite,
     loading,
-    clearUserData
+    clearUserData,
+    loginWithTelegram,
+    logout
   };
 
   return (

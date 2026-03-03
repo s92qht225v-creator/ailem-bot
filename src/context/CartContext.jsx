@@ -19,8 +19,8 @@ export const CartProvider = ({ children }) => {
 
     const loadCart = async () => {
       try {
-        // For real Telegram users, load from Supabase
-        if (userId !== 'demo-1') {
+        // For logged-in users, load from Supabase
+        if (!user?.isGuest) {
           const userData = await usersAPI.getById(userId);
           const dbCart = userData.cart || [];
           const localCart = loadFromLocalStorage('cart', []);
@@ -41,10 +41,9 @@ export const CartProvider = ({ children }) => {
               .catch(err => console.error('❌ Failed to sync cart to Supabase:', err));
           }
         } else {
-          // Demo user - load from localStorage only
-          const demoCart = loadFromLocalStorage('cart', []);
-          console.log('📥 Loading cart from localStorage (demo user):', demoCart.length);
-          setCartItems(demoCart);
+          // Guest user - load from localStorage only
+          const guestCart = loadFromLocalStorage('cart', []);
+          setCartItems(guestCart);
         }
       } catch (err) {
         console.error('❌ Failed to load cart:', err);
@@ -70,7 +69,7 @@ export const CartProvider = ({ children }) => {
     saveToLocalStorage('cart', cartItems);
 
     // Debounce Supabase sync - wait 500ms after last change
-    if (userId !== 'demo-1') {
+    if (!user?.isGuest) {
       clearTimeout(syncTimer.current);
       syncTimer.current = setTimeout(() => {
         usersAPI.updateCart(userId, cartItems)

@@ -1,13 +1,11 @@
 import { useState, useContext, useEffect } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { CheckCircle, CreditCard } from 'lucide-react';
+import { CheckCircle, CreditCard, ArrowLeft, Loader } from 'lucide-react';
 import { formatPrice, generateOrderNumber, saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage } from '../../utils/helpers';
 import { useCart } from '../../hooks/useCart';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
 
-import { useBackButton } from '../../hooks/useBackButton';
-import { useMainButton } from '../../hooks/useMainButton';
 import { generatePaymeLink } from '../../services/payme';
 import { generateClickLink } from '../../services/click';
 
@@ -15,9 +13,6 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
   const { cartItems } = useCart();
   const { user } = useContext(UserContext);
   const { addOrder } = useContext(AdminContext);
-
-  // Use native Telegram BackButton
-  useBackButton(() => onNavigate('checkout'));
 
   // Check if user just returned from a payment and redirect to status page
   useEffect(() => {
@@ -29,18 +24,9 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       // Only redirect if payment was initiated recently (within 1 hour)
       const oneHourAgo = Date.now() - 60 * 60 * 1000;
       if (timestamp > oneHourAgo) {
-        console.log('💳 Returning from payment, redirecting to status page:', {
-          orderId,
-          paymentMethod
-        });
-
-        // Clear the pending payment flag
         removeFromLocalStorage('pendingPayment');
-
-        // Navigate to payment status page
         onNavigate('paymentStatus', { orderId, paymentMethod });
       } else {
-        // Payment too old, clear it
         removeFromLocalStorage('pendingPayment');
       }
     }
@@ -59,25 +45,20 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         .toString()
         .padStart(3, '0')}`;
 
-      console.log('💳 Creating order and generating payment link...', {
-        orderId,
-        paymeOrderId
-      });
-      
       // Create pending order first
       const order = {
         id: orderId,
-        paymeOrderId: paymeOrderId, // Payme numeric order ID for webhook
-        userId: user.id, // API will map to snake_case for database
+        paymeOrderId: paymeOrderId,
+        userId: user.id,
         userTelegramId: user.telegramId || user.id,
         userName: user.name,
         userPhone: user.phone || checkoutData.phone,
         items: cartItems.map(item => ({
           productId: item.id,
           productName: item.name,
-          price: item.price, // This will be variant price if set
-          basePrice: item.basePrice || item.price, // Original product price
-          variantPrice: item.variantPrice || null, // Explicit variant price if any
+          price: item.price,
+          basePrice: item.basePrice || item.price,
+          variantPrice: item.variantPrice || null,
           quantity: item.quantity,
           color: item.selectedColor,
           size: item.selectedSize,
@@ -88,7 +69,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
           phone: checkoutData.phone,
           address: checkoutData.address,
           city: checkoutData.city,
-          payme_order_id: paymeOrderId // Also store for webhook compatibility
+          payme_order_id: paymeOrderId
         },
         courier: {
           name: checkoutData.courier || 'N/A',
@@ -101,23 +82,17 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         total: checkoutData.total,
         shippingPaymentType: checkoutData.shippingPaymentType || 'prepaid',
         paymentMethod: 'payme',
-        status: 'pending', // Will be approved by webhook
+        status: 'pending',
         date: new Date().toISOString().split('T')[0],
         createdAt: new Date().toISOString()
       };
 
-      // Save order
       await addOrder(order);
-      console.log('✅ Order created:', orderId);
 
-      // Bonus points will be deducted in PaymentStatusPage after payment is confirmed
-
-      // Build return URL that redirects to payment status page
-      // Using app URL with hash navigation for compatibility
+      // Build return URL using pathname routing
       const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';
-      const returnUrl = `${appUrl}/#paymentStatus?order=${orderId}&method=payme`;
+      const returnUrl = `${appUrl}/payment/status?order=${orderId}&method=payme`;
 
-      // Generate Payme payment link using numeric order ID
       const paymentUrl = generatePaymeLink({
         orderId: paymeOrderId,
         amount: checkoutData.total,
@@ -128,48 +103,17 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         returnUrl: returnUrl
       });
 
-      // Extract and decode the base64 parameters for debugging
-      const base64Params = paymentUrl.split('/').pop();
-      const decodedParams = atob(base64Params);
-
-      console.log('═══════════════════════════════════════════════');
-      console.log('🔗 PAYME PAYMENT DEBUG');
-      console.log('═══════════════════════════════════════════════');
-      console.log('Order Number:', orderId);
-      console.log('Payme Order ID:', paymeOrderId);
-      console.log('Amount (UZS):', checkoutData.total);
-      console.log('Amount (tiyin):', checkoutData.total * 100);
-      console.log('');
-      console.log('Payment URL:', paymentUrl);
-      console.log('');
-      console.log('Base64 Params:', base64Params);
-      console.log('');
-      console.log('Decoded Params:', decodedParams);
-      console.log('═══════════════════════════════════════════════');
-      console.log('💡 Copy the decoded params above to verify:');
-      console.log('   m=<merchant_id>');
-      console.log('   ac.order_id=<numeric_id>');
-      console.log('   a=<amount_in_tiyin>');
-      console.log('═══════════════════════════════════════════════');
-
-      // Store pending payment info for status check when user returns
-      // Cart will be cleared on PaymentStatusPage after payment is confirmed
+      // Store pending payment info
       saveToLocalStorage('pendingPayment', {
         orderId,
         paymentMethod: 'payme',
         timestamp: Date.now()
       });
 
-      // Open payment in Telegram WebView or external browser
-      if (window.Telegram?.WebApp) {
-        console.log('📱 Opening Payme in Telegram WebApp');
-        window.Telegram.WebApp.openLink(paymentUrl);
-      } else {
-        console.log('🌐 Opening Payme in browser');
-        window.location.href = paymentUrl;
-      }
+      // Redirect to payment
+      window.location.href = paymentUrl;
     } catch (error) {
-      console.error('❌ Payment failed:', error);
+      console.error('Payment failed:', error);
       alert(`Failed to create order: ${error.message || 'Please try again.'}`);
     } finally {
       setProcessingPayment(false);
@@ -182,27 +126,21 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       setProcessingPayment(true);
 
       const orderId = generateOrderNumber();
-      const clickOrderId = `${Date.now()}`; // Use timestamp as Click order ID
+      const clickOrderId = `${Date.now()}`;
 
-      console.log('💳 Creating order for Click payment...', {
-        orderId,
-        clickOrderId
-      });
-
-      // Create pending order first
       const order = {
         id: orderId,
-        clickOrderId: clickOrderId, // Click order ID for webhook lookup
-        userId: user.id, // API will map to snake_case for database
+        clickOrderId: clickOrderId,
+        userId: user.id,
         userTelegramId: user.telegramId || user.id,
         userName: user.name,
         userPhone: user.phone || checkoutData.phone,
         items: cartItems.map(item => ({
           productId: item.id,
           productName: item.name,
-          price: item.price, // This will be variant price if set
-          basePrice: item.basePrice || item.price, // Original product price
-          variantPrice: item.variantPrice || null, // Explicit variant price if any
+          price: item.price,
+          basePrice: item.basePrice || item.price,
+          variantPrice: item.variantPrice || null,
           quantity: item.quantity,
           color: item.selectedColor,
           size: item.selectedSize,
@@ -225,22 +163,16 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         total: checkoutData.total,
         shippingPaymentType: checkoutData.shippingPaymentType || 'prepaid',
         paymentMethod: 'click',
-        status: 'pending', // Will be approved by webhook
+        status: 'pending',
         date: new Date().toISOString().split('T')[0],
         createdAt: new Date().toISOString()
       };
 
-      // Save order
       await addOrder(order);
-      console.log('✅ Order created:', orderId);
 
-      // Bonus points will be deducted in PaymentStatusPage after payment is confirmed
-
-      // Build return URL that redirects to payment status page
       const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';
-      const returnUrl = `${appUrl}/#paymentStatus?order=${orderId}&method=click`;
+      const returnUrl = `${appUrl}/payment/status?order=${orderId}&method=click`;
 
-      // Generate Click payment link
       const paymentUrl = generateClickLink({
         orderId: clickOrderId,
         amount: checkoutData.total,
@@ -248,41 +180,21 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
         returnUrl: returnUrl
       });
 
-      console.log('═══════════════════════════════════════════════');
-      console.log('🔗 CLICK PAYMENT DEBUG');
-      console.log('═══════════════════════════════════════════════');
-      console.log('Order Number:', orderId);
-      console.log('Click Order ID:', clickOrderId);
-      console.log('Amount (UZS):', checkoutData.total);
-      console.log('Payment URL:', paymentUrl);
-      console.log('═══════════════════════════════════════════════');
-
-      // Store pending payment info for status check when user returns
-      // Cart will be cleared on PaymentStatusPage after payment is confirmed
       saveToLocalStorage('pendingPayment', {
         orderId,
         paymentMethod: 'click',
         timestamp: Date.now()
       });
 
-      // Open payment in Telegram WebView or external browser
-      if (window.Telegram?.WebApp) {
-        console.log('📱 Opening in Telegram WebApp');
-        window.Telegram.WebApp.openLink(paymentUrl);
-      } else {
-        console.log('🌐 Opening in browser');
-        window.location.href = paymentUrl;
-      }
+      window.location.href = paymentUrl;
     } catch (error) {
-      console.error('❌ Click payment failed:', error);
+      console.error('Click payment failed:', error);
       alert(`Failed to create order: ${error.message || 'Please try again.'}`);
     } finally {
       setProcessingPayment(false);
     }
   };
 
-
-  // Use MainButton for payment methods
   const getButtonText = () => {
     if (paymentMethod === 'telegram') return t('payment.payWithPayme');
     if (paymentMethod === 'click') return t('payment.payWithClick');
@@ -294,15 +206,6 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
     if (paymentMethod === 'click') return handleClickPayment;
     return () => {};
   };
-
-  useMainButton(
-    getButtonText(),
-    getButtonHandler(),
-    {
-      enabled: true,
-      progress: processingPayment,
-    }
-  );
 
   if (!checkoutData) {
     return (
@@ -319,7 +222,18 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
   }
 
   return (
-    <div className="pb-20 pt-16">
+    <div className="pb-32 pt-4">
+      {/* Back button */}
+      <div className="p-4 pb-0">
+        <button
+          onClick={() => onNavigate('checkout')}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          <span className="font-medium">Orqaga</span>
+        </button>
+      </div>
+
       <div className="p-4 space-y-6">
         <h2 className="text-2xl font-bold">{t('payment.title')}</h2>
 
@@ -385,32 +299,11 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
                 <li>{t('payment.poweredByPayme')}</li>
                 <li>{t('payment.supportsPayme')}</li>
                 <li>{t('payment.secureGateway')}</li>
-                <li>{t('payment.opensInTelegram')}</li>
               </ul>
               <p className="text-sm text-gray-600 mt-3" dangerouslySetInnerHTML={{ __html: t('payment.clickButtonPayme') }} />
             </div>
           </div>
         )}
-
-        {/* Click Payment Info - temporarily disabled
-        {paymentMethod === 'click' && (
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <h3 className="text-lg font-semibold mb-3">{t('payment.click')}</h3>
-            <div className="bg-red-50 border-l-4 border-accent p-4 rounded">
-              <p className="text-sm text-gray-700 mb-2">
-                <strong className="text-accent">✅ {t('payment.securePayment')}</strong>
-              </p>
-              <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                <li>{t('payment.poweredByClick')}</li>
-                <li>{t('payment.supportsClick')}</li>
-                <li>{t('payment.secureGateway')}</li>
-                <li>{t('payment.fastReliable')}</li>
-              </ul>
-              <p className="text-sm text-gray-600 mt-3" dangerouslySetInnerHTML={{ __html: t('payment.clickButtonClick') }} />
-            </div>
-          </div>
-        )}
-        */}
 
         {/* Order Summary */}
         <div className="bg-white rounded-lg shadow-md p-4">
@@ -441,6 +334,24 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Sticky bottom payment button (replaces Telegram MainButton) */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50">
+        <div className="max-w-7xl mx-auto">
+          <button
+            onClick={getButtonHandler()}
+            disabled={processingPayment}
+            className="w-full bg-accent text-white py-4 rounded-lg font-bold text-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+          >
+            {processingPayment ? (
+              <span className="flex items-center justify-center gap-2">
+                <Loader className="w-5 h-5 animate-spin" />
+                Yuklanmoqda...
+              </span>
+            ) : getButtonText()}
+          </button>
         </div>
       </div>
     </div>

@@ -455,7 +455,7 @@ export const notifyAllUsersNewProduct = async (product, users) => {
 
   for (const user of users) {
     const chatId = user.telegramId;
-    if (!chatId || chatId === 'demo-1' || isNaN(Number(chatId))) continue;
+    if (!chatId || isNaN(Number(chatId))) continue;
 
     const result = await sendTelegramPhoto(chatId, product.image, caption);
     if (result.success) {
