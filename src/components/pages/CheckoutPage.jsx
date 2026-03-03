@@ -281,7 +281,7 @@ const CheckoutPage = ({ onNavigate }) => {
     }
 
     // Save phone number to user profile if not already saved
-    if (user.id && user.id !== 'demo-1') {
+    if (user.id && !user.isGuest) {
       const cleanPhone = formData.phone.replace(/\s/g, ''); // Remove spaces
       if (!user.phone || user.phone !== cleanPhone) {
         try {
@@ -355,9 +355,12 @@ const CheckoutPage = ({ onNavigate }) => {
   };
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 lg:pb-8">
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
         <h2 className="text-2xl font-bold">{t('checkout.title')}</h2>
+
+        <div className="lg:flex lg:gap-8 lg:items-start">
+        <div className="space-y-6 lg:flex-1">
 
         {/* Personal Information */}
         <div className="bg-white rounded-lg shadow-md p-4">
@@ -596,32 +599,38 @@ const CheckoutPage = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Bonus Points */}
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold mb-4">{t('cart.bonusPoints')}</h3>
+        {/* Bonus Points — hidden for guest users */}
+        {!user.isGuest && (
+          <div className="bg-white rounded-lg shadow-md p-4">
+            <h3 className="text-lg font-semibold mb-4">{t('cart.bonusPoints')}</h3>
 
-          <div className="mb-3">
-            <p className="text-sm text-gray-600">
-              {t('cart.availableBonus', { points: user.bonusPoints })}
-            </p>
-            <p className="text-sm text-gray-600">
-              {t('cart.maxBonus', { points: availableBonusPoints })}
-              {' = '}{formatPrice(bonusPointsToDollars(availableBonusPoints))}
-            </p>
+            <div className="mb-3">
+              <p className="text-sm text-gray-600">
+                {t('cart.availableBonus', { points: user.bonusPoints })}
+              </p>
+              <p className="text-sm text-gray-600">
+                {t('cart.maxBonus', { points: availableBonusPoints })}
+                {' = '}{formatPrice(bonusPointsToDollars(availableBonusPoints))}
+              </p>
+            </div>
+
+            {availableBonusPoints > 0 && (
+              <label className="flex items-center gap-3 p-3 border-2 border-gray-300 rounded-lg cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={useBonusPoints}
+                  onChange={(e) => setUseBonusPoints(e.target.checked)}
+                  className="w-5 h-5 text-accent"
+                />
+                <span>{t('cart.applyBonus')} ({formatPrice(bonusDiscount)})</span>
+              </label>
+            )}
           </div>
+        )}
 
-          {availableBonusPoints > 0 && (
-            <label className="flex items-center gap-3 p-3 border-2 border-gray-300 rounded-lg cursor-pointer">
-              <input
-                type="checkbox"
-                checked={useBonusPoints}
-                onChange={(e) => setUseBonusPoints(e.target.checked)}
-                className="w-5 h-5 text-accent"
-              />
-              <span>{t('cart.applyBonus')} ({formatPrice(bonusDiscount)})</span>
-            </label>
-          )}
-        </div>
+        </div>{/* end left column */}
+
+        <div className="space-y-6 mt-6 lg:mt-0 lg:w-96 lg:sticky lg:top-20 lg:flex-shrink-0">
 
         {/* Order Summary */}
         <div className="bg-white rounded-lg shadow-md p-4">
@@ -675,6 +684,9 @@ const CheckoutPage = ({ onNavigate }) => {
         >
           {t('checkout.placeOrder')}
         </button>
+
+        </div>{/* end right column */}
+        </div>{/* end flex wrapper */}
       </form>
     </div>
   );

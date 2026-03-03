@@ -1,15 +1,11 @@
 import { useContext, useState, useEffect } from 'react';
-import { Users, Copy, Share2, Gift, UserPlus, Award, Link as LinkIcon } from 'lucide-react';
+import { Users, Copy, Share2, Gift, UserPlus, Award, Link as LinkIcon, LogIn } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { copyToClipboard, loadFromLocalStorage } from '../../utils/helpers';
 import { generateReferralLink, shareReferralLink } from '../../utils/telegram';
 
-// Telegram bot username
-const BOT_USERNAME = 'ailemuz_bot';
-
-const ReferralsPage = ({ hideHeader = false }) => {
+const ReferralsPage = ({ hideHeader = false, onNavigate }) => {
   const { user } = useContext(UserContext);
-  const referralLink = generateReferralLink(user.referralCode, BOT_USERNAME);
 
   // Get referral commission percentage from config
   const [commissionRate, setCommissionRate] = useState(10);
@@ -19,15 +15,39 @@ const ReferralsPage = ({ hideHeader = false }) => {
     setCommissionRate((bonusConfig?.referralCommission ?? 10) || 10);
   }, []);
 
+  // Guest users cannot access referrals
+  if (user?.isGuest) {
+    return (
+      <div className={hideHeader ? 'pt-16' : 'pb-20 pt-16 bg-gray-50 min-h-screen'}>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center">
+          <Users className="w-16 h-16 text-gray-300 mb-4" />
+          <h2 className="text-xl font-bold text-gray-800 mb-2">Referral dasturi</h2>
+          <p className="text-gray-500 mb-6">
+            Do'stlaringizni taklif qiling va bonus ball oling. Tizimga kiring va referral kodingizni oling.
+          </p>
+          <button
+            onClick={() => onNavigate && onNavigate('login', { returnTo: 'referrals' })}
+            className="flex items-center gap-2 bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+          >
+            <LogIn className="w-5 h-5" />
+            Kirish
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const referralLink = generateReferralLink(user.referralCode);
+
   const handleCopyLink = async () => {
     const success = await copyToClipboard(referralLink);
     if (success) {
-      alert('Referral link copied to clipboard!');
+      alert('Referral link nusxalandi!');
     }
   };
 
   const handleShareLink = () => {
-    shareReferralLink(user.referralCode, BOT_USERNAME, user.name);
+    shareReferralLink(user.referralCode, null, user.name);
   };
 
   return (

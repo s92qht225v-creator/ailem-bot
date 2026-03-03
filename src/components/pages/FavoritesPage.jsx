@@ -48,7 +48,7 @@ const FavoritesPage = ({ onNavigate }) => {
   }
 
   return (
-    <div className="pb-20 bg-gray-50 min-h-screen">
+    <div className="pb-20 lg:pb-8 bg-gray-50 min-h-screen">
       {/* Content */}
       <div className="p-4">
         {favoriteProducts.length === 0 ? (

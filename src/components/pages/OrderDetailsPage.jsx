@@ -77,8 +77,9 @@ const OrderDetailsPage = ({ orderId, onNavigate }) => {
   }
 
   return (
-    <div className="pb-20 pt-16 bg-gray-50 min-h-screen">
-      <div className="p-4">
+    <div className="pb-20 lg:pb-8 pt-16 bg-gray-50 min-h-screen">
+      <div className="p-4 lg:flex lg:gap-8 lg:items-start">
+        <div className="lg:flex-1 space-y-4">
         {/* Order Header */}
         <div className="bg-white rounded-lg shadow-md p-4 mb-4">
           <div className="flex justify-between items-start mb-4">
@@ -103,8 +104,11 @@ const OrderDetailsPage = ({ orderId, onNavigate }) => {
           </div>
         </div>
 
+        </div>{/* end left column */}
+
+        <div className="lg:w-96 lg:flex-shrink-0 space-y-4 mt-4 lg:mt-0">
         {/* Order Items */}
-        <div className="bg-white rounded-lg shadow-md p-4 mb-4">
+        <div className="bg-white rounded-lg shadow-md p-4 mb-4 lg:mb-0">
           <h3 className="font-semibold text-gray-800 mb-3">{t('orderDetails.orderItems')}</h3>
           <div className="space-y-3">
             {order.items.map((item, index) => (
@@ -230,6 +234,7 @@ const OrderDetailsPage = ({ orderId, onNavigate }) => {
             </p>
           )}
         </div>
+        </div>{/* end right column */}
       </div>
     </div>
   );

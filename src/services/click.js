@@ -76,28 +76,9 @@ export const generateClickLink = ({ orderId, amount, description = '', returnUrl
  * @param {Function} params.onSuccess - Success callback
  * @param {Function} params.onCancel - Cancel callback
  */
-export const openClickInTelegram = ({ orderId, amount, description, onSuccess, onCancel }) => {
+export const openClickInBrowser = ({ orderId, amount, description }) => {
   const paymentUrl = generateClickLink({ orderId, amount, description });
-
-  console.log('💳 Opening Click payment:', {
-    orderId,
-    amount,
-    url: paymentUrl
-  });
-
-  // Check if running in Telegram
-  if (window.Telegram?.WebApp) {
-    const tg = window.Telegram.WebApp;
-
-    // Open payment URL in Telegram's in-app browser
-    tg.openLink(paymentUrl);
-
-    console.log('✅ Click payment opened in Telegram browser');
-    console.log('⏳ Waiting for webhook confirmation...');
-  } else {
-    // Fallback: redirect in current window
-    window.location.href = paymentUrl;
-  }
+  window.location.href = paymentUrl;
 };
 
 /**
@@ -197,7 +178,7 @@ export const CLICK_ACTIONS = {
 
 export default {
   generateClickLink,
-  openClickInTelegram,
+  openClickInBrowser,
   verifyClickPayment,
   formatClickAmount,
   saveClickConfig,

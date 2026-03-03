@@ -76,10 +76,7 @@ const HomePage = ({ onNavigate }) => {
   }
 
   return (
-    <div className="pb-20 bg-[#f5f5f5] min-h-screen">
-      {/* Logo Space */}
-      <div className="pt-16"></div>
-
+    <div className="pb-20 lg:pb-8 bg-[#f5f5f5] min-h-screen">
       {/* Hero Banner Carousel - Only show if there are enabled banners */}
       <Carousel banners={banners} autoSlideInterval={5000} />
 
@@ -94,7 +91,7 @@ const HomePage = ({ onNavigate }) => {
       {/* Categories */}
       <div className="px-4 mb-4">
         <h3 className="text-xl font-bold mb-4 mt-4">{t('nav.categories')}</h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
           {categories && categories.length > 0 ? categories.filter(category => category.visible !== false).map((category) => (
             <button
               key={category.id}
@@ -118,7 +115,7 @@ const HomePage = ({ onNavigate }) => {
               </span>
             </button>
           )) : (
-            <div className="col-span-3 text-center py-8">
+            <div className="col-span-full text-center py-8">
               <p className="text-gray-500 mb-4">{t('common.loading')}</p>
               <button
                 onClick={() => onNavigate('shop')}

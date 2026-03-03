@@ -65,10 +65,10 @@ const CartPage = ({ onNavigate }) => {
   }, 0);
 
   return (
-    <div className="pb-40">
-      <div className="px-4 py-4">
+    <div className="pb-40 lg:pb-8">
+      <div className="px-4 py-4 lg:flex lg:gap-8 lg:items-start">
         {/* Cart Items */}
-        <div className="space-y-4 mb-6">
+        <div className="space-y-4 mb-6 lg:flex-1 lg:mb-0">
           {visibleCartItems.map((item) => (
             <div key={item.cartItemId} className="bg-white rounded-lg shadow-md p-4">
               {/* Clickable Product Area */}
@@ -243,11 +243,30 @@ const CartPage = ({ onNavigate }) => {
             </div>
           ))}
         </div>
+
+        {/* Desktop Summary Sidebar */}
+        <div className="hidden lg:block lg:w-80 lg:sticky lg:top-20 lg:flex-shrink-0">
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h3 className="text-lg font-semibold mb-4">{t('checkout.orderSummary')}</h3>
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-gray-600">{t('cart.subtotal')}:</span>
+              <span className="text-2xl font-bold text-primary">
+                {formatPrice(subtotal)}
+              </span>
+            </div>
+            <button
+              onClick={() => onNavigate('checkout')}
+              className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+            >
+              {t('cart.checkout')}
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Fixed Bottom Section */}
-      <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 shadow-lg">
-        <div className="max-w-mobile mx-auto px-4 py-4">
+      {/* Fixed Bottom Section — mobile/tablet only */}
+      <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 shadow-lg lg:hidden">
+        <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center mb-4">
             <span className="text-lg font-semibold">{t('cart.subtotal')}:</span>
             <span className="text-2xl font-bold text-primary">

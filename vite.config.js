@@ -22,10 +22,8 @@ export default defineConfig({
     host: true,
     open: true,
     allowedHosts: ['spongy-sledlike-narcisa.ngrok-free.dev', '.ngrok-free.dev', '.ngrok.io'],
-    hmr: {
-      protocol: 'wss',
-      host: 'spongy-sledlike-narcisa.ngrok-free.dev',
-      clientPort: 443
-    }
+    hmr: process.env.NGROK
+      ? { protocol: 'wss', host: 'spongy-sledlike-narcisa.ngrok-free.dev', clientPort: 443 }
+      : undefined,
   }
 })

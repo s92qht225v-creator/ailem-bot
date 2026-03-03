@@ -4,7 +4,6 @@ import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, Share2, Bel
 import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getVariantPrice, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant, getVariantPriceRange, hasVariantPricing } from '../../utils/variants';
 import { UserContext } from '../../context/UserContext';
-import { getTelegramWebApp } from '../../utils/telegram';
 import { stockNotificationsAPI } from '../../services/api';
 import DOMPurify from 'dompurify';
 import APlusContent from './APlusContent';
@@ -302,7 +301,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
   // Check if user is subscribed to stock notifications
   useEffect(() => {
     const checkSubscription = async () => {
-      if (user?.id && user.id !== 'demo-1' && currentStock === 0) {
+      if (user?.id && !user.isGuest && currentStock === 0) {
         try {
           const subscribed = await stockNotificationsAPI.isSubscribed(
             user.id,
@@ -324,8 +323,8 @@ const ProductDetails = ({ product, onAddToCart }) => {
 
   // Handle stock notification subscription
   const handleNotifyMe = async () => {
-    if (!user?.id || user.id === 'demo-1') {
-      alert('Iltimos, Telegram orqali kiring');
+    if (!user?.id || user.isGuest) {
+      alert('Iltimos, tizimga kiring');
       return;
     }
 
@@ -353,31 +352,20 @@ const ProductDetails = ({ product, onAddToCart }) => {
   };
 
   const handleShare = () => {
-    const botUsername = import.meta.env.VITE_BOT_USERNAME || 'ailemuz_bot';
-    
-    if (!user || !user.referralCode) {
-      const tg = getTelegramWebApp();
-      tg?.showAlert('Xatolik: Foydalanuvchi topilmadi');
-      return;
-    }
+    const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';
+    const shareUrl = user?.referralCode
+      ? `${appUrl}/product/${product.id}?ref=${user.referralCode}`
+      : `${appUrl}/product/${product.id}`;
+    const message = `🛍️ ${product.name}\n\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring!`;
 
-    // Build share URL manually without double encoding
-    const referralLink = `https://t.me/${botUsername}?start=ref_${user.referralCode}`;
-    const message = `🛍️ ${product.name}\n\n💰 ${formatPrice(product.price)}\n\nBu mahsulotni ko'ring va bonus oling!`;
-    
-    const tg = getTelegramWebApp();
-    if (tg) {
-      // Encode only the text message, keep URL unencoded
-      const shareUrl = `https://t.me/share/url?url=${referralLink}&text=${encodeURIComponent(message)}`;
-      tg.openTelegramLink(shareUrl);
-    } else if (navigator.share) {
+    if (navigator.share) {
       navigator.share({
         title: product.name,
         text: message,
-        url: referralLink
+        url: shareUrl
       }).catch(err => console.error('Error sharing:', err));
     } else {
-      navigator.clipboard.writeText(referralLink);
+      navigator.clipboard.writeText(shareUrl);
       alert('Mahsulot havolasi nusxalandi!');
     }
   };
@@ -399,9 +387,9 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const averageRating = calculateAverageRating();
 
   return (
-    <div className="bg-white">
+    <div className="bg-white lg:flex lg:items-start">
       {/* Image Gallery */}
-      <div className="bg-gray-50 pt-8">
+      <div className="bg-gray-50 pt-8 lg:w-1/2 lg:sticky lg:top-16">
         {/* Main Image */}
         <div
           className="relative aspect-[4/5] flex items-center justify-center bg-gray-100 overflow-hidden"
@@ -505,7 +493,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
         )}
       </div>
 
-      <div className="p-4">
+      <div className="p-4 lg:w-1/2 lg:py-8">
         {/* Product Info */}
         <div className="mb-4">
           {product.badge && (

@@ -167,25 +167,9 @@ export const initPaymeButton = (containerId, paymentData) => {
  * Open Payme in Telegram WebView
  * Best method for Telegram Mini Apps - keeps user in Telegram
  */
-export const openPaymeInTelegram = ({ orderId, amount, description, onSuccess, onCancel }) => {
+export const openPaymeInBrowser = ({ orderId, amount, description }) => {
   const paymentUrl = generatePaymeLink({ orderId, amount, description });
-
-  // Check if running in Telegram
-  if (window.Telegram?.WebApp) {
-    const tg = window.Telegram.WebApp;
-
-    // Open payment URL in Telegram's in-app browser
-    tg.openLink(paymentUrl, { try_instant_view: true });
-
-    // Listen for app returning (user completed or cancelled payment)
-    // Note: Telegram doesn't provide a direct callback,
-    // you need to verify payment status via webhook or polling
-    console.log('💳 Payment opened in Telegram browser');
-    console.log('🔄 Verify payment status via webhook or polling');
-  } else {
-    // Fallback: open in new window
-    window.open(paymentUrl, '_blank');
-  }
+  window.location.href = paymentUrl;
 };
 
 /**
@@ -313,7 +297,7 @@ export default {
   generatePaymeLink,
   createPaymeInvoice,
   initPaymeButton,
-  openPaymeInTelegram,
+  openPaymeInBrowser,
   verifyPaymePayment,
   formatPaymeAmount,
   handlePaymeWebhook,
