@@ -57,7 +57,7 @@ const ProductPage = ({ productId, onNavigate }) => {
   };
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 lg:pb-8">
       {/* Product Details */}
       <ProductDetails product={product} onAddToCart={handleAddToCart} />
 

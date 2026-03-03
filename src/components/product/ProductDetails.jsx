@@ -387,9 +387,9 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const averageRating = calculateAverageRating();
 
   return (
-    <div className="bg-white">
+    <div className="bg-white lg:flex lg:items-start">
       {/* Image Gallery */}
-      <div className="bg-gray-50 pt-8">
+      <div className="bg-gray-50 pt-8 lg:w-1/2 lg:sticky lg:top-16">
         {/* Main Image */}
         <div
           className="relative aspect-[4/5] flex items-center justify-center bg-gray-100 overflow-hidden"
@@ -493,7 +493,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
         )}
       </div>
 
-      <div className="p-4">
+      <div className="p-4 lg:w-1/2 lg:py-8">
         {/* Product Info */}
         <div className="mb-4">
           {product.badge && (

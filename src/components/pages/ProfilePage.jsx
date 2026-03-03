@@ -24,7 +24,7 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
   }
 
   return (
-    <div className={hideHeader ? '' : 'pb-20 bg-gray-50 min-h-screen'}>
+    <div className={hideHeader ? '' : 'pb-20 lg:pb-8 bg-gray-50 min-h-screen'}>
       {/* Header */}
       {!hideHeader && (
         <div className="bg-white p-4 border-b border-gray-200">
@@ -32,8 +32,11 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
         </div>
       )}
 
+      <div className="lg:flex lg:gap-8 lg:items-start lg:p-6">
+      <div className="lg:w-80 lg:sticky lg:top-20 lg:flex-shrink-0">
+
       {/* Profile Info */}
-      <div className="bg-white p-6 pb-3 text-center">
+      <div className="bg-white p-6 pb-3 text-center lg:rounded-lg lg:shadow-md">
         {user?.photoUrl ? (
           <img
             src={user.photoUrl}
@@ -67,8 +70,11 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
         </div>
       </div>
 
+      </div>{/* end left sidebar */}
+
+      <div className="flex-1">
       {/* Menu Cards */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-3 lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0 lg:p-0">
         {/* Language Switcher */}
 
         <MenuCard
@@ -106,6 +112,8 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
           onClick={() => alert(t('common.comingSoon'))}
         />
       </div>
+      </div>{/* end right content */}
+      </div>{/* end flex wrapper */}
     </div>
   );
 };

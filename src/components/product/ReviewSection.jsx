@@ -184,7 +184,7 @@ const ReviewSection = ({ product }) => {
       )}
 
       {/* Reviews List */}
-      <div className="space-y-4">
+      <div className="space-y-4 lg:grid lg:grid-cols-2 lg:gap-6 lg:space-y-0">
         {approvedReviews.length === 0 ? (
           <p className="text-gray-500 text-center py-8">
             {t('reviews.beFirst') || 'No reviews yet. Be the first to review this product!'}

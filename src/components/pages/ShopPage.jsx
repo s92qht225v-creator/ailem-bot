@@ -220,7 +220,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
   );
 
   return (
-    <div className="pb-20">
+    <div className="pb-20 lg:pb-8">
       <div className="px-4 py-4 space-y-4">
         {/* Search Bar with Autocomplete */}
         <div className="relative">
@@ -288,7 +288,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
         {/* Filters Section - Horizontal Scroll */}
         <div>
           <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('shop.filters')}</h3>
-          <div className="flex gap-3 pb-2 pt-1 px-1 -ml-1 overflow-x-auto scrollbar-hide">
+          <div className="flex gap-3 pb-2 pt-1 px-1 -ml-1 overflow-x-auto scrollbar-hide md:flex-wrap md:overflow-visible">
             {/* Material Dropdown */}
             <div className="flex-1 min-w-[140px]">
               <CustomDropdown
@@ -324,7 +324,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
         {/* Sort By Section */}
         <div>
           <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('shop.sortBy')}</h3>
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide md:flex-wrap md:overflow-visible pb-2">
             <button
               onClick={() => setSortBy('newest')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
