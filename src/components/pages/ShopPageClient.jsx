@@ -8,6 +8,7 @@ export default function ShopPageClient() {
   const onNavigate = useAppNavigate();
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') || undefined;
+  const initialSearch = searchParams.get('q') || undefined;
 
-  return <ShopPage onNavigate={onNavigate} initialCategory={initialCategory} />;
+  return <ShopPage onNavigate={onNavigate} initialCategory={initialCategory} initialSearch={initialSearch} />;
 }

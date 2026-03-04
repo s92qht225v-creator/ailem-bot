@@ -4,10 +4,13 @@ export function getHref(page, data = {}) {
   switch (page) {
     case 'home':
       return '/';
-    case 'shop':
-      return data.category
-        ? `/shop?category=${encodeURIComponent(data.category)}`
-        : '/shop';
+    case 'shop': {
+      const params = new URLSearchParams();
+      if (data.category) params.set('category', data.category);
+      if (data.q) params.set('q', data.q);
+      const qs = params.toString();
+      return qs ? `/shop?${qs}` : '/shop';
+    }
     case 'product':
       return `/product/${data.productId}`;
     case 'cart':

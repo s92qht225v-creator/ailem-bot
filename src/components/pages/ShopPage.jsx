@@ -10,7 +10,7 @@ import { AdminContext } from '../../context/AdminContext';
 import { UserContext } from '../../context/UserContext';
 import { CartContext } from '../../context/CartContext';
 
-const ShopPage = ({ onNavigate, initialCategory }) => {
+const ShopPage = ({ onNavigate, initialCategory, initialSearch }) => {
   const { categories, loading } = useContext(AdminContext);
   const { toggleFavorite, isFavorite, favorites } = useContext(UserContext);
   const { addToCart } = useContext(CartContext);
@@ -213,10 +213,9 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
   }, []);
 
   useEffect(() => {
-    if (initialCategory) {
-      setSelectedCategory(initialCategory);
-    }
-  }, [initialCategory, setSelectedCategory]);
+    if (initialCategory) setSelectedCategory(initialCategory);
+    if (initialSearch) setSearchQuery(initialSearch);
+  }, [initialCategory, initialSearch, setSelectedCategory, setSearchQuery]);
 
   const handleSuggestionClick = (suggestion) => {
     setSearchQuery(suggestion);
