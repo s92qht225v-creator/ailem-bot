@@ -24,7 +24,7 @@ export const metadata = {
   },
   robots: 'index, follow',
   icons: {
-    icon: '/vite.svg',
+    icon: '/favicon.svg',
   },
 };
 

@@ -1,5 +1,4 @@
 import { Home, ShoppingBag, ShoppingCart, User, Heart } from 'lucide-react';
-import { t } from "../../utils/translation-fallback";
 import { useContext, useMemo } from 'react';
 import { UserContext } from '../../context/UserContext';
 import { useCart } from '../../hooks/useCart';
@@ -28,11 +27,11 @@ const BottomNav = ({ currentPage, onNavigate }) => {
   }, [allProducts, favorites]);
 
   const navItems = [
-    { id: 'home', icon: Home },
-    { id: 'shop', icon: ShoppingBag },
-    { id: 'favorites', icon: Heart, badge: favoritesCount },
-    { id: 'account', icon: User },
-    { id: 'cart', icon: ShoppingCart, badge: cartCount }
+    { id: 'home', href: '/', icon: Home },
+    { id: 'shop', href: '/shop', icon: ShoppingBag },
+    { id: 'favorites', href: '/favorites', icon: Heart, badge: favoritesCount },
+    { id: 'account', href: '/account', icon: User },
+    { id: 'cart', href: '/cart', icon: ShoppingCart, badge: cartCount }
   ];
 
   return (
@@ -43,13 +42,14 @@ const BottomNav = ({ currentPage, onNavigate }) => {
             const Icon = item.icon;
             // Account is active when on profile or referrals pages
             const isActive = item.id === 'account'
-              ? (currentPage === 'profile' || currentPage === 'referrals' || currentPage === 'account')
-              : currentPage === item.id;
+              ? (['/profile', '/referrals', '/account'].includes(currentPage))
+              : currentPage === item.href;
 
             return (
-              <button
+              <a
                 key={item.id}
-                onClick={() => onNavigate(item.id)}
+                href={item.href}
+                onClick={(e) => { e.preventDefault(); onNavigate(item.id); }}
                 className={`flex items-center justify-center p-3 rounded-lg transition-all ${
                   isActive
                     ? 'text-accent'
@@ -64,7 +64,7 @@ const BottomNav = ({ currentPage, onNavigate }) => {
                     </span>
                   )}
                 </div>
-              </button>
+              </a>
             );
           })}
         </div>

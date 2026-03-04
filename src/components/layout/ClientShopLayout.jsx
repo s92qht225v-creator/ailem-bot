@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import { AdminContext } from '../../context/AdminContext';
 import { UserContext } from '../../context/UserContext';
 import Header from './Header';
-import CategoryNavBar from './CategoryNavBar';
 import Footer from './Footer';
 import BottomNav from './BottomNav';
 import TelegramChatButton from '../common/TelegramChatButton';
@@ -92,10 +91,7 @@ export default function ClientShopLayout({ children }) {
   return (
     <div className="min-h-screen bg-gray-50">
       {!hideGlobalHeader && (
-        <>
-          <Header onNavigate={onNavigate} currentPage={pathname} />
-          <CategoryNavBar onNavigate={onNavigate} />
-        </>
+        <Header onNavigate={onNavigate} currentPage={pathname} />
       )}
 
       <main className="max-w-6xl mx-auto bg-white min-h-screen">

@@ -23,37 +23,41 @@ const Header = ({ onNavigate, currentPage }) => {
       <div className="max-w-6xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           {/* Logo */}
-          <button
-            onClick={() => onNavigate('home')}
-            className="text-2xl font-bold text-accent flex-shrink-0 hover:opacity-80 transition-opacity"
+          <a
+            href="/"
+            onClick={(e) => { e.preventDefault(); onNavigate('home'); }}
+            className="flex-shrink-0 hover:opacity-80 transition-opacity"
           >
-            Ailem
-          </button>
+            <img src="/logo.svg" alt="Ailem" className="h-12 w-auto" />
+          </a>
 
           {/* Search Bar — tablet+ */}
-          <button
-            onClick={() => onNavigate('shop')}
+          <a
+            href="/shop"
+            onClick={(e) => { e.preventDefault(); onNavigate('shop'); }}
             className="hidden md:flex flex-1 max-w-xl mx-4 items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-colors cursor-pointer"
           >
             <Search className="w-5 h-5 flex-shrink-0" />
             <span className="text-sm">Mahsulot qidirish...</span>
-          </button>
+          </a>
 
           {/* Right side actions */}
           <div className="flex items-center gap-1">
             {/* Search icon — mobile only */}
-            <button
-              onClick={() => onNavigate('shop')}
+            <a
+              href="/shop"
+              onClick={(e) => { e.preventDefault(); onNavigate('shop'); }}
               className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 transition-colors"
             >
               <Search className="w-6 h-6" />
-            </button>
+            </a>
 
             {/* Favorites */}
-            <button
-              onClick={() => onNavigate('favorites')}
+            <a
+              href="/favorites"
+              onClick={(e) => { e.preventDefault(); onNavigate('favorites'); }}
               className={`relative p-2 rounded-lg transition-colors ${
-                currentPage === 'favorites' ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
+                currentPage === '/favorites' ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <Heart className="w-6 h-6" />
@@ -62,13 +66,14 @@ const Header = ({ onNavigate, currentPage }) => {
                   {favoritesCount > 9 ? '9+' : favoritesCount}
                 </span>
               )}
-            </button>
+            </a>
 
             {/* Cart */}
-            <button
-              onClick={() => onNavigate('cart')}
+            <a
+              href="/cart"
+              onClick={(e) => { e.preventDefault(); onNavigate('cart'); }}
               className={`relative p-2 rounded-lg transition-colors ${
-                currentPage === 'cart' ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
+                currentPage === '/cart' ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <ShoppingCart className="w-6 h-6" />
@@ -77,22 +82,24 @@ const Header = ({ onNavigate, currentPage }) => {
                   {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}
-            </button>
+            </a>
 
             {/* Login / Avatar */}
             {isGuest ? (
-              <button
-                onClick={() => onNavigate('login')}
-                className="flex items-center gap-1.5 border-2 border-accent text-accent px-4 py-2 rounded-lg font-semibold text-sm hover:bg-accent hover:text-white transition-colors"
+              <a
+                href="/login"
+                onClick={(e) => { e.preventDefault(); onNavigate('login'); }}
+                className="flex items-center gap-1.5 bg-accent text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-red-700 transition-colors"
               >
                 <LogIn className="w-4 h-4" />
                 <span className="hidden sm:inline">Kirish</span>
-              </button>
+              </a>
             ) : (
-              <button
-                onClick={() => onNavigate('account')}
+              <a
+                href="/account"
+                onClick={(e) => { e.preventDefault(); onNavigate('account'); }}
                 className={`p-2 rounded-lg transition-colors ${
-                  ['account', 'profile'].includes(currentPage) ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
+                  ['/account', '/profile'].includes(currentPage) ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 {user?.photoUrl ? (
@@ -106,7 +113,7 @@ const Header = ({ onNavigate, currentPage }) => {
                     {(user?.name || 'U').charAt(0).toUpperCase()}
                   </div>
                 )}
-              </button>
+              </a>
             )}
           </div>
         </div>
