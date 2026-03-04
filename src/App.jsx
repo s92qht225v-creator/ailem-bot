@@ -122,6 +122,28 @@ function App() {
   // Track if referral has been processed
   const referralProcessed = useRef(false);
 
+  // Dynamic page titles for SEO
+  const PAGE_TITLES = {
+    home: 'Ailem — Uy tekstillari | ailem.uz',
+    shop: 'Mahsulotlar — Ailem',
+    cart: 'Savat — Ailem',
+    checkout: 'Buyurtma rasmiylashtirish — Ailem',
+    payment: "To'lov — Ailem",
+    paymentStatus: "To'lov holati — Ailem",
+    account: 'Kabinet — Ailem',
+    profile: 'Profil — Ailem',
+    orderHistory: 'Buyurtmalar tarixi — Ailem',
+    myReviews: 'Mening sharhlarim — Ailem',
+    favorites: 'Sevimlilar — Ailem',
+    referrals: 'Referrallar — Ailem',
+    login: 'Kirish — Ailem',
+  };
+
+  useEffect(() => {
+    const title = PAGE_TITLES[currentPage] || 'Ailem — Uy tekstillari';
+    document.title = title;
+  }, [currentPage]);
+
   // Load pageData from localStorage after mount
   const initialLoadDone = useRef(false);
 

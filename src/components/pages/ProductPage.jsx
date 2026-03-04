@@ -30,6 +30,14 @@ const ProductPage = ({ productId, onNavigate }) => {
   // Merge: use full product when loaded, fall back to lightweight base
   const product = fullProduct || baseProduct;
 
+  // Dynamic title for SEO
+  useEffect(() => {
+    if (product?.name) {
+      document.title = `${product.name} — Ailem`;
+    }
+    return () => { document.title = 'Ailem — Uy tekstillari | ailem.uz'; };
+  }, [product?.name]);
+
   const handleBackToShop = () => {
     onNavigate('shop', { category: selectedCategory });
   };
