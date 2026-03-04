@@ -82,12 +82,18 @@ const TelegramChatButton = () => {
       if (!res.ok) throw new Error('Failed');
 
       const data = await res.json();
+      const sid = data.session_id;
 
       if (!sessionId) {
-        setSessionId(data.session_id);
-        localStorage.setItem(SESSION_KEY, data.session_id);
-        pollRef.current = setInterval(() => fetchMessages(data.session_id), POLL_INTERVAL);
+        setSessionId(sid);
+        localStorage.setItem(SESSION_KEY, sid);
+        // Start polling for new session
+        clearInterval(pollRef.current);
+        pollRef.current = setInterval(() => fetchMessages(sid), POLL_INTERVAL);
       }
+
+      // Immediately fetch from DB to replace optimistic message with real data
+      await fetchMessages(sid || sessionId);
     } catch {
       setError("Yuborilmadi. Qayta urinib ko'ring.");
       setMessages(prev => prev.filter(m => !m._optimistic));
