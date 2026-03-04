@@ -11,7 +11,7 @@ All admin UI strings in Uzbek (Cyrillic).
 - Migration: `supabase-migrations/add-admin-auth.sql`
 - File: `src/components/AdminAuth.jsx`
 
-## 12 Sections (`src/components/admin/sections/`)
+## 13 Sections (`src/components/admin/sections/`)
 
 ### DashboardSection
 Quick stats: total revenue, pending orders, total users, recent activity.
@@ -75,6 +75,14 @@ Low stock threshold — products below this show warning in ProductsSection.
 
 ### AuditLogsSection
 Complete action trail: who did what, when, old/new data. Filterable, paginated (25 items/page).
+
+### SupportSection
+Two-way support chat admin panel. Lists all user sessions (left sidebar), shows conversation thread (right), admin can reply.
+- Polls sessions every 5s, active chat polls every 5s
+- Unread indicator: red dot on sessions with last message from user
+- Admin replies via `POST /api/support/admin-reply` (saves `sender: 'admin'` directly to DB)
+- Sessions listed by recency; sessions with pending user messages shown with blue accent
+- One-time webhook setup: `https://api.telegram.org/bot{TOKEN}/setWebhook?url=https://www.ailem.uz/api/support/webhook`
 
 ### SettingsSection
 Placeholder (not yet implemented).

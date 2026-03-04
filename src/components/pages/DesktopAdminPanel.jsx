@@ -16,7 +16,8 @@ import {
   Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload,
   TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle, AlertCircle,
   Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff, ImagePlus,
-  Download, FileDown, ChevronUp, ChevronDown, RotateCw, Printer, Search, ClipboardList
+  Download, FileDown, ChevronUp, ChevronDown, RotateCw, Printer, Search, ClipboardList,
+  MessageCircle
 } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
 import { PickupPointsContext } from '../../context/PickupPointsContext';
@@ -49,7 +50,8 @@ import {
   SettingsSection,
   AuditLogsSection,
   WalkInCustomersSection,
-  ProductsSection
+  ProductsSection,
+  SupportSection
 } from '../admin/sections';
 import { ErrorBoundary } from '../admin/shared';
 
@@ -186,6 +188,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
       color: 'text-slate-600'
     },
     {
+      id: 'support',
+      label: 'Support Chat',
+      icon: MessageCircle,
+      color: 'text-blue-600'
+    },
+    {
       id: 'settings',
       label: 'Settings',
       icon: Settings,
@@ -277,6 +285,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 {activeSection === 'pickup-points' && 'Manage courier pickup locations'}
                 {activeSection === 'shipping-rates' && 'Configure delivery pricing by region'}
                 {activeSection === 'analytics' && 'Detailed business insights'}
+                {activeSection === 'support' && 'Foydalanuvchilar bilan muloqot'}
                 {activeSection === 'settings' && 'System configuration and preferences'}
               </p>
             </div>
@@ -316,6 +325,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             {activeSection === 'inventory-settings' && <InventorySettingsSection />}
             {activeSection === 'settings' && <SettingsSection />}
             {activeSection === 'audit-logs' && <AuditLogsSection />}
+            {activeSection === 'support' && <SupportSection />}
 
             {/* Extracted section */}
             {activeSection === 'products' && <ProductsSection />}
