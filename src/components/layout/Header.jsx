@@ -17,9 +17,9 @@ const Header = ({ onNavigate, currentPage }) => {
           {/* Logo */}
           <button
             onClick={() => onNavigate('home')}
-            className="text-2xl font-bold text-accent flex-shrink-0 hover:opacity-80 transition-opacity"
+            className="flex-shrink-0 hover:opacity-80 transition-opacity"
           >
-            Ailem
+            <img src="/logo.svg" alt="Ailem" className="h-12 w-auto" />
           </button>
 
           {/* Search Bar — tablet+ */}

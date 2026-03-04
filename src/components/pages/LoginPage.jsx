@@ -49,7 +49,7 @@ const LoginPage = ({ onNavigate, returnTo }) => {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full text-center">
         {/* Logo */}
-        <h1 className="text-3xl font-bold text-primary mb-2">Ailem</h1>
+        <img src="/logo.svg" alt="Ailem" className="h-20 w-auto mx-auto mb-2" />
         <p className="text-gray-500 text-sm mb-8">Uy tekstillari do'koni</p>
 
         {/* Login heading */}
