@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '../../../../src/lib/supabase-server';
+import { createClient } from '@supabase/supabase-js';
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+}
 
 export async function POST(request) {
   try {
@@ -27,7 +34,7 @@ export async function POST(request) {
     }
 
     const sessionId = match[1];
-    const supabase = createServerSupabaseClient();
+    const supabase = getSupabase();
 
     await supabase.from('support_messages').insert({
       session_id: sessionId,

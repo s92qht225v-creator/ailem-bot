@@ -1,5 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createServerSupabaseClient } from '../../../../src/lib/supabase-server';
+import { createClient } from '@supabase/supabase-js';
+
+function getSupabase() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
+}
 
 function generateSessionId() {
   return crypto.randomUUID();
@@ -14,7 +21,7 @@ export async function POST(request) {
     }
 
     const sessionId = session_id || generateSessionId();
-    const supabase = createServerSupabaseClient();
+    const supabase = getSupabase();
 
     // Save user message to DB
     const { data, error } = await supabase
