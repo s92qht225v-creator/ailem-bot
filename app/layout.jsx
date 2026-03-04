@@ -12,15 +12,19 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata = {
-  title: 'Ailem — Uy tekstillari | ailem.uz',
+  title: {
+    default: "Ailem — Uy tekstillari do'koni | ailem.uz",
+    template: '%s | Ailem',
+  },
   description:
     "Ailem — Toshkentdagi eng yaxshi choyshab, yostiq va pardalar do'koni. Tez yetkazib berish, qulay narxlar.",
   openGraph: {
-    title: 'Ailem — Uy To\'qimachilik',
+    title: "Ailem — Uy tekstillari do'koni",
     description:
-      "Sifatli uy tekstil mahsulotlari. Tez yetkazib berish, qulay narxlar.",
+      "Toshkentdagi eng yaxshi choyshab, yostiq va pardalar do'koni. Tez yetkazib berish, qulay narxlar.",
     url: 'https://www.ailem.uz',
     type: 'website',
+    images: [{ url: 'https://www.ailem.uz/logo.svg', width: 512, height: 512, alt: 'Ailem' }],
   },
   robots: 'index, follow',
   icons: {
