@@ -3,19 +3,18 @@ import { t } from "../../utils/translation-fallback";
 import { AdminContext } from '../../context/AdminContext';
 import { UserContext } from '../../context/UserContext';
 import ProductCard from './ProductCard';
-import { getSmartRecommendations } from '../../utils/recommendations';
+import { getSameCategoryProducts } from '../../utils/recommendations';
 
 const RelatedProducts = ({ currentProduct, onNavigate }) => {
   const { products } = useContext(AdminContext);
   const { toggleFavorite, isFavorite } = useContext(UserContext);
 
-  // Get related products using recommendation engine
+  // Get related products from the same category
   const relatedProducts = useMemo(() => {
-    // Safety check: ensure all required data is available
     if (!currentProduct || !products || products.length === 0) {
       return [];
     }
-    return getSmartRecommendations(currentProduct, products, 6);
+    return getSameCategoryProducts(currentProduct, products, 6);
   }, [currentProduct, products]);
 
   // Don't render if no recommendations

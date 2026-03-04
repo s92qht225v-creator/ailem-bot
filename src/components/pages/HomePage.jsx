@@ -1,8 +1,11 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState, useCallback } from 'react';
 import { t } from "../../utils/translation-fallback";
+import { Truck, Shield, CreditCard } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
+import { CartContext } from '../../context/CartContext';
 import ProductCard from '../product/ProductCard';
+import SkeletonCard from '../common/SkeletonCard';
 import CountdownTimer from '../common/CountdownTimer';
 import Carousel from '../common/Carousel';
 import { settingsAPI } from '../../services/api';
@@ -12,7 +15,20 @@ import { useProducts } from '../../hooks/useProducts';
 const HomePage = ({ onNavigate }) => {
   const { categories, loading } = useContext(AdminContext);
   const { toggleFavorite, isFavorite } = useContext(UserContext);
+  const { addToCart } = useContext(CartContext);
   const { featuredProducts } = useProducts();
+
+  // Quick add to cart: if product has variants, navigate to product page; otherwise add directly
+  const handleQuickAddToCart = useCallback((product) => {
+    const hasVariants = (product.variants && product.variants.length > 0) ||
+                       (product.colors && product.colors.length > 0) ||
+                       (product.sizes && product.sizes.length > 0);
+    if (hasVariants) {
+      onNavigate('product', { productId: product.id });
+    } else {
+      addToCart(product, 1, null, null);
+    }
+  }, [onNavigate, addToCart]);
 
   // Load cached settings immediately for instant display
   // IMPORTANT: ALL hooks must be called before any conditional returns!
@@ -78,7 +94,27 @@ const HomePage = ({ onNavigate }) => {
   return (
     <div className="pb-20 lg:pb-8 bg-[#f5f5f5] min-h-screen">
       {/* Hero Banner Carousel - Only show if there are enabled banners */}
-      <Carousel banners={banners} autoSlideInterval={5000} />
+      <Carousel banners={banners} autoSlideInterval={5000} onNavigate={onNavigate} />
+
+      {/* Delivery & Trust Info Banner */}
+      <div className="mx-4 mb-4 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+        <div className="flex items-center justify-around gap-2 text-center">
+          <div className="flex flex-col items-center gap-1">
+            <Truck className="w-5 h-5 text-accent" />
+            <span className="text-xs font-medium text-gray-700">{t('home.fastDelivery') || 'Tez yetkazish'}</span>
+          </div>
+          <div className="w-px h-8 bg-gray-200" />
+          <div className="flex flex-col items-center gap-1">
+            <Shield className="w-5 h-5 text-accent" />
+            <span className="text-xs font-medium text-gray-700">{t('home.guarantee') || 'Kafolat'}</span>
+          </div>
+          <div className="w-px h-8 bg-gray-200" />
+          <div className="flex flex-col items-center gap-1">
+            <CreditCard className="w-5 h-5 text-accent" />
+            <span className="text-xs font-medium text-gray-700">{t('home.securePayment') || "Xavfsiz to'lov"}</span>
+          </div>
+        </div>
+      </div>
 
       {/* Countdown Timer - Only show if timer is enabled */}
       {saleTimer && saleTimer.enabled && saleEndDate && (
@@ -98,7 +134,7 @@ const HomePage = ({ onNavigate }) => {
               onClick={() => {
                 onNavigate('shop', { category: category.name });
               }}
-              className="flex flex-col items-center justify-center gap-3 p-5 bg-white rounded-2xl border-2 border-gray-100 shadow-sm hover:border-accent hover:shadow-lg transition-all aspect-square"
+              className="flex flex-col items-center justify-center gap-3 p-5 bg-white rounded-2xl border-2 border-gray-100 shadow-sm hover:border-accent hover:shadow-lg hover:-translate-y-1 transition-all duration-200 aspect-square"
             >
               <div className="w-20 h-20 flex items-center justify-center">
                 <img
@@ -110,8 +146,8 @@ const HomePage = ({ onNavigate }) => {
                   }}
                 />
               </div>
-              <span className="text-xs font-semibold text-gray-900 text-center uppercase leading-tight h-8 flex items-center justify-center">
-                {category.name}
+              <span className="text-xs font-semibold text-gray-900 text-center leading-tight h-8 flex items-center justify-center">
+                {category.name.toLowerCase().replace(/(?:^|\s)\S/g, a => a.toUpperCase())}
               </span>
             </button>
           )) : (
@@ -140,15 +176,18 @@ const HomePage = ({ onNavigate }) => {
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {featuredProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onView={(id) => onNavigate('product', { productId: id })}
-              isFavorite={isFavorite(product.id)}
-              onToggleFavorite={toggleFavorite}
-            />
-          ))}
+          {loading && featuredProducts.length === 0
+            ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+            : featuredProducts.map((product) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                onView={(id) => onNavigate('product', { productId: id })}
+                isFavorite={isFavorite(product.id)}
+                onToggleFavorite={toggleFavorite}
+                onQuickAddToCart={handleQuickAddToCart}
+              />
+            ))}
         </div>
       </div>
     </div>

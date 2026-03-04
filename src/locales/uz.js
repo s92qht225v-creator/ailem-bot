@@ -59,7 +59,10 @@ export default {
     bestSellers: 'Ko\'p sotilganlar',
     saleEnds: 'Chegirma tugaydi',
     shopNow: 'Xarid qilish',
-    viewAll: 'Barchasini ko\'rish'
+    viewAll: 'Barchasini ko\'rish',
+    fastDelivery: 'Tez yetkazish',
+    guarantee: 'Kafolat',
+    securePayment: 'Xavfsiz to\'lov'
   },
 
   // Shop Page
@@ -115,7 +118,19 @@ export default {
     checkItOut: 'Bu mahsulotni ko\'ring!',
     linkCopied: 'Havola nusxalandi!',
     similarProducts: 'O\'xshash mahsulotlar',
-    relatedProducts: 'Sizga yoqishi mumkin'
+    relatedProducts: 'Sizga yoqishi mumkin',
+    fastDelivery: 'Tez yetkazish',
+    guaranteed: 'Kafolatli',
+    returnable: 'Qaytarish mumkin'
+  },
+
+  // Footer
+  footer: {
+    about: 'Uy-ro\'zg\'or uchun sifatli to\'qimachilik mahsulotlari. O\'zbekistonning ishonchli onlayn do\'koni.',
+    navigation: 'Navigatsiya',
+    contact: 'Aloqa',
+    paymentMethods: 'To\'lov usullari',
+    allRightsReserved: 'Barcha huquqlar himoyalangan.'
   },
 
   // Product Badges

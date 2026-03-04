@@ -1,16 +1,31 @@
-import { useEffect, useMemo, useContext, useState, useRef } from 'react';
+import { useEffect, useMemo, useContext, useState, useRef, useCallback } from 'react';
 import { t } from "../../utils/translation-fallback";
 import { Search, X } from 'lucide-react';
 import CategoryFilter from '../common/CategoryFilter';
 import ProductCard from '../product/ProductCard';
+import SkeletonCard from '../common/SkeletonCard';
 import CustomDropdown from '../common/CustomDropdown';
 import { useProducts } from '../../hooks/useProducts';
 import { AdminContext } from '../../context/AdminContext';
 import { UserContext } from '../../context/UserContext';
+import { CartContext } from '../../context/CartContext';
 
 const ShopPage = ({ onNavigate, initialCategory }) => {
-  const { categories } = useContext(AdminContext);
+  const { categories, loading } = useContext(AdminContext);
   const { toggleFavorite, isFavorite, favorites } = useContext(UserContext);
+  const { addToCart } = useContext(CartContext);
+
+  // Quick add to cart: if product has variants, navigate to product page; otherwise add directly
+  const handleQuickAddToCart = useCallback((product) => {
+    const hasVariants = (product.variants && product.variants.length > 0) ||
+                       (product.colors && product.colors.length > 0) ||
+                       (product.sizes && product.sizes.length > 0);
+    if (hasVariants) {
+      onNavigate('product', { productId: product.id });
+    } else {
+      addToCart(product, 1, null, null);
+    }
+  }, [onNavigate, addToCart]);
 
   const {
     products,
@@ -329,7 +344,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
               onClick={() => setSortBy('newest')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
                 sortBy === 'newest'
-                  ? 'bg-gray-900 text-white'
+                  ? 'bg-accent text-white'
                   : 'bg-white text-gray-700 border border-gray-300'
               }`}
             >
@@ -339,7 +354,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
               onClick={() => setSortBy('cheapest')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
                 sortBy === 'cheapest'
-                  ? 'bg-gray-900 text-white'
+                  ? 'bg-accent text-white'
                   : 'bg-white text-gray-700 border border-gray-300'
               }`}
             >
@@ -349,7 +364,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
               onClick={() => setSortBy('expensive')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
                 sortBy === 'expensive'
-                  ? 'bg-gray-900 text-white'
+                  ? 'bg-accent text-white'
                   : 'bg-white text-gray-700 border border-gray-300'
               }`}
             >
@@ -359,7 +374,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
               onClick={() => setSortBy('popular')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors whitespace-nowrap ${
                 sortBy === 'popular'
-                  ? 'bg-gray-900 text-white'
+                  ? 'bg-accent text-white'
                   : 'bg-white text-gray-700 border border-gray-300'
               }`}
             >
@@ -374,13 +389,17 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
         </div>
 
         {/* Products Grid */}
-        {products.length === 0 ? (
+        {loading && products.length === 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : products.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">{t('shop.noProducts')}</p>
             <p className="text-gray-400 text-sm mt-2">{t('shop.noResults')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
@@ -388,6 +407,7 @@ const ShopPage = ({ onNavigate, initialCategory }) => {
                 onView={(id) => onNavigate('product', { productId: id })}
                 isFavorite={favoritesMap[product.id]}
                 onToggleFavorite={toggleFavorite}
+                onQuickAddToCart={handleQuickAddToCart}
               />
             ))}
           </div>
