@@ -4,15 +4,17 @@ import { createServerSupabaseClient } from '../../../../src/lib/supabase-server'
 export async function POST(request) {
   try {
     const update = await request.json();
+    console.log('Webhook update:', JSON.stringify(update, null, 2));
 
     const msg = update?.message;
     if (!msg || !msg.reply_to_message) {
-      // Not a reply — ignore
+      console.log('No reply_to_message, ignoring. msg keys:', msg ? Object.keys(msg) : 'no msg');
       return NextResponse.json({ ok: true });
     }
 
     const replyText = msg.text;
     const originalText = msg.reply_to_message.text;
+    console.log('Reply to message, originalText:', originalText?.substring(0, 100));
 
     if (!replyText || !originalText) {
       return NextResponse.json({ ok: true });
