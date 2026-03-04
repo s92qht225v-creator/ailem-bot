@@ -3,6 +3,7 @@ import { Users, Copy, Share2, Gift, UserPlus, Award, Link as LinkIcon, LogIn } f
 import { UserContext } from '../../context/UserContext';
 import { copyToClipboard, loadFromLocalStorage } from '../../utils/helpers';
 import { generateReferralLink, shareReferralLink } from '../../utils/telegram';
+import { useToast } from '../../context/ToastContext';
 
 const ReferralsPage = ({ hideHeader = false, onNavigate }) => {
   const { user } = useContext(UserContext);
@@ -42,7 +43,7 @@ const ReferralsPage = ({ hideHeader = false, onNavigate }) => {
   const handleCopyLink = async () => {
     const success = await copyToClipboard(referralLink);
     if (success) {
-      alert('Referral link nusxalandi!');
+      toast.success('Referral link nusxalandi!');
     }
   };
 

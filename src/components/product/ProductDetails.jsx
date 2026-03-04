@@ -6,10 +6,12 @@ import { getVariantStock, getVariantPrice, getAvailableColors, getAvailableSizes
 import { UserContext } from '../../context/UserContext';
 import { stockNotificationsAPI } from '../../services/api';
 import DOMPurify from 'dompurify';
+import { useToast } from '../../context/ToastContext';
 import APlusContent from './APlusContent';
 
 const ProductDetails = ({ product, onAddToCart, onNavigate }) => {
   const { user } = useContext(UserContext);
+  const toast = useToast();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState(null);
@@ -324,28 +326,26 @@ const ProductDetails = ({ product, onAddToCart, onNavigate }) => {
   // Handle stock notification subscription
   const handleNotifyMe = async () => {
     if (!user?.id || user.isGuest) {
-      alert('Iltimos, tizimga kiring');
+      toast.warning('Iltimos, tizimga kiring');
       return;
     }
 
     setIsSubscribing(true);
     try {
       if (isSubscribed) {
-        // Unsubscribe
         await stockNotificationsAPI.unsubscribe(user.id, product.id, selectedColor, selectedSize);
         setIsSubscribed(false);
-        alert('Bildirishnoma bekor qilindi');
+        toast.info('Bildirishnoma bekor qilindi');
       } else {
-        // Subscribe
         const result = await stockNotificationsAPI.subscribe(user.id, product.id, selectedColor, selectedSize);
         setIsSubscribed(true);
         if (!result.alreadySubscribed) {
-          alert('✅ Mahsulot omborda bo\'lganda xabar beramiz!');
+          toast.success('Mahsulot omborda bo\'lganda xabar beramiz!');
         }
       }
     } catch (error) {
       console.error('Error toggling notification:', error);
-      alert('Xatolik yuz berdi. Qayta urinib ko\'ring.');
+      toast.error('Xatolik yuz berdi. Qayta urinib ko\'ring.');
     } finally {
       setIsSubscribing(false);
     }
@@ -366,7 +366,7 @@ const ProductDetails = ({ product, onAddToCart, onNavigate }) => {
       }).catch(err => console.error('Error sharing:', err));
     } else {
       navigator.clipboard.writeText(shareUrl);
-      alert('Mahsulot havolasi nusxalandi!');
+      toast.success('Mahsulot havolasi nusxalandi!');
     }
   };
 

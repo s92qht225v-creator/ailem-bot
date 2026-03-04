@@ -12,6 +12,7 @@ import { findVariant } from '../../utils/variants';
 import { useBackButton } from '../../hooks/useBackButton';
 import CustomDropdown from '../common/CustomDropdown';
 import { usersAPI } from '../../services/api';
+import { useToast } from '../../context/ToastContext';
 
 // Self-pickup store address
 const SELF_PICKUP_ADDRESS = {
@@ -39,6 +40,7 @@ const TASHKENT_DISTRICTS = [
 const CheckoutPage = ({ onNavigate }) => {
   const { cartItems } = useCart();
   const { user } = useContext(UserContext);
+  const toast = useToast();
   const { products } = useContext(AdminContext);
   const {
     getCourierServices,
@@ -250,32 +252,32 @@ const CheckoutPage = ({ onNavigate }) => {
 
     // Validation
     if (!formData.fullName || !formData.phone) {
-      alert(t('checkout.required'));
+      toast.warning(t('checkout.required'));
       return;
     }
 
     if (!pickupCourier) {
-      alert(t('checkout.selectCourier'));
+      toast.warning(t('checkout.selectCourier'));
       return;
     }
 
     // Yandex validation
     if (pickupCourier === 'Yandex') {
       if (!yandexDistrict || !yandexAddress) {
-        alert(t('checkout.selectDistrictAddress'));
+        toast.warning(t('checkout.selectDistrictAddress'));
         return;
       }
     } else if (pickupCourier === "O'zi olib ketish") {
       // No extra validation — store address is fixed
     } else if (pickupCourier === 'BTS') {
       if (!btsAddress) {
-        alert('Manzilni kiriting');
+        toast.warning('Manzilni kiriting');
         return;
       }
     } else {
       // Other couriers validation
       if (!selectedPickupPoint) {
-        alert(t('checkout.selectPickupPoint'));
+        toast.warning(t('checkout.selectPickupPoint'));
         return;
       }
     }

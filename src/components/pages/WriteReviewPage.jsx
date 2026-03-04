@@ -4,10 +4,12 @@ import { Star, Camera, X } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
 import { useBackButton } from '../../hooks/useBackButton';
+import { useToast } from '../../context/ToastContext';
 
 const WriteReviewPage = ({ onNavigate, pageData }) => {
   const { user } = useContext(UserContext);
   const { addReview } = useContext(AdminContext);
+  const toast = useToast();
 
   // Use native Telegram BackButton
   useBackButton(() => onNavigate('myReviews'));
@@ -27,7 +29,7 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
     const validFiles = files.filter(file => file.type.startsWith('image/'));
 
     if (reviewImages.length + validFiles.length > 5) {
-      alert('You can only upload up to 5 images');
+      toast.warning('Maksimal 5 ta rasm yuklash mumkin');
       return;
     }
 
@@ -55,7 +57,7 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
       console.log('✅ Images uploaded successfully:', newUrls);
     } catch (error) {
       console.error('❌ Image upload failed:', error);
-      alert('Failed to upload images. Please try again.');
+      toast.error('Rasm yuklanmadi. Qayta urinib ko\'ring.');
     } finally {
       setIsUploadingImage(false);
     }
@@ -71,12 +73,12 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
     e.preventDefault();
 
     if (rating === 0) {
-      alert('Please select a rating');
+      toast.warning('Iltimos, baho bering');
       return;
     }
 
     if (!comment.trim()) {
-      alert('Please write a review');
+      toast.warning('Iltimos, sharh yozing');
       return;
     }
 
@@ -100,7 +102,7 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
     // Revoke object URLs to free memory
     reviewImages.forEach(url => URL.revokeObjectURL(url));
 
-    alert('Review submitted successfully! It will be visible after admin approval.');
+    toast.success('Sharh yuborildi! Admin tasdiqlashidan keyin ko\'rinadi.');
     onNavigate('myReviews');
   };
 

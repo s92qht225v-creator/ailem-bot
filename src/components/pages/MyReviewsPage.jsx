@@ -1,6 +1,6 @@
 import { useContext, useState, useEffect } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { ChevronLeft, Star, Edit2, Package } from 'lucide-react';
+import { ChevronLeft, Star, Package } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useOrders } from '../../hooks/useOrders';
 import { AdminContext } from '../../context/AdminContext';
@@ -114,7 +114,6 @@ const MyReviewsPage = ({ onNavigate }) => {
                 <CompletedReviewCard
                   key={review.id}
                   review={review}
-                  onEdit={() => alert('Edit review coming soon!')}
                 />
               ))}
             </div>
@@ -167,7 +166,7 @@ const PendingReviewCard = ({ item, onWriteReview }) => {
   );
 };
 
-const CompletedReviewCard = ({ review, onEdit }) => {
+const CompletedReviewCard = ({ review }) => {
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm">
       <div className="flex gap-3 mb-3">
@@ -194,12 +193,6 @@ const CompletedReviewCard = ({ review, onEdit }) => {
           </div>
           <p className="text-xs text-gray-500">{formatDate(review.date)}</p>
         </div>
-        <button
-          onClick={onEdit}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors h-fit"
-        >
-          <Edit2 className="w-4 h-4 text-gray-600" />
-        </button>
       </div>
       <p className="text-sm text-gray-700">{review.comment}</p>
       {review.verified && (

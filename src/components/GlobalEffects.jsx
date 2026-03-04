@@ -4,6 +4,7 @@ import { useEffect, useRef, useContext } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { UserContext } from '../context/UserContext';
 import { loadFromLocalStorage, removeFromLocalStorage } from '../utils/helpers';
+import { useToast } from '../context/ToastContext';
 
 // Global side effects extracted from App.jsx
 // Runs once at app startup — handles referrals, pending payments, image protection
@@ -12,6 +13,7 @@ export default function GlobalEffects() {
   const searchParams = useSearchParams();
   const { user, setReferredBy } = useContext(UserContext);
   const referralProcessed = useRef(false);
+  const toast = useToast();
 
   // Handle referral codes from URL (?ref=CODE)
   useEffect(() => {
@@ -29,14 +31,14 @@ export default function GlobalEffects() {
 
     // Prevent self-referral
     if (refCode === user.referralCode) {
-      alert("Siz o'zingizning referral kodingizni ishlata olmaysiz!");
+      toast.warning("Siz o'zingizning referral kodingizni ishlata olmaysiz!");
       return;
     }
 
     // Save referral code if user hasn't been referred before
     if (!user.referredBy && setReferredBy) {
       setReferredBy(refCode).then(() => {
-        alert("Xush kelibsiz! Siz do'stingiz orqali taklif qilindingiz!");
+        toast.success("Xush kelibsiz! Siz do'stingiz orqali taklif qilindingiz!");
       });
     }
   }, [user?.id, searchParams, setReferredBy]);

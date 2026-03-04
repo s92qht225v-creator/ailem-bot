@@ -3,6 +3,7 @@ import ProductDetails from '../product/ProductDetails';
 import ReviewSection from '../product/ReviewSection';
 import RelatedProducts from '../product/RelatedProducts';
 import { useProducts } from '../../hooks/useProducts';
+import { useToast } from '../../context/ToastContext';
 import { useCart } from '../../hooks/useCart';
 import { useBackButton } from '../../hooks/useBackButton';
 import { productsAPI } from '../../services/api';
@@ -10,6 +11,7 @@ import { productsAPI } from '../../services/api';
 const ProductPage = ({ productId, onNavigate }) => {
   const { getProductById, selectedCategory } = useProducts();
   const { addToCart } = useCart();
+  const toast = useToast();
   const baseProduct = getProductById(productId);
   const [fullProduct, setFullProduct] = useState(null);
 
@@ -61,7 +63,7 @@ const ProductPage = ({ productId, onNavigate }) => {
 
   const handleAddToCart = (product, quantity, color, size, variantPrice = null) => {
     addToCart(product, quantity, color, size, variantPrice);
-    alert('Mahsulot savatga qo\'shildi!');
+    toast.success('Mahsulot savatga qo\'shildi!');
   };
 
   return (

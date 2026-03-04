@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { Package, Award, Settings, HelpCircle, ChevronRight, MapPin, MessageSquare } from 'lucide-react';
+import { Package, Award, ChevronRight, MessageSquare } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useOrders } from '../../hooks/useOrders';
 import { formatPrice } from '../../utils/helpers';
@@ -85,31 +85,10 @@ const ProfilePage = ({ onNavigate, hideHeader = false }) => {
         />
 
         <MenuCard
-          icon={MapPin}
-          title={t('profile.addresses')}
-          subtitle={t('profile.addressesSubtitle')}
-          onClick={() => alert(t('common.comingSoon'))}
-        />
-
-        <MenuCard
           icon={MessageSquare}
           title={t('profile.reviews')}
           subtitle={t('profile.reviewsSubtitle')}
           onClick={() => onNavigate('myReviews')}
-        />
-
-        <MenuCard
-          icon={Settings}
-          title={t('profile.settings')}
-          subtitle={t('profile.settingsSubtitle')}
-          onClick={() => alert(t('common.comingSoon'))}
-        />
-
-        <MenuCard
-          icon={HelpCircle}
-          title={t('profile.help')}
-          subtitle={t('profile.helpSubtitle')}
-          onClick={() => alert(t('common.comingSoon'))}
         />
       </div>
       </div>{/* end right content */}
