@@ -110,12 +110,12 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
     return (
       <div className="pb-20 bg-gray-50 min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-gray-500 mb-4">Invalid review request</p>
+          <p className="text-gray-500 mb-4">Noto'g'ri so'rov</p>
           <button
             onClick={() => onNavigate('profile')}
             className="text-accent font-semibold hover:underline"
           >
-            Back to Profile
+            Profilga qaytish
           </button>
         </div>
       </div>
@@ -126,7 +126,7 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
     <div className="pb-20 bg-gray-50 min-h-screen">
       {/* Header */}
       <div className="bg-white p-4 border-b border-gray-200 sticky top-0 z-10">
-        <h1 className="text-xl font-bold text-gray-900">Write a Review</h1>
+        <h1 className="text-xl font-bold text-gray-900">Sharh yozish</h1>
       </div>
 
       {/* Content */}
@@ -142,7 +142,7 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
               />
               <div>
                 <p className="font-semibold text-gray-900">{productName}</p>
-                <p className="text-sm text-gray-500">Order #{orderId}</p>
+                <p className="text-sm text-gray-500">Buyurtma #{orderId}</p>
               </div>
             </div>
           </div>
@@ -150,7 +150,7 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
           {/* Rating */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              Rate this product
+              Mahsulotni baholang
             </label>
             <div className="flex gap-2 justify-center">
               {[1, 2, 3, 4, 5].map((star) => (
@@ -174,11 +174,11 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
             </div>
             {rating > 0 && (
               <p className="text-center text-sm text-gray-600 mt-3">
-                {rating === 1 && 'Poor'}
-                {rating === 2 && 'Fair'}
-                {rating === 3 && 'Good'}
-                {rating === 4 && 'Very Good'}
-                {rating === 5 && 'Excellent'}
+                {rating === 1 && 'Yomon'}
+                {rating === 2 && 'Qoniqarli'}
+                {rating === 3 && 'Yaxshi'}
+                {rating === 4 && 'Juda yaxshi'}
+                {rating === 5 && 'Ajoyib'}
               </p>
             )}
           </div>
@@ -186,18 +186,18 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
           {/* Review Text */}
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <label className="block text-sm font-semibold text-gray-900 mb-3">
-              Write your review
+              Sharhingizni yozing
             </label>
             <textarea
               value={comment}
               onChange={(e) => setComment(e.target.value)}
-              placeholder="Share your experience with this product..."
+              placeholder="Mahsulot haqidagi tajribangizni baham ko'ring..."
               rows={6}
               className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent focus:border-accent resize-none"
               required
             />
             <p className="text-xs text-gray-500 mt-2">
-              Minimum 10 characters ({comment.length}/10)
+              Kamida 10 ta belgi ({comment.length}/10)
             </p>
           </div>
 
@@ -205,7 +205,7 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <label className="block text-sm font-semibold text-gray-900 mb-3">
               <Camera className="w-4 h-4 inline mr-1" />
-              Add Photos (Optional, max 5)
+              Rasm qo'shish (ixtiyoriy, max 5)
             </label>
 
             {/* File Input Button */}
@@ -216,7 +216,7 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
                   : 'bg-gray-100 text-gray-700 cursor-pointer hover:bg-gray-200'
               }`}>
                 <Camera className="w-5 h-5" />
-                <span>{isUploadingImage ? 'Uploading...' : 'Take Photo or Choose from Gallery'}</span>
+                <span>{isUploadingImage ? 'Yuklanmoqda...' : 'Rasm olish yoki Galereyadan tanlash'}</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -252,7 +252,7 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
 
             {reviewImages.length > 0 && (
               <p className="text-xs text-gray-500 mt-2 text-center">
-                {reviewImages.length}/5 images added
+                {reviewImages.length}/5 rasm qo'shildi
               </p>
             )}
           </div>
@@ -263,11 +263,11 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
             disabled={isSubmitting || rating === 0 || comment.length < 10}
             className="w-full bg-accent text-white px-6 py-4 rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
           >
-            {isSubmitting ? 'Submitting...' : 'Submit Review'}
+            {isSubmitting ? 'Yuborilmoqda...' : 'Sharhni yuborish'}
           </button>
 
           <p className="text-xs text-gray-500 text-center">
-            Your review will be visible after admin approval
+            Sharhingiz admin tasdiqlashidan keyin ko'rinadi
           </p>
         </form>
       </div>

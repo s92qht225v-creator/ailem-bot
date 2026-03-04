@@ -57,18 +57,18 @@ const ReferralsPage = ({ hideHeader = false, onNavigate }) => {
       <div className="bg-gradient-to-r from-accent to-red-700 text-white p-6">
         <div className="text-center mb-6">
           <Users className="w-16 h-16 mx-auto mb-3" />
-          <h2 className="text-2xl font-bold mb-2">Refer & Earn</h2>
+          <h2 className="text-2xl font-bold mb-2">Taklif et va daromad ol</h2>
           <p className="text-sm opacity-90">
-            Share the love and earn bonus points!
+            Do'stlaringizni taklif qiling va bonus ball ishlang!
           </p>
         </div>
 
         {/* Total Referrals */}
         <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 text-center">
-          <p className="text-sm opacity-90 mb-2">Total Referrals</p>
+          <p className="text-sm opacity-90 mb-2">Jami takliflar</p>
           <p className="text-5xl font-bold">{user.referrals}</p>
           <p className="text-sm opacity-90 mt-2">
-            You earn {commissionRate}% commission on each referral's purchase!
+            Har bir taklif qilingan do'stingizning xarididan {commissionRate}% komissiya olasiz!
           </p>
         </div>
       </div>
@@ -76,7 +76,7 @@ const ReferralsPage = ({ hideHeader = false, onNavigate }) => {
       <div className="p-4 space-y-6">
         {/* Referral Link */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold mb-4 text-center">Your Referral Link</h3>
+          <h3 className="text-lg font-semibold mb-4 text-center">Sizning referral havolangiz</h3>
 
           <div className="bg-gradient-to-r from-primary to-gray-700 text-white rounded-lg p-6 mb-4">
             <div className="flex items-center justify-center mb-4">
@@ -86,7 +86,7 @@ const ReferralsPage = ({ hideHeader = false, onNavigate }) => {
               {referralLink}
             </p>
             <p className="text-center text-xs opacity-75 mt-3">
-              Share this link with friends to earn rewards!
+              Do'stlaringizga ulashing va mukofot ishlang!
             </p>
           </div>
 
@@ -96,39 +96,39 @@ const ReferralsPage = ({ hideHeader = false, onNavigate }) => {
               className="flex items-center justify-center gap-2 bg-gray-100 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-200 transition-colors"
             >
               <Copy className="w-5 h-5" />
-              Copy Link
+              Nusxalash
             </button>
             <button
               onClick={handleShareLink}
               className="flex items-center justify-center gap-2 bg-accent text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
             >
               <Share2 className="w-5 h-5" />
-              Share
+              Ulashish
             </button>
           </div>
         </div>
 
         {/* How It Works */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold mb-4">How It Works</h3>
+          <h3 className="text-lg font-semibold mb-4">Qanday ishlaydi?</h3>
 
           <div className="space-y-4">
             <Step
               icon={Share2}
-              title="Share Your Code"
-              description="Send your unique referral code to friends and family"
+              title="Kodingizni ulashing"
+              description="Noyob referral kodingizni do'st va oila a'zolaringizga yuboring"
               color="bg-accent"
             />
             <Step
               icon={Gift}
-              title="Friend Makes Purchase"
-              description={`Your friend earns ${commissionRate}% bonus on their purchase`}
+              title="Do'stingiz xarid qiladi"
+              description={`Do'stingiz xarididan ${commissionRate}% bonus ball oladi`}
               color="bg-warning"
             />
             <Step
               icon={Award}
-              title="You Earn Commission"
-              description={`Receive ${commissionRate}% of your friend's purchase amount as commission`}
+              title="Siz komissiya olasiz"
+              description={`Do'stingizning xaridi summasidan ${commissionRate}% komissiya ishlaysiz`}
               color="bg-success"
             />
           </div>
@@ -136,20 +136,20 @@ const ReferralsPage = ({ hideHeader = false, onNavigate }) => {
 
         {/* Benefits */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold mb-4">Referral Benefits</h3>
+          <h3 className="text-lg font-semibold mb-4">Referral imtiyozlari</h3>
 
           <div className="space-y-3">
             <Benefit
               icon={UserPlus}
-              text="Unlimited referrals - the more you share, the more you earn!"
+              text="Cheksiz takliflar — qancha ko'p ulashsangiz, shuncha ko'p ishlaysiz!"
             />
             <Benefit
               icon={Award}
-              text={`${commissionRate}% commission on every referral's purchase`}
+              text={`Har bir taklif qilingan do'stingizning xarididan ${commissionRate}% komissiya`}
             />
             <Benefit
               icon={Gift}
-              text={`Your friends earn ${commissionRate}% bonus points on their purchases`}
+              text={`Do'stlaringiz o'z xaridlaridan ${commissionRate}% bonus ball oladi`}
             />
           </div>
         </div>

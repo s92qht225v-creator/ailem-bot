@@ -50,12 +50,12 @@ const ProductPage = ({ productId, onNavigate }) => {
   if (!product) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <p className="text-xl text-gray-500 mb-4">Product not found</p>
+        <p className="text-xl text-gray-500 mb-4">Mahsulot topilmadi</p>
         <button
           onClick={handleBackToShop}
           className="text-accent font-semibold hover:underline"
         >
-          Back to Shop
+          Do'konga qaytish
         </button>
       </div>
     );
