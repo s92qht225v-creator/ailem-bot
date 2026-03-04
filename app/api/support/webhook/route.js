@@ -11,8 +11,6 @@ function getSupabase() {
 export async function POST(request) {
   try {
     const update = await request.json();
-    console.log('Webhook update:', JSON.stringify(update, null, 2));
-
     const msg = update?.message;
     if (!msg || !msg.text) {
       return NextResponse.json({ ok: true });
@@ -20,7 +18,6 @@ export async function POST(request) {
 
     const adminChatId = process.env.NEXT_PUBLIC_ADMIN_CHAT_ID;
     const fromId = String(msg.from?.id || msg.chat?.id);
-    console.log('Message from:', fromId, 'admin:', adminChatId);
 
     // Only process messages from admin
     if (fromId !== String(adminChatId)) {
@@ -46,7 +43,6 @@ export async function POST(request) {
       }
     }
 
-    console.log('Session ID:', sessionId);
     if (!sessionId) {
       return NextResponse.json({ ok: true });
     }
@@ -63,8 +59,6 @@ export async function POST(request) {
       message: replyText,
       telegram_message_id: msg.message_id,
     });
-    console.log('Insert result:', insertError ? insertError.message : 'ok');
-
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error('Support webhook error:', err);
