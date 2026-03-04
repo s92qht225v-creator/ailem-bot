@@ -2,9 +2,9 @@
 
 ## Project Overview
 
-**Ailem** — Telegram Mini App e-commerce platform for home textiles (Uzbekistan).
+**Ailem** — Web app + Telegram Mini App e-commerce platform for home textiles (Uzbekistan).
 - **Version**: 1.0.26 | **Language**: Uzbek (Cyrillic) | **Currency**: UZS | **Domain**: www.ailem.uz
-- **Platform**: Telegram Mini App | **Hosting**: Vercel | **DB**: Supabase (Mumbai, ap-south-1)
+- **Platform**: Web App (desktop + mobile) + Telegram Mini App | **Hosting**: Vercel | **DB**: Supabase (Mumbai, ap-south-1)
 
 ## Sub-Guides (read these when working in each area)
 
@@ -133,6 +133,8 @@ VITE_APP_URL=https://www.ailem.uz
 - **Supabase**: Mumbai (ap-south-1), project `jbdzhwenzedlwbdpguyt`
 - **Vercel**: `vercel.json` rewrite `/((?!assets|api).*)` → `/index.html` (SPA + excludes assets)
 - **Migrations**: `supabase-migrations/` — run in Supabase SQL Editor
+- **Serverless functions**: `api/auth/telegram-login.js` (Telegram Login Widget auth), `api/payme-webhook.js` (payment callbacks)
+- **Server-side env vars** (no `VITE_` prefix): `SUPABASE_SERVICE_ROLE_KEY`, `TELEGRAM_BOT_TOKEN`
 
 ## Known Limitations
 
@@ -140,6 +142,7 @@ VITE_APP_URL=https://www.ailem.uz
 - Address management, Settings page, Help section: placeholders
 - Telegram Desktop: localStorage disabled (in-memory fallback)
 - Payment webhooks: server-side only (not in frontend)
+- SSR: app is currently a CSR SPA — Google sees empty `<div id="root">`. Next.js migration planned in `feature/nextjs-migration` branch.
 
 ## Common Issues
 
@@ -150,6 +153,9 @@ VITE_APP_URL=https://www.ailem.uz
 - **Vercel rewrite regex**: use `((?!pattern).*)` not `(?!pattern)(.*)`
 - **Stale cart pricing**: resolve live `volume_pricing` from AdminContext, not cart snapshot
 - **Payment pre-deduction**: never deduct cart/bonus before payment confirmed — do in PaymentStatusPage
+- **"Bot token not configured"**: add `TELEGRAM_BOT_TOKEN` (no VITE_ prefix) to Vercel env vars
+- **"Invalid API key" on login**: add `SUPABASE_SERVICE_ROLE_KEY` to Vercel env vars
+- **Telegram Login Widget bot domain invalid**: register domain in BotFather → `/mybots` → Bot Settings → Domain → `ailem.uz`
 
 ## Deployment Checklist
 
@@ -160,6 +166,14 @@ VITE_APP_URL=https://www.ailem.uz
 5. Test in Telegram Mobile App
 
 ---
+
+## SEO Status
+
+- favicon.svg, sitemap.xml, canonical tag, robots meta — done
+- Dynamic `document.title` per page — done (`App.jsx` + `ProductPage.jsx`)
+- Nav links converted to `<a href>` — done (Header, BottomNav)
+- Telegram Login Widget bot: `@ailemuzbot`
+- SSR/Next.js migration: planned (see prompt in memory)
 
 **Last Updated**: 2026-03-04
 **Maintained By**: Ailem Development Team
