@@ -57,7 +57,7 @@ const ReferralsPage = ({ hideHeader = false, onNavigate }) => {
       <div className="bg-gradient-to-r from-accent to-red-700 text-white p-6">
         <div className="text-center mb-6">
           <Users className="w-16 h-16 mx-auto mb-3" />
-          <h2 className="text-2xl font-bold mb-2">Taklif et va daromad ol</h2>
+          <h2 className="text-2xl font-bold mb-2">Taklif qiling va daromad oling</h2>
           <p className="text-sm opacity-90">
             Do'stlaringizni taklif qiling va bonus ball ishlang!
           </p>
