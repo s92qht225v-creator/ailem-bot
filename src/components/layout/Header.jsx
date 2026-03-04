@@ -15,35 +15,39 @@ const Header = ({ onNavigate, currentPage }) => {
       <div className="max-w-6xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-3">
           {/* Logo */}
-          <button
-            onClick={() => onNavigate('home')}
+          <a
+            href="/"
+            onClick={(e) => { e.preventDefault(); onNavigate('home'); }}
             className="flex-shrink-0 hover:opacity-80 transition-opacity"
           >
             <img src="/logo.svg" alt="Ailem" className="h-12 w-auto" />
-          </button>
+          </a>
 
           {/* Search Bar — tablet+ */}
-          <button
-            onClick={() => onNavigate('shop')}
+          <a
+            href="/shop"
+            onClick={(e) => { e.preventDefault(); onNavigate('shop'); }}
             className="hidden md:flex flex-1 max-w-xl mx-4 items-center gap-2 px-4 py-2 bg-gray-100 rounded-lg text-gray-400 hover:bg-gray-200 transition-colors cursor-pointer"
           >
             <Search className="w-5 h-5 flex-shrink-0" />
             <span className="text-sm">Mahsulot qidirish...</span>
-          </button>
+          </a>
 
           {/* Right side actions */}
           <div className="flex items-center gap-1">
             {/* Search icon — mobile only */}
-            <button
-              onClick={() => onNavigate('shop')}
+            <a
+              href="/shop"
+              onClick={(e) => { e.preventDefault(); onNavigate('shop'); }}
               className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 transition-colors"
             >
               <Search className="w-6 h-6" />
-            </button>
+            </a>
 
             {/* Cart */}
-            <button
-              onClick={() => onNavigate('cart')}
+            <a
+              href="/cart"
+              onClick={(e) => { e.preventDefault(); onNavigate('cart'); }}
               className={`relative p-2 rounded-lg transition-colors ${
                 currentPage === 'cart' ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
               }`}
@@ -54,20 +58,22 @@ const Header = ({ onNavigate, currentPage }) => {
                   {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}
-            </button>
+            </a>
 
             {/* Login / Avatar */}
             {isGuest ? (
-              <button
-                onClick={() => onNavigate('login')}
+              <a
+                href="/login"
+                onClick={(e) => { e.preventDefault(); onNavigate('login'); }}
                 className="flex items-center gap-1.5 bg-accent text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-red-700 transition-colors"
               >
                 <LogIn className="w-4 h-4" />
                 <span className="hidden sm:inline">Kirish</span>
-              </button>
+              </a>
             ) : (
-              <button
-                onClick={() => onNavigate('account')}
+              <a
+                href="/account"
+                onClick={(e) => { e.preventDefault(); onNavigate('account'); }}
                 className={`p-2 rounded-lg transition-colors ${
                   ['account', 'profile'].includes(currentPage) ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
                 }`}
@@ -83,7 +89,7 @@ const Header = ({ onNavigate, currentPage }) => {
                     {(user?.name || 'U').charAt(0).toUpperCase()}
                   </div>
                 )}
-              </button>
+              </a>
             )}
           </div>
         </div>
