@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState, useCallback } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { Truck, Shield, CreditCard } from 'lucide-react';
+import { Truck, Shield } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
 import { CartContext } from '../../context/CartContext';
@@ -107,11 +107,6 @@ const HomePage = ({ onNavigate }) => {
           <div className="flex flex-col items-center gap-1">
             <Shield className="w-5 h-5 text-accent" />
             <span className="text-xs font-medium text-gray-700">{t('home.guarantee') || 'Kafolat'}</span>
-          </div>
-          <div className="w-px h-8 bg-gray-200" />
-          <div className="flex flex-col items-center gap-1">
-            <CreditCard className="w-5 h-5 text-accent" />
-            <span className="text-xs font-medium text-gray-700">{t('home.securePayment') || "Xavfsiz to'lov"}</span>
           </div>
         </div>
       </div>
