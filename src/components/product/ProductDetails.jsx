@@ -421,7 +421,7 @@ const ProductDetails = ({ product, onAddToCart, onNavigate }) => {
         <div
           className="relative aspect-[4/5] flex items-center justify-center bg-gray-100 overflow-hidden"
           style={{
-            touchAction: 'none',
+            touchAction: 'pan-y',
             WebkitTouchCallout: 'none',
             WebkitUserSelect: 'none',
             userSelect: 'none'

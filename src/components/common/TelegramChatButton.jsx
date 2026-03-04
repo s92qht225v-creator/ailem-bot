@@ -5,7 +5,9 @@ import { MessageCircle, X, Send, ChevronDown, RotateCcw } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 
 const SESSION_KEY = 'support_session_id';
+const LAST_SEEN_KEY = 'support_last_seen';
 const POLL_INTERVAL = 3000;
+const BG_POLL_INTERVAL = 10000;
 
 const TelegramChatButton = () => {
   const [open, setOpen] = useState(false);
@@ -14,6 +16,7 @@ const TelegramChatButton = () => {
   const [sessionId, setSessionId] = useState(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
   const pollRef = useRef(null);
@@ -25,12 +28,41 @@ const TelegramChatButton = () => {
     if (saved) setSessionId(saved);
   }, []);
 
+  // Background polling for unread badge when chat is closed
+  useEffect(() => {
+    if (!sessionId || open) return;
+    const checkUnread = async () => {
+      try {
+        const res = await fetch(`/api/support/messages?session_id=${sessionId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const msgs = data.messages || [];
+        const lastSeen = localStorage.getItem(LAST_SEEN_KEY);
+        const adminMsgs = msgs.filter(m => m.sender === 'admin');
+        if (!lastSeen) {
+          setUnreadCount(adminMsgs.length);
+        } else {
+          const unseen = adminMsgs.filter(m => new Date(m.created_at) > new Date(lastSeen));
+          setUnreadCount(unseen.length);
+        }
+      } catch { /* silent */ }
+    };
+    checkUnread();
+    pollRef.current = setInterval(checkUnread, BG_POLL_INTERVAL);
+    return () => clearInterval(pollRef.current);
+  }, [sessionId, open]);
+
   // Fetch messages when chat opens and session exists; start polling
   useEffect(() => {
-    if (open && sessionId) {
-      fetchMessages(sessionId);
-      pollRef.current = setInterval(() => fetchMessages(sessionId), POLL_INTERVAL);
-    }
+    if (!open || !sessionId) return;
+    const poll = async () => {
+      const res = await fetch(`/api/support/messages?session_id=${sessionId}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setMessages(data.messages || []);
+    };
+    poll();
+    pollRef.current = setInterval(poll, POLL_INTERVAL);
     return () => clearInterval(pollRef.current);
   }, [open, sessionId]);
 
@@ -103,12 +135,19 @@ const TelegramChatButton = () => {
     }
   };
 
+  const markSeen = () => {
+    localStorage.setItem(LAST_SEEN_KEY, new Date().toISOString());
+    setUnreadCount(0);
+  };
+
   const handleNewChat = () => {
     clearInterval(pollRef.current);
     localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(LAST_SEEN_KEY);
     setSessionId(null);
     setMessages([]);
     setError('');
+    setUnreadCount(0);
   };
 
   const handleKeyDown = (e) => {
@@ -119,6 +158,7 @@ const TelegramChatButton = () => {
   };
 
   const handleClose = () => {
+    markSeen();
     setOpen(false);
     clearInterval(pollRef.current);
   };
@@ -200,11 +240,16 @@ const TelegramChatButton = () => {
 
       {/* Toggle button */}
       <button
-        onClick={() => (open ? handleClose() : setOpen(true))}
-        className="w-12 h-12 bg-accent text-white rounded-full shadow-lg flex items-center justify-center hover:bg-red-700 transition-colors"
+        onClick={() => open ? handleClose() : setOpen(true)}
+        className="relative w-12 h-12 bg-accent text-white rounded-full shadow-lg flex items-center justify-center hover:bg-red-700 transition-colors"
         aria-label="Xabar yozing"
       >
         {open ? <X className="w-5 h-5" /> : <MessageCircle className="w-6 h-6" />}
+        {!open && unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+            {unreadCount > 9 ? '9+' : unreadCount}
+          </span>
+        )}
       </button>
     </div>
   );

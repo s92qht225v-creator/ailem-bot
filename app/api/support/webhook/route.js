@@ -14,34 +14,56 @@ export async function POST(request) {
     console.log('Webhook update:', JSON.stringify(update, null, 2));
 
     const msg = update?.message;
-    if (!msg || !msg.reply_to_message) {
-      console.log('No reply_to_message, ignoring. msg keys:', msg ? Object.keys(msg) : 'no msg');
+    if (!msg || !msg.text) {
       return NextResponse.json({ ok: true });
     }
 
-    const replyText = msg.text;
-    const originalText = msg.reply_to_message.text;
-    console.log('Reply to message, originalText:', originalText?.substring(0, 100));
+    const adminChatId = process.env.NEXT_PUBLIC_ADMIN_CHAT_ID;
+    const fromId = String(msg.from?.id || msg.chat?.id);
+    console.log('Message from:', fromId, 'admin:', adminChatId);
 
-    if (!replyText || !originalText) {
+    // Only process messages from admin
+    if (fromId !== String(adminChatId)) {
       return NextResponse.json({ ok: true });
     }
 
-    // Extract session_id from original forwarded message
-    const match = originalText.match(/Session: ([\w-]+)/);
-    if (!match) {
+    const msgText = msg.text;
+
+    // Try reply_to_message first (admin replied to forwarded message)
+    let sessionId = null;
+    if (msg.reply_to_message?.text) {
+      const match = msg.reply_to_message.text.match(/Session: ([\w-]+)/);
+      if (match) sessionId = match[1];
+    }
+
+    // Fallback: message starts with session ID on first line
+    // Format: "<session-id>\nreply text"
+    if (!sessionId) {
+      const lines = msgText.split('\n');
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (lines.length >= 2 && uuidRegex.test(lines[0].trim())) {
+        sessionId = lines[0].trim();
+      }
+    }
+
+    console.log('Session ID:', sessionId);
+    if (!sessionId) {
       return NextResponse.json({ ok: true });
     }
 
-    const sessionId = match[1];
+    const replyText = msg.reply_to_message ? msgText : msgText.split('\n').slice(1).join('\n').trim();
+    if (!replyText) {
+      return NextResponse.json({ ok: true });
+    }
     const supabase = getSupabase();
 
-    await supabase.from('support_messages').insert({
+    const { error: insertError } = await supabase.from('support_messages').insert({
       session_id: sessionId,
       sender: 'admin',
       message: replyText,
       telegram_message_id: msg.message_id,
     });
+    console.log('Insert result:', insertError ? insertError.message : 'ok');
 
     return NextResponse.json({ ok: true });
   } catch (err) {
