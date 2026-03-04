@@ -5,17 +5,28 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+// Lazy-init to avoid build-time errors when env vars aren't available
+let _supabase;
+function getSupabase() {
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
+  }
+  return _supabase;
+}
 
-// Telegram Bot configuration
-const TELEGRAM_BOT_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN;
-const ADMIN_CHAT_ID = process.env.NEXT_PUBLIC_ADMIN_CHAT_ID;
+function getTelegramConfig() {
+  return {
+    botToken: process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN,
+    adminChatId: process.env.NEXT_PUBLIC_ADMIN_CHAT_ID,
+  };
+}
 
 // Send Telegram notification
 async function sendTelegramNotification(chatId, message) {
+  const { botToken: TELEGRAM_BOT_TOKEN } = getTelegramConfig();
   if (!TELEGRAM_BOT_TOKEN || !chatId) return;
 
   try {
@@ -39,7 +50,7 @@ async function deductStock(order) {
       const productId = item.id || item.productId || item.product_id;
       if (!productId) continue;
 
-      const { data: product, error: productError } = await supabase
+      const { data: product, error: productError } = await getSupabase()
         .from('products')
         .select('*')
         .eq('id', productId)
@@ -68,10 +79,10 @@ async function deductStock(order) {
           return v;
         });
 
-        await supabase.from('products').update({ variants: updatedVariants }).eq('id', product.id);
+        await getSupabase().from('products').update({ variants: updatedVariants }).eq('id', product.id);
       } else {
         const newStock = Math.max(0, (product.stock || 0) - item.quantity);
-        await supabase.from('products').update({ stock: newStock }).eq('id', product.id);
+        await getSupabase().from('products').update({ stock: newStock }).eq('id', product.id);
       }
     }
 
@@ -83,7 +94,7 @@ async function deductStock(order) {
 
 async function checkLowStockAndAlert(order) {
   try {
-    const { data: settings } = await supabase
+    const { data: settings } = await getSupabase()
       .from('app_settings')
       .select('inventory')
       .eq('id', 1)
@@ -92,7 +103,7 @@ async function checkLowStockAndAlert(order) {
     const threshold = settings?.inventory?.low_stock_threshold || 10;
 
     for (const item of order.items) {
-      const { data: product } = await supabase
+      const { data: product } = await getSupabase()
         .from('products')
         .select('*')
         .eq('id', item.productId)
@@ -117,6 +128,7 @@ async function checkLowStockAndAlert(order) {
 }
 
 async function sendLowStockAlert(product, stock, isOutOfStock) {
+  const { adminChatId: ADMIN_CHAT_ID } = getTelegramConfig();
   if (!ADMIN_CHAT_ID) return;
 
   const message = isOutOfStock
@@ -133,7 +145,7 @@ async function awardBonusPoints(order) {
   try {
     let purchaseBonusPercentage = 1;
 
-    const { data: settings, error: settingsError } = await supabase
+    const { data: settings, error: settingsError } = await getSupabase()
       .from('app_settings')
       .select('bonus_config')
       .eq('id', 1)
@@ -146,7 +158,7 @@ async function awardBonusPoints(order) {
     const bonusBase = order.subtotal || order.total;
     const purchaseBonusPoints = Math.round((bonusBase * purchaseBonusPercentage) / 100);
 
-    const { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await getSupabase()
       .from('users')
       .select('bonus_points, total_orders')
       .eq('id', userId)
@@ -157,7 +169,7 @@ async function awardBonusPoints(order) {
     const newBonusPoints = (user.bonus_points || 0) + purchaseBonusPoints;
     const newTotalOrders = (user.total_orders || 0) + 1;
 
-    await supabase
+    await getSupabase()
       .from('users')
       .update({ bonus_points: newBonusPoints, total_orders: newTotalOrders })
       .eq('id', userId);
@@ -255,7 +267,7 @@ async function checkPerformTransaction(params, requestId) {
   const { account, amount } = params;
   const paymeOrderId = String(account.order_id);
 
-  const { data: order, error: orderError } = await supabase
+  const { data: order, error: orderError } = await getSupabase()
     .from('orders')
     .select('*')
     .eq('payme_order_id', paymeOrderId)
@@ -293,7 +305,7 @@ async function createTransaction(params, requestId) {
   const { id, time, account } = params;
   const paymeOrderId = String(account.order_id);
 
-  const { data: existingOrder } = await supabase
+  const { data: existingOrder } = await getSupabase()
     .from('orders')
     .select('*')
     .eq('payme_transaction_id', id)
@@ -308,7 +320,7 @@ async function createTransaction(params, requestId) {
     });
   }
 
-  const { data: order, error: orderError } = await supabase
+  const { data: order, error: orderError } = await getSupabase()
     .from('orders')
     .select('*')
     .eq('payme_order_id', paymeOrderId)
@@ -322,7 +334,7 @@ async function createTransaction(params, requestId) {
     });
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await getSupabase()
     .from('orders')
     .update({ payme_transaction_id: id, payme_create_time: time, payme_state: 1 })
     .eq('id', order.id)
@@ -348,7 +360,7 @@ async function performTransaction(params, requestId) {
   const { id } = params;
   const performTime = Date.now();
 
-  const { data: order } = await supabase
+  const { data: order } = await getSupabase()
     .from('orders')
     .select('*')
     .eq('payme_transaction_id', id)
@@ -362,7 +374,7 @@ async function performTransaction(params, requestId) {
     });
   }
 
-  const { error } = await supabase
+  const { error } = await getSupabase()
     .from('orders')
     .update({ status: 'approved', payme_perform_time: performTime, payme_state: 2 })
     .eq('payme_transaction_id', id);
@@ -389,6 +401,7 @@ async function performTransaction(params, requestId) {
       }
     })().catch((e) => console.error('Customer notification failed:', e)),
     (async () => {
+      const { adminChatId: ADMIN_CHAT_ID } = getTelegramConfig();
       if (ADMIN_CHAT_ID) {
         const itemsList =
           order.items && order.items.length > 0
@@ -422,7 +435,7 @@ async function cancelTransaction(params, requestId) {
   const { id, reason } = params;
   const cancelTime = Date.now();
 
-  await supabase
+  await getSupabase()
     .from('orders')
     .update({ status: 'rejected', payme_cancel_time: cancelTime, payme_state: -1, payme_cancel_reason: reason })
     .eq('payme_transaction_id', id);
@@ -437,7 +450,7 @@ async function cancelTransaction(params, requestId) {
 async function checkTransaction(params, requestId) {
   const { id } = params;
 
-  const { data: order } = await supabase
+  const { data: order } = await getSupabase()
     .from('orders')
     .select('*')
     .eq('payme_transaction_id', id)

@@ -4,19 +4,33 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-);
+let _supabase;
+function getSupabase() {
+  if (!_supabase) {
+    _supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    );
+  }
+  return _supabase;
+}
 
-const CLICK_SERVICE_ID = process.env.CLICK_SERVICE_ID;
-const TELEGRAM_BOT_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN;
-const ADMIN_CHAT_ID = process.env.NEXT_PUBLIC_ADMIN_CHAT_ID;
+function getClickServiceId() {
+  return process.env.CLICK_SERVICE_ID;
+}
+
+function getTelegramConfig() {
+  return {
+    botToken: process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN,
+    adminChatId: process.env.NEXT_PUBLIC_ADMIN_CHAT_ID,
+  };
+}
 
 async function sendTelegramNotification(chatId, message) {
-  if (!TELEGRAM_BOT_TOKEN || !chatId) return;
+  const { botToken } = getTelegramConfig();
+  if (!botToken || !chatId) return;
   try {
-    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'HTML' }),
@@ -34,7 +48,7 @@ async function deductStock(order) {
       const productId = item.id || item.productId || item.product_id;
       if (!productId) continue;
 
-      const { data: product, error: productError } = await supabase
+      const { data: product, error: productError } = await getSupabase()
         .from('products')
         .select('*')
         .eq('id', productId)
@@ -58,10 +72,10 @@ async function deductStock(order) {
           return v;
         });
 
-        await supabase.from('products').update({ variants: updatedVariants }).eq('id', product.id);
+        await getSupabase().from('products').update({ variants: updatedVariants }).eq('id', product.id);
       } else {
         const newStock = Math.max(0, (product.stock || 0) - item.quantity);
-        await supabase.from('products').update({ stock: newStock }).eq('id', product.id);
+        await getSupabase().from('products').update({ stock: newStock }).eq('id', product.id);
       }
     }
 
@@ -73,7 +87,7 @@ async function deductStock(order) {
 
 async function checkLowStockAndAlert(order) {
   try {
-    const { data: settings } = await supabase
+    const { data: settings } = await getSupabase()
       .from('app_settings')
       .select('inventory')
       .eq('id', 1)
@@ -85,7 +99,7 @@ async function checkLowStockAndAlert(order) {
       const productId = item.id || item.productId || item.product_id;
       if (!productId) continue;
 
-      const { data: product } = await supabase.from('products').select('*').eq('id', productId).single();
+      const { data: product } = await getSupabase().from('products').select('*').eq('id', productId).single();
       if (!product) continue;
 
       const hasVariants = product.variants && product.variants.length > 0;
@@ -105,11 +119,12 @@ async function checkLowStockAndAlert(order) {
 }
 
 async function sendLowStockAlert(product, stock, isOutOfStock) {
-  if (!ADMIN_CHAT_ID) return;
+  const { adminChatId } = getTelegramConfig();
+  if (!adminChatId) return;
   const message = isOutOfStock
     ? `🚨 <b>OUT OF STOCK ALERT</b>\n\nProduct: <b>${product.name}</b>\nCurrent Stock: <b>${stock} units</b>\n\n❌ This product is now unavailable to customers!`
     : `⚠️ <b>Low Stock Alert</b>\n\nProduct: <b>${product.name}</b>\nCurrent Stock: <b>${stock} units</b>\nStatus: Running low`;
-  await sendTelegramNotification(ADMIN_CHAT_ID, message);
+  await sendTelegramNotification(adminChatId, message);
 }
 
 async function awardBonusPoints(order) {
@@ -118,7 +133,7 @@ async function awardBonusPoints(order) {
 
   try {
     let purchaseBonusPercentage = 1;
-    const { data: settings, error: settingsError } = await supabase
+    const { data: settings, error: settingsError } = await getSupabase()
       .from('app_settings')
       .select('bonus_config')
       .eq('id', 1)
@@ -129,7 +144,7 @@ async function awardBonusPoints(order) {
     }
 
     const purchaseBonusPoints = Math.round((order.total * purchaseBonusPercentage) / 100);
-    const { data: user, error: userError } = await supabase
+    const { data: user, error: userError } = await getSupabase()
       .from('users')
       .select('bonus_points, total_orders')
       .eq('id', userId)
@@ -137,7 +152,7 @@ async function awardBonusPoints(order) {
 
     if (userError || !user) return;
 
-    await supabase
+    await getSupabase()
       .from('users')
       .update({
         bonus_points: (user.bonus_points || 0) + purchaseBonusPoints,
@@ -179,14 +194,14 @@ export async function POST(request) {
 async function handlePrepare(params) {
   const { click_trans_id, service_id, merchant_trans_id, amount } = params;
 
-  if (service_id.toString() !== CLICK_SERVICE_ID) {
+  if (service_id.toString() !== getClickServiceId()) {
     return NextResponse.json({
       click_trans_id, merchant_trans_id, merchant_prepare_id: 0,
       error: -5, error_note: 'Service ID is invalid',
     });
   }
 
-  const { data: order, error: orderError } = await supabase
+  const { data: order, error: orderError } = await getSupabase()
     .from('orders')
     .select('*')
     .eq('click_order_id', merchant_trans_id)
@@ -223,14 +238,14 @@ async function handlePrepare(params) {
 async function handleComplete(params) {
   const { click_trans_id, service_id, click_paydoc_id, merchant_trans_id, merchant_prepare_id, error: click_error } = params;
 
-  if (service_id.toString() !== CLICK_SERVICE_ID) {
+  if (service_id.toString() !== getClickServiceId()) {
     return NextResponse.json({
       click_trans_id, merchant_trans_id, merchant_confirm_id: 0,
       error: -5, error_note: 'Service ID is invalid',
     });
   }
 
-  const { data: order, error: fetchError } = await supabase
+  const { data: order, error: fetchError } = await getSupabase()
     .from('orders')
     .select('*')
     .eq('click_order_id', merchant_trans_id)
@@ -246,7 +261,7 @@ async function handleComplete(params) {
   const merchant_confirm_id = Date.now();
   const isApproved = !click_error || click_error >= 0;
 
-  await supabase
+  await getSupabase()
     .from('orders')
     .update({
       status: isApproved ? 'approved' : 'rejected',
@@ -259,6 +274,7 @@ async function handleComplete(params) {
   if (isApproved) {
     const startTime = Date.now();
     const courierName = getCourierName(order);
+    const { adminChatId } = getTelegramConfig();
 
     await Promise.all([
       deductStock(order).catch((e) => console.error('Stock deduction failed:', e)),
@@ -271,12 +287,12 @@ async function handleComplete(params) {
         }
       })().catch((e) => console.error('Customer notification failed:', e)),
       (async () => {
-        if (ADMIN_CHAT_ID) {
+        if (adminChatId) {
           const itemsList = order.items && order.items.length > 0
             ? order.items.map((item) => `  • ${item.productName || item.name || 'Mahsulot'} (x${item.quantity}) - ${(item.price || 0).toLocaleString()} UZS`).join('\n')
             : '  • Mahsulotlar mavjud emas';
           const adminMessage = `🔔 <b>Yangi buyurtma to'lovi!</b>\n\nBuyurtma: <b>#${order.order_number || order.id}</b>\nMijoz: ${order.user_name || "Noma'lum"}\nTelefon: ${order.user_phone || "Noma'lum"}\n\n📦 <b>Mahsulotlar:</b>\n${itemsList}\n\n💰 <b>Jami:</b> ${order.total.toLocaleString()} UZS\n🚚 <b>Yetkazib berish:</b> ${courierName}\n📍 <b>Manzil:</b> ${order.delivery_info?.city || order.delivery_info?.address || "Noma'lum"}\n\n✅ To'lov tasdiqlandi. Buyurtmani yetkazib bering.`;
-          await sendTelegramNotification(ADMIN_CHAT_ID, adminMessage);
+          await sendTelegramNotification(adminChatId, adminMessage);
         }
       })().catch((e) => console.error('Admin notification failed:', e)),
     ]).catch((e) => console.error('Background tasks failed:', e));

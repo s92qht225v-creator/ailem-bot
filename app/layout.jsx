@@ -2,6 +2,8 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import Providers from '../src/components/Providers';
 import './globals.css';
 
+export const dynamic = 'force-dynamic';
+
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
