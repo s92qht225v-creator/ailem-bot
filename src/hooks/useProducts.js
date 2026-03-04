@@ -85,11 +85,14 @@ export const useProducts = () => {
       );
     }
 
-    // Filter by search query - ONLY searches tags
+    // Filter by search query — name, category, tags, description
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(product =>
-        product.tags && product.tags.some(tag => tag.toLowerCase().includes(query))
+        (product.name && product.name.toLowerCase().includes(query)) ||
+        (product.category && product.category.toLowerCase().includes(query)) ||
+        (product.description && product.description.toLowerCase().includes(query)) ||
+        (product.tags && product.tags.some(tag => tag.toLowerCase().includes(query)))
       );
     }
 
