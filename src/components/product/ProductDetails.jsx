@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext, useRef } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, Share2, Bell, BellOff, Truck, Shield, RotateCcw } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, Share2, Bell, BellOff, Truck, Shield } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getVariantPrice, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant, getVariantPriceRange, hasVariantPricing } from '../../utils/variants';
 import { UserContext } from '../../context/UserContext';
@@ -776,11 +776,6 @@ const ProductDetails = ({ product, onAddToCart, onNavigate }) => {
           <div className="flex flex-col items-center gap-1 text-center">
             <Shield className="w-5 h-5 text-accent" />
             <span className="text-xs text-gray-600 font-medium">{t('product.guaranteed') || 'Kafolatli'}</span>
-          </div>
-          <div className="w-px h-8 bg-gray-200" />
-          <div className="flex flex-col items-center gap-1 text-center">
-            <RotateCcw className="w-5 h-5 text-accent" />
-            <span className="text-xs text-gray-600 font-medium">{t('product.returnable') || 'Qaytarish mumkin'}</span>
           </div>
         </div>
 
