@@ -1,23 +1,59 @@
 'use client';
 
 import { useState, useRef, useEffect, useContext } from 'react';
-import { MessageCircle, X, Send, ChevronDown } from 'lucide-react';
+import { MessageCircle, X, Send, ChevronDown, RotateCcw } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
+
+const SESSION_KEY = 'support_session_id';
+const POLL_INTERVAL = 3000;
 
 const TelegramChatButton = () => {
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState('');
-  const [sent, setSent] = useState(false);
+  const [messages, setMessages] = useState([]);
+  const [sessionId, setSessionId] = useState(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
+  const messagesEndRef = useRef(null);
   const textareaRef = useRef(null);
+  const pollRef = useRef(null);
   const { user } = useContext(UserContext);
 
+  // Load session from localStorage on mount
   useEffect(() => {
-    if (open && textareaRef.current) {
-      textareaRef.current.focus();
+    const saved = localStorage.getItem(SESSION_KEY);
+    if (saved) setSessionId(saved);
+  }, []);
+
+  // Fetch messages when chat opens and session exists; start polling
+  useEffect(() => {
+    if (open && sessionId) {
+      fetchMessages(sessionId);
+      pollRef.current = setInterval(() => fetchMessages(sessionId), POLL_INTERVAL);
     }
+    return () => clearInterval(pollRef.current);
+  }, [open, sessionId]);
+
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Focus textarea when opened
+  useEffect(() => {
+    if (open && textareaRef.current) textareaRef.current.focus();
   }, [open]);
+
+  const fetchMessages = async (sid) => {
+    try {
+      const res = await fetch(`/api/support/messages?session_id=${sid}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setMessages(data.messages || []);
+    } catch {
+      // silent
+    }
+  };
 
   const handleSend = async () => {
     const trimmed = message.trim();
@@ -26,34 +62,47 @@ const TelegramChatButton = () => {
     setSending(true);
     setError('');
 
-    const userName = user?.name || 'Mehmon';
-    const userId = user?.telegramId || user?.id || 'unknown';
-    const text = `💬 Sayt orqali xabar\n\nFoydalanuvchi: ${userName}\nID: ${userId}\n\n${trimmed}`;
+    // Optimistic update
+    const optimistic = { sender: 'user', message: trimmed, created_at: new Date().toISOString(), _optimistic: true };
+    setMessages(prev => [...prev, optimistic]);
+    setMessage('');
 
     try {
-      const botToken = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN;
-      const adminChatId = process.env.NEXT_PUBLIC_ADMIN_CHAT_ID;
-
-      if (!botToken || !adminChatId) {
-        throw new Error('Bot sozlanmagan');
-      }
-
-      const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      const res = await fetch('/api/support/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: adminChatId, text, parse_mode: 'HTML' }),
+        body: JSON.stringify({
+          session_id: sessionId,
+          message: trimmed,
+          user_name: user?.name || 'Mehmon',
+          user_id: user?.telegramId || user?.id || 'unknown',
+        }),
       });
 
-      if (!res.ok) throw new Error('Yuborilmadi');
+      if (!res.ok) throw new Error('Failed');
 
-      setSent(true);
-      setMessage('');
-      setTimeout(() => setSent(false), 4000);
+      const data = await res.json();
+
+      if (!sessionId) {
+        setSessionId(data.session_id);
+        localStorage.setItem(SESSION_KEY, data.session_id);
+        pollRef.current = setInterval(() => fetchMessages(data.session_id), POLL_INTERVAL);
+      }
     } catch {
-      setError("Xabar yuborilmadi. Qayta urinib ko'ring.");
+      setError("Yuborilmadi. Qayta urinib ko'ring.");
+      setMessages(prev => prev.filter(m => !m._optimistic));
+      setMessage(trimmed);
     } finally {
       setSending(false);
     }
+  };
+
+  const handleNewChat = () => {
+    clearInterval(pollRef.current);
+    localStorage.removeItem(SESSION_KEY);
+    setSessionId(null);
+    setMessages([]);
+    setError('');
   };
 
   const handleKeyDown = (e) => {
@@ -63,13 +112,17 @@ const TelegramChatButton = () => {
     }
   };
 
+  const handleClose = () => {
+    setOpen(false);
+    clearInterval(pollRef.current);
+  };
+
   return (
     <div className="fixed right-4 bottom-20 lg:bottom-6 z-40 flex flex-col items-end gap-2">
-      {/* Chat popup */}
       {open && (
-        <div className="w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden">
+        <div className="w-72 bg-white rounded-2xl shadow-2xl border border-gray-100 flex flex-col" style={{ maxHeight: '420px' }}>
           {/* Header */}
-          <div className="bg-accent px-4 py-3 flex items-center justify-between">
+          <div className="bg-accent px-4 py-3 flex items-center justify-between flex-shrink-0 rounded-t-2xl">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
                 <MessageCircle className="w-4 h-4 text-white" />
@@ -79,48 +132,69 @@ const TelegramChatButton = () => {
                 <p className="text-white/70 text-xs">Savolingizni yozing</p>
               </div>
             </div>
-            <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white">
-              <ChevronDown className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+              {messages.length > 0 && (
+                <button onClick={handleNewChat} className="text-white/70 hover:text-white" title="Yangi suhbat">
+                  <RotateCcw className="w-4 h-4" />
+                </button>
+              )}
+              <button onClick={handleClose} className="text-white/70 hover:text-white">
+                <ChevronDown className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
-          {/* Body */}
-          <div className="p-4">
-            {sent ? (
-              <div className="text-center py-4">
-                <div className="text-3xl mb-2">✅</div>
-                <p className="text-gray-800 font-semibold text-sm">Xabar yuborildi!</p>
-                <p className="text-gray-500 text-xs mt-1">Tez orada javob beramiz.</p>
-              </div>
+          {/* Messages thread */}
+          <div className="flex-1 overflow-y-auto p-3 space-y-2" style={{ minHeight: '120px', maxHeight: '230px' }}>
+            {messages.length === 0 ? (
+              <p className="text-gray-400 text-xs text-center py-6">
+                Savolingizni yozing — tez orada javob beramiz
+              </p>
             ) : (
-              <>
-                <textarea
-                  ref={textareaRef}
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Savolingizni yozing..."
-                  rows={3}
-                  className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-accent"
-                />
-                {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
-                <button
-                  onClick={handleSend}
-                  disabled={!message.trim() || sending}
-                  className="mt-2 w-full bg-accent text-white py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 hover:bg-red-700 transition-colors"
-                >
-                  <Send className="w-4 h-4" />
-                  {sending ? 'Yuborilmoqda...' : 'Yuborish'}
-                </button>
-              </>
+              messages.map((msg, i) => (
+                <div key={i} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                  <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm break-words ${
+                    msg.sender === 'user'
+                      ? 'bg-accent text-white rounded-br-sm'
+                      : 'bg-gray-100 text-gray-800 rounded-bl-sm'
+                  }`}>
+                    {msg.message}
+                  </div>
+                </div>
+              ))
             )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input */}
+          <div className="p-3 border-t border-gray-100 flex-shrink-0">
+            {error && <p className="text-red-500 text-xs mb-1">{error}</p>}
+            <div className="flex gap-2">
+              <textarea
+                ref={textareaRef}
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Xabar yozing..."
+                rows={1}
+                className="flex-1 text-sm border border-gray-200 rounded-lg px-3 py-2 resize-none focus:outline-none focus:border-accent"
+                style={{ maxHeight: '72px', overflowY: 'auto' }}
+              />
+              <button
+                onClick={handleSend}
+                disabled={!message.trim() || sending}
+                className="w-9 h-9 bg-accent text-white rounded-lg flex items-center justify-center disabled:opacity-50 hover:bg-red-700 transition-colors flex-shrink-0 self-end"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Toggle button */}
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => (open ? handleClose() : setOpen(true))}
         className="w-12 h-12 bg-accent text-white rounded-full shadow-lg flex items-center justify-center hover:bg-red-700 transition-colors"
         aria-label="Xabar yozing"
       >
