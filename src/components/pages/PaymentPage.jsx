@@ -90,7 +90,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       await addOrder(order);
 
       // Build return URL using pathname routing
-      const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.ailem.uz';
       const returnUrl = `${appUrl}/payment/status?order=${orderId}&method=payme`;
 
       const paymentUrl = generatePaymeLink({
@@ -170,7 +170,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
 
       await addOrder(order);
 
-      const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.ailem.uz';
       const returnUrl = `${appUrl}/payment/status?order=${orderId}&method=click`;
 
       const paymentUrl = generateClickLink({

@@ -10,8 +10,8 @@ vi.mock('../utils/helpers', () => ({
 describe('Payme Payment Service', () => {
   beforeEach(() => {
     // Set up environment
-    import.meta.env.VITE_PAYME_MERCHANT_ID = 'test-merchant-123';
-    import.meta.env.VITE_PAYME_TEST_MODE = 'true';
+    process.env.NEXT_PUBLIC_PAYME_MERCHANT_ID = 'test-merchant-123';
+    process.env.NEXT_PUBLIC_PAYME_TEST_MODE = 'true';
   });
 
   describe('generatePaymeLink', () => {
@@ -97,7 +97,7 @@ describe('Payme Payment Service', () => {
     });
 
     it('should throw error if merchant ID is missing', () => {
-      import.meta.env.VITE_PAYME_MERCHANT_ID = '';
+      process.env.NEXT_PUBLIC_PAYME_MERCHANT_ID = '';
       
       expect(() => {
         generatePaymeLink({
@@ -108,7 +108,7 @@ describe('Payme Payment Service', () => {
     });
 
     it('should use production URL when test mode is false', () => {
-      import.meta.env.VITE_PAYME_TEST_MODE = 'false';
+      process.env.NEXT_PUBLIC_PAYME_TEST_MODE = 'false';
       
       const link = generatePaymeLink({
         orderId: 'ORD-123',
@@ -149,10 +149,10 @@ describe('Payme Payment Service', () => {
 describe('Click Payment Service', () => {
   beforeEach(() => {
     // Set up environment
-    import.meta.env.VITE_CLICK_MERCHANT_ID = 'click-merchant-456';
-    import.meta.env.VITE_CLICK_SERVICE_ID = 'click-service-789';
-    import.meta.env.VITE_CLICK_TEST_MODE = 'true';
-    import.meta.env.VITE_APP_URL = 'https://www.ailem.uz';
+    process.env.NEXT_PUBLIC_CLICK_MERCHANT_ID = 'click-merchant-456';
+    process.env.NEXT_PUBLIC_CLICK_SERVICE_ID = 'click-service-789';
+    process.env.NEXT_PUBLIC_CLICK_TEST_MODE = 'true';
+    process.env.NEXT_PUBLIC_APP_URL = 'https://www.ailem.uz';
   });
 
   describe('generateClickLink', () => {
@@ -198,7 +198,7 @@ describe('Click Payment Service', () => {
     });
 
     it('should throw error if credentials missing', () => {
-      import.meta.env.VITE_CLICK_MERCHANT_ID = '';
+      process.env.NEXT_PUBLIC_CLICK_MERCHANT_ID = '';
       
       expect(() => {
         generateClickLink({
@@ -223,7 +223,7 @@ describe('Click Payment Service', () => {
         amount: 50000
       });
 
-      import.meta.env.VITE_CLICK_TEST_MODE = 'false';
+      process.env.NEXT_PUBLIC_CLICK_TEST_MODE = 'false';
       
       const prodLink = generateClickLink({
         orderId: 'ORD-123',

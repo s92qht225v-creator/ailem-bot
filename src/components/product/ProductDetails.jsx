@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext, useRef } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, Share2, Bell, BellOff } from 'lucide-react';
+import { Star, Minus, Plus, ShoppingCart, ChevronLeft, ChevronRight, Share2, Bell, BellOff, Truck, Shield, RotateCcw } from 'lucide-react';
 import { formatPrice } from '../../utils/helpers';
 import { getVariantStock, getVariantPrice, getAvailableColors, getAvailableSizesForColor, getTotalVariantStock, findVariant, getVariantPriceRange, hasVariantPricing } from '../../utils/variants';
 import { UserContext } from '../../context/UserContext';
@@ -8,7 +8,7 @@ import { stockNotificationsAPI } from '../../services/api';
 import DOMPurify from 'dompurify';
 import APlusContent from './APlusContent';
 
-const ProductDetails = ({ product, onAddToCart }) => {
+const ProductDetails = ({ product, onAddToCart, onNavigate }) => {
   const { user } = useContext(UserContext);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [selectedColor, setSelectedColor] = useState(null);
@@ -352,7 +352,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
   };
 
   const handleShare = () => {
-    const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.ailem.uz';
     const shareUrl = user?.referralCode
       ? `${appUrl}/product/${product.id}?ref=${user.referralCode}`
       : `${appUrl}/product/${product.id}`;
@@ -387,6 +387,33 @@ const ProductDetails = ({ product, onAddToCart }) => {
   const averageRating = calculateAverageRating();
 
   return (
+    <>
+    {/* Breadcrumbs */}
+    {onNavigate && (
+      <nav className="px-4 py-3 text-sm text-gray-500 bg-white border-b border-gray-100" aria-label="Breadcrumb">
+        <ol className="flex items-center gap-1 flex-wrap">
+          <li>
+            <button onClick={() => onNavigate('home')} className="hover:text-accent transition-colors">
+              {t('nav.home')}
+            </button>
+          </li>
+          <li className="text-gray-300">/</li>
+          {product.category && (
+            <>
+              <li>
+                <button onClick={() => onNavigate('shop', { category: product.category })} className="hover:text-accent transition-colors">
+                  {product.category}
+                </button>
+              </li>
+              <li className="text-gray-300">/</li>
+            </>
+          )}
+          <li className="text-gray-800 font-medium truncate max-w-[200px]">
+            {product.name}
+          </li>
+        </ol>
+      </nav>
+    )}
     <div className="bg-white lg:flex lg:items-start">
       {/* Image Gallery */}
       <div className="bg-gray-50 pt-8 lg:w-1/2 lg:sticky lg:top-16">
@@ -676,7 +703,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
             <button
               onClick={() => handleQuantityChange(-1)}
               disabled={quantity <= 1}
-              className="w-10 h-10 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-11 h-11 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Minus className="w-4 h-4" />
             </button>
@@ -684,7 +711,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
             <button
               onClick={() => handleQuantityChange(1)}
               disabled={quantity >= currentStock}
-              className="w-10 h-10 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-11 h-11 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -739,10 +766,28 @@ const ProductDetails = ({ product, onAddToCart }) => {
           </button>
         )}
 
+        {/* Trust Badges */}
+        <div className="flex items-center justify-around py-3 mb-3 bg-gray-50 rounded-lg">
+          <div className="flex flex-col items-center gap-1 text-center">
+            <Truck className="w-5 h-5 text-accent" />
+            <span className="text-xs text-gray-600 font-medium">{t('product.fastDelivery') || 'Tez yetkazish'}</span>
+          </div>
+          <div className="w-px h-8 bg-gray-200" />
+          <div className="flex flex-col items-center gap-1 text-center">
+            <Shield className="w-5 h-5 text-accent" />
+            <span className="text-xs text-gray-600 font-medium">{t('product.guaranteed') || 'Kafolatli'}</span>
+          </div>
+          <div className="w-px h-8 bg-gray-200" />
+          <div className="flex flex-col items-center gap-1 text-center">
+            <RotateCcw className="w-5 h-5 text-accent" />
+            <span className="text-xs text-gray-600 font-medium">{t('product.returnable') || 'Qaytarish mumkin'}</span>
+          </div>
+        </div>
+
         {/* Share Button */}
         <button
           onClick={handleShare}
-          className="w-full bg-white border-2 border-purple-500 text-purple-600 py-3 rounded-lg font-medium hover:bg-purple-50 transition-all flex items-center justify-center gap-2"
+          className="w-full bg-white border-2 border-accent text-accent py-3 rounded-lg font-medium hover:bg-red-50 transition-all flex items-center justify-center gap-2"
         >
           <Share2 className="w-5 h-5" />
           Ulashing va bonus oling 🎁
@@ -755,6 +800,7 @@ const ProductDetails = ({ product, onAddToCart }) => {
       </div>
 
     </div>
+    </>
   );
 };
 

@@ -12,13 +12,13 @@ import { loadFromLocalStorage } from '../utils/helpers';
 // Get Click credentials from environment or localStorage
 const getClickConfig = () => {
   // Use production URL for Telegram Mini App
-  const appUrl = import.meta.env.VITE_APP_URL || 'https://www.ailem.uz';
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.ailem.uz';
   
   return {
-    merchantId: import.meta.env.VITE_CLICK_MERCHANT_ID || loadFromLocalStorage('clickMerchantId'),
-    serviceId: import.meta.env.VITE_CLICK_SERVICE_ID || loadFromLocalStorage('clickServiceId'),
-    secretKey: import.meta.env.VITE_CLICK_SECRET_KEY || loadFromLocalStorage('clickSecretKey'),
-    testMode: import.meta.env.VITE_CLICK_TEST_MODE !== 'false', // Default to test mode
+    merchantId: process.env.NEXT_PUBLIC_CLICK_MERCHANT_ID || loadFromLocalStorage('clickMerchantId'),
+    serviceId: process.env.NEXT_PUBLIC_CLICK_SERVICE_ID || loadFromLocalStorage('clickServiceId'),
+    secretKey: process.env.NEXT_PUBLIC_CLICK_SECRET_KEY || loadFromLocalStorage('clickSecretKey'),
+    testMode: process.env.NEXT_PUBLIC_CLICK_TEST_MODE !== 'false', // Default to test mode
     returnUrl: appUrl,
   };
 };
