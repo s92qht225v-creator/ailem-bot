@@ -32,7 +32,7 @@ const optimizeImageUrl = (url, options = {}) => {
   
   // If it's a Supabase URL and we're using Cloudflare proxy
   // Note: This requires your domain to be on Cloudflare
-  const useCloudflareProxy = import.meta.env.VITE_USE_CLOUDFLARE_IMAGES === 'true';
+  const useCloudflareProxy = process.env.NEXT_PUBLIC_USE_CLOUDFLARE_IMAGES === 'true';
   
   if (useCloudflareProxy && url.includes('supabase.co')) {
     // Cloudflare Image Resizing

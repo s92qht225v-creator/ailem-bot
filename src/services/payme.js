@@ -15,10 +15,10 @@ import { loadFromLocalStorage } from '../utils/helpers';
 // Get Payme credentials from environment or localStorage
 const getPaymeConfig = () => {
   return {
-    merchantId: import.meta.env.VITE_PAYME_MERCHANT_ID || loadFromLocalStorage('paymeMerchantId'),
-    apiKey: import.meta.env.VITE_PAYME_API_KEY || loadFromLocalStorage('paymeApiKey'),
-    testMode: import.meta.env.VITE_PAYME_TEST_MODE !== 'false', // Default to test mode
-    returnUrl: import.meta.env.VITE_APP_URL || window.location.origin,
+    merchantId: process.env.NEXT_PUBLIC_PAYME_MERCHANT_ID || loadFromLocalStorage('paymeMerchantId'),
+    apiKey: process.env.NEXT_PUBLIC_PAYME_API_KEY || loadFromLocalStorage('paymeApiKey'),
+    testMode: process.env.NEXT_PUBLIC_PAYME_TEST_MODE !== 'false', // Default to test mode
+    returnUrl: process.env.NEXT_PUBLIC_APP_URL || window.location.origin,
   };
 };
 

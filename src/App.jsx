@@ -3,6 +3,9 @@ import { UserContext } from './context/UserContext';
 import { AdminContext } from './context/AdminContext';
 import BottomNav from './components/layout/BottomNav';
 import Header from './components/layout/Header';
+import CategoryNavBar from './components/layout/CategoryNavBar';
+import Footer from './components/layout/Footer';
+import TelegramChatButton from './components/common/TelegramChatButton';
 
 // Critical pages - load immediately
 import HomePage from './components/pages/HomePage';
@@ -366,7 +369,10 @@ function App() {
     <div className="min-h-screen bg-gray-50">
       {/* Global Header — hidden on admin and login pages */}
       {!hideGlobalHeader && (
-        <Header onNavigate={navigate} currentPage={currentPage} />
+        <>
+          <Header onNavigate={navigate} currentPage={currentPage} />
+          <CategoryNavBar onNavigate={navigate} currentCategory={pageData.category} />
+        </>
       )}
 
       {/* Main Content */}
@@ -439,10 +445,18 @@ function App() {
         </Suspense>
       </main>
 
+      {/* Footer — desktop only */}
+      {!hideGlobalHeader && (
+        <Footer onNavigate={navigate} />
+      )}
+
       {/* Bottom Navigation */}
       {!hideBottomNav && (
         <BottomNav currentPage={currentPage} onNavigate={navigate} />
       )}
+
+      {/* Telegram Chat Button */}
+      {!hideGlobalHeader && <TelegramChatButton />}
     </div>
   );
 }

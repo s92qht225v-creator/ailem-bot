@@ -12,7 +12,7 @@ const getBotToken = () => {
   if (storedToken) return storedToken;
 
   // Fallback to environment variable (if using build-time config)
-  return import.meta.env.VITE_TELEGRAM_BOT_TOKEN || null;
+  return process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN || null;
 };
 
 // Get admin chat ID (where to send admin notifications)
@@ -22,7 +22,7 @@ const getAdminChatId = () => {
   if (storedChatId) return storedChatId;
 
   // Fallback to environment variable
-  return import.meta.env.VITE_ADMIN_CHAT_ID || null;
+  return process.env.NEXT_PUBLIC_ADMIN_CHAT_ID || null;
 };
 
 /**

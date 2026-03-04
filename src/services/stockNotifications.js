@@ -3,7 +3,7 @@
 
 import { stockNotificationsAPI } from './api';
 
-const TELEGRAM_BOT_TOKEN = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
+const TELEGRAM_BOT_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN;
 
 /**
  * Send Telegram message to a user

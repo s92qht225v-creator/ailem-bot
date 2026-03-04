@@ -1,9 +1,9 @@
 // Admin API client - calls backend API with service role key
-const API_BASE_URL = import.meta.env.PROD
+const API_BASE_URL = process.env.NODE_ENV === 'production'
   ? '' // Same domain in production (Vercel)
   : 'http://localhost:3000'; // Local development
 
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'your-secure-admin-password-123';
+const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'your-secure-admin-password-123';
 
 async function apiCall(endpoint, options = {}) {
   const url = `${API_BASE_URL}/api${endpoint}`;

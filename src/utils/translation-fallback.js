@@ -155,6 +155,22 @@ export const t = (key, params = {}) => {
     'home.bestSellers': 'Ko\'p sotilganlar',
     'home.viewAll': 'Barchasini ko\'rish',
     'home.shopNow': 'Xarid qilish',
+    'home.fastDelivery': 'Tez yetkazish',
+    'home.guarantee': 'Kafolat',
+    'home.securePayment': 'Xavfsiz to\'lov',
+    // Product trust badges
+    'product.fastDelivery': 'Tez yetkazish',
+    'product.guaranteed': 'Kafolatli',
+    'product.returnable': 'Qaytarish mumkin',
+    // Footer
+    'footer.about': 'Uy-ro\'zg\'or uchun sifatli to\'qimachilik mahsulotlari. O\'zbekistonning ishonchli onlayn do\'koni.',
+    'footer.navigation': 'Navigatsiya',
+    'footer.contact': 'Aloqa',
+    'footer.paymentMethods': 'To\'lov usullari',
+    'footer.allRightsReserved': 'Barcha huquqlar himoyalangan.',
+    // Navigation additional
+    'nav.favorites': 'Saralangan',
+    'nav.orders': 'Buyurtmalar',
     // Payment
     'payment.checkingStatus': 'Status tekshirilmoqda',
     'payment.pleaseWait': 'Iltimos, kuting...',

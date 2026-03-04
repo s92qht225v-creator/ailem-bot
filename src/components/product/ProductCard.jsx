@@ -1,10 +1,10 @@
-import { Star, Heart } from 'lucide-react';
+import { Star, Heart, ShoppingCart } from 'lucide-react';
 import { t } from "../../utils/translation-fallback";
-import { formatPrice, calculateDiscountPercentage } from '../../utils/helpers';
+import { formatPrice, calculateDiscountPercentage, getColorHex } from '../../utils/helpers';
 import { getTotalVariantStock } from '../../utils/variants';
 import { memo, useRef, useState, useEffect } from 'react';
 
-const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => {
+const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQuickAddToCart }) => {
   const discount = calculateDiscountPercentage(product.originalPrice, product.price);
 
   // Calculate actual approved reviews count
@@ -83,36 +83,53 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
           <span className="absolute top-2 left-2 bg-accent text-white text-xs font-semibold px-2 py-1 rounded">
             {(() => {
               const translated = t(`badges.${product.badge}`);
-              // If translation returns the key itself, show the original badge
               return translated.startsWith('badges.') ? product.badge : translated;
             })()}
           </span>
         )}
         {discount > 0 && !isOutOfStock && (
-          <span className="absolute top-2 right-2 bg-error text-white text-xs font-semibold px-2 py-1 rounded">
+          <span className="absolute top-10 right-2 bg-error text-white text-xs font-semibold px-2 py-1 rounded">
             -{discount}%
           </span>
         )}
-      </div>
-
-      <div className="p-3 flex flex-col relative">
+        {/* Favorites Heart — top-right of image */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onToggleFavorite(product.id);
           }}
-          className="absolute -top-6 right-2 bg-white p-2 rounded-full shadow-md hover:scale-110 transition-transform"
+          className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:scale-110 transition-transform"
           aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
         >
           <Heart
             className={`w-5 h-5 ${isFavorite ? 'fill-error text-error' : 'text-gray-400'}`}
           />
         </button>
+      </div>
+
+      <div className="p-3 flex flex-col">
         <h3 className="font-semibold text-gray-800 mb-1 line-clamp-2 h-12">
           {product.name}
         </h3>
 
-        <div className="h-6 mb-2">
+        {/* Color Swatches */}
+        {product.colors && product.colors.length > 0 && (
+          <div className="flex gap-1 mb-1 flex-wrap">
+            {product.colors.slice(0, 5).map((color, idx) => (
+              <span
+                key={idx}
+                className="w-3.5 h-3.5 rounded-full border border-gray-300"
+                style={{ backgroundColor: getColorHex(color) }}
+                title={color}
+              />
+            ))}
+            {product.colors.length > 5 && (
+              <span className="text-xs text-gray-400">+{product.colors.length - 5}</span>
+            )}
+          </div>
+        )}
+
+        <div className="h-6 mb-1">
           {approvedReviewsCount > 0 && (
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 fill-warning text-warning" />
@@ -132,6 +149,20 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite }) => 
             </span>
           )}
         </div>
+
+        {/* Quick Add to Cart */}
+        {onQuickAddToCart && !isOutOfStock && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onQuickAddToCart(product);
+            }}
+            className="w-full mt-2 flex items-center justify-center gap-1.5 bg-accent text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors"
+          >
+            <ShoppingCart className="w-4 h-4" />
+            <span>{t('product.addToCart')}</span>
+          </button>
+        )}
       </div>
     </div>
   );

@@ -1,8 +1,12 @@
-import { useContext, useMemo } from 'react';
+import { useContext, useMemo, useCallback } from 'react';
 import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { t } from "../../utils/translation-fallback";
 import { useCart } from '../../hooks/useCart';
+import { useProducts } from '../../hooks/useProducts';
 import { formatPrice } from '../../utils/helpers';
+import ProductCard from '../product/ProductCard';
+import { UserContext } from '../../context/UserContext';
+import { CartContext } from '../../context/CartContext';
 import {
   getEffectivePriceWithTierGrouping,
   calculateItemTotalWithTierGrouping,
@@ -14,6 +18,20 @@ import { AdminContext } from '../../context/AdminContext';
 const CartPage = ({ onNavigate }) => {
   const { cartItems, updateQuantity, removeFromCart, getCartTotal } = useCart();
   const { products } = useContext(AdminContext);
+  const { toggleFavorite, isFavorite } = useContext(UserContext);
+  const { addToCart } = useContext(CartContext);
+  const { featuredProducts } = useProducts();
+
+  const handleQuickAddToCart = useCallback((product) => {
+    const hasVariants = (product.variants && product.variants.length > 0) ||
+                       (product.colors && product.colors.length > 0) ||
+                       (product.sizes && product.sizes.length > 0);
+    if (hasVariants) {
+      onNavigate('product', { productId: product.id });
+    } else {
+      addToCart(product, 1, null, null);
+    }
+  }, [onNavigate, addToCart]);
 
   // Filter out hidden products and resolve live volume_pricing from product data
   // Cart stores snapshots — volume_pricing may be stale if admin changed it
@@ -43,18 +61,39 @@ const CartPage = ({ onNavigate }) => {
 
   if (visibleCartItems.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen pb-20 px-4">
-        <ShoppingBag className="w-24 h-24 text-gray-300 mb-4" />
-        <h2 className="text-2xl font-bold text-gray-700 mb-2">{t('cart.empty')}</h2>
-        <p className="text-gray-500 mb-6 text-center">
-          {t('cart.continueShopping')}
-        </p>
-        <button
-          onClick={() => onNavigate('shop')}
-          className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
-        >
-          {t('home.shopNow')}
-        </button>
+      <div className="pb-20 lg:pb-8">
+        <div className="flex flex-col items-center justify-center py-16 px-4">
+          <ShoppingBag className="w-24 h-24 text-gray-300 mb-4" />
+          <h2 className="text-2xl font-bold text-gray-700 mb-2">{t('cart.empty')}</h2>
+          <p className="text-gray-500 mb-6 text-center">
+            {t('cart.continueShopping')}
+          </p>
+          <button
+            onClick={() => onNavigate('shop')}
+            className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+          >
+            {t('home.shopNow')}
+          </button>
+        </div>
+
+        {/* Best Sellers */}
+        {featuredProducts.length > 0 && (
+          <div className="px-4 pb-6">
+            <h3 className="text-xl font-bold mb-4">{t('home.bestSellers')}</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {featuredProducts.slice(0, 4).map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onView={(id) => onNavigate('product', { productId: id })}
+                  isFavorite={isFavorite(product.id)}
+                  onToggleFavorite={toggleFavorite}
+                  onQuickAddToCart={handleQuickAddToCart}
+                />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -113,7 +152,7 @@ const CartPage = ({ onNavigate }) => {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
-                    className="w-8 h-8 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-11 h-11 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={item.quantity <= 1}
                   >
                     <Minus className="w-4 h-4" />
@@ -123,7 +162,7 @@ const CartPage = ({ onNavigate }) => {
                   </span>
                   <button
                     onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                    className="w-8 h-8 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-11 h-11 rounded-lg border-2 border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={(() => {
                       // Calculate current available stock for THIS specific variant
                       const hasVariants = item.variants && item.variants.length > 0;

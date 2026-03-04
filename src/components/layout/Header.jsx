@@ -1,14 +1,22 @@
-import { useContext } from 'react';
-import { ShoppingCart, LogIn, Search } from 'lucide-react';
+import { useContext, useMemo } from 'react';
+import { ShoppingCart, LogIn, Search, Heart } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useCart } from '../../hooks/useCart';
+import { useProducts } from '../../hooks/useProducts';
 
 const Header = ({ onNavigate, currentPage }) => {
-  const { user } = useContext(UserContext);
+  const { user, favorites } = useContext(UserContext);
   const { cartItems } = useCart();
+  const { allProducts } = useProducts();
 
   const cartCount = cartItems.reduce((c, i) => c + i.quantity, 0);
   const isGuest = user?.isGuest;
+
+  // Count only favorites that match existing visible products
+  const favoritesCount = useMemo(() => {
+    if (!allProducts || !favorites) return 0;
+    return favorites.filter(fav => allProducts.some(p => p.id === fav)).length;
+  }, [allProducts, favorites]);
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -44,12 +52,28 @@ const Header = ({ onNavigate, currentPage }) => {
               <Search className="w-6 h-6" />
             </a>
 
+            {/* Favorites */}
+            <a
+              href="/favorites"
+              onClick={(e) => { e.preventDefault(); onNavigate('favorites'); }}
+              className={`relative p-2 rounded-lg transition-colors ${
+                currentPage === 'favorites' ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Heart className="w-6 h-6" />
+              {favoritesCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-accent text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                  {favoritesCount > 9 ? '9+' : favoritesCount}
+                </span>
+              )}
+            </a>
+
             {/* Cart */}
             <a
               href="/cart"
               onClick={(e) => { e.preventDefault(); onNavigate('cart'); }}
               className={`relative p-2 rounded-lg transition-colors ${
-                currentPage === 'cart' ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
+                currentPage === '/cart' ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
               }`}
             >
               <ShoppingCart className="w-6 h-6" />
@@ -75,7 +99,7 @@ const Header = ({ onNavigate, currentPage }) => {
                 href="/account"
                 onClick={(e) => { e.preventDefault(); onNavigate('account'); }}
                 className={`p-2 rounded-lg transition-colors ${
-                  ['account', 'profile'].includes(currentPage) ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
+                  ['/account', '/profile'].includes(currentPage) ? 'text-accent' : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
                 {user?.photoUrl ? (

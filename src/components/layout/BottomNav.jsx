@@ -42,8 +42,8 @@ const BottomNav = ({ currentPage, onNavigate }) => {
             const Icon = item.icon;
             // Account is active when on profile or referrals pages
             const isActive = item.id === 'account'
-              ? (currentPage === 'profile' || currentPage === 'referrals' || currentPage === 'account')
-              : currentPage === item.id;
+              ? (['/profile', '/referrals', '/account'].includes(currentPage))
+              : currentPage === item.href;
 
             return (
               <a

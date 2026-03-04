@@ -228,3 +228,20 @@ export const truncateText = (text, maxLength) => {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
 };
+
+// Map Uzbek color names to hex values for swatch display
+const COLOR_MAP = {
+  'oq': '#FFFFFF', 'qora': '#000000', "ko'k": '#2563EB',
+  'qizil': '#EF4444', 'yashil': '#10B981', 'sariq': '#F59E0B',
+  'pushti': '#EC4899', 'kulrang': '#6B7280', 'jigarrang': '#92400E',
+  'havorang': '#38BDF8', 'binafsha': '#8B5CF6', 'oltin': '#D4A843',
+  'kumush': '#C0C0C0', 'moviy': '#3B82F6', "to'q ko'k": '#1E3A5F',
+  'qo\'ng\'ir': '#A0522D', 'karamel': '#C68E5B', 'beige': '#F5F5DC',
+  'white': '#FFFFFF', 'black': '#000000', 'red': '#EF4444',
+  'blue': '#2563EB', 'green': '#10B981', 'yellow': '#F59E0B',
+  'pink': '#EC4899', 'gray': '#6B7280', 'grey': '#6B7280',
+  'brown': '#92400E', 'purple': '#8B5CF6', 'orange': '#F97316',
+};
+
+export const getColorHex = (colorName) =>
+  COLOR_MAP[colorName?.toLowerCase()?.trim()] || '#D1D5DB';
