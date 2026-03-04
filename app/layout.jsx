@@ -1,4 +1,5 @@
 import { Plus_Jakarta_Sans } from 'next/font/google';
+import Script from 'next/script';
 import Providers from '../src/components/Providers';
 import './globals.css';
 
@@ -30,6 +31,9 @@ export const metadata = {
   icons: {
     icon: '/favicon.svg',
   },
+  verification: {
+    google: 'J9WtvH4lNeukCrZ50c2TwffjQzVuPbEYjEF8OhavFM4',
+  },
 };
 
 export default function RootLayout({ children }) {
@@ -37,6 +41,13 @@ export default function RootLayout({ children }) {
     <html lang="uz" className={plusJakartaSans.variable}>
       <body className={plusJakartaSans.className}>
         <Providers>{children}</Providers>
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-CSM5FK64M7" strategy="afterInteractive" />
+        <Script id="ga4" strategy="afterInteractive">{`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', 'G-CSM5FK64M7');
+        `}</Script>
       </body>
     </html>
   );
