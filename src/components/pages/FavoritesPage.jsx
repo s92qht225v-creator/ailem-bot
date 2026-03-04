@@ -85,7 +85,8 @@ const FavoritesPage = ({ onNavigate }) => {
                       backgroundImage: `url(${product.image})`,
                       WebkitTouchCallout: 'none',
                       WebkitUserSelect: 'none',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      touchAction: 'pan-y',
                     }}
                     role="img"
                     aria-label={product.name}

@@ -65,7 +65,8 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQui
             backgroundImage: isVisible ? `url(${product.image})` : 'none',
             WebkitTouchCallout: 'none',
             WebkitUserSelect: 'none',
-            userSelect: 'none'
+            userSelect: 'none',
+            touchAction: 'pan-y',
           }}
           role="img"
           aria-label={product.name}
