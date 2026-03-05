@@ -25,7 +25,7 @@ export const metadata = {
       "Toshkentdagi eng yaxshi choyshab, yostiq va pardalar do'koni. Tez yetkazib berish, qulay narxlar.",
     url: 'https://www.ailem.uz',
     type: 'website',
-    images: [{ url: 'https://www.ailem.uz/logo.svg', width: 512, height: 512, alt: 'Ailem' }],
+    images: [{ url: 'https://www.ailem.uz/site.png', width: 1200, height: 900, alt: "Ailem — Uy tekstillari do'koni" }],
   },
   robots: 'index, follow',
   icons: {
