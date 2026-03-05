@@ -28,6 +28,10 @@ export const metadata = {
     images: [{ url: 'https://www.ailem.uz/logo.svg', width: 512, height: 512, alt: 'Ailem' }],
   },
   robots: 'index, follow',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/apple-touch-icon.png',
+  },
   verification: {
     google: 'J9WtvH4lNeukCrZ50c2TwffjQzVuPbEYjEF8OhavFM4',
   },
