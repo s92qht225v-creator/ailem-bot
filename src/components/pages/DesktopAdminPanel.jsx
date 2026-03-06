@@ -498,8 +498,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
           // Award purchase bonus points to the customer
           if (order.userId) {
             try {
-              const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 3, referralCommission: 10 });
-              const purchaseBonusPercentage = bonusConfig?.purchaseBonus || 3;
+              const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 1, referralCommission: 3 });
+              const purchaseBonusPercentage = bonusConfig?.purchaseBonus || 1;
               const bonusBase = order.subtotal || order.total; // Use subtotal (excludes shipping)
               const purchaseBonusPoints = Math.round((bonusBase * purchaseBonusPercentage) / 100);
 
@@ -521,7 +521,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   console.log('✅ Found referrer:', referrer.name);
 
                   // Calculate referral commission
-                  const commissionPercentage = bonusConfig?.referralCommission || 10;
+                  const commissionPercentage = bonusConfig?.referralCommission || 3;
                   const commissionAmount = Math.round((bonusBase * commissionPercentage) / 100);
 
                   // Reward the referrer
@@ -579,8 +579,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
           await rejectOrder(orderId, async (rejectedOrder) => {
             if (wasApproved && rejectedOrder.userId) {
               try {
-                const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 3 });
-                const bonusPercentage = bonusConfig?.purchaseBonus || 3;
+                const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 1 });
+                const bonusPercentage = bonusConfig?.purchaseBonus || 1;
                 const refundBase = order.subtotal || order.total;
                 const earnedPoints = Math.round((refundBase * bonusPercentage) / 100);
 
@@ -1084,26 +1084,6 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   </div>
                 )}
 
-                {/* Payment Information */}
-                {selectedOrder.paymentScreenshot && (
-                  <div>
-                    <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                      <Image className="w-5 h-5 text-primary" />
-                      Payment Screenshot
-                    </h4>
-                    <div
-                      onClick={() => setSelectedImage(selectedOrder.paymentScreenshot)}
-                      className="block cursor-pointer"
-                    >
-                      <img
-                        src={selectedOrder.paymentScreenshot}
-                        alt="Payment screenshot"
-                        className="w-full max-h-64 object-contain rounded-lg border-2 border-gray-200 hover:border-primary transition-colors"
-                      />
-                      <p className="text-xs text-center text-gray-500 mt-2">Click to view full size</p>
-                    </div>
-                  </div>
-                )}
 
                 {/* Order Items */}
                 <div>
@@ -3559,8 +3539,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
   function BonusSettingsContent() {
     const [bonusConfig, setBonusConfig] = useState({
-      referralCommission: 10,
-      purchaseBonus: 10,
+      referralCommission: 3,
+      purchaseBonus: 1,
       currency: 'UZS'
     });
     const [loading, setLoading] = useState(true);
