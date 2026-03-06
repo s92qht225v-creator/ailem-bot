@@ -76,6 +76,11 @@ const OrdersSection = ({ onImageClick }) => {
             const purchaseBonusPercentage = bonusConfig?.purchaseBonus || 3;
             const purchaseBonusPoints = Math.round((order.total * purchaseBonusPercentage) / 100);
 
+            // Deduct bonus points that were used in this order
+            if (order.bonusPointsUsed > 0) {
+              await updateUserBonusPoints(order.userId, -order.bonusPointsUsed);
+            }
+
             await updateUserBonusPoints(order.userId, purchaseBonusPoints);
 
             const customer = await usersAPI.getById(order.userId);
