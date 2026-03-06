@@ -6,7 +6,7 @@ import { loadFromLocalStorage } from '../../../src/utils/helpers';
 
 export default function PaymentRoute() {
   const onNavigate = useAppNavigate();
-  // checkoutData is stored in localStorage before navigating here
-  const checkoutData = loadFromLocalStorage('checkoutData');
+  const pageData = loadFromLocalStorage('pageData');
+  const checkoutData = pageData?.checkoutData || loadFromLocalStorage('checkoutData');
   return <PaymentPage checkoutData={checkoutData} onNavigate={onNavigate} />;
 }
