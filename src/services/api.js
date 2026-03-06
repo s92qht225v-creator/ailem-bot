@@ -776,7 +776,6 @@ export const ordersAPI = {
       bonusDiscount: order.bonus_discount,
       bonusPointsUsed: order.bonus_points_used,
       deliveryFee: order.delivery_fee,
-      paymentScreenshot: order.payment_screenshot,
       paymeOrderId: order.payme_order_id,
       clickOrderId: order.click_order_id,
       // Cash/POS payment fields
@@ -893,7 +892,6 @@ export const ordersAPI = {
       bonus_points_used: order.bonusPointsUsed || 0,
       delivery_fee: order.deliveryFee,
       total: order.total,
-      payment_screenshot: order.paymentScreenshot || null,
       payme_order_id: order.paymeOrderId || null,
       click_order_id: order.clickOrderId || null, // Click order ID
       status: order.status || 'pending',

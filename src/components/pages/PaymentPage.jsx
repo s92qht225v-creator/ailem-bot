@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from 'react';
 import { t } from "../../utils/translation-fallback";
-import { CheckCircle, CreditCard, ArrowLeft, Loader } from 'lucide-react';
+import { CreditCard, ArrowLeft, Loader } from 'lucide-react';
 import { formatPrice, generateOrderNumber, saveToLocalStorage, loadFromLocalStorage, removeFromLocalStorage } from '../../utils/helpers';
 import { useCart } from '../../hooks/useCart';
 import { UserContext } from '../../context/UserContext';
@@ -32,7 +32,6 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
     }
   }, [cartItems.length, onNavigate]);
 
-  const [paymentMethod, setPaymentMethod] = useState('telegram'); // 'telegram' or 'click'
   const [processingPayment, setProcessingPayment] = useState(false);
 
   // Handler for Payme payment
@@ -195,17 +194,6 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
     }
   };
 
-  const getButtonText = () => {
-    if (paymentMethod === 'telegram') return t('payment.payWithPayme');
-    if (paymentMethod === 'click') return t('payment.payWithClick');
-    return 'Continue';
-  };
-
-  const getButtonHandler = () => {
-    if (paymentMethod === 'telegram') return handlePaymePayment;
-    if (paymentMethod === 'click') return handleClickPayment;
-    return () => {};
-  };
 
   if (!checkoutData) {
     return (
@@ -243,67 +231,24 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
           <p className="text-4xl font-bold">{formatPrice(checkoutData.total)}</p>
         </div>
 
-        {/* Payment Method Selection */}
+        {/* Payme Payment Info */}
         <div className="bg-white rounded-lg shadow-md p-4">
-          <h3 className="text-lg font-semibold mb-4">{t('payment.selectMethod')}</h3>
-          <div className="space-y-3">
-            <button
-              onClick={() => setPaymentMethod('telegram')}
-              className={`w-full p-4 border-2 rounded-lg flex items-center gap-3 transition-all ${
-                paymentMethod === 'telegram'
-                  ? 'border-accent bg-red-50'
-                  : 'border-gray-300 hover:border-accent'
-              }`}
-            >
-              <CreditCard className="w-6 h-6 text-accent" />
-              <div className="flex-1 text-left">
-                <p className="font-semibold text-gray-900">{t('payment.payme')}</p>
-                <p className="text-sm text-gray-600">{t('payment.paySecurelyPayme')}</p>
-              </div>
-              {paymentMethod === 'telegram' && (
-                <CheckCircle className="w-5 h-5 text-accent" />
-              )}
-            </button>
-            {/* Click temporarily disabled - uncomment when ready
-            <button
-              onClick={() => setPaymentMethod('click')}
-              className={`w-full p-4 border-2 rounded-lg flex items-center gap-3 transition-all ${
-                paymentMethod === 'click'
-                  ? 'border-accent bg-red-50'
-                  : 'border-gray-300 hover:border-accent'
-              }`}
-            >
-              <CreditCard className="w-6 h-6 text-accent" />
-              <div className="flex-1 text-left">
-                <p className="font-semibold text-gray-900">{t('payment.click')}</p>
-                <p className="text-sm text-gray-600">{t('payment.paySecurelyClick')}</p>
-              </div>
-              {paymentMethod === 'click' && (
-                <CheckCircle className="w-5 h-5 text-accent" />
-              )}
-            </button>
-            */}
+          <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <CreditCard className="w-5 h-5 text-accent" />
+            {t('payment.payme')}
+          </h3>
+          <div className="bg-red-50 border-l-4 border-accent p-4 rounded">
+            <p className="text-sm text-gray-700 mb-2">
+              <strong className="text-accent">✅ {t('payment.securePayment')}</strong>
+            </p>
+            <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
+              <li>{t('payment.poweredByPayme')}</li>
+              <li>{t('payment.supportsPayme')}</li>
+              <li>{t('payment.secureGateway')}</li>
+            </ul>
+            <p className="text-sm text-gray-600 mt-3" dangerouslySetInnerHTML={{ __html: t('payment.clickButtonPayme') }} />
           </div>
         </div>
-
-
-        {/* Payme Payment Info */}
-        {paymentMethod === 'telegram' && (
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <h3 className="text-lg font-semibold mb-3">{t('payment.payme')}</h3>
-            <div className="bg-red-50 border-l-4 border-accent p-4 rounded">
-              <p className="text-sm text-gray-700 mb-2">
-                <strong className="text-accent">✅ {t('payment.securePayment')}</strong>
-              </p>
-              <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                <li>{t('payment.poweredByPayme')}</li>
-                <li>{t('payment.supportsPayme')}</li>
-                <li>{t('payment.secureGateway')}</li>
-              </ul>
-              <p className="text-sm text-gray-600 mt-3" dangerouslySetInnerHTML={{ __html: t('payment.clickButtonPayme') }} />
-            </div>
-          </div>
-        )}
 
         {/* Order Summary */}
         <div className="bg-white rounded-lg shadow-md p-4">
@@ -341,7 +286,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-50">
         <div className="max-w-7xl mx-auto">
           <button
-            onClick={getButtonHandler()}
+            onClick={handlePaymePayment}
             disabled={processingPayment}
             className="w-full bg-accent text-white py-4 rounded-lg font-bold text-lg hover:bg-red-700 transition-colors disabled:opacity-50"
           >
@@ -350,7 +295,7 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
                 <Loader className="w-5 h-5 animate-spin" />
                 Yuklanmoqda...
               </span>
-            ) : getButtonText()}
+            ) : t('payment.payWithPayme')}
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useState, useContext, useMemo } from 'react';
 import {
-  X, Users as UsersIcon, Truck, Image, ShoppingBag, DollarSign,
+  X, Users as UsersIcon, Truck, ShoppingBag, DollarSign,
   Download, FileDown, RotateCw, Package, Printer
 } from 'lucide-react';
 import { AdminContext } from '../../../context/AdminContext';
@@ -718,26 +718,6 @@ const OrdersSection = ({ onImageClick }) => {
                 </div>
               )}
 
-              {/* Payment Information */}
-              {selectedOrder.paymentScreenshot && (
-                <div>
-                  <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                    <Image className="w-5 h-5 text-primary" />
-                    Payment Screenshot
-                  </h4>
-                  <div
-                    onClick={() => onImageClick && onImageClick(selectedOrder.paymentScreenshot)}
-                    className="block cursor-pointer"
-                  >
-                    <img
-                      src={selectedOrder.paymentScreenshot}
-                      alt="Payment screenshot"
-                      className="w-full max-h-64 object-contain rounded-lg border-2 border-gray-200 hover:border-primary transition-colors"
-                    />
-                    <p className="text-xs text-center text-gray-500 mt-2">Click to view full size</p>
-                  </div>
-                </div>
-              )}
 
               {/* Order Items */}
               <div>
