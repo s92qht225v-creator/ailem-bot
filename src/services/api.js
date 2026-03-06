@@ -145,7 +145,7 @@ export const productsAPI = {
     // Lightweight: exclude heavy columns not needed for browsing/cart
     // Full: needed for admin panel editing (description, a_plus_content, images)
     const columns = lightweight
-      ? 'id, name, price, original_price, image, stock, category_name, material, colors, sizes, tags, badge, visible, variants, volume_pricing, rating, review_count, barcode, created_at'
+      ? 'id, name, price, original_price, image, stock, weight, category_name, material, colors, sizes, tags, badge, visible, variants, volume_pricing, rating, review_count, barcode, created_at'
       : '*';
 
     const { data: products, error } = await supabase

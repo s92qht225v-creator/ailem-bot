@@ -1,9 +1,8 @@
--- RPC function: get_essential_data
--- Combines products + categories + reviews into a single database call
--- Saves 1 full network round-trip (~1.3s from Uzbekistan to Singapore)
+-- Fix: add weight to get_essential_data RPC lightweight query
+-- Weight was missing, causing admin panel to load products without weight
+-- and then save null weight when editing any product field.
 --
--- Usage: supabase.rpc('get_essential_data', { lightweight: true })
--- Returns: { products: [...], categories: [...], reviews: [...] }
+-- Run this in Supabase SQL Editor.
 
 CREATE OR REPLACE FUNCTION get_essential_data(lightweight boolean DEFAULT true)
 RETURNS jsonb
@@ -11,29 +10,10 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-  result jsonb;
   products_data jsonb;
   categories_data jsonb;
   reviews_data jsonb;
 BEGIN
-  -- Fetch categories (ordered by created_at ascending)
-  SELECT COALESCE(jsonb_agg(row_to_json(c)::jsonb ORDER BY c.created_at ASC), '[]'::jsonb)
-  INTO categories_data
-  FROM categories c;
-
-  -- Fetch reviews with product name and image (ordered by created_at descending)
-  SELECT COALESCE(jsonb_agg(
-    row_to_json(r)::jsonb || jsonb_build_object(
-      'product_name', p.name,
-      'product_image', p.image
-    )
-    ORDER BY r.created_at DESC
-  ), '[]'::jsonb)
-  INTO reviews_data
-  FROM reviews r
-  LEFT JOIN products p ON r.product_id = p.id;
-
-  -- Fetch products (lightweight excludes heavy columns)
   IF lightweight THEN
     SELECT COALESCE(jsonb_agg(
       jsonb_build_object(
@@ -68,13 +48,19 @@ BEGIN
     FROM products p;
   END IF;
 
-  -- Combine into single response
-  result := jsonb_build_object(
+  SELECT COALESCE(jsonb_agg(row_to_json(c)::jsonb ORDER BY c.id), '[]'::jsonb)
+  INTO categories_data
+  FROM categories c;
+
+  SELECT COALESCE(jsonb_agg(row_to_json(r)::jsonb ORDER BY r.created_at DESC), '[]'::jsonb)
+  INTO reviews_data
+  FROM reviews r
+  WHERE r.approved = true;
+
+  RETURN jsonb_build_object(
     'products', products_data,
     'categories', categories_data,
     'reviews', reviews_data
   );
-
-  RETURN result;
 END;
 $$;
