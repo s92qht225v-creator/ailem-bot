@@ -7,7 +7,6 @@ import { UserContext } from '../../context/UserContext';
 import { AdminContext } from '../../context/AdminContext';
 
 import { generatePaymeLink } from '../../services/payme';
-import { generateClickLink } from '../../services/click';
 
 const PaymentPage = ({ checkoutData, onNavigate }) => {
   const { cartItems } = useCart();
@@ -113,81 +112,6 @@ const PaymentPage = ({ checkoutData, onNavigate }) => {
       window.location.href = paymentUrl;
     } catch (error) {
       console.error('Payment failed:', error);
-      alert(`Failed to create order: ${error.message || 'Please try again.'}`);
-    } finally {
-      setProcessingPayment(false);
-    }
-  };
-
-  // Handler for Click payment
-  const handleClickPayment = async () => {
-    try {
-      setProcessingPayment(true);
-
-      const orderId = generateOrderNumber();
-      const clickOrderId = `${Date.now()}`;
-
-      const order = {
-        id: orderId,
-        clickOrderId: clickOrderId,
-        userId: user.id,
-        userTelegramId: user.telegramId || user.id,
-        userName: user.name,
-        userPhone: user.phone || checkoutData.phone,
-        items: cartItems.map(item => ({
-          productId: item.id,
-          productName: item.name,
-          price: item.price,
-          basePrice: item.basePrice || item.price,
-          variantPrice: item.variantPrice || null,
-          quantity: item.quantity,
-          color: item.selectedColor,
-          size: item.selectedSize,
-          image: item.image
-        })),
-        deliveryInfo: {
-          fullName: checkoutData.fullName,
-          phone: checkoutData.phone,
-          address: checkoutData.address,
-          city: checkoutData.city
-        },
-        courier: {
-          name: checkoutData.courier || 'N/A',
-          duration: checkoutData.type === 'home_delivery' ? 'Home Delivery' : 'Pickup'
-        },
-        subtotal: checkoutData.subtotal,
-        bonusDiscount: checkoutData.bonusDiscount,
-        bonusPointsUsed: checkoutData.bonusPointsUsed,
-        deliveryFee: checkoutData.deliveryFee,
-        total: checkoutData.total,
-        shippingPaymentType: checkoutData.shippingPaymentType || 'prepaid',
-        paymentMethod: 'click',
-        status: 'pending',
-        date: new Date().toISOString().split('T')[0],
-        createdAt: new Date().toISOString()
-      };
-
-      await addOrder(order);
-
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.ailem.uz';
-      const returnUrl = `${appUrl}/payment/status?order=${orderId}&method=click`;
-
-      const paymentUrl = generateClickLink({
-        orderId: clickOrderId,
-        amount: checkoutData.total,
-        description: `Order #${orderId} - ${cartItems.length} items`,
-        returnUrl: returnUrl
-      });
-
-      saveToLocalStorage('pendingPayment', {
-        orderId,
-        paymentMethod: 'click',
-        timestamp: Date.now()
-      });
-
-      window.location.href = paymentUrl;
-    } catch (error) {
-      console.error('Click payment failed:', error);
       alert(`Failed to create order: ${error.message || 'Please try again.'}`);
     } finally {
       setProcessingPayment(false);
