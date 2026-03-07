@@ -77,8 +77,8 @@ const WriteReviewPage = ({ onNavigate, pageData }) => {
       return;
     }
 
-    if (!comment.trim()) {
-      toast.warning('Iltimos, sharh yozing');
+    if (!comment.trim() || comment.trim().length < 10) {
+      toast.warning('Sharh kamida 10 ta belgi bo\'lishi kerak');
       return;
     }
 

@@ -59,6 +59,9 @@ export async function POST(request) {
       message: replyText,
       telegram_message_id: msg.message_id,
     });
+    if (insertError) {
+      console.error('Failed to save admin reply:', insertError);
+    }
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error('Support webhook error:', err);

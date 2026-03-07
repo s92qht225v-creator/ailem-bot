@@ -1418,7 +1418,7 @@ export const settingsAPI = {
           endDate: '2025-12-31T23:59:59',
           enabled: true
         },
-        bonus_config: { purchaseBonus: 10, referralCommission: 10 }
+        bonus_config: { purchaseBonus: 1, referralCommission: 3 }
       };
     }
 
@@ -1426,7 +1426,7 @@ export const settingsAPI = {
       banners: data.banners || (data.sale_banner ? [data.sale_banner] : []),
       sale_banner: data.sale_banner,
       sale_timer: data.sale_timer,
-      bonus_config: data.bonus_config || { purchaseBonus: 10, referralCommission: 10 }
+      bonus_config: data.bonus_config || { purchaseBonus: 1, referralCommission: 3 }
     };
   },
 

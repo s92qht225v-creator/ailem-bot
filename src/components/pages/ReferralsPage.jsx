@@ -7,13 +7,14 @@ import { useToast } from '../../context/ToastContext';
 
 const ReferralsPage = ({ hideHeader = false, onNavigate }) => {
   const { user } = useContext(UserContext);
+  const toast = useToast();
 
   // Get referral commission percentage from config
   const [commissionRate, setCommissionRate] = useState(10);
 
   useEffect(() => {
-    const bonusConfig = loadFromLocalStorage('bonusConfig', { referralCommission: 10 });
-    setCommissionRate((bonusConfig?.referralCommission ?? 10) || 10);
+    const bonusConfig = loadFromLocalStorage('bonusConfig', { referralCommission: 3 });
+    setCommissionRate((bonusConfig?.referralCommission ?? 3) || 3);
   }, []);
 
   // Guest users cannot access referrals

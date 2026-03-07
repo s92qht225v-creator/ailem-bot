@@ -84,8 +84,8 @@ export const formatDate = (dateString) => {
 // Bonus points = percentage of order total (e.g., 10% of 50,000 = 5,000 bonus points)
 export const calculateBonusPoints = (amount) => {
   // Get configured bonus percentage from localStorage
-  const bonusConfig = JSON.parse(safeLocalStorage.getItem('bonusConfig') || '{"purchaseBonus": 10}');
-  const bonusPercentage = bonusConfig.purchaseBonus || 10;
+  const bonusConfig = JSON.parse(safeLocalStorage.getItem('bonusConfig') || '{"purchaseBonus": 1}');
+  const bonusPercentage = bonusConfig.purchaseBonus || 1;
 
   // Calculate bonus as percentage of order total
   // Example: 50,000 UZS order with 10% bonus = 5,000 bonus points

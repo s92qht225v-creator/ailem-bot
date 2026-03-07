@@ -72,9 +72,9 @@ const OrdersSection = ({ onImageClick }) => {
 
         if (order.userId) {
           try {
-            const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 3, referralCommission: 10 });
-            const purchaseBonusPercentage = bonusConfig?.purchaseBonus || 3;
-            const purchaseBonusPoints = Math.round((order.total * purchaseBonusPercentage) / 100);
+            const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 1, referralCommission: 3 });
+            const purchaseBonusPercentage = bonusConfig?.purchaseBonus || 1;
+            const purchaseBonusPoints = Math.round(((order.subtotal || order.total) * purchaseBonusPercentage) / 100);
 
             // Deduct bonus points that were used in this order
             if (order.bonusPointsUsed > 0) {
@@ -87,8 +87,8 @@ const OrdersSection = ({ onImageClick }) => {
             if (customer && customer.referred_by) {
               const referrer = await usersAPI.getByReferralCode(customer.referred_by);
               if (referrer) {
-                const commissionPercentage = bonusConfig?.referralCommission || 10;
-                const commissionAmount = Math.round((order.total * commissionPercentage) / 100);
+                const commissionPercentage = bonusConfig?.referralCommission || 3;
+                const commissionAmount = Math.round(((order.subtotal || order.total) * commissionPercentage) / 100);
                 const newReferrals = (referrer.referrals || 0) + 1;
                 const newBonusPoints = (referrer.bonus_points || 0) + commissionAmount;
 
@@ -128,8 +128,8 @@ const OrdersSection = ({ onImageClick }) => {
     if (confirmed) {
       try {
         const wasApproved = order.status === 'approved';
-        const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 3 });
-        const bonusPercentage = bonusConfig?.purchaseBonus || 3;
+        const bonusConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 1 });
+        const bonusPercentage = bonusConfig?.purchaseBonus || 1;
         const earnedPoints = Math.round(((order.subtotal || order.total) * bonusPercentage) / 100);
 
         await rejectOrder(orderId, async (rejectedOrder) => {
@@ -292,7 +292,19 @@ const OrdersSection = ({ onImageClick }) => {
               break;
             case 'Reject':
               if (order.status === 'pending') {
-                await rejectOrder(orderId);
+                const wasApproved = order.status === 'approved';
+                const bConfig = loadFromLocalStorage('bonusConfig', { purchaseBonus: 1 });
+                const bPercentage = bConfig?.purchaseBonus || 1;
+                const earned = Math.round(((order.subtotal || order.total) * bPercentage) / 100);
+                await rejectOrder(orderId, async (rejectedOrder) => {
+                  if (wasApproved && rejectedOrder.userId && earned > 0) {
+                    try {
+                      await updateUserBonusPoints(rejectedOrder.userId, -earned);
+                    } catch (err) {
+                      console.error('Failed to refund bonus points in bulk reject:', err);
+                    }
+                  }
+                });
                 successCount++;
               }
               break;

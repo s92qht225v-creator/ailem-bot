@@ -144,6 +144,7 @@ async function awardBonusPoints(order) {
 
   try {
     let purchaseBonusPercentage = 1;
+    let referralCommission = 3;
 
     const { data: settings, error: settingsError } = await getSupabase()
       .from('app_settings')
@@ -151,8 +152,13 @@ async function awardBonusPoints(order) {
       .eq('id', 1)
       .single();
 
-    if (!settingsError && settings?.bonus_config?.purchaseBonus) {
-      purchaseBonusPercentage = settings.bonus_config.purchaseBonus;
+    if (!settingsError && settings?.bonus_config) {
+      if (settings.bonus_config.purchaseBonus) {
+        purchaseBonusPercentage = settings.bonus_config.purchaseBonus;
+      }
+      if (settings.bonus_config.referralCommission) {
+        referralCommission = settings.bonus_config.referralCommission;
+      }
     }
 
     const bonusBase = order.subtotal || order.total;
@@ -160,7 +166,7 @@ async function awardBonusPoints(order) {
 
     const { data: user, error: userError } = await getSupabase()
       .from('users')
-      .select('bonus_points, total_orders')
+      .select('bonus_points, total_orders, referred_by')
       .eq('id', userId)
       .single();
 
@@ -173,6 +179,30 @@ async function awardBonusPoints(order) {
       .from('users')
       .update({ bonus_points: newBonusPoints, total_orders: newTotalOrders })
       .eq('id', userId);
+
+    // Award referral commission to referrer
+    if (user.referred_by) {
+      try {
+        const { data: referrer } = await getSupabase()
+          .from('users')
+          .select('id, bonus_points, referrals, telegram_id, name')
+          .eq('referral_code', user.referred_by)
+          .single();
+
+        if (referrer) {
+          const commissionAmount = Math.round((bonusBase * referralCommission) / 100);
+          const newReferrerBonus = (referrer.bonus_points || 0) + commissionAmount;
+          const newReferrals = (referrer.referrals || 0) + 1;
+
+          await getSupabase()
+            .from('users')
+            .update({ bonus_points: newReferrerBonus, referrals: newReferrals })
+            .eq('id', referrer.id);
+        }
+      } catch (refError) {
+        console.error('Failed to award referral commission:', refError);
+      }
+    }
   } catch (error) {
     console.error('Failed to award bonus points:', error);
   }

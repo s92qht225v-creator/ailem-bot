@@ -6,8 +6,8 @@ import { useToast } from '../../../context/ToastContext';
 
 const BonusSettingsSection = () => {
   const [bonusConfig, setBonusConfig] = useState({
-    referralCommission: 10,
-    purchaseBonus: 10,
+    referralCommission: 3,
+    purchaseBonus: 1,
     currency: 'UZS'
   });
   const [loading, setLoading] = useState(true);
