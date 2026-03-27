@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
 
 function getSupabase() {
   return createClient(
@@ -8,8 +9,21 @@ function getSupabase() {
   );
 }
 
+// Verify Telegram webhook secret token
+function verifyTelegramSecret(request) {
+  const secretToken = process.env.TELEGRAM_WEBHOOK_SECRET;
+  if (!secretToken) return true; // Skip if not configured (backward compat)
+  const headerToken = request.headers.get('x-telegram-bot-api-secret-token');
+  return headerToken === secretToken;
+}
+
 export async function POST(request) {
   try {
+    // Verify webhook authenticity
+    if (!verifyTelegramSecret(request)) {
+      return NextResponse.json({ ok: false }, { status: 403 });
+    }
+
     const update = await request.json();
     const msg = update?.message;
     if (!msg || !msg.text) {
@@ -30,7 +44,13 @@ export async function POST(request) {
     let sessionId = null;
     if (msg.reply_to_message?.text) {
       const match = msg.reply_to_message.text.match(/Session: ([\w-]+)/);
-      if (match) sessionId = match[1];
+      if (match) {
+        // Validate UUID format
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        if (uuidRegex.test(match[1])) {
+          sessionId = match[1];
+        }
+      }
     }
 
     // Fallback: message starts with session ID on first line

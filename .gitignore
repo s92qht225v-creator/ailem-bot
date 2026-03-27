@@ -30,8 +30,8 @@ out
 
 # Environment files
 .env
-.env.local
-.env.production
+.env.*
+!.env.example
 
 # Build outputs
 build
@@ -45,3 +45,7 @@ coverage
 .tmp
 .vercel
 .claude/worktrees/
+
+# Debug scripts with secrets
+scripts/debug/test-payme-auth.sh
+scripts/debug/test-payme-full.sh

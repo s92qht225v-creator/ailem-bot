@@ -3,6 +3,8 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
+import { rateLimit } from '../../../src/lib/rate-limit';
 
 let _supabase;
 function getSupabase() {
@@ -19,11 +21,36 @@ function getClickServiceId() {
   return process.env.CLICK_SERVICE_ID;
 }
 
+function getClickSecretKey() {
+  return process.env.CLICK_SECRET_KEY;
+}
+
 function getTelegramConfig() {
   return {
-    botToken: process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN,
+    botToken: process.env.TELEGRAM_BOT_TOKEN || process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN,
     adminChatId: process.env.NEXT_PUBLIC_ADMIN_CHAT_ID,
   };
+}
+
+// Verify Click.uz signature (MD5 hash)
+function verifyClickSignature(params) {
+  const secretKey = getClickSecretKey();
+  if (!secretKey) return false;
+
+  const { click_trans_id, service_id, merchant_trans_id, merchant_prepare_id, amount, action, sign_time, sign_string } = params;
+
+  // Click sends action=0 for prepare, action=1 for complete
+  let expectedString;
+  if (action === 0 || !merchant_prepare_id) {
+    // Prepare: click_trans_id + service_id + secret_key + merchant_trans_id + amount + action + sign_time
+    expectedString = `${click_trans_id}${service_id}${secretKey}${merchant_trans_id}${amount}${action}${sign_time}`;
+  } else {
+    // Complete: click_trans_id + service_id + secret_key + merchant_trans_id + merchant_prepare_id + amount + action + sign_time
+    expectedString = `${click_trans_id}${service_id}${secretKey}${merchant_trans_id}${merchant_prepare_id}${amount}${action}${sign_time}`;
+  }
+
+  const expectedSign = crypto.createHash('md5').update(expectedString).digest('hex');
+  return expectedSign === sign_string;
 }
 
 async function sendTelegramNotification(chatId, message) {
@@ -173,8 +200,30 @@ function getCourierName(order) {
 }
 
 export async function POST(request) {
-  const body = await request.json();
+  // Rate limit: 20 requests per minute
+  const { success: withinLimit } = rateLimit(request, { maxRequests: 20, windowMs: 60_000 });
+  if (!withinLimit) {
+    return NextResponse.json({ error: -9, error_note: 'Too many requests' }, { status: 429 });
+  }
+
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: -8, error_note: 'Invalid JSON body' });
+  }
+
   const { method } = body;
+
+  // Validate required fields
+  if (!method || !['prepare', 'complete'].includes(method)) {
+    return NextResponse.json({ error: -3, error_note: 'Invalid or missing method' });
+  }
+
+  // Verify Click signature
+  if (!verifyClickSignature(body)) {
+    return NextResponse.json({ error: -1, error_note: 'Invalid signature' });
+  }
 
   try {
     switch (method) {
@@ -193,6 +242,14 @@ export async function POST(request) {
 
 async function handlePrepare(params) {
   const { click_trans_id, service_id, merchant_trans_id, amount } = params;
+
+  // Validate required fields
+  if (!click_trans_id || !service_id || !merchant_trans_id || amount === undefined) {
+    return NextResponse.json({
+      click_trans_id, merchant_trans_id, merchant_prepare_id: 0,
+      error: -8, error_note: 'Missing required parameters',
+    });
+  }
 
   if (service_id.toString() !== getClickServiceId()) {
     return NextResponse.json({
@@ -238,6 +295,14 @@ async function handlePrepare(params) {
 async function handleComplete(params) {
   const { click_trans_id, service_id, click_paydoc_id, merchant_trans_id, merchant_prepare_id, error: click_error } = params;
 
+  // Validate required fields
+  if (!click_trans_id || !service_id || !merchant_trans_id) {
+    return NextResponse.json({
+      click_trans_id, merchant_trans_id, merchant_confirm_id: 0,
+      error: -8, error_note: 'Missing required parameters',
+    });
+  }
+
   if (service_id.toString() !== getClickServiceId()) {
     return NextResponse.json({
       click_trans_id, merchant_trans_id, merchant_confirm_id: 0,
@@ -255,6 +320,16 @@ async function handleComplete(params) {
     return NextResponse.json({
       click_trans_id, merchant_trans_id, merchant_confirm_id: Date.now(),
       error: -5, error_note: 'Order not found',
+    });
+  }
+
+  // Idempotency: if already processed this click_trans_id, return success
+  if (order.click_trans_id === click_trans_id && order.status === 'approved') {
+    return NextResponse.json({
+      click_trans_id, merchant_trans_id, merchant_confirm_id: Date.now(),
+      merchant_prepare_id: merchant_prepare_id || 0,
+      click_paydoc_id,
+      error: 0, error_note: 'Already processed',
     });
   }
 

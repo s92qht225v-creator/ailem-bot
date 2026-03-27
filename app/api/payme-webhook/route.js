@@ -4,6 +4,7 @@
 
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { rateLimit } from '../../../src/lib/rate-limit';
 
 // Lazy-init to avoid build-time errors when env vars aren't available
 let _supabase;
@@ -19,7 +20,7 @@ function getSupabase() {
 
 function getTelegramConfig() {
   return {
-    botToken: process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN,
+    botToken: process.env.TELEGRAM_BOT_TOKEN || process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN,
     adminChatId: process.env.NEXT_PUBLIC_ADMIN_CHAT_ID,
   };
 }
@@ -221,6 +222,15 @@ function getCourierName(order) {
 }
 
 export async function POST(request) {
+  // Rate limit: 30 requests per minute
+  const { success: withinLimit } = rateLimit(request, { maxRequests: 30, windowMs: 60_000 });
+  if (!withinLimit) {
+    return NextResponse.json({
+      jsonrpc: '2.0', id: null,
+      error: { code: -32600, message: 'Too many requests' },
+    }, { status: 429 });
+  }
+
   const isTestMode = process.env.NEXT_PUBLIC_PAYME_TEST_MODE !== 'false';
   const candidateKeys = [process.env.PAYME_KEY, process.env.PAYME_TEST_KEY].filter(Boolean);
 
@@ -242,7 +252,22 @@ export async function POST(request) {
     }
   });
 
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({
+      jsonrpc: '2.0', id: null,
+      error: { code: -32700, message: 'Parse error: invalid JSON' },
+    });
+  }
+
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({
+      jsonrpc: '2.0', id: null,
+      error: { code: -32600, message: 'Invalid request: body must be an object' },
+    });
+  }
 
   if (!validAuthHeaders.length) {
     return NextResponse.json({
@@ -263,6 +288,21 @@ export async function POST(request) {
   }
 
   const { method, params, id: requestId } = body;
+
+  // Validate method and params
+  if (!method || typeof method !== 'string') {
+    return NextResponse.json({
+      jsonrpc: '2.0', id: requestId || null,
+      error: { code: -32600, message: 'Invalid request: missing method' },
+    });
+  }
+
+  if (params !== undefined && (typeof params !== 'object' || params === null)) {
+    return NextResponse.json({
+      jsonrpc: '2.0', id: requestId || null,
+      error: { code: -32600, message: 'Invalid request: params must be an object' },
+    });
+  }
 
   try {
     switch (method) {
@@ -404,10 +444,20 @@ async function performTransaction(params, requestId) {
     });
   }
 
+  // Idempotency: if already performed, return cached result
+  if (order.payme_state === 2 && order.status === 'approved') {
+    return NextResponse.json({
+      jsonrpc: '2.0',
+      id: requestId,
+      result: { transaction: id, perform_time: order.payme_perform_time || performTime, state: 2 },
+    });
+  }
+
   const { error } = await getSupabase()
     .from('orders')
     .update({ status: 'approved', payme_perform_time: performTime, payme_state: 2 })
-    .eq('payme_transaction_id', id);
+    .eq('payme_transaction_id', id)
+    .eq('payme_state', 1); // Only update if still in state 1 (created) — prevents race conditions
 
   if (error) {
     return NextResponse.json({

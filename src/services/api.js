@@ -19,6 +19,7 @@ export const essentialDataAPI = {
       .rpc('get_essential_data', { lightweight });
 
     if (error) throw error;
+    if (!data || typeof data !== 'object') throw new Error('Invalid RPC response');
 
     // Map products to match app field names
     const products = (data.products || []).map(product => ({
@@ -164,7 +165,7 @@ export const productsAPI = {
         .eq('approved', true);
 
       if (reviewsError) console.error('Failed to fetch reviews:', reviewsError);
-      reviews = reviewsData;
+      reviews = reviewsData || [];
     }
 
     // Map database fields to match app expectations

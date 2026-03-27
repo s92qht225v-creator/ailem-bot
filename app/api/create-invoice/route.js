@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server';
+import { rateLimit } from '../../../src/lib/rate-limit';
 
 export async function POST(request) {
-  const BOT_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN;
+  // Rate limit: 10 requests per minute
+  const { success: withinLimit } = rateLimit(request, { maxRequests: 10, windowMs: 60_000 });
+  if (!withinLimit) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+  }
+
+  // Use server-side env var (not NEXT_PUBLIC_ which leaks to browser)
+  const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN;
   const PAYMENT_PROVIDER_TOKEN = process.env.PAYMENT_PROVIDER_TOKEN || '';
 
   if (!BOT_TOKEN) {
@@ -63,6 +71,6 @@ export async function POST(request) {
     return NextResponse.json({ success: true, invoiceLink: data.result });
   } catch (error) {
     console.error('Error creating invoice:', error);
-    return NextResponse.json({ error: 'Internal server error', message: error.message }, { status: 500 });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

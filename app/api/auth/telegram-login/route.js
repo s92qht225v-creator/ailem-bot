@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '../../../../src/lib/supabase-server';
+import { rateLimit } from '../../../../src/lib/rate-limit';
 
 function generateReferralCode(name) {
   const prefix = (name || 'user').replace(/[^a-zA-Z0-9]/g, '').slice(0, 4).toUpperCase();
@@ -9,6 +10,12 @@ function generateReferralCode(name) {
 }
 
 export async function POST(request) {
+  // Rate limit: 10 login attempts per minute
+  const { success: withinLimit } = rateLimit(request, { maxRequests: 10, windowMs: 60_000 });
+  if (!withinLimit) {
+    return NextResponse.json({ error: 'Too many login attempts' }, { status: 429 });
+  }
+
   try {
     const body = await request.json();
     const { id, first_name, last_name, username, photo_url, auth_date, hash } = body;

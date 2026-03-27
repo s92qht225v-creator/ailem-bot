@@ -8,9 +8,10 @@ import { UserContext } from '../../context/UserContext';
 const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
   const { clearCart } = useCart();
   const { user, updateBonusPoints } = useContext(UserContext);
-  const [status, setStatus] = useState('checking'); // checking, success, failed, timeout
+  const [status, setStatus] = useState('checking'); // checking, success, failed, timeout, error
   const [order, setOrder] = useState(null);
   const [checkCount, setCheckCount] = useState(0);
+  const [networkError, setNetworkError] = useState(false);
   const maxChecks = 6; // Check 6 times over ~20 seconds
 
   // Log when component mounts
@@ -91,6 +92,7 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
       return false; // Still pending
     } catch (error) {
       console.error('❌ Failed to check order status:', error);
+      setNetworkError(true);
       return false;
     }
   }, [orderId, onNavigate]);
@@ -98,6 +100,7 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
   const resetAndRetry = () => {
     setStatus('checking');
     setCheckCount(0);
+    setNetworkError(false);
   };
 
   useEffect(() => {
@@ -156,6 +159,11 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
         <p className="text-sm text-gray-500">
           {checkCount} / {maxChecks}
         </p>
+        {networkError && (
+          <p className="text-sm text-orange-500 mt-2">
+            Tarmoq xatosi. Qayta urinish...
+          </p>
+        )}
       </div>
     );
   }
