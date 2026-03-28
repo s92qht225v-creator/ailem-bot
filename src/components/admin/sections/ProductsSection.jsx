@@ -1,4 +1,4 @@
-import { useState, useContext, useMemo } from 'react';
+import { useState, useContext, useMemo, useEffect } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { marked } from 'marked';
@@ -10,7 +10,7 @@ import { useToast } from '../../../context/ToastContext';
 import { useConfirm } from '../../../context/ConfirmContext';
 import { formatPrice } from '../../../utils/helpers';
 import { updateVariantStock, updateVariantImage, updateVariantPrice, getTotalVariantStock } from '../../../utils/variants';
-import { storageAPI } from '../../../services/api';
+import { storageAPI, uzumClicksAPI } from '../../../services/api';
 import { exportProducts } from '../../../utils/csvExport';
 import { notifyProductBackInStock } from '../../../services/stockNotifications';
 import APlusEditor from '../shared/APlusEditor';
@@ -65,6 +65,12 @@ const ProductsSection = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [stockFilter, setStockFilter] = useState('');
+  const [uzumStats, setUzumStats] = useState({});
+
+  // Load UZUM click stats
+  useEffect(() => {
+    uzumClicksAPI.getStats().then(setUzumStats).catch(() => {});
+  }, []);
 
   // Filtered products based on search and filters
   const filteredProducts = useMemo(() => {
@@ -1529,6 +1535,7 @@ const ProductsSection = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Narxi</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ombor</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Holat</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">UZUM</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amallar</th>
               </tr>
             </thead>
@@ -1586,6 +1593,15 @@ const ProductsSection = () => {
                         </span>
                       );
                     })()}
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    {product.uzumUrl ? (
+                      <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 font-medium">
+                        {uzumStats[product.id]?.count || 0} klik
+                      </span>
+                    ) : (
+                      <span className="text-gray-300">—</span>
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm">
                     <div className="flex gap-2">
