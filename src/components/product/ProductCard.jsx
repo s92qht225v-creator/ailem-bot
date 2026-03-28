@@ -153,20 +153,6 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQui
 
         {/* Action Buttons */}
         <div className="flex gap-2 mt-2">
-          {/* UZUM Marketplace Link */}
-          {product.uzumUrl && (
-            <a
-              href={product.uzumUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center justify-center gap-1 bg-[#7B68EE] text-white py-2 px-3 rounded-lg text-sm font-semibold hover:bg-[#6A5ACD] transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
-              <span>UZUM</span>
-            </a>
-          )}
-
           {/* Quick Add to Cart */}
           {onQuickAddToCart && !isOutOfStock && (
             <button
@@ -174,10 +160,24 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQui
                 e.stopPropagation();
                 onQuickAddToCart(product);
               }}
-              className={`flex-1 flex items-center justify-center bg-accent text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors`}
+              className="flex-1 flex items-center justify-center bg-accent text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors"
             >
               <ShoppingCart className="w-5 h-5" />
             </button>
+          )}
+
+          {/* UZUM Marketplace Link */}
+          {product.uzumUrl && (
+            <a
+              href={product.uzumUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex-1 flex items-center justify-center gap-1 bg-[#7B68EE] text-white py-2 rounded-lg text-sm font-semibold hover:bg-[#6A5ACD] transition-colors"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>UZUM</span>
+            </a>
           )}
         </div>
       </div>
