@@ -14,7 +14,7 @@ const Footer = ({ onNavigate }) => {
             </p>
             <div className="flex gap-3 mt-4">
               <a
-                href="https://t.me/ailem_uz"
+                href="https://t.me/xitoyskladoptom"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-colors"
@@ -72,7 +72,7 @@ const Footer = ({ onNavigate }) => {
           <div>
             <h4 className="text-lg font-bold mb-4">{t('footer.contact') || 'Aloqa'}</h4>
             <ul className="space-y-2 text-sm text-gray-400">
-              <li>Telegram: @ailem_uz</li>
+              <li>Telegram: @xitoyskladoptom</li>
               <li>Instagram: @ailem.uz</li>
             </ul>
             <div className="mt-4">
