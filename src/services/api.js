@@ -2046,3 +2046,31 @@ export const walkInCustomersAPI = {
     }
   }
 };
+
+// UZUM click analytics
+export const uzumClicksAPI = {
+  async track(productId) {
+    await supabase.from('uzum_clicks').insert([{ product_id: productId }]);
+  },
+
+  async getStats() {
+    const { data, error } = await supabase
+      .from('uzum_clicks')
+      .select('product_id, clicked_at');
+
+    if (error) throw error;
+
+    // Aggregate by product
+    const stats = {};
+    (data || []).forEach(click => {
+      if (!stats[click.product_id]) {
+        stats[click.product_id] = { count: 0, lastClicked: click.clicked_at };
+      }
+      stats[click.product_id].count++;
+      if (click.clicked_at > stats[click.product_id].lastClicked) {
+        stats[click.product_id].lastClicked = click.clicked_at;
+      }
+    });
+    return stats;
+  }
+};

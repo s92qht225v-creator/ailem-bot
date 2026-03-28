@@ -1,6 +1,7 @@
 import { Star, Heart, ShoppingCart, ExternalLink } from 'lucide-react';
 import { t } from "../../utils/translation-fallback";
 import { formatPrice, calculateDiscountPercentage, getColorHex } from '../../utils/helpers';
+import { uzumClicksAPI } from '../../services/api';
 import { getTotalVariantStock } from '../../utils/variants';
 import { memo, useRef, useState, useEffect } from 'react';
 
@@ -171,7 +172,10 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQui
               href={product.uzumUrl}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation();
+                uzumClicksAPI.track(product.id);
+              }}
               className="flex-1 flex items-center justify-center gap-1 bg-[#7B68EE] text-white py-2 rounded-lg text-sm font-semibold hover:bg-[#6A5ACD] transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
