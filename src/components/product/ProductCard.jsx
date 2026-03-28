@@ -1,4 +1,4 @@
-import { Star, Heart, ShoppingCart } from 'lucide-react';
+import { Star, Heart, ShoppingCart, ExternalLink } from 'lucide-react';
 import { t } from "../../utils/translation-fallback";
 import { formatPrice, calculateDiscountPercentage, getColorHex } from '../../utils/helpers';
 import { getTotalVariantStock } from '../../utils/variants';
@@ -151,19 +151,36 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQui
           )}
         </div>
 
-        {/* Quick Add to Cart */}
-        {onQuickAddToCart && !isOutOfStock && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onQuickAddToCart(product);
-            }}
-            className="w-full mt-2 flex items-center justify-center gap-1.5 bg-accent text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors"
-          >
-            <ShoppingCart className="w-4 h-4" />
-            <span>{t('product.addToCart')}</span>
-          </button>
-        )}
+        {/* Action Buttons */}
+        <div className="flex gap-2 mt-2">
+          {/* UZUM Marketplace Link */}
+          {product.uzumUrl && (
+            <a
+              href={product.uzumUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center justify-center gap-1 bg-[#7B68EE] text-white py-2 px-3 rounded-lg text-sm font-semibold hover:bg-[#6A5ACD] transition-colors"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>UZUM</span>
+            </a>
+          )}
+
+          {/* Quick Add to Cart */}
+          {onQuickAddToCart && !isOutOfStock && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuickAddToCart(product);
+              }}
+              className={`flex-1 flex items-center justify-center gap-1.5 bg-accent text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors`}
+            >
+              <ShoppingCart className="w-4 h-4" />
+              <span>{t('product.addToCart')}</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

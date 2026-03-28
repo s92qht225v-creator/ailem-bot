@@ -29,6 +29,7 @@ export const essentialDataAPI = {
       reviewCount: product.review_count,
       variants: product.variants || [],
       ...(product.a_plus_content !== undefined && { aPlusContent: product.a_plus_content }),
+      ...(product.uzum_url !== undefined && { uzumUrl: product.uzum_url }),
     }));
 
     // Map reviews to match app field names
@@ -179,6 +180,7 @@ export const productsAPI = {
         reviewCount: product.review_count,
         variants: product.variants || [],
         ...(product.a_plus_content !== undefined && { aPlusContent: product.a_plus_content }),
+        ...(product.uzum_url !== undefined && { uzumUrl: product.uzum_url }),
         reviews: productReviews.map(r => ({
           id: r.id,
           userId: r.user_id,
@@ -218,6 +220,7 @@ export const productsAPI = {
       originalPrice: data.original_price,
       reviewCount: data.review_count,
       aPlusContent: data.a_plus_content,
+      uzumUrl: data.uzum_url,
       variants: data.variants || [],
       reviews: (reviews || []).map(r => ({
         id: r.id,
@@ -255,6 +258,7 @@ export const productsAPI = {
       variants: product.variants || [],
       volume_pricing: product.volume_pricing || null,
       barcode: product.barcode || null,
+      uzum_url: product.uzumUrl || null,
       a_plus_content: product.aPlusContent || null,
       rating: 0,
       review_count: 0
@@ -275,6 +279,7 @@ export const productsAPI = {
       originalPrice: data.original_price,
       reviewCount: data.review_count,
       variants: data.variants || [],
+      uzumUrl: data.uzum_url,
       aPlusContent: data.a_plus_content,
       reviews: []
     };
@@ -303,6 +308,7 @@ export const productsAPI = {
     if (updates.variants !== undefined) dbUpdates.variants = updates.variants;
     if (updates.volume_pricing !== undefined) dbUpdates.volume_pricing = updates.volume_pricing;
     if (updates.barcode !== undefined) dbUpdates.barcode = updates.barcode;
+    if (updates.uzumUrl !== undefined) dbUpdates.uzum_url = updates.uzumUrl;
     if (updates.aPlusContent !== undefined) dbUpdates.a_plus_content = updates.aPlusContent;
 
     // Wrap in try-catch with manual timeout tracking
@@ -349,6 +355,7 @@ export const productsAPI = {
         originalPrice: data.original_price,
         reviewCount: data.review_count,
         variants: data.variants || [],
+        uzumUrl: data.uzum_url,
         aPlusContent: data.a_plus_content,
         reviews: (reviews || []).map(r => ({
           id: r.id,
@@ -394,6 +401,7 @@ export const productsAPI = {
       originalPrice: data.original_price,
       reviewCount: data.review_count,
       variants: data.variants || [],
+      uzumUrl: data.uzum_url,
       aPlusContent: data.a_plus_content
     };
   },

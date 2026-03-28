@@ -46,6 +46,7 @@ const ProductsSection = () => {
     sizes: '',
     tags: '',
     barcode: '',
+    uzumUrl: '',
     inStock: true,
     variants: [],
     volume_pricing: null,
@@ -298,6 +299,7 @@ const ProductsSection = () => {
           ? null
           : (formData.volume_pricing && formData.volume_pricing.length > 0 ? formData.volume_pricing : null),
         barcode: formData.barcode || null,
+        uzumUrl: formData.uzumUrl || null,
         aPlusContent: formData.aPlusContent || null
       };
 
@@ -414,6 +416,7 @@ const ProductsSection = () => {
           : ''),
       tags: product.tags ? product.tags.join(', ') : '',
       barcode: product.barcode || '',
+      uzumUrl: product.uzumUrl || '',
       inStock: product.inStock !== false,
       variants: product.variants || [],
       volume_pricing: product.volume_pricing || null,
@@ -536,6 +539,7 @@ const ProductsSection = () => {
       sizes: duplicatedProduct.sizes?.join(', ') || '',
       tags: duplicatedProduct.tags?.join(', ') || '',
       barcode: '', // Clear barcode
+      uzumUrl: duplicatedProduct.uzumUrl || '',
       inStock: duplicatedProduct.inStock !== false,
       variants: duplicatedProduct.variants || [],
       volume_pricing: duplicatedProduct.volume_pricing || null,
@@ -898,6 +902,18 @@ const ProductsSection = () => {
                 placeholder="Masalan: 4750001234567"
               />
               <p className="text-xs text-gray-500 mt-1">Kassir skaneri uchun mahsulot shtrix-kodi</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">UZUM havola</label>
+              <input
+                type="url"
+                value={formData.uzumUrl}
+                onChange={(e) => setFormData({ ...formData, uzumUrl: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                placeholder="https://uzum.uz/uz/product/..."
+              />
+              <p className="text-xs text-gray-500 mt-1">UZUM marketplace sahifasi havolasi</p>
             </div>
 
             {/* Variant Stock Management */}
