@@ -16,7 +16,7 @@ const HomePage = ({ onNavigate }) => {
   const { categories, loading } = useContext(AdminContext);
   const { toggleFavorite, isFavorite } = useContext(UserContext);
   const { addToCart } = useContext(CartContext);
-  const { featuredProducts } = useProducts();
+  const { allProducts } = useProducts();
 
   // Quick add to cart: if product has variants, navigate to product page; otherwise add directly
   const handleQuickAddToCart = useCallback((product) => {
@@ -164,10 +164,10 @@ const HomePage = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* Featured Products */}
+      {/* UZUM Products */}
       <div className="px-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold">{t('home.bestSellers')}</h3>
+          <h3 className="text-xl font-bold">UZUM da mavjud</h3>
           <button
             onClick={() => onNavigate('shop')}
             className="text-accent font-semibold hover:underline"
@@ -176,9 +176,11 @@ const HomePage = ({ onNavigate }) => {
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-          {loading && featuredProducts.length === 0
+          {loading && allProducts.length === 0
             ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-            : featuredProducts.map((product) => (
+            : allProducts
+              .filter(p => p.visible !== false && p.uzumUrl)
+              .map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
