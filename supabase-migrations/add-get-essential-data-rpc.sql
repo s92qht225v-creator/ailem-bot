@@ -55,6 +55,7 @@ BEGIN
         'rating', p.rating,
         'review_count', p.review_count,
         'barcode', p.barcode,
+        'uzum_url', p.uzum_url,
         'created_at', p.created_at
       )
       ORDER BY p.created_at DESC
