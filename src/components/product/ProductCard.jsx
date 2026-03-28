@@ -173,10 +173,9 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQui
                 e.stopPropagation();
                 onQuickAddToCart(product);
               }}
-              className={`flex-1 flex items-center justify-center gap-1.5 bg-accent text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors`}
+              className={`flex-1 flex items-center justify-center bg-accent text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors`}
             >
-              <ShoppingCart className="w-4 h-4" />
-              <span>{t('product.addToCart')}</span>
+              <ShoppingCart className="w-5 h-5" />
             </button>
           )}
         </div>
