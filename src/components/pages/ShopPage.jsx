@@ -389,7 +389,7 @@ const ShopPage = ({ onNavigate, initialCategory, initialSearch }) => {
 
         {/* Products Grid */}
         {loading && products.length === 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : products.length === 0 ? (
@@ -398,7 +398,7 @@ const ShopPage = ({ onNavigate, initialCategory, initialSearch }) => {
             <p className="text-gray-400 text-sm mt-2">{t('shop.noResults')}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {products.map((product) => (
               <ProductCard
                 key={product.id}
