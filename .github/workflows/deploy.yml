@@ -1,0 +1,86 @@
+name: Deploy to Hetzner
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+            NEXT_PUBLIC_PAYME_MERCHANT_ID=${{ secrets.NEXT_PUBLIC_PAYME_MERCHANT_ID }}
+            NEXT_PUBLIC_PAYME_TEST_MODE=${{ secrets.NEXT_PUBLIC_PAYME_TEST_MODE }}
+            NEXT_PUBLIC_TELEGRAM_BOT_TOKEN=${{ secrets.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN }}
+            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+            NEXT_PUBLIC_CLICK_MERCHANT_ID=${{ secrets.NEXT_PUBLIC_CLICK_MERCHANT_ID }}
+            NEXT_PUBLIC_CLICK_SERVICE_ID=${{ secrets.NEXT_PUBLIC_CLICK_SERVICE_ID }}
+            NEXT_PUBLIC_CLICK_TEST_MODE=${{ secrets.NEXT_PUBLIC_CLICK_TEST_MODE }}
+            VITE_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+            VITE_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+            VITE_TELEGRAM_BOT_TOKEN=${{ secrets.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN }}
+            VITE_PAYME_MERCHANT_ID=${{ secrets.NEXT_PUBLIC_PAYME_MERCHANT_ID }}
+            VITE_PAYME_TEST_MODE=${{ secrets.NEXT_PUBLIC_PAYME_TEST_MODE }}
+            VITE_CLICK_MERCHANT_ID=${{ secrets.NEXT_PUBLIC_CLICK_MERCHANT_ID }}
+            VITE_CLICK_SERVICE_ID=${{ secrets.NEXT_PUBLIC_CLICK_SERVICE_ID }}
+            VITE_CLICK_TEST_MODE=${{ secrets.NEXT_PUBLIC_CLICK_TEST_MODE }}
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd /opt/ailem
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            export GHCR_OWNER=$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')
+            export IMAGE_TAG=sha-$(echo "${{ github.sha }}" | cut -c1-7)
+            echo "GHCR_OWNER=$GHCR_OWNER" > .deploy.env
+            echo "IMAGE_TAG=$IMAGE_TAG" >> .deploy.env
+            docker compose --env-file .deploy.env pull app
+            docker compose --env-file .deploy.env up -d
+            docker image prune -f
