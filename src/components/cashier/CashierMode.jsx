@@ -19,7 +19,6 @@ import {
   UserPlus,
   Users
 } from 'lucide-react';
-import { Html5Qrcode } from 'html5-qrcode';
 import { UserContext } from '../../context/UserContext';
 import { productsAPI, ordersAPI, walkInCustomersAPI } from '../../services/api';
 import { formatPrice } from '../../utils/helpers';
@@ -217,7 +216,8 @@ const CashierMode = () => {
       // Wait for next render cycle so container is visible and has dimensions
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Create scanner instance
+      // Create scanner instance (dynamic import — browser-only)
+      const { Html5Qrcode } = await import('html5-qrcode');
       const html5QrCode = new Html5Qrcode(scannerContainerId);
       scannerRef.current = html5QrCode;
 
