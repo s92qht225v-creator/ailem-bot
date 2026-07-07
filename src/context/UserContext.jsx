@@ -56,25 +56,33 @@ export const UserProvider = ({ children }) => {
         console.log('🔵 Restoring cached user session:', cachedUser.name);
         setUser(cachedUser);
 
-        // Load favorites from Supabase for logged-in users
+        // Load favorites from Supabase for logged-in users.
+        // getSelf (RPC) reads only the caller's own row — blanket SELECT on
+        // `users` is blocked by RLS for the anon key customers use.
         try {
-          const dbUser = await usersAPI.getById(cachedUser.id);
-          const dbFavorites = normalizeFavorites(dbUser.favorites || []);
-          setFavorites(dbFavorites);
-          removeFromLocalStorage('favorites');
+          const dbUser = await usersAPI.getSelf(cachedUser.id);
+          if (dbUser) {
+            const dbFavorites = normalizeFavorites(dbUser.favorites || []);
+            setFavorites(dbFavorites);
+            removeFromLocalStorage('favorites');
 
-          // Update cached user with latest data from DB
-          const updatedUser = {
-            ...cachedUser,
-            bonusPoints: dbUser.bonus_points ?? cachedUser.bonusPoints,
-            referrals: dbUser.referrals ?? cachedUser.referrals,
-            referredBy: dbUser.referred_by ?? cachedUser.referredBy,
-            totalOrders: dbUser.total_orders ?? cachedUser.totalOrders,
-            phone: dbUser.phone || cachedUser.phone,
-            role: dbUser.role || cachedUser.role
-          };
-          setUser(updatedUser);
-          saveToLocalStorage('cachedUser', updatedUser);
+            // Update cached user with latest data from DB
+            const updatedUser = {
+              ...cachedUser,
+              bonusPoints: dbUser.bonus_points ?? cachedUser.bonusPoints,
+              referrals: dbUser.referrals ?? cachedUser.referrals,
+              referredBy: dbUser.referred_by ?? cachedUser.referredBy,
+              totalOrders: dbUser.total_orders ?? cachedUser.totalOrders,
+              phone: dbUser.phone || cachedUser.phone,
+              role: dbUser.role || cachedUser.role
+            };
+            setUser(updatedUser);
+            saveToLocalStorage('cachedUser', updatedUser);
+          } else {
+            // No row (e.g. deleted) — fall back to cached favorites
+            const cachedFavs = normalizeFavorites(loadFromLocalStorage('favorites', []));
+            setFavorites(cachedFavs);
+          }
         } catch (err) {
           console.error('Failed to refresh user data from Supabase:', err);
           // Use cached favorites as fallback

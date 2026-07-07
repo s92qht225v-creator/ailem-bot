@@ -96,7 +96,14 @@ const CashierMode = () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      const orders = await ordersAPI.getAll();
+      // Cashiers log in as Telegram (anon-key) users — blanket SELECT on `orders`
+      // is blocked by RLS. getCashierOrders (RPC) returns only THIS cashier's own
+      // orders; we then filter to today's cash sales client-side.
+      if (!user?.id) {
+        setTodaySales({ count: 0, total: 0 });
+        return;
+      }
+      const orders = await ordersAPI.getCashierOrders(user.id);
       const todayOrders = orders.filter(order => {
         const orderDate = new Date(order.created_at || order.createdAt);
         return orderDate >= today &&

@@ -49,7 +49,9 @@ const PaymentStatusPage = ({ orderId, paymentMethod, onNavigate }) => {
   const checkOrderStatus = useCallback(async () => {
     try {
       console.log('🔍 Checking order status for:', orderId);
-      const orderData = await ordersAPI.getById(orderId);
+      // getSelfByRef (RPC) fetches this single order by its ref — customers use the
+      // anon key, for which blanket SELECT on `orders` is blocked by RLS.
+      const orderData = await ordersAPI.getSelfByRef(orderId);
       console.log('📦 Order data received:', {
         id: orderData.id,
         status: orderData.status,

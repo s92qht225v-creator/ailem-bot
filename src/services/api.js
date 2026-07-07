@@ -513,6 +513,19 @@ export const usersAPI = {
     return this._mapUserFromDB(data);
   },
 
+  // Get the CALLER'S OWN user row via the get_user_self RPC.
+  // Customers hold only the anon key (no Supabase Auth session), so blanket
+  // SELECT on `users` is denied by RLS — this SECURITY DEFINER RPC returns just
+  // their own row, keyed by the UUID they already possess. Use this (not getById)
+  // from any customer/anon context (cart restore, profile refresh).
+  async getSelf(userId) {
+    const { data, error } = await supabase.rpc('get_user_self', { p_user_id: userId });
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) return null;
+    return this._mapUserFromDB(row);
+  },
+
   // Get or create user by email or phone
   async getOrCreateByEmailOrPhone(userData) {
     // Try to find existing user by email or phone
@@ -876,6 +889,32 @@ export const ordersAPI = {
     if (!data) throw new Error(`Order not found: ${id}`);
 
     return this._mapOrderFromDB(data);
+  },
+
+  // ---- Own-data reads for anon/customer contexts (RLS blocks blanket SELECT) ----
+
+  // A logged-in customer's own orders (order history). Uses get_user_orders RPC.
+  async getUserOrdersSelf(userId) {
+    const { data, error } = await supabase.rpc('get_user_orders', { p_user_id: userId });
+    if (error) throw error;
+    return (data || []).map(order => this._mapOrderFromDB(order));
+  },
+
+  // A single order by ref (order_number or UUID) — payment-status polling.
+  // Works for guests; caller holds their own order ref. Uses get_order_by_ref RPC.
+  async getSelfByRef(ref) {
+    const { data, error } = await supabase.rpc('get_order_by_ref', { p_ref: String(ref) });
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) throw new Error(`Order not found: ${ref}`);
+    return this._mapOrderFromDB(row);
+  },
+
+  // A cashier's own POS orders (CashierMode today's-sales). Uses get_cashier_orders RPC.
+  async getCashierOrders(cashierId) {
+    const { data, error } = await supabase.rpc('get_cashier_orders', { p_cashier_id: cashierId });
+    if (error) throw error;
+    return (data || []).map(order => this._mapOrderFromDB(order));
   },
 
   // Create order

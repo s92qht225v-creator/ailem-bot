@@ -19,10 +19,12 @@ export const CartProvider = ({ children }) => {
 
     const loadCart = async () => {
       try {
-        // For logged-in users, load from Supabase
+        // For logged-in users, load from Supabase.
+        // getSelf (RPC) reads only the caller's own row — customers use the anon
+        // key, for which blanket SELECT on `users` is blocked by RLS.
         if (!user?.isGuest) {
-          const userData = await usersAPI.getById(userId);
-          const dbCart = userData.cart || [];
+          const userData = await usersAPI.getSelf(userId);
+          const dbCart = userData?.cart || [];
           const localCart = loadFromLocalStorage('cart', []);
 
           // Use localStorage if it has data, otherwise use database

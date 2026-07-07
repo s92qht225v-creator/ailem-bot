@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
 import { essentialDataAPI, categoriesAPI, productsAPI, ordersAPI, reviewsAPI, usersAPI, storageAPI, extractStoragePath } from '../services/api';
 import { decreaseVariantStock, updateVariantStock, getTotalVariantStock } from '../utils/variants';
 import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
@@ -93,17 +94,46 @@ export const AdminProvider = ({ children }) => {
     }
   };
 
-  // On mount: load essential first (unblocks UI), then deferred in background
-  // Admin gets full data (needs description, images, a_plus_content for editing)
+  // On mount: load essential (unblocks UI for everyone). Phase 2 (orders + users)
+  // contains customer PII, so it loads ONLY for authenticated admin sessions —
+  // anonymous/customer sessions use the anon key with no Supabase Auth session and
+  // must never fetch these tables. RLS also enforces this server-side; this gate
+  // just prevents the request from ever being issued for non-admins.
   useEffect(() => {
     let cancelled = false;
     const isAdmin = window.location.search.includes('admin=true');
 
-    loadEssentialData({ lightweight: !isAdmin }).then(() => {
-      if (!cancelled) loadDeferredData();
+    loadEssentialData({ lightweight: !isAdmin });
+
+    // Load PII data now if an admin session already exists (e.g. cached login),
+    // otherwise mark admin data as "not loading" so nothing waits on it.
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        if (cancelled) return;
+        if (session) {
+          loadDeferredData();
+        } else {
+          setAdminLoading(false);
+        }
+      })
+      .catch(() => { if (!cancelled) setAdminLoading(false); });
+
+    // React to admin auth changes: load PII data on sign-in, drop it on sign-out.
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (cancelled) return;
+      if (session && event === 'SIGNED_IN') {
+        loadDeferredData();
+      } else if (event === 'SIGNED_OUT') {
+        setOrders([]);
+        setUsers([]);
+        setAdminLoading(false);
+      }
     });
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+      authListener?.subscription?.unsubscribe?.();
+    };
   }, []);
 
   // Full refresh for admin panel refresh button (loads all columns for editing)
