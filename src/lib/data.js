@@ -18,6 +18,7 @@ export async function getEssentialData({ lightweight = true } = {}) {
     reviewCount: product.review_count,
     variants: product.variants || [],
     ...(product.a_plus_content !== undefined && { aPlusContent: product.a_plus_content }),
+    ...(product.uzum_url !== undefined && { uzumUrl: product.uzum_url }),
   }));
 
   // Map reviews to match app field names (same as api.js:34-44)
@@ -107,4 +108,21 @@ export async function getSettings() {
   });
 
   return settings;
+}
+
+export async function getAppSettings() {
+  const supabase = createServerSupabaseClient();
+
+  const { data, error } = await supabase
+    .from('app_settings')
+    .select('*')
+    .eq('id', 1)
+    .single();
+
+  if (error) return { banners: [], sale_timer: null };
+
+  return {
+    banners: data.banners || (data.sale_banner ? [data.sale_banner] : []),
+    sale_timer: data.sale_timer || null,
+  };
 }

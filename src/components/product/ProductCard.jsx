@@ -52,7 +52,7 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQui
   return (
     <div
       onClick={() => onView(product.id)}
-      className={`bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition-shadow cursor-pointer ${
+      className={`bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer ${
         isOutOfStock ? 'opacity-90' : ''
       }`}
     >
@@ -82,7 +82,7 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQui
           </div>
         )}
         {product.badge && !isOutOfStock && (
-          <span className="absolute top-2 left-2 bg-accent text-white text-xs font-semibold px-2 py-1 rounded">
+          <span className="absolute top-2 left-2 bg-[#C81A1C] text-white text-xs font-semibold px-2 py-1 rounded">
             {(() => {
               const translated = t(`badges.${product.badge}`);
               return translated.startsWith('badges.') ? product.badge : translated;
@@ -142,7 +142,7 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQui
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-primary">
+          <span className="text-lg font-bold text-primary tabular-nums tracking-tight">
             {formatPrice(product.price)}
           </span>
           {product.originalPrice && (
@@ -161,6 +161,8 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQui
                 e.stopPropagation();
                 onQuickAddToCart(product);
               }}
+              aria-label={t('cart.addToCart') !== 'cart.addToCart' ? t('cart.addToCart') : "Savatga qo'shish"}
+              title={t('cart.addToCart') !== 'cart.addToCart' ? t('cart.addToCart') : "Savatga qo'shish"}
               className="flex-1 flex items-center justify-center bg-accent text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 transition-colors"
             >
               <ShoppingCart className="w-5 h-5" />
@@ -177,7 +179,7 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQui
                 e.stopPropagation();
                 uzumClicksAPI.track(product.id);
               }}
-              className="flex-1 flex items-center justify-center gap-1 bg-[#7B68EE] text-white py-2 rounded-lg text-sm font-semibold hover:bg-[#6A5ACD] transition-colors"
+              className="flex-1 flex items-center justify-center gap-1 bg-[#5B4FC4] text-white py-2 rounded-lg text-sm font-semibold hover:bg-[#4C3FB0] transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
               <span>UZUM</span>

@@ -98,6 +98,9 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
           src={banner.imageUrl}
           alt={banner.title}
           className="w-full h-full object-cover"
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
           onContextMenu={(e) => e.preventDefault()}
           draggable={false}
         />
@@ -126,6 +129,9 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
               src={banner.imageUrl}
               alt={banner.title}
               className="w-full h-full object-cover"
+              fetchPriority={index === 0 ? 'high' : 'low'}
+              loading={index === 0 ? 'eager' : 'lazy'}
+              decoding="async"
               onContextMenu={(e) => e.preventDefault()}
               draggable={false}
             />
