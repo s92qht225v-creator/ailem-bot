@@ -1453,7 +1453,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category, index) => (
             <div key={category.id} className="a-card" style={{ overflow: 'hidden', opacity: category.visible === false ? 0.6 : 1 }}>
-              <div className="aspect-square relative overflow-hidden" style={{ background: 'var(--surface-2)' }}>
+              <div className="relative overflow-hidden" style={{ height: '128px', background: 'var(--surface-2)' }}>
                 {category.visible === false && (
                   <span className="a-pill a-pill-danger absolute top-2 right-2 z-10">
                     <EyeOff className="w-3 h-3" />
@@ -1464,11 +1464,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   <img
                     src={category.image}
                     alt={category.name}
-                    className="w-full h-full object-contain p-4"
+                    className="w-full h-full object-contain p-3"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-6xl a-faint">
-                    📷
+                  <div className="w-full h-full flex items-center justify-center a-faint">
+                    <Image className="w-9 h-9" strokeWidth={1.5} />
                   </div>
                 )}
               </div>
