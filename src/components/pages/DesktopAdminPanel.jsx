@@ -60,6 +60,21 @@ const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
+  // Admin theme: null = follow OS (prefers-color-scheme); 'light'/'dark' = explicit override
+  const [theme, setTheme] = useState(null);
+  useEffect(() => {
+    const saved = loadFromLocalStorage('admin_theme', null);
+    if (saved === 'light' || saved === 'dark') setTheme(saved);
+  }, []);
+  const toggleTheme = () => {
+    setTheme(prev => {
+      const current = prev || (typeof window !== 'undefined'
+        && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      const next = current === 'dark' ? 'light' : 'dark';
+      saveToLocalStorage('admin_theme', next);
+      return next;
+    });
+  };
   const { products, categories, orders, reviews, users, loading, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, reorderCategories, toggleCategoryVisibility, approveReview, deleteReview } = useContext(AdminContext);
   const toast = useToast();
   const confirm = useConfirm();
@@ -203,57 +218,54 @@ const DesktopAdminPanel = ({ onLogout }) => {
   ];
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="admin-ui flex h-screen" data-theme={theme || undefined}>
       {/* Sidebar */}
-      <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} bg-white shadow-lg transition-all duration-300 flex flex-col`}>
+      <div
+        className={`${sidebarCollapsed ? 'w-16' : 'w-60'} transition-all duration-300 flex flex-col`}
+        style={{ background: 'var(--sidebar)', borderRight: '1px solid var(--border)' }}
+      >
         {/* Sidebar Header */}
-        <div className="p-4 border-b">
+        <div className="p-3.5" style={{ borderBottom: '1px solid var(--border)' }}>
           <div className="flex items-center justify-between">
             {!sidebarCollapsed && (
-              <div className="flex items-center gap-2">
-                <Shield className="w-8 h-8 text-primary" />
+              <div className="flex items-center gap-2.5">
+                <div style={{ width: 27, height: 27, borderRadius: 7, background: 'var(--accent)', display: 'grid', placeItems: 'center', color: '#fff', fontWeight: 800, fontSize: 15 }}>a</div>
                 <div>
-                  <h1 className="text-lg font-bold text-gray-900">Admin Panel</h1>
-                  <p className="text-xs text-gray-500">Ailem Store</p>
+                  <h1 className="font-bold" style={{ fontSize: 15, color: 'var(--text)', letterSpacing: '-.01em', lineHeight: 1.1, margin: 0 }}>Ailem</h1>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)', margin: '-1px 0 0' }}>Admin panel</p>
                 </div>
               </div>
             )}
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="p-1 hover:bg-gray-100 rounded"
-            >
-              {sidebarCollapsed ? <Menu className="w-5 h-5" /> : <X className="w-5 h-5" />}
+            <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} className="a-btn" style={{ padding: 6 }} aria-label="Menyuni yig'ish">
+              {sidebarCollapsed ? <Menu className="w-4 h-4" /> : <X className="w-4 h-4" />}
             </button>
           </div>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-2">
+        <nav className="flex-1 p-2 space-y-0.5" style={{ overflowY: 'auto' }}>
           {menuItems.map((item) => {
             const IconComponent = item.icon;
             const isActive = activeSection === item.id;
-            
+
             return (
               <button
                 key={item.id}
                 onClick={() => setActiveSection(item.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg mb-1 transition-colors ${
-                  isActive 
-                    ? 'bg-primary text-white' 
-                    : 'hover:bg-gray-50 text-gray-700'
-                }`}
+                className={`a-nav ${isActive ? 'a-nav-active' : ''}`}
+                title={sidebarCollapsed ? item.label : undefined}
               >
-                <IconComponent className={`w-5 h-5 ${isActive ? 'text-white' : item.color}`} />
+                <IconComponent style={{ width: 17, height: 17, flex: 'none' }} />
                 {!sidebarCollapsed && (
                   <>
-                    <span className="flex-1 text-left font-medium">{item.label}</span>
+                    <span className="flex-1 text-left">{item.label}</span>
                     {item.badge && (
-                      <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      <span className="a-count" style={{ color: '#fff', background: 'var(--accent)', borderColor: 'var(--accent)' }}>
                         {item.badge}
                       </span>
                     )}
                     {item.count && !item.badge && (
-                      <span className="text-gray-400 text-sm">{item.count}</span>
+                      <span className="a-count">{item.count}</span>
                     )}
                   </>
                 )}
@@ -266,13 +278,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-white shadow-sm border-b px-6 py-4">
-          <div className="flex items-center justify-between">
+        <header className="px-6" style={{ height: 58, borderBottom: '1px solid var(--border)', background: 'var(--surface)', display: 'flex', alignItems: 'center', flex: 'none' }}>
+          <div className="flex-1 flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900">
+              <h2 className="font-semibold" style={{ fontSize: 15, color: 'var(--text)', letterSpacing: '-.01em', margin: 0 }}>
                 {menuItems.find(item => item.id === activeSection)?.label || ''}
               </h2>
-              <p className="text-gray-600">
+              <p style={{ fontSize: 12, color: 'var(--text-3)', margin: 0 }}>
                 {activeSection === 'dashboard' && 'Do\'koningiz ko\'rsatkichlari sharhi'}
                 {activeSection === 'orders' && `Jami ${orders.length} buyurtma`}
                 {activeSection === 'products' && `Katalogda ${products.length} mahsulot`}
@@ -290,20 +302,21 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 {activeSection === 'settings' && 'Tizim konfiguratsiyasi va sozlamalari'}
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <button className="p-2 hover:bg-gray-100 rounded-lg">
-                <Bell className="w-5 h-5 text-gray-600" />
+            <div className="flex items-center gap-2.5">
+              <button onClick={toggleTheme} className="a-btn" style={{ padding: 8 }} title="Yorug'/qorong'i mavzu" aria-label="Mavzuni almashtirish">
+                <svg viewBox="0 0 24 24" style={{ width: 16, height: 16, stroke: 'currentColor', fill: 'none', strokeWidth: 1.7 }}><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" /></svg>
               </button>
-              <div className="flex items-center gap-3">
+              <button className="a-btn" style={{ padding: 8, position: 'relative' }} aria-label="Bildirishnomalar">
+                <Bell className="w-4 h-4" />
+                <span style={{ position: 'absolute', top: 7, right: 8, width: 6, height: 6, borderRadius: '50%', background: 'var(--accent)', border: '1.5px solid var(--surface)' }}></span>
+              </button>
+              <div className="flex items-center gap-2.5" style={{ paddingLeft: 4 }}>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">Admin</p>
-                  <p className="text-xs text-gray-500">Administrator</p>
+                  <p style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--text)', margin: 0, lineHeight: 1.15 }}>Admin</p>
+                  <p style={{ fontSize: 11, color: 'var(--text-3)', margin: 0 }}>Administrator</p>
                 </div>
-                <button
-                  onClick={onLogout}
-                  className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                  title="Admin paneldan chiqish"
-                >
+                <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,var(--accent),#ff8a3d)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 700 }}>A</div>
+                <button onClick={onLogout} className="a-btn" style={{ marginLeft: 4 }} title="Admin paneldan chiqish">
                   Chiqish
                 </button>
               </div>
