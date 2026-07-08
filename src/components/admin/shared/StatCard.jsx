@@ -1,15 +1,14 @@
-const StatCard = ({ title, value, icon: Icon, color, bgColor }) => {
+const StatCard = ({ title, value, icon: Icon, color }) => {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center">
-        <div className={`p-3 rounded-lg ${bgColor}`}>
-          <Icon className={`w-6 h-6 ${color}`} />
-        </div>
-        <div className="ml-4">
-          <p className="text-sm font-medium text-gray-600">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+    <div className="a-kpi">
+      <div className="flex items-center justify-between">
+        <p className="a-muted" style={{ fontSize: 12.5, fontWeight: 500 }}>{title}</p>
+        {/* icon square tinted from the icon's own colour → works in light & dark */}
+        <div className={`a-kpi-ico ${color || ''}`} style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+          <Icon className="w-4 h-4" />
         </div>
       </div>
+      <p className="a-kpi-val">{value}</p>
     </div>
   );
 };

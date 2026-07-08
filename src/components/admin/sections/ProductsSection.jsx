@@ -652,20 +652,20 @@ const ProductsSection = () => {
       {/* Header Actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Mahsulotlarni boshqarish</h3>
-          <p className="text-gray-600">Katalogda {products.length} ta mahsulot</p>
+          <h3 style={{ fontSize: 17, fontWeight: 650, letterSpacing: '-.01em', color: 'var(--text)', margin: 0 }}>Mahsulotlarni boshqarish</h3>
+          <p className="a-muted" style={{ margin: '2px 0 0', fontSize: 13 }}>Katalogda {products.length} ta mahsulot</p>
         </div>
         <div className="flex gap-2">
           <button
             onClick={() => exportProducts(products)}
-            className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 flex items-center gap-2 transition-colors"
+            className="a-btn"
           >
             <Download className="w-4 h-4" />
             CSV yuklash
           </button>
           <button
             onClick={() => setShowForm(true)}
-            className="bg-accent hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            className="a-btn a-btn-primary"
           >
             <Plus className="w-5 h-5" />
             Mahsulot qo'shish
@@ -675,9 +675,9 @@ const ProductsSection = () => {
 
       {/* Add/Edit Form */}
       {showForm && (
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="a-card" style={{ padding: 24 }}>
           <div className="flex items-center justify-between mb-6">
-            <h4 className="text-lg font-semibold">
+            <h4 style={{ fontSize: 16, fontWeight: 650, letterSpacing: '-.01em', color: 'var(--text)', margin: 0 }}>
               {editingProduct ? 'Mahsulotni tahrirlash' : 'Yangi mahsulot qo\'shish'}
             </h4>
             <button
@@ -687,7 +687,8 @@ const ProductsSection = () => {
                 setEditingProduct(null);
                 setAllImages([]);
               }}
-              className="text-gray-400 hover:text-gray-600"
+              className="a-faint"
+              style={{ background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <X className="w-6 h-6" />
             </button>
@@ -697,7 +698,7 @@ const ProductsSection = () => {
             {/* Product Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Mahsulot nomi *</label>
+                <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>Mahsulot nomi *</label>
                 <input
                   type="text"
                   value={formData.name}
@@ -705,14 +706,15 @@ const ProductsSection = () => {
                     setFormData({ ...formData, name: e.target.value });
                     if (formErrors.name) setFormErrors({ ...formErrors, name: null });
                   }}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${formErrors.name ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                  className="a-input"
+                  style={formErrors.name ? { borderColor: 'var(--danger)', background: 'var(--danger-weak)' } : undefined}
                   placeholder="Masalan: Choyshablar to'plami"
                 />
-                {formErrors.name && <p className="text-red-500 text-xs mt-1">{formErrors.name}</p>}
+                {formErrors.name && <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>{formErrors.name}</p>}
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Tavsif</label>
+                <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>Tavsif</label>
                 <ReactQuill
                   theme="snow"
                   value={formData.description || ''}
@@ -726,45 +728,46 @@ const ProductsSection = () => {
                   }}
                   formats={['bold', 'italic', 'underline', 'list', 'bullet']}
                   placeholder="Mahsulot haqida batafsil ma'lumot..."
-                  className="bg-white rounded-lg"
+                  className="rounded-lg"
+                  style={{ background: 'var(--surface)' }}
                 />
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Material</label>
+                <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>Material</label>
                 <input
                   type="text"
                   value={formData.material}
                   onChange={(e) => setFormData({ ...formData, material: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="a-input"
                   placeholder="Masalan: Paxta"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Ranglar</label>
+                <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>Ranglar</label>
                 <input
                   type="text"
                   value={formData.colors}
                   onChange={(e) => handleColorsOrSizesChange('colors', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="a-input"
                   placeholder="Oq, Qora, Ko'k (vergul bilan ajratilgan)"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">O'lchamlar</label>
+                <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>O'lchamlar</label>
                 <input
                   type="text"
                   value={formData.sizes}
                   onChange={(e) => handleColorsOrSizesChange('sizes', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="a-input"
                   placeholder="Kichik, O'rta, Katta (vergul bilan ajratilgan)"
                 />
               </div>
 
               <div className="md:col-span-2 relative">
-                <label className="block text-sm font-medium text-gray-700 mb-2">Teglar *</label>
+                <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>Teglar *</label>
                 <input
                   type="text"
                   value={formData.tags}
@@ -778,33 +781,35 @@ const ProductsSection = () => {
                   onBlur={() => {
                     setTimeout(() => setShowTagSuggestions(false), 200);
                   }}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${formErrors.tags ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                  className="a-input"
+                  style={formErrors.tags ? { borderColor: 'var(--danger)', background: 'var(--danger-weak)' } : undefined}
                   placeholder="choyshablar, paxta, hashamatli, yumshoq (vergul bilan ajratilgan)"
                 />
                 {showTagSuggestions && tagSuggestions.length > 0 && (
-                  <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                  <div className="absolute z-50 w-full mt-1 rounded-lg max-h-40 overflow-y-auto" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: 'var(--a-shadow)' }}>
                     {tagSuggestions.map((tag, idx) => (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => selectTagSuggestion(tag)}
-                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-100 border-b border-gray-100 last:border-b-0"
+                        className="w-full px-3 py-2 text-left text-sm last:border-b-0"
+                        style={{ color: 'var(--text)', borderBottom: '1px solid var(--border)' }}
                       >
                         {tag}
                       </button>
                     ))}
                   </div>
                 )}
-                {formErrors.tags && <p className="text-red-500 text-xs mt-1">{formErrors.tags}</p>}
-                <p className="text-xs text-gray-500 mt-1">Teglar qidiruv uchun ishlatiladi - kalit so'zlarni vergul bilan ajrating</p>
+                {formErrors.tags && <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>{formErrors.tags}</p>}
+                <p className="a-faint text-xs mt-1">Teglar qidiruv uchun ishlatiladi - kalit so'zlarni vergul bilan ajrating</p>
               </div>
             </div>
 
             {/* Pricing and Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Narxi (UZS) *</label>
+              <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>Narxi (UZS) *</label>
               <input
                 type="number"
                 value={formData.price}
@@ -812,13 +817,14 @@ const ProductsSection = () => {
                   setFormData({ ...formData, price: e.target.value });
                   if (formErrors.price) setFormErrors({ ...formErrors, price: null });
                 }}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${formErrors.price ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                className="a-input"
+                style={formErrors.price ? { borderColor: 'var(--danger)', background: 'var(--danger-weak)' } : undefined}
               />
-              {formErrors.price && <p className="text-red-500 text-xs mt-1">{formErrors.price}</p>}
+              {formErrors.price && <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>{formErrors.price}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Chegirma narxi (UZS)</label>
+              <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>Chegirma narxi (UZS)</label>
               <input
                 type="number"
                 value={formData.salePrice}
@@ -826,32 +832,34 @@ const ProductsSection = () => {
                   setFormData({ ...formData, salePrice: e.target.value });
                   if (formErrors.salePrice) setFormErrors({ ...formErrors, salePrice: null });
                 }}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${formErrors.salePrice ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                className="a-input"
+                style={formErrors.salePrice ? { borderColor: 'var(--danger)', background: 'var(--danger-weak)' } : undefined}
               />
-              {formErrors.salePrice && <p className="text-red-500 text-xs mt-1">{formErrors.salePrice}</p>}
+              {formErrors.salePrice && <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>{formErrors.salePrice}</p>}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Kategoriya *</label>
+              <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>Kategoriya *</label>
               <select
                 value={formData.category}
                 onChange={(e) => {
                   setFormData({ ...formData, category: e.target.value });
                   if (formErrors.category) setFormErrors({ ...formErrors, category: null });
                 }}
-                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${formErrors.category ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                className="a-input"
+                style={formErrors.category ? { borderColor: 'var(--danger)', background: 'var(--danger-weak)' } : undefined}
               >
                 <option value="">Kategoriyani tanlang</option>
                 {categories?.map(cat => (
                   <option key={cat.id} value={cat.name}>{cat.name}</option>
                 ))}
               </select>
-              {formErrors.category && <p className="text-red-500 text-xs mt-1">{formErrors.category}</p>}
+              {formErrors.category && <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>{formErrors.category}</p>}
             </div>
 
             {(!formData.variants || formData.variants.length === 0) && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Ombor miqdori *</label>
+                <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>Ombor miqdori *</label>
                 <input
                   type="number"
                   value={formData.stock}
@@ -859,33 +867,35 @@ const ProductsSection = () => {
                     setFormData({ ...formData, stock: e.target.value });
                     if (formErrors.stock) setFormErrors({ ...formErrors, stock: null });
                   }}
-                  className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent ${formErrors.stock ? 'border-red-500 bg-red-50' : 'border-gray-300'}`}
+                  className="a-input"
+                  style={formErrors.stock ? { borderColor: 'var(--danger)', background: 'var(--danger-weak)' } : undefined}
                 />
-                {formErrors.stock && <p className="text-red-500 text-xs mt-1">{formErrors.stock}</p>}
+                {formErrors.stock && <p className="text-xs mt-1" style={{ color: 'var(--danger)' }}>{formErrors.stock}</p>}
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Vazni</label>
+              <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>Vazni</label>
               <div className="relative">
                 <input
                   type="number"
                   step="0.01"
                   value={formData.weight}
                   onChange={(e) => setFormData({ ...formData, weight: e.target.value })}
-                  className="w-full px-3 py-2 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="a-input"
+                  style={{ paddingRight: 48 }}
                   placeholder="Masalan: 1.5"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">kg</span>
+                <span className="a-faint text-sm absolute right-3 top-1/2 -translate-y-1/2">kg</span>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Belgisi</label>
+              <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>Belgisi</label>
               <select
                 value={formData.badge}
                 onChange={(e) => setFormData({ ...formData, badge: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                className="a-input"
               >
                 <option value="">Yo'q</option>
                 <option value="BEST SELLER">ENG KO'P SOTILGAN</option>
@@ -900,47 +910,47 @@ const ProductsSection = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Shtrix-kod (Barcode)</label>
+              <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>Shtrix-kod (Barcode)</label>
               <input
                 type="text"
                 value={formData.barcode}
                 onChange={(e) => setFormData({ ...formData, barcode: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                className="a-input"
                 placeholder="Masalan: 4750001234567"
               />
-              <p className="text-xs text-gray-500 mt-1">Kassir skaneri uchun mahsulot shtrix-kodi</p>
+              <p className="a-faint text-xs mt-1">Kassir skaneri uchun mahsulot shtrix-kodi</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">UZUM havola</label>
+              <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>UZUM havola</label>
               <input
                 type="url"
                 value={formData.uzumUrl}
                 onChange={(e) => setFormData({ ...formData, uzumUrl: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                className="a-input"
                 placeholder="https://uzum.uz/uz/product/..."
               />
-              <p className="text-xs text-gray-500 mt-1">UZUM marketplace sahifasi havolasi</p>
+              <p className="a-faint text-xs mt-1">UZUM marketplace sahifasi havolasi</p>
             </div>
 
             {/* Variant Stock Management */}
             {formData.variants.length > 0 && (
-              <div className={`md:col-span-2 border-2 rounded-lg p-4 ${formErrors.variants ? 'border-red-300 bg-red-50' : 'border-blue-200 bg-red-50'}`}>
+              <div className="md:col-span-2 rounded-lg p-4" style={{ background: 'var(--surface-2)', border: `1px solid ${formErrors.variants ? 'var(--danger)' : 'var(--border)'}` }}>
                 <div className="flex items-center justify-between mb-3">
-                  <label className={`block text-sm font-bold ${formErrors.variants ? 'text-red-900' : 'text-blue-900'}`}>
+                  <label className="block text-sm" style={{ fontWeight: 700, color: formErrors.variants ? 'var(--danger)' : 'var(--text)' }}>
                     Variant inventarizatsiyasi ({formData.variants.length} ta variant)
                   </label>
-                  <span className={`text-xs font-medium ${formErrors.variants ? 'text-red-700' : 'text-blue-700'}`}>
+                  <span className="text-xs font-medium" style={{ color: formErrors.variants ? 'var(--danger)' : 'var(--text-2)' }}>
                     Jami: {getTotalVariantStock(formData.variants)} dona
                   </span>
                 </div>
                 {formErrors.variants && (
-                  <div className="mb-3 p-2 bg-red-100 border border-red-300 rounded text-red-700 text-xs flex items-center gap-2">
+                  <div className="mb-3 p-2 rounded text-xs flex items-center gap-2" style={{ background: 'var(--danger-weak)', border: '1px solid var(--danger)', color: 'var(--danger)' }}>
                     <AlertTriangle className="w-4 h-4" />
                     {formErrors.variants}
                   </div>
                 )}
-                <p className={`text-xs mb-3 ${formErrors.variants ? 'text-red-700' : 'text-blue-700'}`}>
+                <p className="text-xs mb-3" style={{ color: formErrors.variants ? 'var(--danger)' : 'var(--text-2)' }}>
                   Har bir rang + o'lcham kombinatsiyasi uchun miqdorni kiriting
                 </p>
 
@@ -948,11 +958,12 @@ const ProductsSection = () => {
                   {formData.variants.map((variant, idx) => (
                     <div
                       key={idx}
-                      className="flex items-start gap-3 bg-white p-3 rounded border hover:border-red-300 transition-colors"
+                      className="flex items-start gap-3 p-3 rounded transition-colors"
+                      style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}
                     >
                       <div className="flex-shrink-0">
                         {variant.image ? (
-                          <div className="relative w-16 h-16 rounded overflow-hidden border-2 border-red-300">
+                          <div className="relative w-16 h-16 rounded overflow-hidden" style={{ border: '2px solid var(--accent)' }}>
                             <img
                               src={variant.image}
                               alt={`${variant.color} - ${variant.size}`}
@@ -961,15 +972,16 @@ const ProductsSection = () => {
                             <button
                               type="button"
                               onClick={() => handleVariantImageChange(variant.color, variant.size, null)}
-                              className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl hover:bg-red-600"
+                              className="absolute top-0 right-0 text-white p-0.5 rounded-bl"
+                              style={{ background: 'var(--danger)' }}
                               title="Rasmni o'chirish"
                             >
                               <X className="w-3 h-3" />
                             </button>
                           </div>
                         ) : (
-                          <label className="w-16 h-16 flex items-center justify-center border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-red-400 hover:bg-red-50 transition-colors">
-                            <ImagePlus className="w-6 h-6 text-gray-400" />
+                          <label className="w-16 h-16 flex items-center justify-center rounded cursor-pointer transition-colors" style={{ border: '2px dashed var(--border)' }}>
+                            <ImagePlus className="w-6 h-6 a-faint" />
                             <input
                               type="file"
                               accept="image/*"
@@ -982,47 +994,50 @@ const ProductsSection = () => {
 
                       <div className="flex-1">
                         <div className="text-sm font-medium mb-2">
-                          <span className="text-gray-900">{variant.color}</span>
-                          <span className="text-gray-400 mx-1">•</span>
-                          <span className="text-gray-900">{variant.size}</span>
+                          <span style={{ color: 'var(--text)' }}>{variant.color}</span>
+                          <span className="a-faint mx-1">•</span>
+                          <span style={{ color: 'var(--text)' }}>{variant.size}</span>
                         </div>
                         <div className="flex flex-col gap-2">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-600 w-12">Narxi:</span>
+                            <span className="a-muted text-xs w-12">Narxi:</span>
                             <input
                               type="number"
                               min="0"
                               value={variant.price || ''}
                               onChange={(e) => handleVariantPriceChange(variant.color, variant.size, e.target.value)}
-                              className="w-24 px-2 py-1 border rounded text-sm"
+                              className="a-input text-sm"
+                              style={{ width: 96, padding: '4px 8px' }}
                               placeholder={formData.salePrice || formData.price || '0'}
                             />
-                            <span className="text-xs text-gray-400">UZS</span>
+                            <span className="a-faint text-xs">UZS</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-600 w-12">Ombor:</span>
+                            <span className="a-muted text-xs w-12">Ombor:</span>
                             <input
                               type="number"
                               min="0"
                               value={variant.stock}
                               onChange={(e) => handleVariantStockChange(variant.color, variant.size, e.target.value)}
-                              className="w-24 px-2 py-1 border rounded text-sm"
+                              className="a-input text-sm"
+                              style={{ width: 96, padding: '4px 8px' }}
                               placeholder="0"
                             />
-                            <span className="text-xs text-gray-400">dona</span>
+                            <span className="a-faint text-xs">dona</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-600 w-12">Shtrix:</span>
+                            <span className="a-muted text-xs w-12">Shtrix:</span>
                             <input
                               type="text"
                               value={variant.barcode || ''}
                               onChange={(e) => handleVariantBarcodeChange(variant.color, variant.size, e.target.value)}
-                              className="w-28 px-2 py-1 border rounded text-sm font-mono"
+                              className="a-input text-sm font-mono"
+                              style={{ width: 112, padding: '4px 8px' }}
                               placeholder="Shtrix-kod"
                             />
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-600 w-12">Vazni:</span>
+                            <span className="a-muted text-xs w-12">Vazni:</span>
                             <input
                               type="number"
                               step="0.01"
@@ -1037,10 +1052,11 @@ const ProductsSection = () => {
                                 });
                                 setFormData({ ...formData, variants: updatedVariants });
                               }}
-                              className="w-20 px-2 py-1 border rounded text-sm"
+                              className="a-input text-sm"
+                              style={{ width: 80, padding: '4px 8px' }}
                               placeholder={formData.weight || '0.5'}
                             />
-                            <span className="text-xs text-gray-400">kg</span>
+                            <span className="a-faint text-xs">kg</span>
                           </div>
                         </div>
                         {/* Per-variant volume pricing */}
@@ -1059,18 +1075,17 @@ const ProductsSection = () => {
                                   if (isExpanded) next.delete(vpKey); else next.add(vpKey);
                                   setExpandedVP(next);
                                 }}
-                                className={`text-xs px-2 py-1 rounded flex items-center gap-1 transition-colors ${
-                                  tiers.length > 0
-                                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                }`}
+                                className="text-xs px-2 py-1 rounded flex items-center gap-1 transition-colors"
+                                style={tiers.length > 0
+                                  ? { background: 'var(--ok-weak)', color: 'var(--ok)' }
+                                  : { background: 'var(--surface-2)', color: 'var(--text-2)' }}
                               >
                                 💰 Hajm narxi {tiers.length > 0 && `(${tiers.length})`}
                                 <ChevronRight className={`w-3 h-3 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                               </button>
 
                               {isExpanded && (
-                                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded space-y-2">
+                                <div className="mt-2 p-2 rounded space-y-2" style={{ background: 'var(--ok-weak)', border: '1px solid var(--ok)' }}>
                                   {tiers.map((tier, tIdx) => (
                                     <div key={tIdx} className="flex items-center gap-1.5 text-xs">
                                       <input
@@ -1082,10 +1097,11 @@ const ProductsSection = () => {
                                           updated[tIdx] = { ...updated[tIdx], min_qty: parseInt(e.target.value) || 1 };
                                           handleVariantVolumePricingChange(variant.color, variant.size, updated);
                                         }}
-                                        className="w-14 px-1.5 py-1 border rounded text-xs"
+                                        className="a-input text-xs"
+                                        style={{ width: 56, padding: '4px 6px' }}
                                         placeholder="Min"
                                       />
-                                      <span className="text-gray-400">-</span>
+                                      <span className="a-faint">-</span>
                                       <input
                                         type="number"
                                         min={tier.min_qty}
@@ -1095,10 +1111,11 @@ const ProductsSection = () => {
                                           updated[tIdx] = { ...updated[tIdx], max_qty: e.target.value ? parseInt(e.target.value) : null };
                                           handleVariantVolumePricingChange(variant.color, variant.size, updated);
                                         }}
-                                        className="w-14 px-1.5 py-1 border rounded text-xs"
+                                        className="a-input text-xs"
+                                        style={{ width: 56, padding: '4px 6px' }}
                                         placeholder="∞"
                                       />
-                                      <span className="text-gray-400">=</span>
+                                      <span className="a-faint">=</span>
                                       <input
                                         type="number"
                                         min="0"
@@ -1108,17 +1125,19 @@ const ProductsSection = () => {
                                           updated[tIdx] = { ...updated[tIdx], price: parseFloat(e.target.value) || 0 };
                                           handleVariantVolumePricingChange(variant.color, variant.size, updated);
                                         }}
-                                        className="w-20 px-1.5 py-1 border rounded text-xs"
+                                        className="a-input text-xs"
+                                        style={{ width: 80, padding: '4px 6px' }}
                                         placeholder="Narx"
                                       />
-                                      <span className="text-gray-400">so'm</span>
+                                      <span className="a-faint">so'm</span>
                                       <button
                                         type="button"
                                         onClick={() => {
                                           const updated = tiers.filter((_, i) => i !== tIdx);
                                           handleVariantVolumePricingChange(variant.color, variant.size, updated);
                                         }}
-                                        className="text-red-500 hover:text-red-700 p-0.5"
+                                        className="p-0.5"
+                                        style={{ color: 'var(--danger)' }}
                                       >
                                         <X className="w-3 h-3" />
                                       </button>
@@ -1134,7 +1153,8 @@ const ProductsSection = () => {
                                       };
                                       handleVariantVolumePricingChange(variant.color, variant.size, [...tiers, newTier]);
                                     }}
-                                    className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 flex items-center gap-1"
+                                    className="text-xs text-white px-2 py-1 rounded flex items-center gap-1"
+                                    style={{ background: 'var(--ok)' }}
                                   >
                                     <Plus className="w-3 h-3" /> Daraja
                                   </button>
@@ -1145,7 +1165,7 @@ const ProductsSection = () => {
                         })()}
 
                         {variant.image && (
-                          <div className="mt-1 text-xs text-green-600 flex items-center gap-1">
+                          <div className="mt-1 text-xs flex items-center gap-1" style={{ color: 'var(--ok)' }}>
                             <ImagePlus className="w-3 h-3" />
                             Maxsus rasm o'rnatilgan
                           </div>
@@ -1155,8 +1175,8 @@ const ProductsSection = () => {
                   ))}
                 </div>
 
-                <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
-                  <p className="text-xs text-yellow-800">
+                <div className="mt-3 p-2 rounded" style={{ background: 'var(--warn-weak)', border: '1px solid var(--warn)' }}>
+                  <p className="text-xs" style={{ color: 'var(--warn)' }}>
                     💡 <strong>Eslatma:</strong> Har bir variant uchun alohida narx, ombor va hajm narxlashni belgilashingiz mumkin.
                     Agar narx bo'sh qoldirilsa, asosiy narx ishlatiladi.
                   </p>
@@ -1165,12 +1185,12 @@ const ProductsSection = () => {
             )}
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Mahsulot rasmlari * {allImages.length > 0 && <span className="text-gray-500 font-normal">({allImages.length} ta rasm)</span>}
+              <label className="a-muted" style={{ display: 'block', fontSize: 12.5, fontWeight: 500, marginBottom: 8 }}>
+                Mahsulot rasmlari * {allImages.length > 0 && <span className="a-faint font-normal">({allImages.length} ta rasm)</span>}
               </label>
 
               {formErrors.images && (
-                <div className="mb-3 p-2 bg-red-100 border border-red-300 rounded text-red-700 text-xs flex items-center gap-2">
+                <div className="mb-3 p-2 rounded text-xs flex items-center gap-2" style={{ background: 'var(--danger-weak)', border: '1px solid var(--danger)', color: 'var(--danger)' }}>
                   <AlertTriangle className="w-4 h-4" />
                   {formErrors.images}
                 </div>
@@ -1180,7 +1200,7 @@ const ProductsSection = () => {
                 <div className="mb-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {allImages.map((imgUrl, index) => (
                     <div key={index} className="relative group">
-                      <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50">
+                      <div className="aspect-square rounded-lg overflow-hidden" style={{ border: '2px solid var(--border)', background: 'var(--surface-2)' }}>
                         <img
                           src={imgUrl}
                           alt={`Mahsulot ${index + 1}`}
@@ -1202,7 +1222,8 @@ const ProductsSection = () => {
                           <button
                             type="button"
                             onClick={() => handleMoveImage(index, index - 1)}
-                            className="bg-white text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="p-1.5 rounded-lg transition-colors"
+                            style={{ background: 'var(--surface)', color: 'var(--text)' }}
                             title="Chapga ko'chirish"
                           >
                             <ChevronRight className="w-4 h-4 rotate-180" />
@@ -1212,7 +1233,8 @@ const ProductsSection = () => {
                           <button
                             type="button"
                             onClick={() => handleMoveImage(index, index + 1)}
-                            className="bg-white text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors"
+                            className="p-1.5 rounded-lg transition-colors"
+                            style={{ background: 'var(--surface)', color: 'var(--text)' }}
                             title="O'ngga ko'chirish"
                           >
                             <ChevronRight className="w-4 h-4" />
@@ -1221,7 +1243,8 @@ const ProductsSection = () => {
                         <button
                           type="button"
                           onClick={() => handleRemoveImage(index)}
-                          className="bg-red-500 text-white p-1.5 rounded-lg hover:bg-red-600 transition-colors"
+                          className="p-1.5 rounded-lg text-white transition-colors"
+                          style={{ background: 'var(--danger)' }}
                           title="Rasmni o'chirish"
                         >
                           <X className="w-4 h-4" />
@@ -1233,7 +1256,7 @@ const ProductsSection = () => {
               )}
 
               <div className="flex gap-2 flex-wrap">
-                <label className={`flex-1 min-w-[200px] bg-gradient-to-r from-accent to-red-700 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-red-700 hover:to-red-800 transition-all flex items-center justify-center gap-2 ${uploadingImage ? 'opacity-50 cursor-wait' : ''}`}>
+                <label className={`a-btn a-btn-primary flex-1 min-w-[200px] justify-center ${uploadingImage ? 'opacity-50 cursor-wait' : ''}`} style={{ padding: '12px 16px' }}>
                   <Upload className="w-5 h-5" />
                   <span>{uploadingImage ? 'Yuklanmoqda...' : (allImages.length === 0 ? 'Rasmlarni yuklash' : 'Rasm qo\'shish')}</span>
                   <input
@@ -1249,10 +1272,11 @@ const ProductsSection = () => {
                 <button
                   type="button"
                   onClick={() => setShowUrlInput(!showUrlInput)}
-                  className="px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                  className="a-btn"
+                  style={{ padding: '12px 16px' }}
                 >
-                  <ImagePlus className="w-5 h-5 text-gray-600" />
-                  <span className="text-gray-700">URL orqali</span>
+                  <ImagePlus className="w-5 h-5" />
+                  <span>URL orqali</span>
                 </button>
               </div>
 
@@ -1263,12 +1287,13 @@ const ProductsSection = () => {
                     value={imageUrl}
                     onChange={(e) => setImageUrl(e.target.value)}
                     placeholder="Rasm URL manzilini kiriting..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    className="a-input flex-1"
                   />
                   <button
                     type="button"
                     onClick={handleAddImageUrl}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    className="a-btn text-white"
+                    style={{ background: 'var(--ok)', borderColor: 'var(--ok)' }}
                   >
                     Qo'shish
                   </button>
@@ -1278,14 +1303,14 @@ const ProductsSection = () => {
                       setShowUrlInput(false);
                       setImageUrl('');
                     }}
-                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+                    className="a-btn"
                   >
                     Bekor
                   </button>
                 </div>
               )}
 
-              <p className="text-xs text-gray-500 mt-2">
+              <p className="a-faint text-xs mt-2">
                 {allImages.length === 0 ? 'Kamida bitta rasm yuklang. ' : ''}
                 Birinchi rasm asosiy mahsulot rasmi bo'ladi. Tartibni o'zgartirish uchun strelkalarni bosing.
               </p>
@@ -1295,10 +1320,10 @@ const ProductsSection = () => {
 
             {/* Volume Pricing Section - only for products WITHOUT variants */}
             {formData.variants.length === 0 && (
-            <div className="md:col-span-2 border-t border-gray-200 pt-6">
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-4 border border-green-200">
+            <div className="md:col-span-2 pt-6" style={{ borderTop: '1px solid var(--border)' }}>
+              <div className="rounded-lg p-4" style={{ background: 'var(--ok-weak)', border: '1px solid var(--ok)' }}>
                 <div className="flex items-center justify-between mb-3">
-                  <label className="text-sm font-bold text-green-900">
+                  <label className="text-sm" style={{ fontWeight: 700, color: 'var(--ok)' }}>
                     Hajmli narxlash (Volume Discounts)
                   </label>
                   <button
@@ -1316,14 +1341,15 @@ const ProductsSection = () => {
                         volume_pricing: [...(formData.volume_pricing || []), newTier]
                       });
                     }}
-                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors"
+                    className="a-btn text-white"
+                    style={{ background: 'var(--ok)', borderColor: 'var(--ok)' }}
                   >
                     <Plus className="w-4 h-4" />
                     Daraja qo'shish
                   </button>
                 </div>
 
-                <p className="text-xs text-green-700 mb-4">
+                <p className="text-xs mb-4" style={{ color: 'var(--ok)' }}>
                   Ko'p miqdorda xarid qilgan xaridorlar uchun maxsus narxlarni belgilang
                 </p>
 
@@ -1332,10 +1358,10 @@ const ProductsSection = () => {
                     {formData.volume_pricing
                       .sort((a, b) => a.min_qty - b.min_qty)
                       .map((tier, index) => (
-                      <div key={index} className="bg-white p-3 rounded-lg border border-green-200 flex items-center gap-3">
+                      <div key={index} className="p-3 rounded-lg flex items-center gap-3" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
                         <div className="flex-1 grid grid-cols-3 gap-3">
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                            <label className="a-muted block text-xs font-medium mb-1">
                               Min miqdor
                             </label>
                             <input
@@ -1347,11 +1373,12 @@ const ProductsSection = () => {
                                 updated[index].min_qty = parseInt(e.target.value) || 1;
                                 setFormData({ ...formData, volume_pricing: updated });
                               }}
-                              className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              className="a-input text-sm"
+                              style={{ padding: '6px 12px' }}
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                            <label className="a-muted block text-xs font-medium mb-1">
                               Max miqdor
                             </label>
                             <input
@@ -1364,11 +1391,12 @@ const ProductsSection = () => {
                                 setFormData({ ...formData, volume_pricing: updated });
                               }}
                               placeholder="Cheksiz"
-                              className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              className="a-input text-sm"
+                              style={{ padding: '6px 12px' }}
                             />
                           </div>
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">
+                            <label className="a-muted block text-xs font-medium mb-1">
                               Har bir narxi (UZS)
                             </label>
                             <input
@@ -1380,7 +1408,8 @@ const ProductsSection = () => {
                                 updated[index].price = parseFloat(e.target.value) || 0;
                                 setFormData({ ...formData, volume_pricing: updated });
                               }}
-                              className="w-full px-3 py-1.5 border border-gray-300 rounded text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                              className="a-input text-sm"
+                              style={{ padding: '6px 12px' }}
                             />
                           </div>
                         </div>
@@ -1390,7 +1419,8 @@ const ProductsSection = () => {
                             const updated = formData.volume_pricing.filter((_, i) => i !== index);
                             setFormData({ ...formData, volume_pricing: updated.length > 0 ? updated : null });
                           }}
-                          className="bg-red-100 hover:bg-red-200 text-red-600 p-2 rounded-lg transition-colors"
+                          className="p-2 rounded-lg transition-colors"
+                          style={{ background: 'var(--danger-weak)', color: 'var(--danger)' }}
                           title="Darajani o'chirish"
                         >
                           <Edit className="w-4 h-4" />
@@ -1398,9 +1428,9 @@ const ProductsSection = () => {
                       </div>
                     ))}
 
-                    <div className="bg-red-50 border border-blue-200 rounded-lg p-3">
-                      <p className="text-xs font-semibold text-blue-900 mb-2">📊 Ko'rinish:</p>
-                      <div className="text-xs text-blue-800 space-y-1">
+                    <div className="rounded-lg p-3" style={{ background: 'var(--info-weak)', border: '1px solid var(--info)' }}>
+                      <p className="text-xs font-semibold mb-2" style={{ color: 'var(--info)' }}>📊 Ko'rinish:</p>
+                      <div className="text-xs space-y-1" style={{ color: 'var(--info)' }}>
                         {formData.volume_pricing
                           .sort((a, b) => a.min_qty - b.min_qty)
                           .map((tier, idx) => (
@@ -1412,7 +1442,7 @@ const ProductsSection = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-6 text-gray-500 text-sm">
+                  <div className="a-faint text-center py-6 text-sm">
                     <p className="mb-2">Hozircha hajmli narxlash yo'q</p>
                     <p className="text-xs">Yuqoridagi "Daraja qo'shish" tugmasini bosing</p>
                   </div>
@@ -1423,7 +1453,7 @@ const ProductsSection = () => {
 
             {/* A+ Content Section */}
             <div className="md:col-span-2">
-              <div className="border border-gray-200 rounded-lg p-4">
+              <div className="rounded-lg p-4" style={{ border: '1px solid var(--border)' }}>
                 <APlusEditor
                   value={formData.aPlusContent}
                   onChange={(value) => setFormData({ ...formData, aPlusContent: value })}
@@ -1435,7 +1465,8 @@ const ProductsSection = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className={`bg-accent hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${submitting ? 'opacity-50 cursor-wait' : ''}`}
+                className={`a-btn a-btn-primary ${submitting ? 'opacity-50 cursor-wait' : ''}`}
+                style={{ padding: '10px 24px' }}
               >
                 {submitting && (
                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
@@ -1454,7 +1485,8 @@ const ProductsSection = () => {
                   setAllImages([]);
                   setFormErrors({});
                 }}
-                className={`bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-medium transition-colors ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`a-btn ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                style={{ padding: '10px 24px' }}
               >
                 Bekor qilish
               </button>
@@ -1464,17 +1496,18 @@ const ProductsSection = () => {
       )}
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow p-4 mb-4">
+      <div className="a-card" style={{ padding: 16, marginBottom: 16 }}>
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[200px]">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="a-faint absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
               <input
                 type="text"
                 placeholder="Mahsulot qidirish..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                className="a-input"
+                style={{ paddingLeft: 40 }}
               />
             </div>
           </div>
@@ -1483,7 +1516,7 @@ const ProductsSection = () => {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+              className="a-input"
             >
               <option value="">Barcha kategoriyalar</option>
               {categories?.map(cat => (
@@ -1496,7 +1529,7 @@ const ProductsSection = () => {
             <select
               value={stockFilter}
               onChange={(e) => setStockFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+              className="a-input"
             >
               <option value="">Ombor holati</option>
               <option value="in_stock">Mavjud (10+)</option>
@@ -1512,38 +1545,38 @@ const ProductsSection = () => {
                 setCategoryFilter('');
                 setStockFilter('');
               }}
-              className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              className="a-btn"
             >
               Tozalash
             </button>
           )}
         </div>
 
-        <div className="mt-3 text-sm text-gray-600">
+        <div className="a-muted mt-3 text-sm">
           {filteredProducts.length} ta mahsulot topildi
           {filteredProducts.length !== products.length && ` (jami: ${products.length})`}
         </div>
       </div>
 
       {/* Products Table */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="a-card" style={{ padding: 0 }}>
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
+          <table className="a-table">
+            <thead>
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mahsulot</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kategoriya</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Narxi</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ombor</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Holat</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">UZUM</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amallar</th>
+                <th>Mahsulot</th>
+                <th>Kategoriya</th>
+                <th>Narxi</th>
+                <th>Ombor</th>
+                <th>Holat</th>
+                <th>UZUM</th>
+                <th>Amallar</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody>
               {filteredProducts.map((product) => (
-                <tr key={product.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
+                <tr key={product.id}>
+                  <td>
                     <div className="flex items-center">
                       <img
                         src={product.image}
@@ -1551,99 +1584,97 @@ const ProductsSection = () => {
                         className="w-12 h-12 object-cover rounded-lg mr-4"
                       />
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                        <div className="text-sm text-gray-500">{product.description?.substring(0, 50)}...</div>
+                        <div className="text-sm font-medium" style={{ color: 'var(--text)' }}>{product.name}</div>
+                        <div className="a-faint text-sm">{product.description?.substring(0, 50)}...</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{product.category}</td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">{formatPrice(product.price)}</div>
+                  <td className="text-sm" style={{ color: 'var(--text)' }}>{product.category}</td>
+                  <td>
+                    <div className="a-num text-sm font-medium" style={{ color: 'var(--text)' }}>{formatPrice(product.price)}</div>
                     {product.originalPrice && (
-                      <div className="text-sm text-gray-500 line-through">{formatPrice(product.originalPrice)}</div>
+                      <div className="a-faint a-num text-sm line-through">{formatPrice(product.originalPrice)}</div>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td>
                     {(() => {
                       const displayStock = product.variants && product.variants.length > 0
                         ? getTotalVariantStock(product.variants)
                         : (product.stock || 0);
 
                       return (
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          displayStock > 10 ? 'bg-green-100 text-green-800' :
-                          displayStock > 0 ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
+                        <span className={`a-pill ${
+                          displayStock > 10 ? 'a-pill-ok' :
+                          displayStock > 0 ? 'a-pill-warn' :
+                          'a-pill-danger'
                         }`}>
                           {displayStock} dona
                         </span>
                       );
                     })()}
                   </td>
-                  <td className="px-6 py-4">
+                  <td>
                     {(() => {
                       const displayStock = product.variants && product.variants.length > 0
                         ? getTotalVariantStock(product.variants)
                         : (product.stock || 0);
 
                       return (
-                        <span className={`px-2 py-1 text-xs rounded-full ${
-                          displayStock > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
+                        <span className={`a-pill ${displayStock > 0 ? 'a-pill-ok' : 'a-pill-danger'}`}>
                           {displayStock > 0 ? 'Mavjud' : 'Tugagan'}
                         </span>
                       );
                     })()}
                   </td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="text-sm">
                     {product.uzumUrl ? (
-                      <span className="px-2 py-1 text-xs rounded-full bg-purple-100 text-purple-800 font-medium">
+                      <span className="a-pill" style={{ color: '#7B68EE', background: 'rgba(123,104,238,.14)' }}>
                         {uzumStats[product.id]?.count || 0} klik
                       </span>
                     ) : (
-                      <span className="text-gray-300">—</span>
+                      <span className="a-faint">—</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm">
+                  <td className="text-sm">
                     <div className="flex gap-2">
                       <button
                         onClick={() => handleToggleVisibility(product)}
-                        className={product.visible === false ? 'text-gray-400 hover:text-gray-600' : 'text-green-600 hover:text-green-800'}
+                        style={{ color: product.visible === false ? 'var(--text-3)' : 'var(--ok)' }}
                         title={product.visible === false ? 'Ko\'rsatish' : 'Yashirish'}
                       >
                         {product.visible === false ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                       <button
                         onClick={() => handleNotifyNewProduct(product, true)}
-                        className="text-purple-400 hover:text-purple-600"
+                        style={{ color: '#9F8FEE' }}
                         title="Test yuborish (faqat o'zim)"
                       >
                         <Send className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleNotifyNewProduct(product)}
-                        className="text-purple-600 hover:text-purple-800"
+                        style={{ color: '#7B68EE' }}
                         title="Hammaga yuborish"
                       >
                         <Send className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleEdit(product)}
-                        className="text-accent hover:text-red-800"
+                        style={{ color: 'var(--accent)' }}
                         title="Tahrirlash"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDuplicate(product)}
-                        className="text-blue-600 hover:text-blue-800"
+                        style={{ color: 'var(--info)' }}
                         title="Nusxalash"
                       >
                         <Copy className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(product.id)}
-                        className="text-red-600 hover:text-red-800"
+                        style={{ color: 'var(--danger)' }}
                         title="O'chirish"
                       >
                         <Trash2 className="w-4 h-4" />

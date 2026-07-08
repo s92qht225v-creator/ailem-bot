@@ -57,11 +57,10 @@ const ReviewsSection = () => {
         {[1, 2, 3, 4, 5].map((star) => (
           <Star
             key={star}
-            className={`w-5 h-5 ${
-              star <= rating
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'text-gray-300'
-            }`}
+            className="w-5 h-5"
+            style={star <= rating
+              ? { fill: 'var(--warn)', color: 'var(--warn)' }
+              : { color: 'var(--text-3)' }}
           />
         ))}
       </div>
@@ -71,51 +70,39 @@ const ReviewsSection = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Sharhlarni boshqarish</h3>
+        <h3 className="a-muted" style={{ fontSize: 16, fontWeight: 650 }}>Sharhlarni boshqarish</h3>
         <button
           onClick={() => exportReviews(filteredReviews, `reviews_${filter}`)}
-          className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 flex items-center gap-2 transition-colors"
+          className="a-btn"
         >
           <Download className="w-4 h-4" />
           CSV yuklab olish
         </button>
       </div>
 
-      <div className="bg-white rounded-lg shadow">
-        <div className="border-b">
-          <div className="flex">
+      <div className="a-card">
+        <div style={{ borderBottom: '1px solid var(--border)' }}>
+          <div className="flex" style={{ gap: 8, padding: 8 }}>
             <button
               onClick={() => setFilter('all')}
-              className={`px-6 py-3 font-medium transition-colors ${
-                filter === 'all'
-                  ? 'border-b-2 border-primary text-primary'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`a-tab ${filter === 'all' ? 'a-tab-on' : ''}`}
             >
               Barcha sharhlar ({reviews?.length || 0})
             </button>
             <button
               onClick={() => setFilter('pending')}
-              className={`px-6 py-3 font-medium transition-colors relative ${
-                filter === 'pending'
-                  ? 'border-b-2 border-primary text-primary'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`a-tab relative ${filter === 'pending' ? 'a-tab-on' : ''}`}
             >
               Kutilmoqda ({pendingReviews})
               {pendingReviews > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                <span className="absolute -top-1 -right-1 text-white text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--danger)' }}>
                   {pendingReviews}
                 </span>
               )}
             </button>
             <button
               onClick={() => setFilter('approved')}
-              className={`px-6 py-3 font-medium transition-colors ${
-                filter === 'approved'
-                  ? 'border-b-2 border-primary text-primary'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              className={`a-tab ${filter === 'approved' ? 'a-tab-on' : ''}`}
             >
               Tasdiqlangan ({reviews?.filter(r => r.approved).length || 0})
             </button>
@@ -126,60 +113,58 @@ const ReviewsSection = () => {
       {filteredReviews.length > 0 ? (
         <div className="space-y-4">
           {filteredReviews.map((review) => (
-            <div key={review.id} className="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+            <div key={review.id} className="a-card">
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-10 h-10 bg-gradient-to-br from-red-400 to-red-700 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold" style={{ background: 'linear-gradient(to bottom right, var(--accent), var(--accent-ink))' }}>
                         {(review.user_name || review.userName)?.charAt(0).toUpperCase() || 'U'}
                       </div>
                       <div>
-                        <h4 className="font-semibold text-gray-900">{review.user_name || review.userName || 'Anonim'}</h4>
-                        <p className="text-sm text-gray-500">{formatDate(review.created_at || review.createdAt)}</p>
+                        <h4 style={{ fontWeight: 600, color: 'var(--text)', margin: 0 }}>{review.user_name || review.userName || 'Anonim'}</h4>
+                        <p className="a-faint" style={{ fontSize: 13, margin: 0 }}>{formatDate(review.created_at || review.createdAt)}</p>
                       </div>
                     </div>
                     {renderStars(review.rating)}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                      review.approved
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}>
+                    <span className={`a-pill ${review.approved ? 'a-pill-ok' : 'a-pill-warn'}`}>
                       {review.approved ? 'Tasdiqlangan' : 'Kutilmoqda'}
                     </span>
                   </div>
                 </div>
 
                 {review.productName && (
-                  <div className="mb-3 pb-3 border-b flex items-center gap-3">
+                  <div className="mb-3 pb-3 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border)' }}>
                     {review.productImage && (
                       <img
                         src={review.productImage}
                         alt={review.productName}
-                        className="w-16 h-16 object-cover rounded-lg border border-gray-200"
+                        className="w-16 h-16 object-cover rounded-lg"
+                        style={{ border: '1px solid var(--border)' }}
                         onError={(e) => e.target.style.display = 'none'}
                       />
                     )}
                     <div>
-                      <p className="text-xs text-gray-500 uppercase font-medium mb-1">Mahsulot</p>
-                      <p className="font-medium text-gray-900">{review.productName}</p>
+                      <p className="a-faint" style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 500, marginBottom: 4 }}>Mahsulot</p>
+                      <p style={{ fontWeight: 500, color: 'var(--text)', margin: 0 }}>{review.productName}</p>
                     </div>
                   </div>
                 )}
 
                 {review.comment && (
                   <div className="mb-4">
-                    <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                    <p className="a-muted" style={{ lineHeight: 1.6 }}>{review.comment}</p>
                   </div>
                 )}
 
-                <div className="flex gap-2 pt-4 border-t">
+                <div className="flex gap-2 pt-4" style={{ borderTop: '1px solid var(--border)' }}>
                   {!review.approved && (
                     <button
                       onClick={() => handleApprove(review.id)}
-                      className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                      className="a-btn flex-1"
+                      style={{ justifyContent: 'center', color: 'var(--ok)', background: 'var(--ok-weak)', borderColor: 'var(--ok-weak)' }}
                     >
                       <CheckCircle className="w-4 h-4" />
                       Sharhni tasdiqlash
@@ -187,7 +172,8 @@ const ReviewsSection = () => {
                   )}
                   <button
                     onClick={() => handleDelete(review.id)}
-                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                    className="a-btn flex-1"
+                    style={{ justifyContent: 'center', color: 'var(--danger)', background: 'var(--danger-weak)', borderColor: 'var(--danger-weak)' }}
                   >
                     <Trash2 className="w-4 h-4" />
                     O'chirish
@@ -198,12 +184,12 @@ const ReviewsSection = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <Star className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <div className="a-card p-12 text-center">
+          <Star className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--text-3)' }} />
+          <h3 className="a-muted" style={{ fontSize: 16, fontWeight: 650, marginBottom: 8 }}>
             {filter === 'pending' ? 'Kutilayotgan sharhlar yo\'q' : filter === 'approved' ? 'Hozircha tasdiqlangan sharhlar yo\'q' : 'Hozircha sharhlar yo\'q'}
           </h3>
-          <p className="text-gray-600">
+          <p className="a-faint">
             {filter === 'all' ? 'Mijoz sharhlari yuborilganda shu yerda ko\'rinadi' : `${filter === 'pending' ? 'Tasdiqlangan' : 'Kutilayotgan'} sharhlarni ko\'rish uchun boshqa bo\'limga o\'ting`}
           </p>
         </div>

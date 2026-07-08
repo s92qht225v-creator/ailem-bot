@@ -170,10 +170,10 @@ const WalkInCustomersSection = () => {
   const totalSpent = customers.reduce((sum, c) => sum + Number(c.total_spent || 0), 0);
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-6 border-b">
+    <div className="a-card">
+      <div className="p-6" style={{ borderBottom: '1px solid var(--border)' }}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold flex items-center gap-2">
+          <h3 className="a-muted flex items-center gap-2" style={{ fontSize: 16, fontWeight: 650 }}>
             <Users className="w-5 h-5" />
             Do'kon mijozlari
           </h3>
@@ -181,26 +181,27 @@ const WalkInCustomersSection = () => {
             <button
               onClick={loadCustomers}
               disabled={loading}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2"
+              className="a-btn"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
               Yangilash
             </button>
             <div className="relative group">
-              <button className="px-3 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-2">
+              <button className="a-btn a-btn-primary" style={{ background: 'var(--ok)', borderColor: 'var(--ok)' }}>
                 <Download className="w-4 h-4" />
                 Eksport
               </button>
-              <div className="absolute right-0 mt-1 w-48 bg-white border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
+              <div className="absolute right-0 mt-1 w-48 rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10" style={{ background: 'var(--surface)', border: '1px solid var(--border)', boxShadow: '0 8px 24px rgba(0,0,0,.12)' }}>
                 <button
                   onClick={exportToCSV}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50"
+                  className="a-muted w-full px-4 py-2 text-left text-sm"
                 >
                   CSV (Excel uchun)
                 </button>
                 <button
                   onClick={exportPhoneNumbers}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 border-t"
+                  className="a-muted w-full px-4 py-2 text-left text-sm"
+                  style={{ borderTop: '1px solid var(--border)' }}
                 >
                   Telefon raqamlar (SMS)
                 </button>
@@ -211,111 +212,115 @@ const WalkInCustomersSection = () => {
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-4">
-          <div className="bg-red-50 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-accent text-sm">
+          <div className="rounded-lg p-3" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--accent)' }}>
               <Users className="w-4 h-4" />
               Jami mijozlar
             </div>
-            <p className="text-2xl font-bold text-blue-700 mt-1">{totalCustomers}</p>
+            <p className="a-num" style={{ fontSize: 24, fontWeight: 700, color: 'var(--info)', marginTop: 4 }}>{totalCustomers}</p>
           </div>
-          <div className="bg-green-50 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-green-600 text-sm">
+          <div className="rounded-lg p-3" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+            <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--ok)' }}>
               <ShoppingBag className="w-4 h-4" />
               Jami buyurtmalar
             </div>
-            <p className="text-2xl font-bold text-green-700 mt-1">{totalOrders}</p>
+            <p className="a-num" style={{ fontSize: 24, fontWeight: 700, color: 'var(--ok)', marginTop: 4 }}>{totalOrders}</p>
           </div>
-          <div className="bg-purple-50 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-purple-600 text-sm">
+          <div className="rounded-lg p-3" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+            <div className="flex items-center gap-2 text-sm text-purple-600">
               <DollarSign className="w-4 h-4" />
               Jami savdo
             </div>
-            <p className="text-2xl font-bold text-purple-700 mt-1">{formatPrice(totalSpent)}</p>
+            <p className="a-num text-purple-600" style={{ fontSize: 24, fontWeight: 700, marginTop: 4 }}>{formatPrice(totalSpent)}</p>
           </div>
         </div>
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--text-3)' }} />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Ism yoki telefon bo'yicha qidirish..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+            className="a-input w-full"
+            style={{ paddingLeft: 40 }}
           />
         </div>
       </div>
 
       {/* Table */}
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
+        <table className="a-table">
+          <thead>
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ism</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Telefon</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Buyurtmalar</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jami xarid</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Qo'shilgan</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amallar</th>
+              <th>Ism</th>
+              <th>Telefon</th>
+              <th>Buyurtmalar</th>
+              <th>Jami xarid</th>
+              <th>Qo'shilgan</th>
+              <th>Amallar</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody>
             {loading ? (
               <tr>
                 <td colSpan="6" className="px-6 py-12 text-center">
-                  <RefreshCw className="w-6 h-6 animate-spin mx-auto text-gray-400" />
-                  <p className="text-gray-500 mt-2">Yuklanmoqda...</p>
+                  <RefreshCw className="w-6 h-6 animate-spin mx-auto" style={{ color: 'var(--text-3)' }} />
+                  <p className="a-faint mt-2">Yuklanmoqda...</p>
                 </td>
               </tr>
             ) : filteredCustomers.length === 0 ? (
               <tr>
-                <td colSpan="6" className="px-6 py-12 text-center text-gray-500">
+                <td colSpan="6" className="a-faint px-6 py-12 text-center">
                   {searchQuery ? 'Mijoz topilmadi' : 'Hali mijozlar yo\'q'}
                 </td>
               </tr>
             ) : (
               filteredCustomers.map((customer) => (
-                <tr key={customer.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900">{customer.name}</div>
+                <tr key={customer.id}>
+                  <td>
+                    <div style={{ fontWeight: 500, color: 'var(--text)' }}>{customer.name}</div>
                     {customer.notes && (
-                      <div className="text-xs text-gray-500 truncate max-w-[200px]">{customer.notes}</div>
+                      <div className="a-faint truncate max-w-[200px]" style={{ fontSize: 12 }}>{customer.notes}</div>
                     )}
                   </td>
-                  <td className="px-6 py-4">
+                  <td>
                     <a
                       href={`tel:${customer.phone}`}
-                      className="flex items-center gap-1 text-accent hover:text-red-800"
+                      className="flex items-center gap-1"
+                      style={{ color: 'var(--accent)' }}
                     >
                       <Phone className="w-3 h-3" />
                       {customer.phone}
                     </a>
                   </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                  <td>
+                    <span className="a-pill a-pill-info">
                       <ShoppingBag className="w-3 h-3" />
                       {customer.total_orders || 0}
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-medium text-gray-900">
+                  <td className="a-num" style={{ fontWeight: 500, color: 'var(--text)' }}>
                     {formatPrice(customer.total_spent || 0)}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="a-faint">
                     {customer.created_at ? formatDate(customer.created_at) : '-'}
                   </td>
-                  <td className="px-6 py-4">
+                  <td>
                     <div className="flex gap-2">
                       <button
                         onClick={() => startEdit(customer)}
-                        className="p-1.5 text-accent hover:bg-red-50 rounded"
+                        className="p-1.5 rounded"
+                        style={{ color: 'var(--accent)' }}
                         title="Tahrirlash"
                       >
                         <Edit2 className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDelete(customer)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded"
+                        className="p-1.5 rounded"
+                        style={{ color: 'var(--danger)' }}
                         title="O'chirish"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -332,52 +337,52 @@ const WalkInCustomersSection = () => {
       {/* Edit Modal */}
       {editingCustomer && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="p-4 border-b flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Mijozni tahrirlash</h3>
-              <button onClick={cancelEdit} className="p-2 hover:bg-gray-100 rounded-full">
+          <div className="a-card max-w-md w-full">
+            <div className="p-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)' }}>
+              <h3 className="a-muted" style={{ fontSize: 16, fontWeight: 650 }}>Mijozni tahrirlash</h3>
+              <button onClick={cancelEdit} className="a-muted p-2 rounded-full">
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="p-4 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Ism</label>
+                <label className="a-muted block text-sm font-medium mb-1">Ism</label>
                 <input
                   type="text"
                   value={editForm.name}
                   onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                  className="a-input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                <label className="a-muted block text-sm font-medium mb-1">Telefon</label>
                 <input
                   type="tel"
                   value={editForm.phone}
                   onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                  className="a-input w-full"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Izoh</label>
+                <label className="a-muted block text-sm font-medium mb-1">Izoh</label>
                 <textarea
                   value={editForm.notes}
                   onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary"
+                  className="a-input w-full"
                 />
               </div>
             </div>
-            <div className="p-4 border-t flex justify-end gap-2">
+            <div className="p-4 flex justify-end gap-2" style={{ borderTop: '1px solid var(--border)' }}>
               <button
                 onClick={cancelEdit}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                className="a-btn"
               >
                 Bekor qilish
               </button>
               <button
                 onClick={saveEdit}
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-red-700 flex items-center gap-2"
+                className="a-btn a-btn-primary"
               >
                 <Save className="w-4 h-4" />
                 Saqlash

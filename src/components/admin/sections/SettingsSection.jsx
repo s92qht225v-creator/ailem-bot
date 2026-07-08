@@ -1,7 +1,9 @@
 const SettingsSection = () => {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      Sozlamalar paneli tez orada...
+    <div className="a-card">
+      <div style={{ padding: 16 }} className="a-muted">
+        Sozlamalar paneli tez orada...
+      </div>
     </div>
   );
 };

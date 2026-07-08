@@ -16,62 +16,68 @@ const AnalyticsSection = () => {
     <div className="space-y-6">
       {/* Revenue Overview */}
       <div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Daromad umumiy ko'rinishi</h3>
+        <h3 className="a-muted" style={{ fontSize: 16, fontWeight: 650, marginBottom: 16 }}>Daromad umumiy ko'rinishi</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">Umumiy daromad</p>
-              <DollarSign className="w-5 h-5 text-green-500" />
+          <div className="a-kpi">
+            <div className="flex items-center justify-between">
+              <p className="a-muted" style={{ fontSize: 12.5, fontWeight: 500 }}>Umumiy daromad</p>
+              <div className="a-kpi-ico text-green-500" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+                <DollarSign className="w-4 h-4" />
+              </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{formatPrice(analytics.totalRevenue)}</p>
+            <p className="a-kpi-val">{formatPrice(analytics.totalRevenue)}</p>
             <div className="mt-2 flex items-center gap-1">
               {analytics.revenueGrowth >= 0 ? (
-                <TrendingUp className="w-4 h-4 text-green-500" />
+                <TrendingUp className="w-4 h-4" style={{ color: 'var(--ok)' }} />
               ) : (
-                <TrendingDown className="w-4 h-4 text-red-500" />
+                <TrendingDown className="w-4 h-4" style={{ color: 'var(--danger)' }} />
               )}
-              <span className={`text-sm font-medium ${
-                analytics.revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <span style={{ fontSize: 13, fontWeight: 500, color: analytics.revenueGrowth >= 0 ? 'var(--ok)' : 'var(--danger)' }}>
                 {analytics.revenueGrowth >= 0 ? '+' : ''}{analytics.revenueGrowth.toFixed(1)}%
               </span>
-              <span className="text-xs text-gray-500">o'tgan oyga nisbatan</span>
+              <span className="a-faint" style={{ fontSize: 12 }}>o'tgan oyga nisbatan</span>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">Bu oy</p>
-              <Calendar className="w-5 h-5 text-accent" />
+          <div className="a-kpi">
+            <div className="flex items-center justify-between">
+              <p className="a-muted" style={{ fontSize: 12.5, fontWeight: 500 }}>Bu oy</p>
+              <div className="a-kpi-ico" style={{ color: 'var(--accent)', background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+                <Calendar className="w-4 h-4" />
+              </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{formatPrice(analytics.monthRevenue)}</p>
-            <p className="text-sm text-gray-500 mt-2">{analytics.monthOrdersCount} buyurtma</p>
+            <p className="a-kpi-val">{formatPrice(analytics.monthRevenue)}</p>
+            <p className="a-faint" style={{ fontSize: 13, marginTop: 8 }}>{analytics.monthOrdersCount} buyurtma</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">Bu hafta</p>
-              <Calendar className="w-5 h-5 text-purple-500" />
+          <div className="a-kpi">
+            <div className="flex items-center justify-between">
+              <p className="a-muted" style={{ fontSize: 12.5, fontWeight: 500 }}>Bu hafta</p>
+              <div className="a-kpi-ico text-purple-500" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+                <Calendar className="w-4 h-4" />
+              </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{formatPrice(analytics.weekRevenue)}</p>
-            <p className="text-sm text-gray-500 mt-2">{analytics.weekOrdersCount} buyurtma</p>
+            <p className="a-kpi-val">{formatPrice(analytics.weekRevenue)}</p>
+            <p className="a-faint" style={{ fontSize: 13, marginTop: 8 }}>{analytics.weekOrdersCount} buyurtma</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm text-gray-600">O'rtacha buyurtma qiymati</p>
-              <ShoppingBag className="w-5 h-5 text-orange-500" />
+          <div className="a-kpi">
+            <div className="flex items-center justify-between">
+              <p className="a-muted" style={{ fontSize: 12.5, fontWeight: 500 }}>O'rtacha buyurtma qiymati</p>
+              <div className="a-kpi-ico text-orange-500" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+                <ShoppingBag className="w-4 h-4" />
+              </div>
             </div>
-            <p className="text-3xl font-bold text-gray-900">{formatPrice(analytics.avgOrderValue)}</p>
-            <p className="text-sm text-gray-500 mt-2">Har bir buyurtma uchun</p>
+            <p className="a-kpi-val">{formatPrice(analytics.avgOrderValue)}</p>
+            <p className="a-faint" style={{ fontSize: 13, marginTop: 8 }}>Har bir buyurtma uchun</p>
           </div>
         </div>
       </div>
 
       {/* Revenue Chart */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">So'nggi 7 kunlik daromad</h3>
-        <div className="space-y-4">
+      <div className="a-card">
+        <div className="a-card-h"><h3>So'nggi 7 kunlik daromad</h3></div>
+        <div className="space-y-4" style={{ padding: 16 }}>
           {chartData.map((day, index) => {
             const maxRevenue = Math.max(...chartData.map(d => d.revenue));
             const percentage = maxRevenue > 0 ? (day.revenue / maxRevenue) * 100 : 0;
@@ -79,16 +85,16 @@ const AnalyticsSection = () => {
             return (
               <div key={index} className="space-y-1">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600 font-medium">{day.date}</span>
-                  <span className="font-semibold text-gray-900">{formatPrice(day.revenue)}</span>
+                  <span className="a-muted" style={{ fontWeight: 500 }}>{day.date}</span>
+                  <span className="a-num" style={{ fontWeight: 600, color: 'var(--text)' }}>{formatPrice(day.revenue)}</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-3">
+                <div className="rounded-full h-3" style={{ width: '100%', background: 'var(--accent-weak)' }}>
                   <div
-                    className="bg-gradient-to-r from-accent to-red-700 h-3 rounded-full transition-all"
-                    style={{ width: `${percentage}%` }}
+                    className="h-3 rounded-full transition-all"
+                    style={{ width: `${percentage}%`, background: 'linear-gradient(to right, var(--accent), var(--accent-ink))' }}
                   ></div>
                 </div>
-                <p className="text-xs text-gray-500">{day.orders} buyurtma</p>
+                <p className="a-faint" style={{ fontSize: 12 }}>{day.orders} buyurtma</p>
               </div>
             );
           })}
@@ -97,133 +103,134 @@ const AnalyticsSection = () => {
 
       {/* Order & Customer Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Buyurtma statistikasi</h3>
-          <div className="space-y-4">
+        <div className="a-card">
+          <div className="a-card-h"><h3>Buyurtma statistikasi</h3></div>
+          <div className="space-y-4" style={{ padding: 16 }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <CheckCircle className="w-5 h-5 text-green-600" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-green-600" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+                  <CheckCircle className="w-5 h-5" />
                 </div>
-                <span className="text-gray-700">Bajarilgan</span>
+                <span className="a-muted">Bajarilgan</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">{analytics.totalOrders}</span>
+              <span className="a-num" style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>{analytics.totalOrders}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-yellow-600" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-yellow-600" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+                  <Clock className="w-5 h-5" />
                 </div>
-                <span className="text-gray-700">Kutilmoqda</span>
+                <span className="a-muted">Kutilmoqda</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">{analytics.pendingOrdersCount}</span>
+              <span className="a-num" style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>{analytics.pendingOrdersCount}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <ShoppingBag className="w-5 h-5 text-accent" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ color: 'var(--accent)', background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+                  <ShoppingBag className="w-5 h-5" />
                 </div>
-                <span className="text-gray-700">Tasdiqlangan</span>
+                <span className="a-muted">Tasdiqlangan</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">{analytics.ordersByStatus.approved}</span>
+              <span className="a-num" style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>{analytics.ordersByStatus.approved}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Truck className="w-5 h-5 text-purple-600" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-purple-600" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+                  <Truck className="w-5 h-5" />
                 </div>
-                <span className="text-gray-700">Jo'natilgan</span>
+                <span className="a-muted">Jo'natilgan</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">{analytics.ordersByStatus.shipped}</span>
+              <span className="a-num" style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>{analytics.ordersByStatus.shipped}</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Mijoz ko'rsatkichlari</h3>
-          <div className="space-y-4">
+        <div className="a-card">
+          <div className="a-card-h"><h3>Mijoz ko'rsatkichlari</h3></div>
+          <div className="space-y-4" style={{ padding: 16 }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                  <UsersIcon className="w-5 h-5 text-indigo-600" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-indigo-600" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+                  <UsersIcon className="w-5 h-5" />
                 </div>
-                <span className="text-gray-700">Jami mijozlar</span>
+                <span className="a-muted">Jami mijozlar</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">{analytics.totalCustomers}</span>
+              <span className="a-num" style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>{analytics.totalCustomers}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-teal-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-teal-600" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-teal-600" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+                  <TrendingUp className="w-5 h-5" />
                 </div>
-                <span className="text-gray-700">Konversiya darajasi</span>
+                <span className="a-muted">Konversiya darajasi</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">{analytics.conversionRate.toFixed(1)}%</span>
+              <span className="a-num" style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>{analytics.conversionRate.toFixed(1)}%</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-pink-100 rounded-lg flex items-center justify-center">
-                  <Gift className="w-5 h-5 text-pink-600" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-pink-600" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+                  <Gift className="w-5 h-5" />
                 </div>
-                <span className="text-gray-700">Jami takliflar</span>
+                <span className="a-muted">Jami takliflar</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">{analytics.totalReferrals}</span>
+              <span className="a-num" style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>{analytics.totalReferrals}</span>
             </div>
 
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                  <UsersIcon className="w-5 h-5 text-orange-600" />
+                <div className="w-10 h-10 rounded-lg flex items-center justify-center text-orange-600" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+                  <UsersIcon className="w-5 h-5" />
                 </div>
-                <span className="text-gray-700">Faol taklif qiluvchilar</span>
+                <span className="a-muted">Faol taklif qiluvchilar</span>
               </div>
-              <span className="text-xl font-bold text-gray-900">{analytics.usersWithReferrals}</span>
+              <span className="a-num" style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>{analytics.usersWithReferrals}</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Top Products */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Eng ko'p sotilgan mahsulotlar</h3>
+      <div className="a-card">
+        <div className="a-card-h"><h3>Eng ko'p sotilgan mahsulotlar</h3></div>
+        <div style={{ padding: 16 }}>
         {analytics.topProducts.length > 0 ? (
           <div className="space-y-4">
             {analytics.topProducts.map((product, index) => (
-              <div key={product.productId} className="bg-gray-50 rounded-lg overflow-hidden">
+              <div key={product.productId} className="rounded-lg overflow-hidden" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                 <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-gradient-to-br from-accent to-red-700 rounded-lg flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold" style={{ background: 'linear-gradient(to bottom right, var(--accent), var(--accent-ink))' }}>
                       #{index + 1}
                     </div>
                     <div>
-                      <p className="font-semibold text-gray-900">{product.name}</p>
-                      <p className="text-sm text-gray-500">{product.quantity} dona sotildi</p>
+                      <p style={{ fontWeight: 600, color: 'var(--text)', margin: 0 }}>{product.name}</p>
+                      <p className="a-faint" style={{ fontSize: 13, margin: 0 }}>{product.quantity} dona sotildi</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-gray-900">{formatPrice(product.revenue)}</p>
-                    <p className="text-sm text-gray-500">Daromad</p>
+                    <p className="a-num" style={{ fontWeight: 700, color: 'var(--text)', margin: 0 }}>{formatPrice(product.revenue)}</p>
+                    <p className="a-faint" style={{ fontSize: 13, margin: 0 }}>Daromad</p>
                   </div>
                 </div>
 
                 {product.variants && product.variants.length > 0 && (
                   <div className="px-4 pb-4">
-                    <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Top variantlar:</p>
+                    <p className="a-faint" style={{ fontSize: 11, fontWeight: 600, textTransform: 'uppercase', marginBottom: 8 }}>Top variantlar:</p>
                     <div className="grid grid-cols-2 gap-2">
                       {product.variants.slice(0, 4).map((variant, vIdx) => (
-                        <div key={vIdx} className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
-                          <span className="text-xs text-gray-700">{variant.label}</span>
-                          <span className="text-xs font-semibold text-gray-900">{variant.quantity} sotildi</span>
+                        <div key={vIdx} className="flex items-center justify-between p-2 rounded" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+                          <span className="a-muted" style={{ fontSize: 12 }}>{variant.label}</span>
+                          <span className="a-num" style={{ fontSize: 12, fontWeight: 600, color: 'var(--text)' }}>{variant.quantity} sotildi</span>
                         </div>
                       ))}
                     </div>
                     {product.variants.length > 4 && (
-                      <p className="text-xs text-gray-500 mt-2">+{product.variants.length - 4} ta variant</p>
+                      <p className="a-faint" style={{ fontSize: 12, marginTop: 8 }}>+{product.variants.length - 4} ta variant</p>
                     )}
                   </div>
                 )}
@@ -231,26 +238,27 @@ const AnalyticsSection = () => {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 text-center py-8">Hozircha savdo ma'lumotlari yo'q</p>
+          <p className="a-faint" style={{ textAlign: 'center', padding: '32px 0' }}>Hozircha savdo ma'lumotlari yo'q</p>
         )}
+        </div>
       </div>
 
       {/* Inventory Alerts */}
       {(analytics.lowStockProducts > 0 || analytics.outOfStockProducts > 0) && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <div className="rounded-lg p-6" style={{ background: 'var(--warn-weak)', border: '1px solid var(--warn)' }}>
           <div className="flex items-start gap-3">
-            <AlertTriangle className="w-6 h-6 text-yellow-600 flex-shrink-0 mt-1" />
+            <AlertTriangle className="w-6 h-6 flex-shrink-0 mt-1" style={{ color: 'var(--warn)' }} />
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-yellow-900 mb-2">Ombor ogohlantirishlari</h3>
+              <h3 style={{ fontSize: 16, fontWeight: 650, marginBottom: 8, color: 'var(--text)' }}>Ombor ogohlantirishlari</h3>
               <div className="space-y-2">
                 {analytics.outOfStockProducts > 0 && (
-                  <p className="text-yellow-800">
-                    <strong>{analytics.outOfStockProducts}</strong> ta mahsulot tugagan
+                  <p className="a-muted">
+                    <strong style={{ color: 'var(--text)' }}>{analytics.outOfStockProducts}</strong> ta mahsulot tugagan
                   </p>
                 )}
                 {analytics.lowStockProducts > 0 && (
-                  <p className="text-yellow-800">
-                    <strong>{analytics.lowStockProducts}</strong> ta mahsulot kam qoldi (&lt;10 dona)
+                  <p className="a-muted">
+                    <strong style={{ color: 'var(--text)' }}>{analytics.lowStockProducts}</strong> ta mahsulot kam qoldi (&lt;10 dona)
                   </p>
                 )}
               </div>

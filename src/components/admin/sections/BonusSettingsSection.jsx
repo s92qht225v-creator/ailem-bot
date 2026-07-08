@@ -68,8 +68,8 @@ const BonusSettingsSection = () => {
   if (loading) {
     return (
       <div className="max-w-4xl">
-        <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <p className="text-gray-600">Bonus sozlamalari yuklanmoqda...</p>
+        <div className="a-card" style={{ padding: 24, textAlign: 'center' }}>
+          <p className="a-muted">Bonus sozlamalari yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -77,19 +77,21 @@ const BonusSettingsSection = () => {
 
   return (
     <div className="max-w-4xl">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
-          <Gift className="w-7 h-7 text-primary" />
-          Bonus va mukofotlar sozlamalari
-        </h3>
+      <div className="a-card">
+        <div className="a-card-h">
+          <h3 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Gift className="w-5 h-5" style={{ color: 'var(--accent)' }} />
+            Bonus va mukofotlar sozlamalari
+          </h3>
+        </div>
 
-        <div className="grid gap-6">
+        <div className="grid gap-6" style={{ padding: 24 }}>
           {/* Referral Commission */}
-          <div className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
-            <label className="block text-lg font-bold mb-2 text-blue-900 flex items-center gap-2">
+          <div style={{ padding: 20, background: 'var(--surface-2)', borderRadius: 'var(--a-r)', border: '1px solid var(--border)' }}>
+            <label className="block text-lg mb-2 flex items-center gap-2" style={{ fontWeight: 700, color: 'var(--text)' }}>
               🎁 Taklif komissiyasi foizi
             </label>
-            <p className="text-sm text-gray-700 mb-4">
+            <p className="text-sm mb-4 a-muted">
               Taklif qilingan foydalanuvchining birinchi buyurtmasi tasdiqlanganda taklif qilgan shaxsga o'tkaziladigan buyurtma summasining foizi
             </p>
             <div className="flex items-center gap-3">
@@ -97,17 +99,18 @@ const BonusSettingsSection = () => {
                 type="number"
                 value={bonusConfig.referralCommission}
                 onChange={(e) => saveBonusConfig({ ...bonusConfig, referralCommission: parseInt(e.target.value) || 0 })}
-                className="w-32 px-4 py-3 border-2 border-red-300 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-accent focus:border-accent"
+                className="a-input"
+                style={{ width: 128, fontSize: 18, fontWeight: 600 }}
                 min="0"
                 max="100"
                 step="1"
               />
-              <span className="text-2xl font-bold text-blue-900">%</span>
+              <span className="text-2xl" style={{ fontWeight: 700, color: 'var(--text)' }}>%</span>
             </div>
-            <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
-              <p className="text-sm text-gray-600">
+            <div className="mt-4" style={{ padding: 12, background: 'var(--surface)', borderRadius: 'var(--a-r-sm)', border: '1px solid var(--border)' }}>
+              <p className="text-sm a-muted">
                 <strong>Misol:</strong> 100,000 so'mlik buyurtmada taklif qilgan shaxs{' '}
-                <span className="font-bold text-blue-700">
+                <span style={{ fontWeight: 700, color: 'var(--info)' }}>
                   {(100000 * bonusConfig.referralCommission / 100).toLocaleString()} so'm
                 </span>{' '}
                 ishlaydi
@@ -116,11 +119,11 @@ const BonusSettingsSection = () => {
           </div>
 
           {/* Purchase Bonus */}
-          <div className="p-5 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
-            <label className="block text-lg font-bold mb-2 text-green-900 flex items-center gap-2">
+          <div style={{ padding: 20, background: 'var(--surface-2)', borderRadius: 'var(--a-r)', border: '1px solid var(--border)' }}>
+            <label className="block text-lg mb-2 flex items-center gap-2" style={{ fontWeight: 700, color: 'var(--text)' }}>
               💰 Xarid bonusi foizi
             </label>
-            <p className="text-sm text-gray-700 mb-4">
+            <p className="text-sm mb-4 a-muted">
               Barcha foydalanuvchilarga bonus ball sifatida beriladigan xarid summasining foizi
             </p>
             <div className="flex items-center gap-3">
@@ -128,17 +131,18 @@ const BonusSettingsSection = () => {
                 type="number"
                 value={bonusConfig.purchaseBonus}
                 onChange={(e) => saveBonusConfig({ ...bonusConfig, purchaseBonus: parseInt(e.target.value) || 0 })}
-                className="w-32 px-4 py-3 border-2 border-green-300 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                className="a-input"
+                style={{ width: 128, fontSize: 18, fontWeight: 600 }}
                 min="0"
                 max="100"
                 step="1"
               />
-              <span className="text-2xl font-bold text-green-900">%</span>
+              <span className="text-2xl" style={{ fontWeight: 700, color: 'var(--text)' }}>%</span>
             </div>
-            <div className="mt-4 p-3 bg-white rounded-lg border border-green-200">
-              <p className="text-sm text-gray-600">
+            <div className="mt-4" style={{ padding: 12, background: 'var(--surface)', borderRadius: 'var(--a-r-sm)', border: '1px solid var(--border)' }}>
+              <p className="text-sm a-muted">
                 <strong>Misol:</strong> 100,000 so'mlik xarid ={' '}
-                <span className="font-bold text-green-700">
+                <span style={{ fontWeight: 700, color: 'var(--ok)' }}>
                   {(100000 * bonusConfig.purchaseBonus / 100).toLocaleString()} so'm
                 </span>{' '}
                 bonus ball
@@ -147,13 +151,13 @@ const BonusSettingsSection = () => {
           </div>
 
           {/* Info Card */}
-          <div className="p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-300">
-            <h4 className="font-bold text-base mb-3 flex items-center gap-2">
+          <div style={{ padding: 20, background: 'var(--surface-2)', borderRadius: 'var(--a-r)', border: '1px solid var(--border)' }}>
+            <h4 className="text-base mb-3 flex items-center gap-2" style={{ fontWeight: 700, color: 'var(--text)' }}>
               <span className="text-2xl">ℹ️</span> Qanday ishlaydi
             </h4>
-            <ul className="text-sm text-gray-700 space-y-2">
+            <ul className="text-sm space-y-2 a-muted">
               <li className="flex items-start gap-2">
-                <span className="text-accent font-bold">•</span>
+                <span style={{ color: 'var(--accent)', fontWeight: 700 }}>•</span>
                 <span>
                   <strong>Taklif komissiyasi:</strong> Taklif qilingan foydalanuvchi birinchi buyurtmasini berib, u tasdiqlanganda
                   taklif qilgan shaxs buyurtma summasining {bonusConfig.referralCommission}% ini komissiya sifatida oladi
@@ -161,18 +165,18 @@ const BonusSettingsSection = () => {
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-600 font-bold">•</span>
+                <span style={{ color: 'var(--ok)', fontWeight: 700 }}>•</span>
                 <span>
                   <strong>Xarid bonusi:</strong> Barcha foydalanuvchilar xaridining {bonusConfig.purchaseBonus}% ini bonus ball sifatida oladi
                   (masalan, 100,000 so'm = {(100000 * bonusConfig.purchaseBonus / 100).toLocaleString()} so'm ball)
                 </span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-purple-600 font-bold">•</span>
+                <span style={{ color: 'var(--info)', fontWeight: 700 }}>•</span>
                 <span>Taklif komissiyalari ball emas, to'g'ridan-to'g'ri pul sifatida to'lanadi</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-orange-600 font-bold">•</span>
+                <span style={{ color: 'var(--warn)', fontWeight: 700 }}>•</span>
                 <span>Ushbu sozlamalar darhol kuchga kiradi va barcha kelgusi tranzaksiyalarga ta'sir qiladi</span>
               </li>
             </ul>

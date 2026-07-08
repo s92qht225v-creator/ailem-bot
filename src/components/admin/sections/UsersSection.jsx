@@ -101,14 +101,14 @@ const UsersSection = () => {
     switch (role) {
       case 'cashier':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
+          <span className="a-pill a-pill-ok">
             <Store className="w-3 h-3" />
             Kassir
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
+          <span className="a-pill a-pill-info">
             Mijoz
           </span>
         );
@@ -118,10 +118,10 @@ const UsersSection = () => {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Foydalanuvchilarni boshqarish</h3>
+        <h3 className="a-muted" style={{ fontSize: 16, fontWeight: 650 }}>Foydalanuvchilarni boshqarish</h3>
         <button
           onClick={() => exportUsers(users)}
-          className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 flex items-center gap-2 transition-colors"
+          className="a-btn"
         >
           <Download className="w-4 h-4" />
           CSV yuklab olish
@@ -134,12 +134,12 @@ const UsersSection = () => {
           placeholder="Ism, foydalanuvchi nomi, telefon yoki email bo'yicha qidirish..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
+          className="a-input flex-1"
         />
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white"
+          className="a-input"
         >
           <option value="all">Barcha rollar</option>
           <option value="customer">Mijozlar</option>
@@ -148,40 +148,48 @@ const UsersSection = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="a-kpi">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Jami foydalanuvchilar</p>
-              <p className="text-3xl font-bold text-gray-900">{users.length}</p>
+              <p className="a-muted" style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 4 }}>Jami foydalanuvchilar</p>
+              <p className="a-kpi-val">{users.length}</p>
             </div>
-            <UsersIcon className="w-12 h-12 text-indigo-500" />
+            <div className="a-kpi-ico text-indigo-500" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+              <UsersIcon className="w-4 h-4" />
+            </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="a-kpi">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Kassirlar</p>
-              <p className="text-3xl font-bold text-gray-900">{cashierCount}</p>
+              <p className="a-muted" style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 4 }}>Kassirlar</p>
+              <p className="a-kpi-val">{cashierCount}</p>
             </div>
-            <Store className="w-12 h-12 text-green-500" />
+            <div className="a-kpi-ico text-green-500" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+              <Store className="w-4 h-4" />
+            </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="a-kpi">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Bugun faol</p>
-              <p className="text-3xl font-bold text-gray-900">-</p>
+              <p className="a-muted" style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 4 }}>Bugun faol</p>
+              <p className="a-kpi-val">-</p>
             </div>
-            <TrendingUp className="w-12 h-12 text-accent" />
+            <div className="a-kpi-ico" style={{ color: 'var(--accent)', background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+              <TrendingUp className="w-4 h-4" />
+            </div>
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="a-kpi">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Buyurtmali</p>
-              <p className="text-3xl font-bold text-gray-900">{users.filter(u => u.totalOrders > 0).length}</p>
+              <p className="a-muted" style={{ fontSize: 12.5, fontWeight: 500, marginBottom: 4 }}>Buyurtmali</p>
+              <p className="a-kpi-val">{users.filter(u => u.totalOrders > 0).length}</p>
             </div>
-            <ShoppingBag className="w-12 h-12 text-orange-500" />
+            <div className="a-kpi-ico text-orange-500" style={{ background: 'color-mix(in srgb, currentColor 13%, transparent)' }}>
+              <ShoppingBag className="w-4 h-4" />
+            </div>
           </div>
         </div>
       </div>
@@ -189,31 +197,32 @@ const UsersSection = () => {
       {filteredUsers.length > 0 ? (
         <div className="grid grid-cols-1 gap-4">
           {filteredUsers.map((user) => (
-            <div key={user.id} className="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
+            <div key={user.id} className="a-card">
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg" style={{ background: 'linear-gradient(to bottom right, var(--info), var(--accent-ink))' }}>
                       {user.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-bold text-gray-900">{user.name}</h3>
+                        <h3 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text)', margin: 0 }}>{user.name}</h3>
                         {getRoleBadge(user.role)}
                       </div>
-                      <p className="text-sm text-gray-500">@{user.username || 'Foydalanuvchi nomi yo\'q'}</p>
+                      <p className="a-faint" style={{ fontSize: 13, margin: 0 }}>@{user.username || 'Foydalanuvchi nomi yo\'q'}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <p className="text-sm text-gray-500">Bonus ballari</p>
+                      <p className="a-faint" style={{ fontSize: 13 }}>Bonus ballari</p>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => {
                             setBonusEditUser(bonusEditUser === user.id ? null : user.id);
                             setBonusAmount('');
                           }}
-                          className="text-xl font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                          className="a-num cursor-pointer"
+                          style={{ fontSize: 20, fontWeight: 700, color: 'var(--info)' }}
                           title="Ballni o'zgartirish"
                         >
                           {user.bonusPoints || 0}
@@ -227,13 +236,15 @@ const UsersSection = () => {
                             value={bonusAmount}
                             onChange={(e) => setBonusAmount(e.target.value)}
                             placeholder="0"
-                            className="w-20 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                            className="a-input text-center"
+                            style={{ width: 80, padding: '4px 8px' }}
                             autoFocus
                           />
                           <button
                             onClick={() => handleBonusUpdate(user.id, 'add')}
                             disabled={updatingBonus}
-                            className="p-1 bg-green-100 text-green-700 rounded hover:bg-green-200 disabled:opacity-50"
+                            className="p-1 rounded disabled:opacity-50"
+                            style={{ color: 'var(--ok)', background: 'var(--ok-weak)' }}
                             title="Qo'shish"
                           >
                             <Plus className="w-4 h-4" />
@@ -241,7 +252,8 @@ const UsersSection = () => {
                           <button
                             onClick={() => handleBonusUpdate(user.id, 'deduct')}
                             disabled={updatingBonus}
-                            className="p-1 bg-red-100 text-red-700 rounded hover:bg-red-200 disabled:opacity-50"
+                            className="p-1 rounded disabled:opacity-50"
+                            style={{ color: 'var(--danger)', background: 'var(--danger-weak)' }}
                             title="Ayirish"
                           >
                             <Minus className="w-4 h-4" />
@@ -250,27 +262,28 @@ const UsersSection = () => {
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-500">Buyurtmalar</p>
-                      <p className="text-xl font-bold text-gray-900">{user.totalOrders || 0}</p>
+                      <p className="a-faint" style={{ fontSize: 13 }}>Buyurtmalar</p>
+                      <p className="a-num" style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>{user.totalOrders || 0}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b">
+                <div className="grid grid-cols-2 gap-4 mb-4 pb-4" style={{ borderBottom: '1px solid var(--border)' }}>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase font-medium mb-1">Telefon</p>
-                    <p className="text-sm text-gray-900">{user.phone || 'Kiritilmagan'}</p>
+                    <p className="a-faint" style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 500, marginBottom: 4 }}>Telefon</p>
+                    <p style={{ fontSize: 13, color: 'var(--text)', margin: 0 }}>{user.phone || 'Kiritilmagan'}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 uppercase font-medium mb-1">Email</p>
-                    <p className="text-sm text-gray-900">{user.email || 'Kiritilmagan'}</p>
+                    <p className="a-faint" style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 500, marginBottom: 4 }}>Email</p>
+                    <p style={{ fontSize: 13, color: 'var(--text)', margin: 0 }}>{user.email || 'Kiritilmagan'}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setExpandedUser(expandedUser === user.id ? null : user.id)}
-                    className="flex-1 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
+                    className="a-btn flex-1"
+                    style={{ justifyContent: 'center' }}
                   >
                     {expandedUser === user.id ? 'Tafsilotlarni yashirish' : 'Tafsilotlarni ko\'rsatish'}
                     <ChevronRight className={`w-4 h-4 transition-transform ${expandedUser === user.id ? 'rotate-90' : ''}`} />
@@ -278,14 +291,12 @@ const UsersSection = () => {
 
                   {/* Role Management */}
                   <div className="flex items-center gap-2">
-                    <UserCog className="w-4 h-4 text-gray-400" />
+                    <UserCog className="w-4 h-4 a-faint" />
                     <select
                       value={user.role || 'customer'}
                       onChange={(e) => handleRoleChange(user.id, e.target.value)}
                       disabled={updatingRole === user.id}
-                      className={`px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-primary focus:border-primary bg-white ${
-                        updatingRole === user.id ? 'opacity-50 cursor-not-allowed' : ''
-                      }`}
+                      className={`a-input ${updatingRole === user.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
                       <option value="customer">Mijoz</option>
                       <option value="cashier">Kassir</option>
@@ -294,31 +305,31 @@ const UsersSection = () => {
                 </div>
 
                 {expandedUser === user.id && (
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg space-y-3">
+                  <div className="mt-4 p-4 rounded-lg space-y-3" style={{ background: 'var(--surface-2)' }}>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Telegram ID</p>
-                        <p className="text-sm text-gray-900 font-mono">{user.telegramId || user.telegram_id || 'N/A'}</p>
+                        <p className="a-faint" style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 500, marginBottom: 4 }}>Telegram ID</p>
+                        <p className="a-num" style={{ fontSize: 13, color: 'var(--text)', margin: 0, fontFamily: 'ui-monospace,Menlo,monospace' }}>{user.telegramId || user.telegram_id || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Taklif kodi</p>
-                        <p className="text-sm text-gray-900 font-mono">{user.referralCode || 'N/A'}</p>
+                        <p className="a-faint" style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 500, marginBottom: 4 }}>Taklif kodi</p>
+                        <p className="a-num" style={{ fontSize: 13, color: 'var(--text)', margin: 0, fontFamily: 'ui-monospace,Menlo,monospace' }}>{user.referralCode || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Kim taklif qilgan</p>
-                        <p className="text-sm text-gray-900">{user.referredBy || 'Yo\'q'}</p>
+                        <p className="a-faint" style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 500, marginBottom: 4 }}>Kim taklif qilgan</p>
+                        <p style={{ fontSize: 13, color: 'var(--text)', margin: 0 }}>{user.referredBy || 'Yo\'q'}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Takliflar soni</p>
-                        <p className="text-sm text-gray-900">{user.referrals || 0}</p>
+                        <p className="a-faint" style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 500, marginBottom: 4 }}>Takliflar soni</p>
+                        <p style={{ fontSize: 13, color: 'var(--text)', margin: 0 }}>{user.referrals || 0}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Qo'shilgan sana</p>
-                        <p className="text-sm text-gray-900">{formatDate(user.createdAt)}</p>
+                        <p className="a-faint" style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 500, marginBottom: 4 }}>Qo'shilgan sana</p>
+                        <p style={{ fontSize: 13, color: 'var(--text)', margin: 0 }}>{formatDate(user.createdAt)}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Oxirgi yangilanish</p>
-                        <p className="text-sm text-gray-900">{formatDate(user.updatedAt)}</p>
+                        <p className="a-faint" style={{ fontSize: 11, textTransform: 'uppercase', fontWeight: 500, marginBottom: 4 }}>Oxirgi yangilanish</p>
+                        <p style={{ fontSize: 13, color: 'var(--text)', margin: 0 }}>{formatDate(user.updatedAt)}</p>
                       </div>
                     </div>
                   </div>
@@ -328,12 +339,12 @@ const UsersSection = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <UsersIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <div className="a-card p-12 text-center">
+          <UsersIcon className="w-16 h-16 mx-auto mb-4" style={{ color: 'var(--text-3)' }} />
+          <h3 className="a-muted" style={{ fontSize: 16, fontWeight: 650, marginBottom: 8 }}>
             {searchQuery ? 'Foydalanuvchi topilmadi' : 'Hozircha foydalanuvchilar yo\'q'}
           </h3>
-          <p className="text-gray-600">
+          <p className="a-faint">
             {searchQuery ? 'Boshqa qidiruv so\'rovini kiriting' : 'Foydalanuvchilar ro\'yxatdan o\'tganda shu yerda ko\'rinadi'}
           </p>
         </div>
