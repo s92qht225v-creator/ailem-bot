@@ -71,13 +71,13 @@ const ReviewsSection = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">Reviews Management</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Sharhlarni boshqarish</h3>
         <button
           onClick={() => exportReviews(filteredReviews, `reviews_${filter}`)}
           className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 flex items-center gap-2 transition-colors"
         >
           <Download className="w-4 h-4" />
-          Export CSV
+          CSV yuklab olish
         </button>
       </div>
 
@@ -92,7 +92,7 @@ const ReviewsSection = () => {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              All Reviews ({reviews?.length || 0})
+              Barcha sharhlar ({reviews?.length || 0})
             </button>
             <button
               onClick={() => setFilter('pending')}
@@ -102,7 +102,7 @@ const ReviewsSection = () => {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Pending ({pendingReviews})
+              Kutilmoqda ({pendingReviews})
               {pendingReviews > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
                   {pendingReviews}
@@ -117,7 +117,7 @@ const ReviewsSection = () => {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Approved ({reviews?.filter(r => r.approved).length || 0})
+              Tasdiqlangan ({reviews?.filter(r => r.approved).length || 0})
             </button>
           </div>
         </div>
@@ -135,7 +135,7 @@ const ReviewsSection = () => {
                         {(review.user_name || review.userName)?.charAt(0).toUpperCase() || 'U'}
                       </div>
                       <div>
-                        <h4 className="font-semibold text-gray-900">{review.user_name || review.userName || 'Anonymous'}</h4>
+                        <h4 className="font-semibold text-gray-900">{review.user_name || review.userName || 'Anonim'}</h4>
                         <p className="text-sm text-gray-500">{formatDate(review.created_at || review.createdAt)}</p>
                       </div>
                     </div>
@@ -147,7 +147,7 @@ const ReviewsSection = () => {
                         ? 'bg-green-100 text-green-800'
                         : 'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {review.approved ? 'Approved' : 'Pending'}
+                      {review.approved ? 'Tasdiqlangan' : 'Kutilmoqda'}
                     </span>
                   </div>
                 </div>
@@ -163,7 +163,7 @@ const ReviewsSection = () => {
                       />
                     )}
                     <div>
-                      <p className="text-xs text-gray-500 uppercase font-medium mb-1">Product</p>
+                      <p className="text-xs text-gray-500 uppercase font-medium mb-1">Mahsulot</p>
                       <p className="font-medium text-gray-900">{review.productName}</p>
                     </div>
                   </div>
@@ -182,7 +182,7 @@ const ReviewsSection = () => {
                       className="flex-1 bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                     >
                       <CheckCircle className="w-4 h-4" />
-                      Approve Review
+                      Sharhni tasdiqlash
                     </button>
                   )}
                   <button
@@ -190,7 +190,7 @@ const ReviewsSection = () => {
                     className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Delete
+                    O'chirish
                   </button>
                 </div>
               </div>
@@ -201,10 +201,10 @@ const ReviewsSection = () => {
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <Star className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {filter === 'pending' ? 'No pending reviews' : filter === 'approved' ? 'No approved reviews yet' : 'No reviews yet'}
+            {filter === 'pending' ? 'Kutilayotgan sharhlar yo\'q' : filter === 'approved' ? 'Hozircha tasdiqlangan sharhlar yo\'q' : 'Hozircha sharhlar yo\'q'}
           </h3>
           <p className="text-gray-600">
-            {filter === 'all' ? 'Customer reviews will appear here when submitted' : `Switch to another tab to see ${filter === 'pending' ? 'approved' : 'pending'} reviews`}
+            {filter === 'all' ? 'Mijoz sharhlari yuborilganda shu yerda ko\'rinadi' : `${filter === 'pending' ? 'Tasdiqlangan' : 'Kutilayotgan'} sharhlarni ko\'rish uchun boshqa bo\'limga o\'ting`}
           </p>
         </div>
       )}

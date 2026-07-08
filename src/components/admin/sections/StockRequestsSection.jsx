@@ -83,9 +83,9 @@ const StockRequestsSection = () => {
     return (
       <div className="bg-white rounded-lg shadow p-8 text-center">
         <AlertCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Stock Requests</h3>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Zaxira so'rovlari yo'q</h3>
         <p className="text-gray-600">
-          No customers are waiting for out-of-stock products.
+          Hozircha tugagan mahsulotlarni kutayotgan mijozlar yo'q.
         </p>
       </div>
     );
@@ -97,10 +97,10 @@ const StockRequestsSection = () => {
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-2xl font-bold mb-1">
-              {stockRequests.reduce((sum, item) => sum + item.requests.length, 0)} Waiting Customers
+              {stockRequests.reduce((sum, item) => sum + item.requests.length, 0)} ta kutayotgan mijoz
             </h3>
             <p className="text-white/90">
-              {stockRequests.length} products with pending requests
+              {stockRequests.length} ta mahsulotda kutilayotgan so'rov bor
             </p>
           </div>
           <AlertCircle className="w-16 h-16 text-white/30" />
@@ -112,10 +112,10 @@ const StockRequestsSection = () => {
           <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waiting</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mahsulot</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kutmoqda</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Narxi</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amallar</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -139,7 +139,7 @@ const StockRequestsSection = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        {item.requests.length} customer{item.requests.length > 1 ? 's' : ''}
+                        {item.requests.length} ta mijoz
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
@@ -150,7 +150,7 @@ const StockRequestsSection = () => {
                         onClick={() => setExpandedProduct(expandedProduct === item.product.id ? null : item.product.id)}
                         className="text-primary hover:text-primary-dark font-medium"
                       >
-                        {expandedProduct === item.product.id ? 'Hide' : 'View'} Customers
+                        {expandedProduct === item.product.id ? 'Mijozlarni yashirish' : 'Mijozlarni ko\'rish'}
                       </button>
                     </td>
                   </tr>
@@ -158,12 +158,12 @@ const StockRequestsSection = () => {
                     <tr>
                       <td colSpan="4" className="px-6 py-4 bg-gray-50">
                         <div className="space-y-2">
-                          <h4 className="font-semibold text-gray-900 mb-3">Waiting Customers:</h4>
+                          <h4 className="font-semibold text-gray-900 mb-3">Kutayotgan mijozlar:</h4>
                           {item.requests.map((request) => (
                             <div key={request.id} className="flex items-center justify-between bg-white p-3 rounded border">
                               <div className="flex-1">
-                                <div className="font-medium text-gray-900">{request.users?.name || 'Unknown'}</div>
-                                <div className="text-sm text-gray-600">{request.users?.phone || 'No phone'}</div>
+                                <div className="font-medium text-gray-900">{request.users?.name || 'Noma\'lum'}</div>
+                                <div className="text-sm text-gray-600">{request.users?.phone || 'Telefon yo\'q'}</div>
                                 {request.variant_color && (
                                   <div className="text-xs text-gray-500 mt-1">
                                     Variant: {request.variant_color}
@@ -171,7 +171,7 @@ const StockRequestsSection = () => {
                                   </div>
                                 )}
                                 <div className="text-xs text-gray-400 mt-1">
-                                  Requested: {new Date(request.created_at).toLocaleDateString('uz-UZ')}
+                                  So'ralgan: {new Date(request.created_at).toLocaleDateString('uz-UZ')}
                                 </div>
                               </div>
                               <div className="text-xs text-gray-500">
@@ -194,11 +194,11 @@ const StockRequestsSection = () => {
         <div className="flex">
           <AlertCircle className="w-5 h-5 text-accent mr-3 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-800">
-            <p className="font-semibold mb-1">How it works:</p>
+            <p className="font-semibold mb-1">Qanday ishlaydi:</p>
             <ul className="list-disc list-inside space-y-1">
-              <li>Customers click "Notify When In Stock" on out-of-stock products</li>
-              <li>When you restock a product, all waiting customers are automatically notified via Telegram</li>
-              <li>Use this list to prioritize which products to restock first</li>
+              <li>Mijozlar tugagan mahsulotlarda "Kelganda xabar berish" tugmasini bosadi</li>
+              <li>Mahsulotni zaxiraga qo'shganingizda barcha kutayotgan mijozlar Telegram orqali avtomatik xabardor qilinadi</li>
+              <li>Qaysi mahsulotni birinchi zaxiraga qo'shishni belgilash uchun ushbu ro'yxatdan foydalaning</li>
             </ul>
           </div>
         </div>

@@ -83,8 +83,8 @@ const AuditLogsSection = () => {
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Audit Trail</h3>
-            <p className="text-sm text-gray-600">Track all admin actions and changes</p>
+            <h3 className="text-lg font-semibold text-gray-900">Audit tarixi</h3>
+            <p className="text-sm text-gray-600">Barcha admin amallari va o'zgarishlarni kuzatish</p>
           </div>
           <button
             onClick={loadLogs}
@@ -92,20 +92,20 @@ const AuditLogsSection = () => {
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50"
           >
             <RotateCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
+            Yangilash
           </button>
         </div>
 
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Action Type</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Amal turi</label>
             <select
               value={actionFilter}
               onChange={(e) => { setActionFilter(e.target.value); setPage(0); }}
               className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
             >
-              <option value="">All Actions</option>
+              <option value="">Barcha amallar</option>
               {Object.values(AUDIT_ACTIONS).map(action => (
                 <option key={action} value={action}>{formatAuditAction(action)}</option>
               ))}
@@ -113,13 +113,13 @@ const AuditLogsSection = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Entity Type</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Obyekt turi</label>
             <select
               value={entityFilter}
               onChange={(e) => { setEntityFilter(e.target.value); setPage(0); }}
               className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
             >
-              <option value="">All Entities</option>
+              <option value="">Barcha obyektlar</option>
               {entityTypes.map(type => (
                 <option key={type} value={type}>{type.charAt(0).toUpperCase() + type.slice(1)}</option>
               ))}
@@ -127,18 +127,18 @@ const AuditLogsSection = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Admin Email</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Admin email</label>
             <input
               type="text"
               value={adminFilter}
               onChange={(e) => { setAdminFilter(e.target.value); setPage(0); }}
-              placeholder="Search admin..."
+              placeholder="Adminni qidirish..."
               className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">From Date</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Sanadan</label>
             <input
               type="date"
               value={dateFrom}
@@ -148,7 +148,7 @@ const AuditLogsSection = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">To Date</label>
+            <label className="block text-xs font-medium text-gray-600 mb-1">Sanagacha</label>
             <input
               type="date"
               value={dateTo}
@@ -161,13 +161,13 @@ const AuditLogsSection = () => {
         {(actionFilter || entityFilter || adminFilter || dateFrom || dateTo) && (
           <div className="mt-3 flex items-center justify-between">
             <span className="text-sm text-gray-600">
-              Showing {logs.length} of {totalCount} logs
+              {totalCount} tadan {logs.length} ta ko'rsatilmoqda
             </span>
             <button
               onClick={clearFilters}
               className="text-sm text-accent hover:text-red-800"
             >
-              Clear all filters
+              Barcha filtrlarni tozalash
             </button>
           </div>
         )}
@@ -182,19 +182,19 @@ const AuditLogsSection = () => {
         ) : logs.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             <Activity className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-            <p>No audit logs found</p>
-            <p className="text-sm mt-1">Admin actions will appear here once the audit_logs table is created</p>
+            <p>Audit yozuvlari topilmadi</p>
+            <p className="text-sm mt-1">audit_logs jadvali yaratilgach admin amallari shu yerda ko'rinadi</p>
           </div>
         ) : (
           <>
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Entity</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vaqt</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amal</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Obyekt</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Admin</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Details</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tafsilotlar</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -221,7 +221,7 @@ const AuditLogsSection = () => {
                           onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
                           className="text-accent hover:text-red-800 flex items-center gap-1 text-sm"
                         >
-                          {expandedLog === log.id ? 'Hide' : 'View'}
+                          {expandedLog === log.id ? 'Yashirish' : 'Ko\'rish'}
                           {expandedLog === log.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                         </button>
                       </td>
@@ -232,7 +232,7 @@ const AuditLogsSection = () => {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {log.old_data && (
                               <div>
-                                <h4 className="text-xs font-semibold text-gray-700 mb-2">Previous State</h4>
+                                <h4 className="text-xs font-semibold text-gray-700 mb-2">Oldingi holat</h4>
                                 <pre className="bg-white border rounded p-3 text-xs overflow-auto max-h-48">
                                   {JSON.stringify(JSON.parse(log.old_data), null, 2)}
                                 </pre>
@@ -240,7 +240,7 @@ const AuditLogsSection = () => {
                             )}
                             {log.new_data && (
                               <div>
-                                <h4 className="text-xs font-semibold text-gray-700 mb-2">New State</h4>
+                                <h4 className="text-xs font-semibold text-gray-700 mb-2">Yangi holat</h4>
                                 <pre className="bg-white border rounded p-3 text-xs overflow-auto max-h-48">
                                   {JSON.stringify(JSON.parse(log.new_data), null, 2)}
                                 </pre>
@@ -255,7 +255,7 @@ const AuditLogsSection = () => {
                               </div>
                             )}
                             <div className="md:col-span-2 text-xs text-gray-500">
-                              <span>User Agent: {log.user_agent || 'N/A'}</span>
+                              <span>Foydalanuvchi agenti: {log.user_agent || 'N/A'}</span>
                             </div>
                           </div>
                         </td>
@@ -270,7 +270,7 @@ const AuditLogsSection = () => {
             {totalPages > 1 && (
               <div className="px-4 py-3 border-t bg-gray-50 flex items-center justify-between">
                 <span className="text-sm text-gray-600">
-                  Page {page + 1} of {totalPages}
+                  {totalPages} sahifadan {page + 1}-sahifa
                 </span>
                 <div className="flex gap-2">
                   <button
@@ -278,14 +278,14 @@ const AuditLogsSection = () => {
                     disabled={page === 0}
                     className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                   >
-                    Previous
+                    Oldingi
                   </button>
                   <button
                     onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                     disabled={page >= totalPages - 1}
                     className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
                   >
-                    Next
+                    Keyingi
                   </button>
                 </div>
               </div>

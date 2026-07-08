@@ -70,14 +70,14 @@ export const calculateTimeRemaining = (endDate) => {
   };
 };
 
-// Format date to readable string
+// Format date to readable string → "DD.MM.YYYY"
+// (built manually: the 'uz-UZ' locale renders short months as "M04", which is unreadable)
 export const formatDate = (dateString) => {
   const date = new Date(dateString);
-  return date.toLocaleDateString('uz-UZ', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  });
+  if (isNaN(date.getTime())) return '';
+  const dd = String(date.getDate()).padStart(2, '0');
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  return `${dd}.${mm}.${date.getFullYear()}`;
 };
 
 // Calculate bonus points earned based on configured percentage
@@ -177,6 +177,19 @@ export const getStatusColor = (status) => {
     delivered: 'bg-primary text-white'
   };
   return colors[status.toLowerCase()] || 'bg-gray-500 text-white';
+};
+
+// Human-readable Uzbek label for an order status
+export const getStatusLabel = (status) => {
+  const labels = {
+    pending: 'Kutilmoqda',
+    approved: 'Tasdiqlangan',
+    rejected: 'Rad etilgan',
+    shipped: 'Jo\'natilgan',
+    delivered: 'Yetkazilgan',
+    completed: 'Bajarilgan'
+  };
+  return labels[String(status).toLowerCase()] || status;
 };
 
 // Debounce function for search

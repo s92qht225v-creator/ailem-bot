@@ -253,7 +253,8 @@ export const getRevenueChartData = (orders = []) => {
     const revenue = dayOrders.reduce((sum, order) => sum + (order.total || 0), 0);
 
     last7Days.push({
-      date: date.toLocaleDateString('uz-UZ', { month: 'short', day: 'numeric' }),
+      // "DD.MM" — the 'uz-UZ' short month renders as "M07", which is unreadable
+      date: `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}`,
       revenue,
       orders: dayOrders.length,
     });
