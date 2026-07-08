@@ -103,13 +103,13 @@ const UsersSection = () => {
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded-full">
             <Store className="w-3 h-3" />
-            Cashier
+            Kassir
           </span>
         );
       default:
         return (
           <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">
-            Customer
+            Mijoz
           </span>
         );
     }
@@ -118,20 +118,20 @@ const UsersSection = () => {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Users Management</h3>
+        <h3 className="text-lg font-semibold text-gray-900">Foydalanuvchilarni boshqarish</h3>
         <button
           onClick={() => exportUsers(users)}
           className="px-4 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 flex items-center gap-2 transition-colors"
         >
           <Download className="w-4 h-4" />
-          Export CSV
+          CSV yuklab olish
         </button>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <input
           type="text"
-          placeholder="Search users by name, username, phone, or email..."
+          placeholder="Ism, foydalanuvchi nomi, telefon yoki email bo'yicha qidirish..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
@@ -141,9 +141,9 @@ const UsersSection = () => {
           onChange={(e) => setRoleFilter(e.target.value)}
           className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary bg-white"
         >
-          <option value="all">All Roles</option>
-          <option value="customer">Customers</option>
-          <option value="cashier">Cashiers</option>
+          <option value="all">Barcha rollar</option>
+          <option value="customer">Mijozlar</option>
+          <option value="cashier">Kassirlar</option>
         </select>
       </div>
 
@@ -151,7 +151,7 @@ const UsersSection = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Total Users</p>
+              <p className="text-sm text-gray-600 mb-1">Jami foydalanuvchilar</p>
               <p className="text-3xl font-bold text-gray-900">{users.length}</p>
             </div>
             <UsersIcon className="w-12 h-12 text-indigo-500" />
@@ -160,7 +160,7 @@ const UsersSection = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Cashiers</p>
+              <p className="text-sm text-gray-600 mb-1">Kassirlar</p>
               <p className="text-3xl font-bold text-gray-900">{cashierCount}</p>
             </div>
             <Store className="w-12 h-12 text-green-500" />
@@ -169,7 +169,7 @@ const UsersSection = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">Active Today</p>
+              <p className="text-sm text-gray-600 mb-1">Bugun faol</p>
               <p className="text-3xl font-bold text-gray-900">-</p>
             </div>
             <TrendingUp className="w-12 h-12 text-accent" />
@@ -178,7 +178,7 @@ const UsersSection = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 mb-1">With Orders</p>
+              <p className="text-sm text-gray-600 mb-1">Buyurtmali</p>
               <p className="text-3xl font-bold text-gray-900">{users.filter(u => u.totalOrders > 0).length}</p>
             </div>
             <ShoppingBag className="w-12 h-12 text-orange-500" />
@@ -201,12 +201,12 @@ const UsersSection = () => {
                         <h3 className="text-lg font-bold text-gray-900">{user.name}</h3>
                         {getRoleBadge(user.role)}
                       </div>
-                      <p className="text-sm text-gray-500">@{user.username || 'No username'}</p>
+                      <p className="text-sm text-gray-500">@{user.username || 'Foydalanuvchi nomi yo\'q'}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <p className="text-sm text-gray-500">Bonus Points</p>
+                      <p className="text-sm text-gray-500">Bonus ballari</p>
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => {
@@ -250,7 +250,7 @@ const UsersSection = () => {
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-sm text-gray-500">Orders</p>
+                      <p className="text-sm text-gray-500">Buyurtmalar</p>
                       <p className="text-xl font-bold text-gray-900">{user.totalOrders || 0}</p>
                     </div>
                   </div>
@@ -258,12 +258,12 @@ const UsersSection = () => {
 
                 <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b">
                   <div>
-                    <p className="text-xs text-gray-500 uppercase font-medium mb-1">Phone</p>
-                    <p className="text-sm text-gray-900">{user.phone || 'Not provided'}</p>
+                    <p className="text-xs text-gray-500 uppercase font-medium mb-1">Telefon</p>
+                    <p className="text-sm text-gray-900">{user.phone || 'Kiritilmagan'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase font-medium mb-1">Email</p>
-                    <p className="text-sm text-gray-900">{user.email || 'Not provided'}</p>
+                    <p className="text-sm text-gray-900">{user.email || 'Kiritilmagan'}</p>
                   </div>
                 </div>
 
@@ -272,7 +272,7 @@ const UsersSection = () => {
                     onClick={() => setExpandedUser(expandedUser === user.id ? null : user.id)}
                     className="flex-1 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
                   >
-                    {expandedUser === user.id ? 'Hide Details' : 'Show Details'}
+                    {expandedUser === user.id ? 'Tafsilotlarni yashirish' : 'Tafsilotlarni ko\'rsatish'}
                     <ChevronRight className={`w-4 h-4 transition-transform ${expandedUser === user.id ? 'rotate-90' : ''}`} />
                   </button>
 
@@ -287,8 +287,8 @@ const UsersSection = () => {
                         updatingRole === user.id ? 'opacity-50 cursor-not-allowed' : ''
                       }`}
                     >
-                      <option value="customer">Customer</option>
-                      <option value="cashier">Cashier</option>
+                      <option value="customer">Mijoz</option>
+                      <option value="cashier">Kassir</option>
                     </select>
                   </div>
                 </div>
@@ -301,23 +301,23 @@ const UsersSection = () => {
                         <p className="text-sm text-gray-900 font-mono">{user.telegramId || user.telegram_id || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Referral Code</p>
+                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Taklif kodi</p>
                         <p className="text-sm text-gray-900 font-mono">{user.referralCode || 'N/A'}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Referred By</p>
-                        <p className="text-sm text-gray-900">{user.referredBy || 'None'}</p>
+                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Kim taklif qilgan</p>
+                        <p className="text-sm text-gray-900">{user.referredBy || 'Yo\'q'}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Referrals Made</p>
+                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Takliflar soni</p>
                         <p className="text-sm text-gray-900">{user.referrals || 0}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Joined Date</p>
+                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Qo'shilgan sana</p>
                         <p className="text-sm text-gray-900">{formatDate(user.createdAt)}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Last Updated</p>
+                        <p className="text-xs text-gray-500 uppercase font-medium mb-1">Oxirgi yangilanish</p>
                         <p className="text-sm text-gray-900">{formatDate(user.updatedAt)}</p>
                       </div>
                     </div>
@@ -331,10 +331,10 @@ const UsersSection = () => {
         <div className="bg-white rounded-lg shadow p-12 text-center">
           <UsersIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {searchQuery ? 'No users found' : 'No users yet'}
+            {searchQuery ? 'Foydalanuvchi topilmadi' : 'Hozircha foydalanuvchilar yo\'q'}
           </h3>
           <p className="text-gray-600">
-            {searchQuery ? 'Try a different search query' : 'Users will appear here when they sign up'}
+            {searchQuery ? 'Boshqa qidiruv so\'rovini kiriting' : 'Foydalanuvchilar ro\'yxatdan o\'tganda shu yerda ko\'rinadi'}
           </p>
         </div>
       )}

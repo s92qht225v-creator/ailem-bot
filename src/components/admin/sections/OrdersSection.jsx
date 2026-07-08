@@ -6,7 +6,7 @@ import {
 import { AdminContext } from '../../../context/AdminContext';
 import { useToast } from '../../../context/ToastContext';
 import { useConfirm } from '../../../context/ConfirmContext';
-import { formatPrice, formatDate, loadFromLocalStorage } from '../../../utils/helpers';
+import { formatPrice, formatDate, loadFromLocalStorage, getStatusLabel } from '../../../utils/helpers';
 import { exportOrders, exportOrderItems } from '../../../utils/csvExport';
 import { notifyUserOrderStatus, notifyReferrerReward } from '../../../services/telegram';
 import { printShippingLabel, printMultipleLabels } from '../../../utils/shippingLabel';
@@ -335,7 +335,7 @@ const OrdersSection = ({ onImageClick }) => {
     <div className="bg-white rounded-lg shadow">
       <div className="p-6 border-b space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Orders Management</h3>
+          <h3 className="text-lg font-semibold">Buyurtmalarni boshqarish</h3>
           <div className="flex gap-2">
             <button
               onClick={handleRefresh}
@@ -343,13 +343,13 @@ const OrdersSection = ({ onImageClick }) => {
               className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Refresh
+              Yangilash
             </button>
 
             <div className="relative group">
               <button className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
                 <Download className="w-4 h-4" />
-                Export CSV
+                CSV yuklab olish
               </button>
               <div className="absolute right-0 mt-1 w-48 bg-white border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
                 <button
@@ -357,14 +357,14 @@ const OrdersSection = ({ onImageClick }) => {
                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
                 >
                   <FileDown className="w-4 h-4" />
-                  Orders Summary
+                  Buyurtmalar hisoboti
                 </button>
                 <button
                   onClick={() => exportOrderItems(filteredOrders, `order_items_${statusFilter}`)}
                   className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 border-t"
                 >
                   <FileDown className="w-4 h-4" />
-                  Order Items Detail
+                  Buyurtma tafsilotlari
                 </button>
               </div>
             </div>
@@ -374,9 +374,9 @@ const OrdersSection = ({ onImageClick }) => {
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value)}
             >
-              <option value="all">All Orders ({orders.length})</option>
-              <option value="online">Online ({onlineOrdersCount})</option>
-              <option value="cash">Cash/POS ({cashOrdersCount})</option>
+              <option value="all">Barcha buyurtmalar ({orders.length})</option>
+              <option value="online">Onlayn ({onlineOrdersCount})</option>
+              <option value="cash">Naqd/POS ({cashOrdersCount})</option>
             </select>
 
             <select
@@ -384,27 +384,27 @@ const OrdersSection = ({ onImageClick }) => {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending ({orders.filter(o => o.status === 'pending').length})</option>
-              <option value="approved">Approved ({orders.filter(o => o.status === 'approved').length})</option>
-              <option value="shipped">Shipped ({orders.filter(o => o.status === 'shipped').length})</option>
-              <option value="delivered">Delivered ({orders.filter(o => o.status === 'delivered').length})</option>
-              <option value="completed">Completed ({orders.filter(o => o.status === 'completed').length})</option>
-              <option value="rejected">Rejected ({orders.filter(o => o.status === 'rejected').length})</option>
+              <option value="all">Barcha holatlar</option>
+              <option value="pending">Kutilmoqda ({orders.filter(o => o.status === 'pending').length})</option>
+              <option value="approved">Tasdiqlangan ({orders.filter(o => o.status === 'approved').length})</option>
+              <option value="shipped">Jo'natilgan ({orders.filter(o => o.status === 'shipped').length})</option>
+              <option value="delivered">Yetkazilgan ({orders.filter(o => o.status === 'delivered').length})</option>
+              <option value="completed">Bajarilgan ({orders.filter(o => o.status === 'completed').length})</option>
+              <option value="rejected">Rad etilgan ({orders.filter(o => o.status === 'rejected').length})</option>
             </select>
           </div>
         </div>
 
         {/* Date Range Filter */}
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm font-medium text-gray-600">Date Range:</span>
+          <span className="text-sm font-medium text-gray-600">Sana oralig'i:</span>
           <div className="flex items-center gap-2">
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
               className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
-              placeholder="From"
+              placeholder="Dan"
             />
             <span className="text-gray-400">-</span>
             <input
@@ -412,7 +412,7 @@ const OrdersSection = ({ onImageClick }) => {
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
               className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
-              placeholder="To"
+              placeholder="Gacha"
             />
           </div>
           {(dateFrom || dateTo) && (
@@ -420,11 +420,11 @@ const OrdersSection = ({ onImageClick }) => {
               onClick={() => { setDateFrom(''); setDateTo(''); }}
               className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
             >
-              Clear dates
+              Sanalarni tozalash
             </button>
           )}
           <span className="ml-auto text-sm text-gray-500">
-            Showing {filteredOrders.length} of {orders.length} orders
+            {orders.length} tadan {filteredOrders.length} ta ko'rsatilmoqda
           </span>
         </div>
 
@@ -445,14 +445,14 @@ const OrdersSection = ({ onImageClick }) => {
                 style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
               />
             </div>
-            <p className="text-xs text-blue-700 mt-2">Please wait while processing orders...</p>
+            <p className="text-xs text-blue-700 mt-2">Buyurtmalar qayta ishlanmoqda, iltimos kuting...</p>
           </div>
         )}
 
         {selectedOrders.length > 0 && !bulkProgress.isProcessing && (
           <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-blue-200">
             <span className="text-sm font-semibold text-blue-900">
-              {selectedOrders.length} order(s) selected
+              {selectedOrders.length} ta buyurtma tanlandi
             </span>
             <button
               onClick={() => {
@@ -462,7 +462,7 @@ const OrdersSection = ({ onImageClick }) => {
               className="px-3 py-1.5 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 flex items-center gap-1.5"
             >
               <Package className="w-4 h-4" />
-              Pack {selectedOrders.length}
+              Qadoqlash {selectedOrders.length}
             </button>
             <button
               onClick={() => {
@@ -472,31 +472,31 @@ const OrdersSection = ({ onImageClick }) => {
               className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-1.5"
             >
               <Printer className="w-4 h-4" />
-              Label {selectedOrders.length}
+              Yorliq {selectedOrders.length}
             </button>
             <select
               value={bulkAction}
               onChange={(e) => setBulkAction(e.target.value)}
               className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-accent"
             >
-              <option value="">Select Action</option>
-              <option value="Approve">Approve</option>
-              <option value="Mark as Shipped">Mark as Shipped</option>
-              <option value="Mark as Delivered">Mark as Delivered</option>
-              <option value="Reject">Reject</option>
+              <option value="">Amalni tanlang</option>
+              <option value="Approve">Tasdiqlash</option>
+              <option value="Mark as Shipped">Jo'natildi deb belgilash</option>
+              <option value="Mark as Delivered">Yetkazildi deb belgilash</option>
+              <option value="Reject">Rad etish</option>
             </select>
             <button
               onClick={handleBulkAction}
               disabled={!bulkAction || bulkProgress.isProcessing}
               className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {bulkProgress.isProcessing ? 'Processing...' : 'Apply'}
+              {bulkProgress.isProcessing ? 'Bajarilmoqda...' : 'Qo\'llash'}
             </button>
             <button
               onClick={() => setSelectedOrders([])}
               className="px-3 py-1.5 text-gray-600 hover:text-gray-900 text-sm font-medium"
             >
-              Clear
+              Tozalash
             </button>
           </div>
         )}
@@ -514,19 +514,19 @@ const OrdersSection = ({ onImageClick }) => {
                   className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
                 />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Order ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Total</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Buyurtma ID</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mijoz</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sana</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jami</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Holat</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amallar</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
             {filteredOrders.length === 0 ? (
               <tr>
                 <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
-                  No orders found for selected filter
+                  Tanlangan filtr uchun buyurtma topilmadi
                 </td>
               </tr>
             ) : (
@@ -562,7 +562,7 @@ const OrdersSection = ({ onImageClick }) => {
                       order.status === 'rejected' ? 'bg-red-100 text-red-800' :
                       'bg-gray-100 text-gray-800'
                     }`}>
-                      {order.status}
+                      {getStatusLabel(order.status)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm">
@@ -571,7 +571,7 @@ const OrdersSection = ({ onImageClick }) => {
                         onClick={() => setSelectedOrder(order)}
                         className="text-accent hover:text-red-800 font-medium whitespace-nowrap"
                       >
-                        View
+                        Ko'rish
                       </button>
                       {order.status === 'pending' && (
                         <>
@@ -579,13 +579,13 @@ const OrdersSection = ({ onImageClick }) => {
                             onClick={() => handleApprove(order.id)}
                             className="text-green-600 hover:text-green-800 font-medium whitespace-nowrap"
                           >
-                            Approve
+                            Tasdiqlash
                           </button>
                           <button
                             onClick={() => handleReject(order.id)}
                             className="text-red-600 hover:text-red-800 font-medium whitespace-nowrap"
                           >
-                            Reject
+                            Rad etish
                           </button>
                         </>
                       )}
@@ -596,20 +596,20 @@ const OrdersSection = ({ onImageClick }) => {
                             className="text-orange-600 hover:text-orange-800 font-medium whitespace-nowrap flex items-center gap-1"
                           >
                             <Package className="w-4 h-4" />
-                            Pack
+                            Qadoqlash
                           </button>
                           <button
                             onClick={() => printShippingLabel(order)}
                             className="text-green-600 hover:text-green-800 font-medium whitespace-nowrap flex items-center gap-1"
                           >
                             <Printer className="w-4 h-4" />
-                            Label
+                            Yorliq
                           </button>
                           <button
                             onClick={() => handleMarkShipped(order.id)}
                             className="text-accent hover:text-red-800 font-medium whitespace-nowrap"
                           >
-                            Mark Shipped
+                            Jo'natildi
                           </button>
                         </>
                       )}
@@ -620,13 +620,13 @@ const OrdersSection = ({ onImageClick }) => {
                             className="text-green-600 hover:text-green-800 font-medium whitespace-nowrap flex items-center gap-1"
                           >
                             <Printer className="w-4 h-4" />
-                            Label
+                            Yorliq
                           </button>
                           <button
                             onClick={() => handleMarkDelivered(order.id)}
                             className="text-purple-600 hover:text-purple-800 font-medium whitespace-nowrap"
                           >
-                            Mark Delivered
+                            Yetkazildi
                           </button>
                         </>
                       )}
@@ -645,7 +645,7 @@ const OrdersSection = ({ onImageClick }) => {
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="p-6 border-b">
               <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold">Order #{selectedOrder.id}</h3>
+                <h3 className="text-xl font-bold">Buyurtma #{selectedOrder.id}</h3>
                 <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-gray-600">
                   <X className="w-6 h-6" />
                 </button>
@@ -656,19 +656,19 @@ const OrdersSection = ({ onImageClick }) => {
               <div>
                 <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
                   <UsersIcon className="w-5 h-5 text-primary" />
-                  Customer Information
+                  Mijoz ma'lumotlari
                 </h4>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Name:</span>
+                    <span className="text-sm text-gray-600">Ism:</span>
                     <span className="text-sm font-medium text-gray-900">{selectedOrder.userName}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Phone:</span>
+                    <span className="text-sm text-gray-600">Telefon:</span>
                     <span className="text-sm font-medium text-gray-900">{selectedOrder.userPhone}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">User ID:</span>
+                    <span className="text-sm text-gray-600">Foydalanuvchi ID:</span>
                     <span className="text-sm font-medium text-gray-900">{selectedOrder.userId}</span>
                   </div>
                 </div>
@@ -679,37 +679,37 @@ const OrdersSection = ({ onImageClick }) => {
                 <div>
                   <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
                     <Truck className="w-5 h-5 text-primary" />
-                    Delivery Details
+                    Yetkazib berish tafsilotlari
                   </h4>
                   <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                     {selectedOrder.deliveryInfo.fullName && (
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Recipient:</span>
+                        <span className="text-sm text-gray-600">Qabul qiluvchi:</span>
                         <span className="text-sm font-medium text-gray-900">{selectedOrder.deliveryInfo.fullName}</span>
                       </div>
                     )}
                     {selectedOrder.deliveryInfo.phone && (
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Contact:</span>
+                        <span className="text-sm text-gray-600">Aloqa:</span>
                         <span className="text-sm font-medium text-gray-900">{selectedOrder.deliveryInfo.phone}</span>
                       </div>
                     )}
                     {selectedOrder.deliveryInfo.city && (
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">City:</span>
+                        <span className="text-sm text-gray-600">Shahar:</span>
                         <span className="text-sm font-medium text-gray-900">{selectedOrder.deliveryInfo.city}</span>
                       </div>
                     )}
                     {selectedOrder.deliveryInfo.address && (
                       <div>
-                        <span className="text-sm text-gray-600 block mb-1">Address:</span>
+                        <span className="text-sm text-gray-600 block mb-1">Manzil:</span>
                         <span className="text-sm font-medium text-gray-900">{selectedOrder.deliveryInfo.address}</span>
                       </div>
                     )}
                     {selectedOrder.courier && (
                       <div className="pt-2 border-t border-gray-200">
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Courier Service:</span>
+                          <span className="text-sm text-gray-600">Kuryer xizmati:</span>
                           <span className="text-sm font-semibold text-primary">
                             {typeof selectedOrder.courier === 'string' && selectedOrder.courier.startsWith('{')
                               ? JSON.parse(selectedOrder.courier).name
@@ -722,7 +722,7 @@ const OrdersSection = ({ onImageClick }) => {
                     )}
                     {selectedOrder.deliveryFee > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Delivery Fee:</span>
+                        <span className="text-sm text-gray-600">Yetkazib berish narxi:</span>
                         <span className="text-sm font-medium text-gray-900">{formatPrice(selectedOrder.deliveryFee)}</span>
                       </div>
                     )}
@@ -735,7 +735,7 @@ const OrdersSection = ({ onImageClick }) => {
               <div>
                 <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
                   <ShoppingBag className="w-5 h-5 text-primary" />
-                  Order Items
+                  Buyurtma tarkibi
                 </h4>
                 <div className="space-y-3">
                   {selectedOrder.items?.map((item, idx) => (
@@ -750,7 +750,7 @@ const OrdersSection = ({ onImageClick }) => {
                       )}
                       <div className="flex-1">
                         <p className="font-medium text-gray-900">
-                          {item.productName || item.name || 'Unknown Product'}
+                          {item.productName || item.name || 'Noma\'lum mahsulot'}
                         </p>
                         {(item.color || item.size) && (
                           <p className="text-xs text-gray-500 mt-1">
@@ -759,14 +759,14 @@ const OrdersSection = ({ onImageClick }) => {
                             {item.size && <span>{item.size}</span>}
                           </p>
                         )}
-                        <p className="text-sm text-gray-600 mt-1">Qty: {item.quantity}</p>
+                        <p className="text-sm text-gray-600 mt-1">Soni: {item.quantity}</p>
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-gray-900">
                           {formatPrice(item.price * item.quantity)}
                         </p>
                         <p className="text-xs text-gray-500">
-                          {formatPrice(item.price)} each
+                          {formatPrice(item.price)} / dona
                         </p>
                       </div>
                     </div>
@@ -778,36 +778,36 @@ const OrdersSection = ({ onImageClick }) => {
               <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                 <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
                   <DollarSign className="w-5 h-5 text-primary" />
-                  Order Summary
+                  Buyurtma hisoboti
                 </h4>
                 <div className="space-y-2">
                   {selectedOrder.subtotal && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Subtotal:</span>
+                      <span className="text-gray-600">Oraliq summa:</span>
                       <span className="font-medium text-gray-900">{formatPrice(selectedOrder.subtotal)}</span>
                     </div>
                   )}
                   {selectedOrder.deliveryFee > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Delivery Fee:</span>
+                      <span className="text-gray-600">Yetkazib berish narxi:</span>
                       <span className="font-medium text-gray-900">{formatPrice(selectedOrder.deliveryFee)}</span>
                     </div>
                   )}
                   {selectedOrder.bonusDiscount > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-green-600">Bonus Discount:</span>
+                      <span className="text-green-600">Bonus chegirma:</span>
                       <span className="font-medium text-green-600">-{formatPrice(selectedOrder.bonusDiscount)}</span>
                     </div>
                   )}
                   {selectedOrder.bonusPointsUsed > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Bonus Points Used:</span>
-                      <span className="font-medium text-gray-900">{selectedOrder.bonusPointsUsed} pts</span>
+                      <span className="text-gray-600">Ishlatilgan bonus:</span>
+                      <span className="font-medium text-gray-900">{selectedOrder.bonusPointsUsed} ball</span>
                     </div>
                   )}
                   <div className="border-t border-gray-300 pt-2 mt-2">
                     <div className="flex justify-between">
-                      <span className="text-lg font-bold text-gray-900">Total:</span>
+                      <span className="text-lg font-bold text-gray-900">Jami:</span>
                       <span className="text-lg font-bold text-primary">{formatPrice(selectedOrder.total)}</span>
                     </div>
                   </div>
@@ -816,24 +816,24 @@ const OrdersSection = ({ onImageClick }) => {
                   {selectedOrder.paymentMethod === 'cash' && (
                     <div className="border-t border-gray-300 pt-2 mt-2 space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Payment Method:</span>
-                        <span className="font-medium text-green-700">Cash (POS)</span>
+                        <span className="text-gray-600">To'lov usuli:</span>
+                        <span className="font-medium text-green-700">Naqd (POS)</span>
                       </div>
                       {selectedOrder.cashReceived > 0 && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Cash Received:</span>
+                          <span className="text-gray-600">Qabul qilingan naqd:</span>
                           <span className="font-medium text-gray-900">{formatPrice(selectedOrder.cashReceived)}</span>
                         </div>
                       )}
                       {selectedOrder.changeGiven > 0 && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Change Given:</span>
+                          <span className="text-gray-600">Qaytim:</span>
                           <span className="font-medium text-gray-900">{formatPrice(selectedOrder.changeGiven)}</span>
                         </div>
                       )}
                       {selectedOrder.cashierName && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Cashier:</span>
+                          <span className="text-gray-600">Kassir:</span>
                           <span className="font-medium text-gray-900">{selectedOrder.cashierName}</span>
                         </div>
                       )}
@@ -845,7 +845,7 @@ const OrdersSection = ({ onImageClick }) => {
               {/* Order Status & Date */}
               <div className="flex items-center justify-between pt-4 border-t">
                 <div>
-                  <p className="text-sm text-gray-600">Order Status</p>
+                  <p className="text-sm text-gray-600">Buyurtma holati</p>
                   <span className={`inline-block mt-1 px-3 py-1 text-sm font-semibold rounded-full ${
                     selectedOrder.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                     selectedOrder.status === 'approved' ? 'bg-green-100 text-green-800' :
@@ -854,11 +854,11 @@ const OrdersSection = ({ onImageClick }) => {
                     selectedOrder.status === 'rejected' ? 'bg-red-100 text-red-800' :
                     'bg-gray-100 text-gray-800'
                   }`}>
-                    {selectedOrder.status.toUpperCase()}
+                    {getStatusLabel(selectedOrder.status)}
                   </span>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">Order Date</p>
+                  <p className="text-sm text-gray-600">Buyurtma sanasi</p>
                   <p className="text-sm font-medium text-gray-900 mt-1">{formatDate(selectedOrder.createdAt || selectedOrder.date)}</p>
                 </div>
               </div>

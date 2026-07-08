@@ -69,7 +69,7 @@ const BonusSettingsSection = () => {
     return (
       <div className="max-w-4xl">
         <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <p className="text-gray-600">Loading bonus configuration...</p>
+          <p className="text-gray-600">Bonus sozlamalari yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -80,17 +80,17 @@ const BonusSettingsSection = () => {
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-2xl font-bold mb-6 flex items-center gap-2">
           <Gift className="w-7 h-7 text-primary" />
-          Bonus & Rewards Configuration
+          Bonus va mukofotlar sozlamalari
         </h3>
 
         <div className="grid gap-6">
           {/* Referral Commission */}
           <div className="p-5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
             <label className="block text-lg font-bold mb-2 text-blue-900 flex items-center gap-2">
-              🎁 Referral Commission Percentage
+              🎁 Taklif komissiyasi foizi
             </label>
             <p className="text-sm text-gray-700 mb-4">
-              Percentage of referred user's order total credited to the referrer when their first order is approved
+              Taklif qilingan foydalanuvchining birinchi buyurtmasi tasdiqlanganda taklif qilgan shaxsga o'tkaziladigan buyurtma summasining foizi
             </p>
             <div className="flex items-center gap-3">
               <input
@@ -106,10 +106,11 @@ const BonusSettingsSection = () => {
             </div>
             <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
               <p className="text-sm text-gray-600">
-                <strong>Example:</strong> On a 100,000 UZS order, referrer earns{' '}
+                <strong>Misol:</strong> 100,000 so'mlik buyurtmada taklif qilgan shaxs{' '}
                 <span className="font-bold text-blue-700">
-                  {(100000 * bonusConfig.referralCommission / 100).toLocaleString()} UZS
-                </span>
+                  {(100000 * bonusConfig.referralCommission / 100).toLocaleString()} so'm
+                </span>{' '}
+                ishlaydi
               </p>
             </div>
           </div>
@@ -117,10 +118,10 @@ const BonusSettingsSection = () => {
           {/* Purchase Bonus */}
           <div className="p-5 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200">
             <label className="block text-lg font-bold mb-2 text-green-900 flex items-center gap-2">
-              💰 Purchase Bonus Percentage
+              💰 Xarid bonusi foizi
             </label>
             <p className="text-sm text-gray-700 mb-4">
-              Percentage of purchase amount given as bonus points for all users
+              Barcha foydalanuvchilarga bonus ball sifatida beriladigan xarid summasining foizi
             </p>
             <div className="flex items-center gap-3">
               <input
@@ -136,11 +137,11 @@ const BonusSettingsSection = () => {
             </div>
             <div className="mt-4 p-3 bg-white rounded-lg border border-green-200">
               <p className="text-sm text-gray-600">
-                <strong>Example:</strong> 100,000 UZS purchase ={' '}
+                <strong>Misol:</strong> 100,000 so'mlik xarid ={' '}
                 <span className="font-bold text-green-700">
-                  {(100000 * bonusConfig.purchaseBonus / 100).toLocaleString()} UZS
+                  {(100000 * bonusConfig.purchaseBonus / 100).toLocaleString()} so'm
                 </span>{' '}
-                in bonus points
+                bonus ball
               </p>
             </div>
           </div>
@@ -148,31 +149,31 @@ const BonusSettingsSection = () => {
           {/* Info Card */}
           <div className="p-5 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-300">
             <h4 className="font-bold text-base mb-3 flex items-center gap-2">
-              <span className="text-2xl">ℹ️</span> How it works
+              <span className="text-2xl">ℹ️</span> Qanday ishlaydi
             </h4>
             <ul className="text-sm text-gray-700 space-y-2">
               <li className="flex items-start gap-2">
                 <span className="text-accent font-bold">•</span>
                 <span>
-                  <strong>Referral Commission:</strong> When a referred user makes their first order and it's approved,
-                  the referrer receives {bonusConfig.referralCommission}% of the order total as commission
-                  (e.g., 100,000 UZS order = {(100000 * bonusConfig.referralCommission / 100).toLocaleString()} UZS commission)
+                  <strong>Taklif komissiyasi:</strong> Taklif qilingan foydalanuvchi birinchi buyurtmasini berib, u tasdiqlanganda
+                  taklif qilgan shaxs buyurtma summasining {bonusConfig.referralCommission}% ini komissiya sifatida oladi
+                  (masalan, 100,000 so'mlik buyurtma = {(100000 * bonusConfig.referralCommission / 100).toLocaleString()} so'm komissiya)
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-green-600 font-bold">•</span>
                 <span>
-                  <strong>Purchase Bonus:</strong> All users earn {bonusConfig.purchaseBonus}% of their purchase as bonus points
-                  (e.g., 100,000 UZS = {(100000 * bonusConfig.purchaseBonus / 100).toLocaleString()} UZS in points)
+                  <strong>Xarid bonusi:</strong> Barcha foydalanuvchilar xaridining {bonusConfig.purchaseBonus}% ini bonus ball sifatida oladi
+                  (masalan, 100,000 so'm = {(100000 * bonusConfig.purchaseBonus / 100).toLocaleString()} so'm ball)
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-purple-600 font-bold">•</span>
-                <span>Referral commissions are paid as direct currency, not points</span>
+                <span>Taklif komissiyalari ball emas, to'g'ridan-to'g'ri pul sifatida to'lanadi</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-orange-600 font-bold">•</span>
-                <span>These settings apply immediately and affect all future transactions</span>
+                <span>Ushbu sozlamalar darhol kuchga kiradi va barcha kelgusi tranzaksiyalarga ta'sir qiladi</span>
               </li>
             </ul>
           </div>

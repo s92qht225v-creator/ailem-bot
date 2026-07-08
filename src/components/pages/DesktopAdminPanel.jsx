@@ -96,107 +96,107 @@ const DesktopAdminPanel = ({ onLogout }) => {
   const menuItems = [
     {
       id: 'dashboard',
-      label: 'Dashboard',
+      label: 'Boshqaruv paneli',
       icon: Home,
       color: 'text-accent'
     },
     {
       id: 'orders',
-      label: 'Orders',
+      label: 'Buyurtmalar',
       icon: ShoppingBag,
       color: 'text-green-600',
       badge: pendingOrders > 0 ? pendingOrders : null
     },
     {
       id: 'products',
-      label: 'Products',
+      label: 'Mahsulotlar',
       icon: Package,
       color: 'text-purple-600',
       count: products.length
     },
     {
       id: 'stock-requests',
-      label: 'Stock Requests',
+      label: 'Ombor so\'rovlari',
       icon: AlertCircle,
       color: 'text-red-600'
     },
     {
       id: 'categories',
-      label: 'Categories',
+      label: 'Kategoriyalar',
       icon: LayoutGrid,
       color: 'text-orange-600',
       count: categories.length
     },
     {
       id: 'reviews',
-      label: 'Reviews',
+      label: 'Sharhlar',
       icon: Star,
       color: 'text-yellow-600',
       badge: pendingReviews > 0 ? pendingReviews : null
     },
     {
       id: 'users',
-      label: 'Users',
+      label: 'Foydalanuvchilar',
       icon: UsersIcon,
       color: 'text-indigo-600'
     },
     {
       id: 'walk-in-customers',
-      label: 'Walk-in Customers',
+      label: 'Do\'kondagi mijozlar',
       icon: UsersIcon,
       color: 'text-emerald-600'
     },
     {
       id: 'bonus-settings',
-      label: 'Bonus Settings',
+      label: 'Bonus sozlamalari',
       icon: Gift,
       color: 'text-rose-600'
     },
     {
       id: 'inventory-settings',
-      label: 'Inventory Alerts',
+      label: 'Ombor ogohlantirishlari',
       icon: Bell,
       color: 'text-orange-600'
     },
     {
       id: 'promotions',
-      label: 'Promotions',
+      label: 'Aksiyalar',
       icon: Image,
       color: 'text-pink-600'
     },
     {
       id: 'pickup-points',
-      label: 'Pickup Points',
+      label: 'Olib ketish punktlari',
       icon: MapPin,
       color: 'text-accent'
     },
     {
       id: 'shipping-rates',
-      label: 'Shipping Rates',
+      label: 'Yetkazib berish narxlari',
       icon: Truck,
       color: 'text-cyan-600'
     },
     {
       id: 'analytics',
-      label: 'Analytics',
+      label: 'Tahlil',
       icon: BarChart3,
       color: 'text-teal-600'
     },
     {
       id: 'audit-logs',
-      label: 'Audit Trail',
+      label: 'Audit tarixi',
       icon: ClipboardList,
       color: 'text-slate-600'
     },
     {
       id: 'support',
-      label: 'Support Chat',
+      label: 'Qo\'llab-quvvatlash chati',
       icon: MessageCircle,
       color: 'text-blue-600'
     },
     {
       id: 'settings',
-      label: 'Settings',
+      label: 'Sozlamalar',
       icon: Settings,
       color: 'text-gray-600'
     }
@@ -269,25 +269,25 @@ const DesktopAdminPanel = ({ onLogout }) => {
         <header className="bg-white shadow-sm border-b px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 capitalize">
-                {activeSection.replace('-', ' ')}
+              <h2 className="text-2xl font-bold text-gray-900">
+                {menuItems.find(item => item.id === activeSection)?.label || ''}
               </h2>
               <p className="text-gray-600">
-                {activeSection === 'dashboard' && 'Overview of your store performance'}
-                {activeSection === 'orders' && `${orders.length} total orders`}
-                {activeSection === 'products' && `${products.length} products in your catalog`}
-                {activeSection === 'stock-requests' && 'Customer waitlist for out-of-stock products'}
-                {activeSection === 'categories' && `${categories.length} product categories`}
-                {activeSection === 'reviews' && `${reviews?.length || 0} customer reviews`}
-                {activeSection === 'users' && 'Manage customers and administrators'}
-                {activeSection === 'walk-in-customers' && 'POS walk-in customers for SMS marketing'}
-                {activeSection === 'bonus-settings' && 'Configure referral and purchase rewards'}
-                {activeSection === 'promotions' && 'Manage banners and app settings'}
-                {activeSection === 'pickup-points' && 'Manage courier pickup locations'}
-                {activeSection === 'shipping-rates' && 'Configure delivery pricing by region'}
-                {activeSection === 'analytics' && 'Detailed business insights'}
+                {activeSection === 'dashboard' && 'Do\'koningiz ko\'rsatkichlari sharhi'}
+                {activeSection === 'orders' && `Jami ${orders.length} buyurtma`}
+                {activeSection === 'products' && `Katalogda ${products.length} mahsulot`}
+                {activeSection === 'stock-requests' && 'Omborda yo\'q mahsulotlar uchun mijozlar navbati'}
+                {activeSection === 'categories' && `${categories.length} ta mahsulot kategoriyasi`}
+                {activeSection === 'reviews' && `${reviews?.length || 0} ta mijoz sharhi`}
+                {activeSection === 'users' && 'Mijozlar va administratorlarni boshqarish'}
+                {activeSection === 'walk-in-customers' && 'SMS marketing uchun do\'kondagi mijozlar'}
+                {activeSection === 'bonus-settings' && 'Taklif va xarid mukofotlarini sozlash'}
+                {activeSection === 'promotions' && 'Bannerlar va ilova sozlamalarini boshqarish'}
+                {activeSection === 'pickup-points' && 'Kuryer olib ketish punktlarini boshqarish'}
+                {activeSection === 'shipping-rates' && 'Hududlar bo\'yicha yetkazib berish narxini sozlash'}
+                {activeSection === 'analytics' && 'Batafsil biznes tahlili'}
                 {activeSection === 'support' && 'Foydalanuvchilar bilan muloqot'}
-                {activeSection === 'settings' && 'System configuration and preferences'}
+                {activeSection === 'settings' && 'Tizim konfiguratsiyasi va sozlamalari'}
               </p>
             </div>
             <div className="flex items-center gap-4">
@@ -296,15 +296,15 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </button>
               <div className="flex items-center gap-3">
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">Admin User</p>
+                  <p className="text-sm font-medium text-gray-900">Admin</p>
                   <p className="text-xs text-gray-500">Administrator</p>
                 </div>
                 <button
                   onClick={onLogout}
                   className="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-                  title="Logout from admin panel"
+                  title="Admin paneldan chiqish"
                 >
-                  Logout
+                  Chiqish
                 </button>
               </div>
             </div>
@@ -313,7 +313,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         {/* Content Area */}
         <main className="flex-1 overflow-auto p-6">
-          <ErrorBoundary key={activeSection} fallbackMessage={`The ${activeSection} section encountered an error.`}>
+          <ErrorBoundary key={activeSection} fallbackMessage={`Ushbu bo'limda xatolik yuz berdi.`}>
             {/* Modular components */}
             {activeSection === 'dashboard' && <DashboardSection onNavigate={setActiveSection} />}
             {activeSection === 'orders' && <OrdersSection onImageClick={setSelectedImage} />}
@@ -1404,7 +1404,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     <div className="mt-2">
                       <img
                         src={formData.image}
-                        alt="Preview"
+                        alt="Ko'rinishi"
                         className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
                         onError={(e) => { e.target.style.display = 'none'; }}
                       />
@@ -1466,14 +1466,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     className="flex-1 bg-red-50 hover:bg-red-100 text-accent px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                   >
                     <Edit className="w-4 h-4" />
-                    Edit
+                    Tahrirlash
                   </button>
                   <button
                     onClick={() => handleDelete(category.id)}
                     className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
                   >
                     <Trash2 className="w-4 h-4" />
-                    Delete
+                    O'chirish
                   </button>
                 </div>
                 <div className="flex gap-2 mb-2">
@@ -1505,7 +1505,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronUp className="w-4 h-4" />
-                    Move Up
+                    Yuqoriga
                   </button>
                   <button
                     onClick={() => handleMoveCategory(index, 'down')}
@@ -1513,7 +1513,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronDown className="w-4 h-4" />
-                    Move Down
+                    Pastga
                   </button>
                 </div>
               </div>
@@ -1524,14 +1524,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
         {categories.length === 0 && !showForm && (
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <LayoutGrid className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No categories yet</h3>
-            <p className="text-gray-600 mb-4">Create your first category to organize products</p>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Hozircha kategoriyalar yo'q</h3>
+            <p className="text-gray-600 mb-4">Mahsulotlarni tartibga solish uchun birinchi kategoriyangizni yarating</p>
             <button
               onClick={() => setShowForm(true)}
               className="bg-accent hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
             >
               <Plus className="w-5 h-5" />
-              Add First Category
+              Birinchi kategoriyani qo'shish
             </button>
           </div>
         )}
@@ -2379,7 +2379,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
             >
               <Plus className="w-5 h-5" />
-              Add Pickup Point
+              Olib ketish nuqtasi qo'shish
             </button>
           )}
 
@@ -2387,7 +2387,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by courier, state, city, address, phone, or hours..."
+              placeholder="Kuryer, viloyat, shahar, manzil, telefon yoki ish vaqti bo'yicha qidirish..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
@@ -2405,25 +2405,25 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         {searchQuery && (
           <div className="mb-4 text-sm text-gray-600">
-            Found {filteredPickupPoints.length} pickup point{filteredPickupPoints.length !== 1 ? 's' : ''} matching "{searchQuery}"
+            "{searchQuery}" bo'yicha {filteredPickupPoints.length} ta olib ketish nuqtasi topildi
           </div>
         )}
 
         {showForm && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-4">
             <h3 className="text-xl font-bold mb-4">
-              {editingPoint ? 'Edit Pickup Point' : 'Add New Pickup Point'}
+              {editingPoint ? 'Olib ketish nuqtasini tahrirlash' : 'Yangi olib ketish nuqtasi qo\'shish'}
             </h3>
             <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold mb-1">Courier Service *</label>
+                <label className="block text-sm font-semibold mb-1">Kuryer xizmati *</label>
                 <input
                   list="courier-list"
                   type="text"
                   value={formData.courierService}
                   onChange={(e) => setFormData({ ...formData, courierService: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="e.g., Yandex, Uzum, Express24"
+                  placeholder="Masalan: Yandex, Uzum, Express24"
                   required
                 />
                 <datalist id="courier-list">
@@ -2434,14 +2434,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">State/Region *</label>
+                <label className="block text-sm font-semibold mb-1">Viloyat/Hudud *</label>
                 <input
                   list="state-list"
                   type="text"
                   value={formData.state}
                   onChange={(e) => setFormData({ ...formData, state: e.target.value, city: '' })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="e.g., Tashkent Region"
+                  placeholder="Masalan: Toshkent viloyati"
                   required
                 />
                 <datalist id="state-list">
@@ -2452,14 +2452,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">City *</label>
+                <label className="block text-sm font-semibold mb-1">Shahar *</label>
                 <input
                   list="city-list"
                   type="text"
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="e.g., Tashkent"
+                  placeholder="Masalan: Toshkent"
                   required
                 />
                 <datalist id="city-list">
@@ -2470,7 +2470,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">Phone Number *</label>
+                <label className="block text-sm font-semibold mb-1">Telefon raqami *</label>
                 <input
                   type="tel"
                   value={formData.phone}
@@ -2482,14 +2482,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">Working Hours *</label>
+                <label className="block text-sm font-semibold mb-1">Ish vaqti *</label>
                 <input
                   list="hours-list"
                   type="text"
                   value={formData.workingHours}
                   onChange={(e) => setFormData({ ...formData, workingHours: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="e.g., 09:00 - 20:00"
+                  placeholder="Masalan: 09:00 - 20:00"
                   required
                 />
                 <datalist id="hours-list">
@@ -2501,13 +2501,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div className="col-span-2">
-                <label className="block text-sm font-semibold mb-1">Address *</label>
+                <label className="block text-sm font-semibold mb-1">Manzil *</label>
                 <textarea
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
                   rows="2"
-                  placeholder="Full address of pickup point"
+                  placeholder="Olib ketish nuqtasining to'liq manzili"
                   required
                 />
               </div>
@@ -2517,7 +2517,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   type="submit"
                   className="flex-1 bg-accent text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors"
                 >
-                  {editingPoint ? 'Update Pickup Point' : 'Add Pickup Point'}
+                  {editingPoint ? 'Olib ketish nuqtasini yangilash' : 'Olib ketish nuqtasi qo\'shish'}
                 </button>
                 <button
                   type="button"
@@ -2535,7 +2535,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   }}
                   className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
                 >
-                  Cancel
+                  Bekor qilish
                 </button>
               </div>
             </form>
@@ -2546,7 +2546,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           {Object.keys(groupedPoints).length === 0 ? (
             <div className="bg-white rounded-lg shadow-md p-12 text-center">
               <MapPin className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">No pickup points found</p>
+              <p className="text-gray-500 text-lg">Olib ketish nuqtalari topilmadi</p>
             </div>
           ) : (
             Object.entries(groupedPoints).map(([courier, stateGroups]) => {
@@ -2569,7 +2569,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     </div>
                     <div className="flex-1 text-left">
                       <h2 className="text-lg font-bold text-gray-800">{courier}</h2>
-                      <p className="text-sm text-gray-500">{totalPoints} pickup points</p>
+                      <p className="text-sm text-gray-500">{totalPoints} ta olib ketish nuqtasi</p>
                     </div>
                   </button>
 
@@ -2591,7 +2591,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                               <MapPin className="w-5 h-5 text-accent flex-shrink-0" />
                               <div className="flex-1 text-left">
                                 <h3 className="font-bold text-gray-800">{state}</h3>
-                                <p className="text-xs text-gray-500">{statePoints} locations</p>
+                                <p className="text-xs text-gray-500">{statePoints} ta manzil</p>
                               </div>
                             </button>
 
@@ -2614,7 +2614,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                         </div>
                                         <div className="flex-1 text-left">
                                           <h4 className="font-semibold text-gray-800">{city}</h4>
-                                          <p className="text-xs text-gray-500">{addresses.length} addresses</p>
+                                          <p className="text-xs text-gray-500">{addresses.length} ta manzil</p>
                                         </div>
                                       </button>
 
@@ -2628,7 +2628,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                                       point.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
                                                     }`}>
-                                                      {point.active ? 'Active' : 'Inactive'}
+                                                      {point.active ? 'Faol' : 'Faol emas'}
                                                     </span>
                                                   </div>
                                                   <p className="text-gray-800 font-medium mb-1">{point.address}</p>
@@ -2652,7 +2652,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                                         : 'bg-green-100 text-green-800 hover:bg-green-200'
                                                     }`}
                                                   >
-                                                    {point.active ? 'Deactivate' : 'Activate'}
+                                                    {point.active ? 'O\'chirish' : 'Yoqish'}
                                                   </button>
                                                   <button
                                                     onClick={() => handleEdit(point)}
@@ -2834,25 +2834,25 @@ const DesktopAdminPanel = ({ onLogout }) => {
             className="mb-4 bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
           >
             <Plus className="w-5 h-5" />
-            Add Shipping Rate
+            Yetkazib berish narxi qo'shish
           </button>
         )}
 
         {showForm && (
           <div className="bg-white rounded-lg shadow-md p-6 mb-4">
             <h3 className="text-xl font-bold mb-4">
-              {editingRate ? 'Edit Shipping Rate' : 'Add New Shipping Rate'}
+              {editingRate ? 'Yetkazib berish narxini tahrirlash' : 'Yangi yetkazib berish narxi qo\'shish'}
             </h3>
             <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold mb-1">Courier Service *</label>
+                <label className="block text-sm font-semibold mb-1">Kuryer xizmati *</label>
                 <input
                   list="courier-rates-list"
                   type="text"
                   value={formData.courier}
                   onChange={(e) => setFormData({ ...formData, courier: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder="e.g., BTS, Yandex, Starex"
+                  placeholder="Masalan: BTS, Yandex, Starex"
                   required
                 />
                 <datalist id="courier-rates-list">
@@ -2864,7 +2864,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
               <div>
                 <label className="block text-sm font-semibold mb-1">
-                  State/Region * {!editingRate && <span className="text-xs text-gray-500">(comma-separated for multiple)</span>}
+                  Viloyat/Hudud * {!editingRate && <span className="text-xs text-gray-500">(bir nechtasi uchun vergul bilan ajrating)</span>}
                 </label>
                 <input
                   list="state-rates-list"
@@ -2872,7 +2872,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   value={formData.state}
                   onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
-                  placeholder={editingRate ? "e.g., Tashkent Region" : "e.g., Tashkent Region, Samarkand Region"}
+                  placeholder={editingRate ? "Masalan: Toshkent viloyati" : "Masalan: Toshkent viloyati, Samarqand viloyati"}
                   required
                 />
                 <datalist id="state-rates-list">
@@ -2882,47 +2882,47 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 </datalist>
                 {!editingRate && (
                   <p className="text-xs text-gray-500 mt-1">
-                    💡 Tip: Enter multiple regions separated by commas to create rates for all at once
+                    💡 Maslahat: Bir nechta hudud uchun narxlarni birdaniga yaratish uchun ularni vergul bilan ajrating
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">First KG Rate (UZS) *</label>
+                <label className="block text-sm font-semibold mb-1">Birinchi KG narxi (UZS) *</label>
                 <input
                   type="number"
                   value={formData.firstKg}
                   onChange={(e) => setFormData({ ...formData, firstKg: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="e.g., 15000"
+                  placeholder="Masalan: 15000"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">Additional KG Rate (UZS)</label>
+                <label className="block text-sm font-semibold mb-1">Qo'shimcha KG narxi (UZS)</label>
                 <input
                   type="number"
                   value={formData.additionalKg}
                   onChange={(e) => setFormData({ ...formData, additionalKg: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg"
-                  placeholder="e.g., 5000 (0 for flat rate)"
+                  placeholder="Masalan: 5000 (qat'iy narx uchun 0)"
                 />
               </div>
 
               <div className="col-span-2">
-                <label className="block text-sm font-semibold mb-1">Payment Method *</label>
+                <label className="block text-sm font-semibold mb-1">To'lov usuli *</label>
                 <select
                   value={formData.paymentType}
                   onChange={(e) => setFormData({ ...formData, paymentType: e.target.value })}
                   className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
                   required
                 >
-                  <option value="prepaid">Prepaid (Customer pays online with product)</option>
-                  <option value="postpaid">Pay at Pickup (Customer pays at pickup point)</option>
+                  <option value="prepaid">Oldindan to'lov (Mijoz mahsulot bilan onlayn to'laydi)</option>
+                  <option value="postpaid">Olib ketishda to'lash (Mijoz olib ketish punktida to'laydi)</option>
                 </select>
                 <p className="text-xs text-gray-500 mt-1">
-                  💡 Choose how customers pay for shipping with this courier
+                  💡 Mijozlar ushbu kuryer orqali yetkazib berishni qanday to'lashini tanlang
                 </p>
               </div>
 
@@ -2931,7 +2931,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   type="submit"
                   className="flex-1 bg-accent text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors"
                 >
-                  {editingRate ? 'Update Rate' : 'Add Rate'}
+                  {editingRate ? 'Narxni yangilash' : 'Narx qo\'shish'}
                 </button>
                 <button
                   type="button"
@@ -2942,7 +2942,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   }}
                   className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
                 >
-                  Cancel
+                  Bekor qilish
                 </button>
               </div>
             </form>
@@ -2953,7 +2953,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           {Object.keys(groupedRates).length === 0 ? (
             <div className="bg-white rounded-lg shadow-md p-12 text-center">
               <Truck className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">No shipping rates configured</p>
+              <p className="text-gray-500 text-lg">Yetkazib berish narxlari sozlanmagan</p>
             </div>
           ) : (
             Object.entries(groupedRates).map(([courier, rates]) => {
@@ -2971,7 +2971,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     <Truck className="w-6 h-6 text-accent" />
                     <div className="flex-1 text-left">
                       <h3 className="text-xl font-bold text-gray-800">{courier}</h3>
-                      <p className="text-sm text-gray-500">{rates.length} shipping rates</p>
+                      <p className="text-sm text-gray-500">{rates.length} ta yetkazib berish narxi</p>
                     </div>
                   </button>
 
@@ -2987,15 +2987,15 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                   ? 'bg-orange-100 text-orange-800'
                                   : 'bg-green-100 text-green-800'
                               }`}>
-                                {rate.paymentType === 'postpaid' ? 'Pay at Pickup' : 'Prepaid'}
+                                {rate.paymentType === 'postpaid' ? 'Olib ketishda to\'lash' : 'Oldindan to\'lov'}
                               </span>
                             </div>
                             <div className="flex gap-6 text-sm text-gray-600">
                               <div>
-                                <span className="font-medium">First KG:</span> {formatPrice(rate.firstKg)}
+                                <span className="font-medium">Birinchi KG:</span> {formatPrice(rate.firstKg)}
                               </div>
                               <div>
-                                <span className="font-medium">Additional KG:</span> {rate.additionalKg > 0 ? formatPrice(rate.additionalKg) : 'Flat rate'}
+                                <span className="font-medium">Qo'shimcha KG:</span> {rate.additionalKg > 0 ? formatPrice(rate.additionalKg) : 'Qat\'iy narx'}
                               </div>
                             </div>
                           </div>
@@ -3108,8 +3108,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
     const handleAddBanner = () => {
       setBanners([...banners, {
-        title: 'New Banner',
-        subtitle: 'Add your promotional message',
+        title: 'Yangi banner',
+        subtitle: 'Reklama xabaringizni qo\'shing',
         imageUrl: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&h=400&fit=crop',
         enabled: true
       }]);
@@ -3205,8 +3205,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
             <div className="flex items-center gap-3">
               <AlertCircle className="w-5 h-5 text-orange-500" />
               <div>
-                <p className="font-semibold text-gray-900">You have unsaved changes</p>
-                <p className="text-sm text-gray-600">Don't forget to save your changes before leaving</p>
+                <p className="font-semibold text-gray-900">Saqlanmagan o'zgarishlar bor</p>
+                <p className="text-sm text-gray-600">Chiqishdan oldin o'zgarishlarni saqlashni unutmang</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -3214,7 +3214,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 onClick={handleDiscardChanges}
                 className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition-colors"
               >
-                Discard
+                Bekor qilish
               </button>
               <button
                 onClick={handleSaveAll}
@@ -3224,12 +3224,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 {saving ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                    Saving...
+                    Saqlanmoqda...
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4" />
-                    Save Changes
+                    O'zgarishlarni saqlash
                   </>
                 )}
               </button>
@@ -3243,29 +3243,29 @@ const DesktopAdminPanel = ({ onLogout }) => {
             <div>
               <h3 className="text-xl font-bold flex items-center gap-2">
                 <Image className="w-6 h-6 text-primary" />
-                Homepage Banner Carousel
+                Bosh sahifa bannerlari karuseli
               </h3>
-              <p className="text-sm text-gray-600 mt-1">Manage promotional banners that slide automatically</p>
+              <p className="text-sm text-gray-600 mt-1">Avtomatik almashinuvchi reklama bannerlarini boshqaring</p>
             </div>
             <button
               onClick={handleAddBanner}
               className="bg-primary hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Add Banner
+              Banner qo'shish
             </button>
           </div>
 
           {banners.length === 0 ? (
             <div className="bg-gray-50 rounded-lg p-12 text-center">
               <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg mb-4">No banners configured</p>
+              <p className="text-gray-500 text-lg mb-4">Bannerlar sozlanmagan</p>
               <button
                 onClick={handleAddBanner}
                 className="bg-primary hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
               >
                 <Plus className="w-4 h-4" />
-                Create Your First Banner
+                Birinchi bannerni yarating
               </button>
             </div>
           ) : (
@@ -3287,7 +3287,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                         </div>
                         {!banner.enabled && (
                           <div className="absolute top-1 right-1 bg-gray-900/80 text-white px-2 py-0.5 rounded text-xs">
-                            Disabled
+                            O'chirilgan
                           </div>
                         )}
                       </div>
@@ -3300,35 +3300,35 @@ const DesktopAdminPanel = ({ onLogout }) => {
                           {/* Edit Mode */}
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <label className="block text-xs font-semibold mb-1 text-gray-700">Title</label>
+                              <label className="block text-xs font-semibold mb-1 text-gray-700">Sarlavha</label>
                               <input
                                 type="text"
                                 value={banner.title}
                                 onChange={(e) => handleUpdateBanner(index, { title: e.target.value })}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
-                                placeholder="Banner title"
+                                placeholder="Banner sarlavhasi"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-semibold mb-1 text-gray-700">Subtitle</label>
+                              <label className="block text-xs font-semibold mb-1 text-gray-700">Kichik sarlavha</label>
                               <input
                                 type="text"
                                 value={banner.subtitle}
                                 onChange={(e) => handleUpdateBanner(index, { subtitle: e.target.value })}
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
-                                placeholder="Banner subtitle"
+                                placeholder="Banner kichik sarlavhasi"
                               />
                             </div>
                           </div>
                           <div>
-                            <label className="block text-xs font-semibold mb-1 text-gray-700">Image URL</label>
+                            <label className="block text-xs font-semibold mb-1 text-gray-700">Rasm URL manzili</label>
                             <div className="flex gap-2">
                               <input
                                 type="text"
                                 value={banner.imageUrl}
                                 onChange={(e) => handleUpdateBanner(index, { imageUrl: e.target.value })}
                                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
-                                placeholder="Paste image URL"
+                                placeholder="Rasm URL manzilini joylashtiring"
                               />
                               <input
                                 type="file"
@@ -3359,7 +3359,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                               onClick={() => setEditingBannerIndex(null)}
                               className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
                             >
-                              Done Editing
+                              Tahrirlashni tugatish
                             </button>
                           </div>
                         </>
@@ -3384,7 +3384,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                               />
                             </button>
                             <span className="text-xs text-gray-600">
-                              {banner.enabled ? 'Enabled' : 'Disabled'}
+                              {banner.enabled ? 'Yoqilgan' : 'O\'chirilgan'}
                             </span>
                           </div>
                         </>
@@ -3397,7 +3397,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                         <button
                           onClick={() => setEditingBannerIndex(index)}
                           className="p-2 text-accent hover:bg-red-50 rounded transition-colors"
-                          title="Edit banner"
+                          title="Bannerni tahrirlash"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
@@ -3406,7 +3406,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                         <button
                           onClick={() => handleMoveBanner(index, 'up')}
                           className="p-2 text-gray-600 hover:bg-gray-200 rounded transition-colors"
-                          title="Move up"
+                          title="Yuqoriga ko'chirish"
                         >
                           <MoveUp className="w-4 h-4" />
                         </button>
@@ -3415,7 +3415,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                         <button
                           onClick={() => handleMoveBanner(index, 'down')}
                           className="p-2 text-gray-600 hover:bg-gray-200 rounded transition-colors"
-                          title="Move down"
+                          title="Pastga ko'chirish"
                         >
                           <MoveDown className="w-4 h-4" />
                         </button>
@@ -3423,7 +3423,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       <button
                         onClick={() => handleDeleteBanner(index)}
                         className="p-2 text-error hover:bg-red-50 rounded transition-colors"
-                        title="Delete banner"
+                        title="Bannerni o'chirish"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -3436,11 +3436,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
           {banners.length > 0 && (
             <div className="mt-4 p-4 bg-red-50 rounded-lg">
-              <p className="text-xs text-blue-800 font-medium mb-1">💡 Carousel Preview</p>
+              <p className="text-xs text-blue-800 font-medium mb-1">💡 Karusel ko'rinishi</p>
               <p className="text-sm text-blue-900">
-                {banners.filter(b => b.enabled).length === 0 && 'No banners enabled. Enable at least one banner to display the carousel.'}
-                {banners.filter(b => b.enabled).length === 1 && 'One banner enabled. It will display as a static banner.'}
-                {banners.filter(b => b.enabled).length > 1 && `${banners.filter(b => b.enabled).length} banners enabled. They will auto-slide every 5 seconds with swipe support.`}
+                {banners.filter(b => b.enabled).length === 0 && 'Hech qanday banner yoqilmagan. Karuselni ko\'rsatish uchun kamida bitta bannerni yoqing.'}
+                {banners.filter(b => b.enabled).length === 1 && 'Bitta banner yoqilgan. U statik banner sifatida ko\'rsatiladi.'}
+                {banners.filter(b => b.enabled).length > 1 && `${banners.filter(b => b.enabled).length} ta banner yoqilgan. Ular har 5 soniyada avtomatik almashadi va surish qo'llab-quvvatlanadi.`}
               </p>
             </div>
           )}
@@ -3451,16 +3451,16 @@ const DesktopAdminPanel = ({ onLogout }) => {
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold flex items-center gap-2">
               <Clock className="w-6 h-6 text-primary" />
-              Countdown Timer
+              Teskari sanoq taymeri
             </h3>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Status:</span>
+              <span className="text-sm text-gray-500">Holat:</span>
               <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
                 saleTimer.enabled
                   ? 'bg-green-100 text-green-700'
                   : 'bg-gray-100 text-gray-600'
               }`}>
-                {saleTimer.enabled ? '● Active' : '○ Inactive'}
+                {saleTimer.enabled ? '● Faol' : '○ Faol emas'}
               </span>
             </div>
           </div>
@@ -3470,8 +3470,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="font-semibold text-gray-900">Timer Status</label>
-                    <p className="text-sm text-gray-500 mt-1">Show countdown on homepage</p>
+                    <label className="font-semibold text-gray-900">Taymer holati</label>
+                    <p className="text-sm text-gray-500 mt-1">Bosh sahifada teskari sanoqni ko'rsatish</p>
                   </div>
                   <button
                     onClick={() => setSaleTimer({ ...saleTimer, enabled: !saleTimer.enabled })}
@@ -3490,7 +3490,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700">
-                  Sale End Date & Time
+                  Aksiya tugash sanasi va vaqti
                 </label>
                 <input
                   type="datetime-local"
@@ -3502,7 +3502,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-shadow"
                 />
                 <div className="mt-2 p-3 bg-red-50 rounded-lg">
-                  <p className="text-xs text-blue-800 font-medium">📅 Selected date:</p>
+                  <p className="text-xs text-blue-800 font-medium">📅 Tanlangan sana:</p>
                   <p className="text-sm text-blue-900 font-semibold">
                     {new Date(saleTimer.endDate).toLocaleString('uz-UZ', {
                       weekday: 'long',
@@ -3525,11 +3525,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     !
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-2 font-medium">Sale ends in</p>
+                <p className="text-sm text-gray-600 mb-2 font-medium">Aksiya tugashiga</p>
                 <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
                   {Math.ceil((new Date(saleTimer.endDate) - new Date()) / (1000 * 60 * 60 * 24))}
                 </p>
-                <p className="text-lg font-semibold text-gray-700 mt-1">days remaining</p>
+                <p className="text-lg font-semibold text-gray-700 mt-1">kun qoldi</p>
               </div>
             </div>
           </div>
