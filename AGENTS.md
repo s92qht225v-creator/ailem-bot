@@ -4,7 +4,7 @@
 
 **Ailem** — E-commerce platform for home textiles (Uzbekistan). Runs as a web app (desktop + mobile) and inside Telegram as a Mini App.
 - **Version**: 2.0.0 | **Language**: Uzbek (Cyrillic) | **Currency**: UZS | **Domain**: www.ailem.uz
-- **Platform**: Next.js 14 App Router (SSR-capable, currently force-dynamic) | **Hosting**: Vercel | **DB**: Supabase (Mumbai, ap-south-1)
+- **Platform**: Next.js 14 App Router (SSR-capable, currently force-dynamic) | **Hosting**: Hetzner (Docker, GitHub Actions CI/CD) | **DB**: Supabase (Mumbai, ap-south-1)
 - **Telegram bot**: `@ailemuzbot`
 
 ## Sub-Guides (read these when working in each area)
@@ -107,7 +107,10 @@ supabase-migrations/         # SQL migration files — run in Supabase SQL Edito
 middleware.js                # Redirects ?admin=true → /admin
 next.config.mjs              # Image domains, console removal in prod
 tailwind.config.js           # Design tokens
-vercel.json                  # { "framework": "nextjs" }
+Dockerfile                   # Production Next.js container image
+docker-compose.yml           # App + Caddy on the Hetzner VM (/opt/ailem)
+Caddyfile                    # Reverse proxy / TLS
+.github/workflows/deploy.yml # CI/CD: build image → GHCR → SSH deploy to Hetzner
 jsconfig.json                # Path alias @/* → ./
 ```
 
@@ -326,7 +329,7 @@ https://api.telegram.org/bot{TOKEN}/setWebhook?url=https://www.ailem.uz/api/supp
 ## Infrastructure
 
 - **Supabase**: Mumbai (ap-south-1), project `jbdzhwenzedlwbdpguyt`
-- **Vercel**: `vercel.json` = `{ "framework": "nextjs" }` — Next.js handles routing
+- **Hetzner**: single VM; the app runs in Docker (`docker-compose.yml`) behind Caddy. **Deploy = push to `main`** → GitHub Actions (`.github/workflows/deploy.yml`) builds the image, pushes to GHCR, then SSHes to the box (`/opt/ailem`) and runs `docker compose pull && up -d`. Full runbook: `deploy/README.md`. **Verify a deploy:** `gh run list --workflow=deploy.yml` (not Vercel — Vercel was abandoned ~2026-03).
 - **Migrations**: `supabase-migrations/` — run SQL files manually in Supabase SQL Editor
 - **Middleware**: `middleware.js` redirects `?admin=true` → `/admin`
 
@@ -343,9 +346,9 @@ https://api.telegram.org/bot{TOKEN}/setWebhook?url=https://www.ailem.uz/api/supp
 - **DB 400 column not found**: Run migration SQL in Supabase SQL Editor
 - **Storage upload 403**: Run `fix-storage-rls.sql`
 - **Banners missing after migration**: Rewrite URLs inside `app_settings.banners` JSONB (old project URLs)
-- **"Bot token not configured"**: Add `TELEGRAM_BOT_TOKEN` (no prefix) to Vercel env vars → redeploy
-- **"Invalid API key" on login**: Add `SUPABASE_SERVICE_ROLE_KEY` to Vercel env vars → redeploy
-- **Vercel env vars not taking effect**: Must redeploy after updating in Vercel dashboard
+- **"Bot token not configured"**: Add `TELEGRAM_BOT_TOKEN` (no prefix) to `/opt/ailem/.env` on the server → re-deploy
+- **"Invalid API key" on login**: Add `SUPABASE_SERVICE_ROLE_KEY` to `/opt/ailem/.env` on the server → re-deploy
+- **Env vars not taking effect**: runtime vars live in `/opt/ailem/.env` (restart the container); build-time `NEXT_PUBLIC_*` are GitHub Actions **secrets** baked into the image at build — update the secret and re-run the deploy workflow
 - **Telegram Login Widget domain error**: Register domain in BotFather → `/mybots` → Bot Settings → Domain → `ailem.uz`
 - **Stale cart pricing**: Always resolve live `volume_pricing` from AdminContext, not cart snapshot
 - **Payment pre-deduction**: Never deduct cart/bonus before payment confirmed — always in PaymentStatusPage
@@ -354,10 +357,11 @@ https://api.telegram.org/bot{TOKEN}/setWebhook?url=https://www.ailem.uz/api/supp
 
 1. Bump version in `package.json`
 2. Run any new SQL migrations in Supabase SQL Editor
-3. Add/update env vars in Vercel dashboard
-4. Push to `main` → Vercel auto-deploys
-5. Test payment flows (Payme + manual)
-6. Test in Telegram Mobile App
+3. Add/update env vars: `/opt/ailem/.env` (runtime) and/or GitHub Actions secrets (build-time `NEXT_PUBLIC_*`)
+4. Push to `main` → GitHub Actions builds the Docker image and SSH-deploys to Hetzner
+5. Verify the deploy: `gh run list --workflow=deploy.yml` shows the run `success`
+6. Test payment flows (Payme + manual)
+7. Test in Telegram Mobile App
 
 ## SEO Status
 
@@ -368,6 +372,6 @@ https://api.telegram.org/bot{TOKEN}/setWebhook?url=https://www.ailem.uz/api/supp
 
 ---
 
-**Last Updated**: 2026-03-04
+**Last Updated**: 2026-07-08
 **Version**: 2.0.0
 **Maintained By**: Ailem Development Team

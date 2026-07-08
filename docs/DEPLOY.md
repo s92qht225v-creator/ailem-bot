@@ -1,3 +1,5 @@
+> ⚠️ **OUTDATED — not the current deploy process.** Production is hosted on **Hetzner** (Docker, deployed via GitHub Actions on push to `main`). See [`deploy/README.md`](../deploy/README.md) for the current runbook. This file describes a former host and is kept only for history.
+
 # Deploying Ailem Bot to DigitalOcean
 
 This guide will help you deploy your Ailem Bot to a DigitalOcean droplet.
