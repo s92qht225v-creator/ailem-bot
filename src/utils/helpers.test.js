@@ -15,18 +15,18 @@ import {
 
 describe('Price Formatting', () => {
   it('should format price with thousand separators', () => {
-    expect(formatPrice(50000)).toBe('50,000 UZS');
-    expect(formatPrice(1234567)).toBe('1,234,567 UZS');
+    expect(formatPrice(50000)).toBe('50 000 so\'m');
+    expect(formatPrice(1234567)).toBe('1 234 567 so\'m');
   });
 
   it('should round decimal prices', () => {
-    expect(formatPrice(50000.75)).toBe('50,001 UZS');
-    expect(formatPrice(99999.49)).toBe('99,999 UZS');
+    expect(formatPrice(50000.75)).toBe('50 001 so\'m');
+    expect(formatPrice(99999.49)).toBe('99 999 so\'m');
   });
 
   it('should handle zero and negative prices', () => {
-    expect(formatPrice(0)).toBe('0 UZS');
-    expect(formatPrice(-100)).toBe('-100 UZS');
+    expect(formatPrice(0)).toBe('0 so\'m');
+    expect(formatPrice(-100)).toBe('-100 so\'m');
   });
 });
 
@@ -100,10 +100,10 @@ describe('Bonus Points Calculations', () => {
     localStorage.clear();
   });
 
-  it('should calculate 10% bonus points by default', () => {
-    expect(calculateBonusPoints(100000)).toBe(10000);
-    expect(calculateBonusPoints(50000)).toBe(5000);
-    expect(calculateBonusPoints(25000)).toBe(2500);
+  it('should calculate 1% bonus points by default', () => {
+    expect(calculateBonusPoints(100000)).toBe(1000);
+    expect(calculateBonusPoints(50000)).toBe(500);
+    expect(calculateBonusPoints(25000)).toBe(250);
   });
 
   it('should handle zero amount', () => {
@@ -111,7 +111,7 @@ describe('Bonus Points Calculations', () => {
   });
 
   it('should round bonus points', () => {
-    expect(calculateBonusPoints(12345)).toBe(1235); // 10% of 12345 = 1234.5, rounded to 1235
+    expect(calculateBonusPoints(12345)).toBe(123); // 1% of 12345 = 123.45, rounded to 123
   });
 
   it('should use custom bonus percentage from config', () => {
@@ -126,12 +126,12 @@ describe('Max Bonus Usage Calculations', () => {
   });
 
   it('should calculate max bonus usage as 20% of order', () => {
-    // Default point value is 1000 (1 point = 1000 so'm)
-    // 20% of 100,000 = 20,000 so'm = 20 points
-    expect(calculateMaxBonusUsage(100000)).toBe(20);
+    // Default point value is 1 (1 point = 1 so'm)
+    // 20% of 100,000 = 20,000 so'm = 20,000 points
+    expect(calculateMaxBonusUsage(100000)).toBe(20000);
     
-    // 20% of 50,000 = 10,000 so'm = 10 points
-    expect(calculateMaxBonusUsage(50000)).toBe(10);
+    // 20% of 50,000 = 10,000 so'm = 10,000 points
+    expect(calculateMaxBonusUsage(50000)).toBe(10000);
   });
 
   it('should handle zero order total', () => {
@@ -153,9 +153,9 @@ describe('Bonus Points to Currency Conversion', () => {
   });
 
   it('should convert points to currency with default value', () => {
-    // Default: 1 point = 1000 so'm
-    expect(bonusPointsToDollars(10)).toBe(10000);
-    expect(bonusPointsToDollars(5)).toBe(5000);
+    // Default: 1 point = 1 so'm
+    expect(bonusPointsToDollars(10)).toBe(10);
+    expect(bonusPointsToDollars(5)).toBe(5);
   });
 
   it('should handle zero points', () => {
@@ -228,17 +228,17 @@ describe('Bonus Points System Integration', () => {
   it('should correctly calculate earn and spend flow', () => {
     const orderAmount = 100000;
     
-    // Step 1: Calculate earned bonus points (10% of order)
+    // Step 1: Calculate earned bonus points (1% of order)
     const earnedPoints = calculateBonusPoints(orderAmount);
-    expect(earnedPoints).toBe(10000);
+    expect(earnedPoints).toBe(1000);
     
     // Step 2: Calculate max points can be used (20% of order)
     const maxUsablePoints = calculateMaxBonusUsage(orderAmount);
-    expect(maxUsablePoints).toBe(20);
+    expect(maxUsablePoints).toBe(20000);
     
     // Step 3: Convert points to discount value
     const discountValue = bonusPointsToDollars(maxUsablePoints);
-    expect(discountValue).toBe(20000); // 20 points × 1000 = 20,000 so'm
+    expect(discountValue).toBe(20000); // 20,000 points × 1 = 20,000 so'm
     
     // Step 4: Final order total after discount
     const finalTotal = orderAmount - discountValue;
@@ -247,15 +247,15 @@ describe('Bonus Points System Integration', () => {
 
   it('should handle scenario where user has more points than allowed', () => {
     const orderAmount = 50000;
-    const userPoints = 100; // User has 100 points
+    const userPoints = 100000; // User has 100,000 points
     
-    // Max they can use is 20% of order = 10,000 so'm = 10 points
+    // Max they can use is 20% of order = 10,000 so'm = 10,000 points
     const maxUsablePoints = calculateMaxBonusUsage(orderAmount);
-    expect(maxUsablePoints).toBe(10);
+    expect(maxUsablePoints).toBe(10000);
     
-    // User can only use 10 points even though they have 100
+    // User can only use 10,000 points even though they have 100,000
     const actualPointsUsed = Math.min(userPoints, maxUsablePoints);
-    expect(actualPointsUsed).toBe(10);
+    expect(actualPointsUsed).toBe(10000);
     
     const discount = bonusPointsToDollars(actualPointsUsed);
     expect(discount).toBe(10000);

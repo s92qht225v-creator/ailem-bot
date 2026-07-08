@@ -12,11 +12,15 @@ import { settingsAPI } from '../../services/api';
 import { loadFromLocalStorage, saveToLocalStorage } from '../../utils/helpers';
 import { useProducts } from '../../hooks/useProducts';
 
-const HomePage = ({ onNavigate }) => {
+const HomePage = ({ onNavigate, ssrProducts, ssrCategories, ssrBanners, ssrSaleTimer }) => {
   const { categories, loading } = useContext(AdminContext);
   const { toggleFavorite, isFavorite } = useContext(UserContext);
   const { addToCart } = useContext(CartContext);
-  const { allProducts } = useProducts();
+  const { featuredProducts } = useProducts();
+
+  // Use SSR data as fallback while client-side data loads
+  const displayCategories = (categories && categories.length > 0) ? categories : (ssrCategories || []);
+  const displayProducts = featuredProducts.length > 0 ? featuredProducts : (ssrProducts || []);
 
   // Quick add to cart: if product has variants, navigate to product page; otherwise add directly
   const handleQuickAddToCart = useCallback((product) => {
@@ -33,16 +37,17 @@ const HomePage = ({ onNavigate }) => {
   // Load cached settings immediately for instant display
   // IMPORTANT: ALL hooks must be called before any conditional returns!
   const [banners, setBanners] = useState(() => {
+    // Use SSR data first, then localStorage cache
+    if (ssrBanners && ssrBanners.length > 0) return ssrBanners;
     const cached = loadFromLocalStorage('cachedBanners');
-    // Support both old single banner format and new array format
     if (cached) {
       return Array.isArray(cached) ? cached : [cached];
     }
-    // Fallback to old single banner cache if exists
     const oldBanner = loadFromLocalStorage('cachedSaleBanner');
     return oldBanner ? [oldBanner] : [];
   });
   const [saleTimer, setSaleTimer] = useState(() => {
+    if (ssrSaleTimer) return ssrSaleTimer;
     const cached = loadFromLocalStorage('cachedSaleTimer');
     return cached || null;
   });
@@ -52,8 +57,7 @@ const HomePage = ({ onNavigate }) => {
     const loadSettings = async () => {
       try {
         const settings = await settingsAPI.getSettings();
-        console.log('🏠 HomePage loading settings from Supabase:', settings);
-        
+
         // Handle both array (new) and single banner (old) format
         if (settings.banners) {
           // New array format
@@ -80,7 +84,7 @@ const HomePage = ({ onNavigate }) => {
   const saleEndDate = saleTimer ? new Date(saleTimer.endDate) : null;
 
   // Show loading state if no data yet (AFTER all hooks are called)
-  if (loading && (!categories || categories.length === 0)) {
+  if (loading && displayCategories.length === 0 && displayProducts.length === 0) {
     return (
       <div className="pb-20 px-4 pt-8">
         <div className="text-center">
@@ -121,20 +125,20 @@ const HomePage = ({ onNavigate }) => {
 
       {/* Categories */}
       <div className="px-4 mb-4">
-        <h3 className="text-xl font-bold mb-4 mt-4">{t('nav.categories')}</h3>
+        <h3 className="text-xl font-bold tracking-tight mb-4 mt-4">{t('nav.categories')}</h3>
         <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {categories && categories.length > 0 ? categories.filter(category => category.visible !== false).map((category) => (
+          {displayCategories.length > 0 ? displayCategories.filter(category => category.visible !== false).map((category) => (
             <button
               key={category.id}
               onClick={() => {
                 onNavigate('shop', { category: category.name });
               }}
-              className="flex flex-col items-center justify-center gap-3 p-5 bg-white rounded-2xl border-2 border-gray-100 shadow-sm hover:border-accent hover:shadow-lg hover:-translate-y-1 transition-all duration-200 aspect-square"
+              className="flex flex-col items-center justify-center gap-3 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-accent hover:shadow-md hover:-translate-y-1 transition-all duration-200 aspect-square"
             >
               <div className="w-20 h-20 flex items-center justify-center">
                 <img
                   src={category.image}
-                  alt={category.name}
+                  alt=""
                   className="w-full h-full object-contain"
                   onError={(e) => {
                     e.target.style.display = 'none';
@@ -159,23 +163,21 @@ const HomePage = ({ onNavigate }) => {
         </div>
       </div>
 
-      {/* UZUM Products */}
+      {/* Featured Products */}
       <div className="px-4">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-bold">UZUM da mavjud</h3>
+          <h3 className="text-xl font-bold tracking-tight">{t('home.bestSellers')}</h3>
           <button
             onClick={() => onNavigate('shop')}
-            className="text-accent font-semibold hover:underline"
+            className="text-[#C81A1C] font-semibold hover:underline"
           >
             {t('home.viewAll')}
           </button>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {loading && allProducts.length === 0
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {loading && displayProducts.length === 0
             ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-            : allProducts
-              .filter(p => p.visible !== false && p.uzumUrl)
-              .map((product) => (
+            : displayProducts.map((product) => (
               <ProductCard
                 key={product.id}
                 product={product}
