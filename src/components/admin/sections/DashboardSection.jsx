@@ -15,6 +15,14 @@ const DashboardSection = ({ onNavigate }) => {
   const pendingOrders = analytics.pendingOrdersCount;
   const pendingReviews = reviews?.filter(r => !r.approved).length || 0;
 
+  const pillClass = (status) => {
+    const s = String(status).toLowerCase();
+    if (s === 'approved' || s === 'delivered' || s === 'completed') return 'a-pill-ok';
+    if (s === 'pending') return 'a-pill-warn';
+    if (s === 'rejected') return 'a-pill-danger';
+    return 'a-pill-info';
+  };
+
   return (
     <div className="space-y-6">
       {/* Quick Stats */}
@@ -51,53 +59,44 @@ const DashboardSection = ({ onNavigate }) => {
 
       {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">So'nggi buyurtmalar</h3>
-          <div className="space-y-3">
-            {orders.slice(0, 5).map((order) => (
-              <div key={order.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                <div>
-                  <p className="font-medium text-gray-900">#{order.id}</p>
-                  <p className="text-sm text-gray-600">{order.userName}</p>
+        <div className="a-card">
+          <div className="a-card-h"><h3>So'nggi buyurtmalar</h3></div>
+          <div>
+            {orders.slice(0, 5).map((order, i) => (
+              <div key={order.id} className="flex items-center justify-between px-4 py-3"
+                style={{ borderBottom: i < Math.min(orders.length, 5) - 1 ? '1px solid var(--border)' : 'none' }}>
+                <div style={{ minWidth: 0 }}>
+                  <p className="a-num" style={{ fontFamily: 'ui-monospace,Menlo,monospace', fontSize: 12.5, color: 'var(--text)', margin: 0 }}>#{order.id}</p>
+                  <p className="a-faint" style={{ fontSize: 12, margin: '2px 0 0' }}>{order.userName}</p>
                 </div>
-                <div className="text-right">
-                  <p className="font-medium text-gray-900">{formatPrice(order.total)}</p>
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    order.status === 'approved' ? 'bg-green-100 text-green-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {getStatusLabel(order.status)}
-                  </span>
+                <div className="text-right" style={{ flex: 'none' }}>
+                  <p className="a-num" style={{ fontWeight: 600, color: 'var(--text)', margin: 0 }}>{formatPrice(order.total)}</p>
+                  <span className={`a-pill ${pillClass(order.status)}`} style={{ marginTop: 4 }}>{getStatusLabel(order.status)}</span>
                 </div>
               </div>
             ))}
+            {orders.length === 0 && (
+              <p className="a-faint" style={{ textAlign: 'center', padding: '32px 0', fontSize: 13 }}>Hozircha buyurtmalar yo'q</p>
+            )}
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Tezkor amallar</h3>
-          <div className="space-y-2">
-            <button
-              onClick={() => onNavigate('products')}
-              className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-50 rounded-lg"
-            >
-              <Plus className="w-5 h-5 text-purple-600" />
-              <span>Yangi mahsulot qo'shish</span>
+        <div className="a-card">
+          <div className="a-card-h"><h3>Tezkor amallar</h3></div>
+          <div style={{ padding: 8 }}>
+            <button onClick={() => onNavigate('products')} className="a-nav">
+              <Plus style={{ width: 17, height: 17, flex: 'none' }} />
+              <span className="flex-1 text-left">Yangi mahsulot qo'shish</span>
             </button>
-            <button
-              onClick={() => onNavigate('orders')}
-              className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-50 rounded-lg"
-            >
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span>Kutilayotgan buyurtmalarni ko'rish ({pendingOrders})</span>
+            <button onClick={() => onNavigate('orders')} className="a-nav">
+              <CheckCircle style={{ width: 17, height: 17, flex: 'none' }} />
+              <span className="flex-1 text-left">Kutilayotgan buyurtmalarni ko'rish</span>
+              <span className="a-count">{pendingOrders}</span>
             </button>
-            <button
-              onClick={() => onNavigate('reviews')}
-              className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-50 rounded-lg"
-            >
-              <Star className="w-5 h-5 text-yellow-600" />
-              <span>Mijozlar sharhlarini ko'rish ({pendingReviews})</span>
+            <button onClick={() => onNavigate('reviews')} className="a-nav">
+              <Star style={{ width: 17, height: 17, flex: 'none' }} />
+              <span className="flex-1 text-left">Mijozlar sharhlarini ko'rish</span>
+              <span className="a-count">{pendingReviews}</span>
             </button>
           </div>
         </div>
