@@ -109,36 +109,37 @@ export default function SupportSection() {
   const activeSessionData = sessions.find(s => s.session_id === activeSession);
 
   return (
-    <div className="flex h-full gap-0 rounded-xl overflow-hidden border border-gray-200 bg-white" style={{ minHeight: '600px' }}>
+    <div className="a-card flex h-full gap-0" style={{ minHeight: '600px', overflow: 'hidden' }}>
       {/* Sessions sidebar */}
-      <div className="w-80 flex-shrink-0 border-r border-gray-200 flex flex-col">
-        <div className="px-4 py-3 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <MessageCircle className="w-4 h-4 text-accent" />
+      <div className="w-80 flex-shrink-0 flex flex-col" style={{ borderRight: '1px solid var(--border)' }}>
+        <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>
+          <h3 className="flex items-center gap-2" style={{ fontWeight: 600, color: 'var(--text)' }}>
+            <MessageCircle className="w-4 h-4" style={{ color: 'var(--accent)' }} />
             Suhbatlar
             {sessions.filter(s => s.unread > 0).length > 0 && (
-              <span className="bg-accent text-white text-xs px-2 py-0.5 rounded-full">
+              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--accent)', color: '#fff' }}>
                 {sessions.filter(s => s.unread > 0).length}
               </span>
             )}
           </h3>
           <button
             onClick={fetchSessions}
-            className="p-1.5 hover:bg-gray-200 rounded-lg transition-colors"
+            className="p-1.5 rounded-lg transition-colors"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)' }}
             title="Yangilash"
           >
-            <RefreshCw className="w-4 h-4 text-gray-500" />
+            <RefreshCw className="w-4 h-4" />
           </button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
           {loadingSessions ? (
-            <div className="flex items-center justify-center py-12 text-gray-400 text-sm">
+            <div className="flex items-center justify-center py-12 text-sm a-faint">
               Yuklanmoqda...
             </div>
           ) : sessions.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-gray-400 text-sm gap-2">
-              <Headphones className="w-8 h-8 text-gray-300" />
+            <div className="flex flex-col items-center justify-center py-12 text-sm gap-2 a-faint">
+              <Headphones className="w-8 h-8" style={{ color: 'var(--text-3)' }} />
               <span>Hali xabarlar yo'q</span>
             </div>
           ) : (
@@ -146,30 +147,32 @@ export default function SupportSection() {
               <button
                 key={s.session_id}
                 onClick={() => handleSelectSession(s.session_id)}
-                className={`w-full text-left px-4 py-3 border-b border-gray-100 hover:bg-gray-50 transition-colors ${
-                  activeSession === s.session_id ? 'bg-blue-50 border-l-2 border-l-accent' : ''
-                }`}
+                className="w-full text-left px-4 py-3 transition-colors"
+                style={{
+                  borderBottom: '1px solid var(--border)',
+                  background: activeSession === s.session_id ? 'var(--accent-weak)' : 'transparent',
+                  borderLeft: activeSession === s.session_id ? '2px solid var(--accent)' : '2px solid transparent',
+                  cursor: 'pointer'
+                }}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      s.unread > 0 ? 'bg-accent/10' : 'bg-gray-100'
-                    }`}>
-                      <User className={`w-4 h-4 ${s.unread > 0 ? 'text-accent' : 'text-gray-400'}`} />
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: s.unread > 0 ? 'var(--accent-weak)' : 'var(--surface-2)' }}>
+                      <User className="w-4 h-4" style={{ color: s.unread > 0 ? 'var(--accent)' : 'var(--text-3)' }} />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs text-gray-500 font-mono truncate">
+                      <p className="text-xs font-mono truncate a-faint">
                         {s.session_id.slice(0, 8)}…
                       </p>
-                      <p className={`text-sm truncate ${s.unread > 0 ? 'font-semibold text-gray-900' : 'text-gray-600'}`}>
+                      <p className="text-sm truncate" style={{ fontWeight: s.unread > 0 ? 600 : 400, color: s.unread > 0 ? 'var(--text)' : 'var(--text-2)' }}>
                         {s.last_sender === 'admin' ? '✓ ' : ''}{s.last_message}
                       </p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end flex-shrink-0 gap-1">
-                    <span className="text-xs text-gray-400">{formatTime(s.last_at)}</span>
+                    <span className="text-xs a-faint">{formatTime(s.last_at)}</span>
                     {s.unread > 0 && (
-                      <span className="w-2 h-2 rounded-full bg-accent" />
+                      <span className="w-2 h-2 rounded-full" style={{ background: 'var(--accent)' }} />
                     )}
                   </div>
                 </div>
@@ -182,37 +185,38 @@ export default function SupportSection() {
       {/* Chat area */}
       <div className="flex-1 flex flex-col">
         {!activeSession ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-gray-400 gap-3">
-            <MessageCircle className="w-12 h-12 text-gray-200" />
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 a-faint">
+            <MessageCircle className="w-12 h-12" style={{ color: 'var(--text-3)' }} />
             <p className="text-sm">Suhbat tanlang</p>
           </div>
         ) : (
           <>
             {/* Chat header */}
-            <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center">
-                <User className="w-4 h-4 text-accent" />
+            <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: '1px solid var(--border)', background: 'var(--surface-2)' }}>
+              <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'var(--accent-weak)' }}>
+                <User className="w-4 h-4" style={{ color: 'var(--accent)' }} />
               </div>
               <div>
-                <p className="font-semibold text-gray-900 text-sm">Foydalanuvchi</p>
-                <p className="text-xs text-gray-400 font-mono">{activeSession}</p>
+                <p className="text-sm" style={{ fontWeight: 600, color: 'var(--text)' }}>Foydalanuvchi</p>
+                <p className="text-xs font-mono a-faint">{activeSession}</p>
               </div>
             </div>
 
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {messages.length === 0 ? (
-                <p className="text-center text-gray-400 text-sm py-8">Xabarlar yuklanmoqda...</p>
+                <p className="text-center text-sm py-8 a-faint">Xabarlar yuklanmoqda...</p>
               ) : (
                 messages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.sender === 'admin' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[70%] px-4 py-2 rounded-2xl text-sm break-words ${
-                      msg.sender === 'admin'
-                        ? 'bg-accent text-white rounded-br-sm'
-                        : 'bg-gray-100 text-gray-800 rounded-bl-sm'
-                    }`}>
+                    <div
+                      className={`max-w-[70%] px-4 py-2 rounded-2xl text-sm break-words ${msg.sender === 'admin' ? 'rounded-br-sm' : 'rounded-bl-sm'}`}
+                      style={msg.sender === 'admin'
+                        ? { background: 'var(--accent)', color: '#fff' }
+                        : { background: 'var(--surface-2)', color: 'var(--text)', border: '1px solid var(--border)' }}
+                    >
                       <p>{msg.message}</p>
-                      <p className={`text-xs mt-1 ${msg.sender === 'admin' ? 'text-white/60' : 'text-gray-400'}`}>
+                      <p className="text-xs mt-1" style={{ color: msg.sender === 'admin' ? 'rgba(255,255,255,.6)' : 'var(--text-3)' }}>
                         {formatTime(msg.created_at)}
                       </p>
                     </div>
@@ -223,7 +227,7 @@ export default function SupportSection() {
             </div>
 
             {/* Reply input */}
-            <div className="p-4 border-t border-gray-200">
+            <div className="p-4" style={{ borderTop: '1px solid var(--border)' }}>
               <div className="flex gap-2">
                 <textarea
                   value={reply}
@@ -231,13 +235,14 @@ export default function SupportSection() {
                   onKeyDown={handleKeyDown}
                   placeholder="Javob yozing... (Enter = yuborish)"
                   rows={2}
-                  className="flex-1 text-sm border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:border-accent"
+                  className="a-input flex-1 resize-none"
                   style={{ maxHeight: '96px' }}
                 />
                 <button
                   onClick={handleSend}
                   disabled={!reply.trim() || sending}
-                  className="px-4 bg-accent text-white rounded-xl flex items-center justify-center disabled:opacity-50 hover:bg-red-700 transition-colors flex-shrink-0"
+                  className="a-btn a-btn-primary flex-shrink-0"
+                  style={{ padding: '0 16px', justifyContent: 'center' }}
                 >
                   <Send className="w-4 h-4" />
                 </button>

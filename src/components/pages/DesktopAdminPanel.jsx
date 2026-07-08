@@ -1339,12 +1339,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
         {/* Header Actions */}
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Kategoriyalarni boshqarish</h3>
-            <p className="text-gray-600">{categories.length} ta kategoriya</p>
+            <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>Kategoriyalarni boshqarish</h3>
+            <p className="a-muted">{categories.length} ta kategoriya</p>
           </div>
           <button
             onClick={() => setShowForm(true)}
-            className="bg-accent hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors"
+            className="a-btn a-btn-primary"
           >
             <Plus className="w-5 h-5" />
             Kategoriya qo'shish
@@ -1353,40 +1353,40 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         {/* Add/Edit Form */}
         {showForm && (
-          <div className="bg-white rounded-lg shadow p-6">
-            <div className="flex items-center justify-between mb-6">
-              <h4 className="text-lg font-semibold">
+          <div className="a-card">
+            <div className="a-card-h">
+              <h3>
                 {editingCategory ? 'Kategoriyani tahrirlash' : 'Yangi kategoriya qo\'shish'}
-              </h4>
+              </h3>
               <button
                 onClick={() => {
                   setShowForm(false);
                   setEditingCategory(null);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="a-faint hover:opacity-70"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" style={{ padding: 16 }}>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Kategoriya nomi *</label>
+                <label className="block text-sm font-medium a-muted mb-2">Kategoriya nomi *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="a-input"
                   placeholder="Masalan: Choyshablar"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Kategoriya rasmi</label>
+                <label className="block text-sm font-medium a-muted mb-2">Kategoriya rasmi</label>
                 <div className="space-y-3">
                   <div>
-                    <label className="w-full bg-gradient-to-r from-accent to-red-700 text-white px-4 py-3 rounded-lg cursor-pointer hover:from-red-700 hover:to-red-800 transition-all flex items-center justify-center gap-2">
+                    <label className="a-btn a-btn-primary w-full justify-center cursor-pointer" style={{ padding: '12px 16px' }}>
                       <Upload className="w-5 h-5" />
                       <span>{uploadingImage ? 'Yuklanmoqda...' : 'Qurilmadan rasm yuklash'}</span>
                       <input
@@ -1400,16 +1400,16 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   </div>
 
                   <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px bg-gray-300"></div>
-                    <span className="text-sm text-gray-500 font-medium">YOKI</span>
-                    <div className="flex-1 h-px bg-gray-300"></div>
+                    <div className="flex-1 h-px" style={{ background: 'var(--border)' }}></div>
+                    <span className="text-sm a-faint font-medium">YOKI</span>
+                    <div className="flex-1 h-px" style={{ background: 'var(--border)' }}></div>
                   </div>
 
                   <input
                     type="url"
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                    className="a-input"
                     placeholder="Rasm URL manzilini kiriting (https://...)"
                   />
 
@@ -1418,7 +1418,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       <img
                         src={formData.image}
                         alt="Ko'rinishi"
-                        className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+                        className="w-32 h-32 object-cover rounded-lg"
+                        style={{ border: '1px solid var(--border)' }}
                         onError={(e) => { e.target.style.display = 'none'; }}
                       />
                     </div>
@@ -1429,7 +1430,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <div className="flex gap-4">
                 <button
                   type="submit"
-                  className="bg-accent hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                  className="a-btn a-btn-primary"
                 >
                   {editingCategory ? 'Kategoriyani yangilash' : 'Kategoriya qo\'shish'}
                 </button>
@@ -1439,7 +1440,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     setShowForm(false);
                     setEditingCategory(null);
                   }}
-                  className="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-medium transition-colors"
+                  className="a-btn"
                 >
                   Bekor qilish
                 </button>
@@ -1451,13 +1452,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
         {/* Categories Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {categories.map((category, index) => (
-            <div key={category.id} className={`bg-white rounded-lg shadow hover:shadow-lg transition-shadow ${category.visible === false ? 'opacity-60 ring-2 ring-gray-300' : ''}`}>
-              <div className="aspect-square relative overflow-hidden rounded-t-lg bg-gray-50">
+            <div key={category.id} className="a-card" style={{ overflow: 'hidden', opacity: category.visible === false ? 0.6 : 1 }}>
+              <div className="aspect-square relative overflow-hidden" style={{ background: 'var(--surface-2)' }}>
                 {category.visible === false && (
-                  <div className="absolute top-2 right-2 bg-gray-800 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 z-10">
+                  <span className="a-pill a-pill-danger absolute top-2 right-2 z-10">
                     <EyeOff className="w-3 h-3" />
                     Yashirilgan
-                  </div>
+                  </span>
                 )}
                 {category.image ? (
                   <img
@@ -1466,24 +1467,25 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     className="w-full h-full object-contain p-4"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-6xl text-gray-400">
+                  <div className="w-full h-full flex items-center justify-center text-6xl a-faint">
                     📷
                   </div>
                 )}
               </div>
               <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">{category.name}</h3>
+                <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--text)' }}>{category.name}</h3>
                 <div className="flex gap-2 mb-2">
                   <button
                     onClick={() => handleEdit(category)}
-                    className="flex-1 bg-red-50 hover:bg-red-100 text-accent px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    className="a-btn flex-1 justify-center"
                   >
                     <Edit className="w-4 h-4" />
                     Tahrirlash
                   </button>
                   <button
                     onClick={() => handleDelete(category.id)}
-                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                    className="a-btn flex-1 justify-center"
+                    style={{ color: 'var(--danger)' }}
                   >
                     <Trash2 className="w-4 h-4" />
                     O'chirish
@@ -1492,11 +1494,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 <div className="flex gap-2 mb-2">
                   <button
                     onClick={() => handleToggleVisibility(category.id, category.visible !== false)}
-                    className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
-                      category.visible === false
-                        ? 'bg-green-50 hover:bg-green-100 text-green-700'
-                        : 'bg-gray-50 hover:bg-gray-100 text-gray-700'
-                    }`}
+                    className="a-btn flex-1 justify-center"
+                    style={category.visible === false ? { color: 'var(--ok)' } : undefined}
                   >
                     {category.visible === false ? (
                       <>
@@ -1515,7 +1514,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   <button
                     onClick={() => handleMoveCategory(index, 'up')}
                     disabled={index === 0}
-                    className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="a-btn flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronUp className="w-4 h-4" />
                     Yuqoriga
@@ -1523,7 +1522,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   <button
                     onClick={() => handleMoveCategory(index, 'down')}
                     disabled={index === categories.length - 1}
-                    className="flex-1 bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="a-btn flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <ChevronDown className="w-4 h-4" />
                     Pastga
@@ -1535,13 +1534,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
         </div>
 
         {categories.length === 0 && !showForm && (
-          <div className="bg-white rounded-lg shadow p-12 text-center">
-            <LayoutGrid className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Hozircha kategoriyalar yo'q</h3>
-            <p className="text-gray-600 mb-4">Mahsulotlarni tartibga solish uchun birinchi kategoriyangizni yarating</p>
+          <div className="a-card p-12 text-center">
+            <LayoutGrid className="w-16 h-16 a-faint mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>Hozircha kategoriyalar yo'q</h3>
+            <p className="a-muted mb-4">Mahsulotlarni tartibga solish uchun birinchi kategoriyangizni yarating</p>
             <button
               onClick={() => setShowForm(true)}
-              className="bg-accent hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
+              className="a-btn a-btn-primary inline-flex"
             >
               <Plus className="w-5 h-5" />
               Birinchi kategoriyani qo'shish
@@ -2389,7 +2388,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
           {!showForm && (
             <button
               onClick={() => setShowForm(true)}
-              className="bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
+              className="a-btn a-btn-primary"
             >
               <Plus className="w-5 h-5" />
               Olib ketish nuqtasi qo'shish
@@ -2397,18 +2396,19 @@ const DesktopAdminPanel = ({ onLogout }) => {
           )}
 
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 a-faint" />
             <input
               type="text"
               placeholder="Kuryer, viloyat, shahar, manzil, telefon yoki ish vaqti bo'yicha qidirish..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+              className="a-input"
+              style={{ paddingLeft: 38 }}
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 a-faint hover:opacity-70"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -2417,25 +2417,27 @@ const DesktopAdminPanel = ({ onLogout }) => {
         </div>
 
         {searchQuery && (
-          <div className="mb-4 text-sm text-gray-600">
+          <div className="mb-4 text-sm a-muted">
             "{searchQuery}" bo'yicha {filteredPickupPoints.length} ta olib ketish nuqtasi topildi
           </div>
         )}
 
         {showForm && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-4">
-            <h3 className="text-xl font-bold mb-4">
-              {editingPoint ? 'Olib ketish nuqtasini tahrirlash' : 'Yangi olib ketish nuqtasi qo\'shish'}
-            </h3>
-            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+          <div className="a-card mb-4">
+            <div className="a-card-h">
+              <h3>
+                {editingPoint ? 'Olib ketish nuqtasini tahrirlash' : 'Yangi olib ketish nuqtasi qo\'shish'}
+              </h3>
+            </div>
+            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4" style={{ padding: 16 }}>
               <div>
-                <label className="block text-sm font-semibold mb-1">Kuryer xizmati *</label>
+                <label className="block text-sm font-semibold mb-1 a-muted">Kuryer xizmati *</label>
                 <input
                   list="courier-list"
                   type="text"
                   value={formData.courierService}
                   onChange={(e) => setFormData({ ...formData, courierService: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="a-input"
                   placeholder="Masalan: Yandex, Uzum, Express24"
                   required
                 />
@@ -2447,13 +2449,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">Viloyat/Hudud *</label>
+                <label className="block text-sm font-semibold mb-1 a-muted">Viloyat/Hudud *</label>
                 <input
                   list="state-list"
                   type="text"
                   value={formData.state}
                   onChange={(e) => setFormData({ ...formData, state: e.target.value, city: '' })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="a-input"
                   placeholder="Masalan: Toshkent viloyati"
                   required
                 />
@@ -2465,13 +2467,13 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">Shahar *</label>
+                <label className="block text-sm font-semibold mb-1 a-muted">Shahar *</label>
                 <input
                   list="city-list"
                   type="text"
                   value={formData.city}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="a-input"
                   placeholder="Masalan: Toshkent"
                   required
                 />
@@ -2483,25 +2485,25 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">Telefon raqami *</label>
+                <label className="block text-sm font-semibold mb-1 a-muted">Telefon raqami *</label>
                 <input
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="a-input"
                   placeholder="+998 XX XXX XXXX"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">Ish vaqti *</label>
+                <label className="block text-sm font-semibold mb-1 a-muted">Ish vaqti *</label>
                 <input
                   list="hours-list"
                   type="text"
                   value={formData.workingHours}
                   onChange={(e) => setFormData({ ...formData, workingHours: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="a-input"
                   placeholder="Masalan: 09:00 - 20:00"
                   required
                 />
@@ -2514,11 +2516,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div className="col-span-2">
-                <label className="block text-sm font-semibold mb-1">Manzil *</label>
+                <label className="block text-sm font-semibold mb-1 a-muted">Manzil *</label>
                 <textarea
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="a-input"
                   rows="2"
                   placeholder="Olib ketish nuqtasining to'liq manzili"
                   required
@@ -2528,7 +2530,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <div className="col-span-2 flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-accent text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                  className="a-btn a-btn-primary flex-1 justify-center"
                 >
                   {editingPoint ? 'Olib ketish nuqtasini yangilash' : 'Olib ketish nuqtasi qo\'shish'}
                 </button>
@@ -2546,7 +2548,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       phone: ''
                     });
                   }}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                  className="a-btn"
                 >
                   Bekor qilish
                 </button>
@@ -2557,9 +2559,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         <div className="grid gap-4">
           {Object.keys(groupedPoints).length === 0 ? (
-            <div className="bg-white rounded-lg shadow-md p-12 text-center">
-              <MapPin className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">Olib ketish nuqtalari topilmadi</p>
+            <div className="a-card p-12 text-center">
+              <MapPin className="w-20 h-20 a-faint mx-auto mb-4" />
+              <p className="a-muted text-lg">Olib ketish nuqtalari topilmadi</p>
             </div>
           ) : (
             Object.entries(groupedPoints).map(([courier, stateGroups]) => {
@@ -2569,20 +2571,20 @@ const DesktopAdminPanel = ({ onLogout }) => {
               );
 
               return (
-                <div key={courier} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div key={courier} className="a-card" style={{ overflow: 'hidden' }}>
                   <button
                     onClick={() => toggleCourier(courier)}
-                    className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center gap-3 p-4 transition-colors"
                   >
-                    <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${
+                    <ChevronRight className={`w-5 h-5 a-faint transition-transform ${
                       isCourierExpanded ? 'rotate-90' : ''
                     }`} />
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent to-red-700 flex items-center justify-center flex-shrink-0">
+                    <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--accent)' }}>
                       <Truck className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1 text-left">
-                      <h2 className="text-lg font-bold text-gray-800">{courier}</h2>
-                      <p className="text-sm text-gray-500">{totalPoints} ta olib ketish nuqtasi</p>
+                      <h2 className="text-lg font-bold" style={{ color: 'var(--text)' }}>{courier}</h2>
+                      <p className="text-sm a-faint">{totalPoints} ta olib ketish nuqtasi</p>
                     </div>
                   </button>
 
@@ -2593,18 +2595,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
                         const statePoints = Object.values(cityGroups).reduce((sum, addresses) => sum + addresses.length, 0);
 
                         return (
-                          <div key={state} className="bg-gray-50 rounded-lg overflow-hidden">
+                          <div key={state} className="rounded-lg overflow-hidden" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                             <button
                               onClick={() => toggleState(courier, state)}
-                              className="w-full flex items-center gap-2 p-3 hover:bg-gray-100 transition-colors"
+                              className="w-full flex items-center gap-2 p-3 transition-colors"
                             >
-                              <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${
+                              <ChevronRight className={`w-4 h-4 a-faint transition-transform ${
                                 isStateExpanded ? 'rotate-90' : ''
                               }`} />
-                              <MapPin className="w-5 h-5 text-accent flex-shrink-0" />
+                              <MapPin className="w-5 h-5 flex-shrink-0" style={{ color: 'var(--accent)' }} />
                               <div className="flex-1 text-left">
-                                <h3 className="font-bold text-gray-800">{state}</h3>
-                                <p className="text-xs text-gray-500">{statePoints} ta manzil</p>
+                                <h3 className="font-bold" style={{ color: 'var(--text)' }}>{state}</h3>
+                                <p className="text-xs a-faint">{statePoints} ta manzil</p>
                               </div>
                             </button>
 
@@ -2614,38 +2616,36 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                   const isCityExpanded = expandedCities.has(`${courier}-${state}-${city}`);
 
                                   return (
-                                    <div key={city} className="bg-white rounded-lg overflow-hidden border border-gray-200">
+                                    <div key={city} className="rounded-lg overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
                                       <button
                                         onClick={() => toggleCity(courier, state, city)}
-                                        className="w-full flex items-center gap-2 p-3 hover:bg-gray-50 transition-colors"
+                                        className="w-full flex items-center gap-2 p-3 transition-colors"
                                       >
-                                        <ChevronRight className={`w-4 h-4 text-gray-400 transition-transform ${
+                                        <ChevronRight className={`w-4 h-4 a-faint transition-transform ${
                                           isCityExpanded ? 'rotate-90' : ''
                                         }`} />
-                                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center flex-shrink-0">
+                                        <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'var(--ok)' }}>
                                           <MapPin className="w-4 h-4 text-white" />
                                         </div>
                                         <div className="flex-1 text-left">
-                                          <h4 className="font-semibold text-gray-800">{city}</h4>
-                                          <p className="text-xs text-gray-500">{addresses.length} ta manzil</p>
+                                          <h4 className="font-semibold" style={{ color: 'var(--text)' }}>{city}</h4>
+                                          <p className="text-xs a-faint">{addresses.length} ta manzil</p>
                                         </div>
                                       </button>
 
                                       {isCityExpanded && (
                                         <div className="px-3 pb-3 space-y-2">
                                           {addresses.map((point) => (
-                                            <div key={point.id} className="bg-gray-50 rounded-lg p-3">
+                                            <div key={point.id} className="rounded-lg p-3" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                                               <div className="flex items-start justify-between mb-2">
                                                 <div className="flex-1">
                                                   <div className="flex items-center gap-2 mb-2">
-                                                    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                                      point.active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
-                                                    }`}>
+                                                    <span className={`a-pill ${point.active ? 'a-pill-ok' : 'a-pill-danger'}`}>
                                                       {point.active ? 'Faol' : 'Faol emas'}
                                                     </span>
                                                   </div>
-                                                  <p className="text-gray-800 font-medium mb-1">{point.address}</p>
-                                                  <div className="flex items-center gap-3 text-sm text-gray-600">
+                                                  <p className="font-medium mb-1" style={{ color: 'var(--text)' }}>{point.address}</p>
+                                                  <div className="flex items-center gap-3 text-sm a-muted">
                                                     <span className="flex items-center gap-1">
                                                       <Clock className="w-4 h-4" />
                                                       {point.workingHours}
@@ -2659,29 +2659,28 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                                 <div className="flex gap-2">
                                                   <button
                                                     onClick={() => togglePickupPointStatus(point.id)}
-                                                    className={`text-sm px-3 py-1 rounded ${
-                                                      point.active
-                                                        ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                                                        : 'bg-green-100 text-green-800 hover:bg-green-200'
-                                                    }`}
+                                                    className="a-btn"
+                                                    style={point.active ? { color: 'var(--warn)' } : { color: 'var(--ok)' }}
                                                   >
                                                     {point.active ? 'O\'chirish' : 'Yoqish'}
                                                   </button>
                                                   <button
                                                     onClick={() => handleEdit(point)}
-                                                    className="text-accent p-2 hover:bg-red-50 rounded"
+                                                    className="a-btn"
+                                                    style={{ color: 'var(--accent)' }}
                                                   >
                                                     <Edit className="w-4 h-4" />
                                                   </button>
                                                   <button
                                                     onClick={() => duplicatePickupPoint(point.id)}
-                                                    className="text-gray-600 p-2 hover:bg-gray-100 rounded"
+                                                    className="a-btn"
                                                   >
                                                     <Copy className="w-4 h-4" />
                                                   </button>
                                                   <button
                                                     onClick={() => handleDelete(point.id)}
-                                                    className="text-error p-2 hover:bg-red-50 rounded"
+                                                    className="a-btn"
+                                                    style={{ color: 'var(--danger)' }}
                                                   >
                                                     <Trash2 className="w-4 h-4" />
                                                   </button>
@@ -2844,7 +2843,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         {!showForm && (
           <button
             onClick={() => setShowForm(true)}
-            className="mb-4 bg-accent text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
+            className="a-btn a-btn-primary mb-4"
           >
             <Plus className="w-5 h-5" />
             Yetkazib berish narxi qo'shish
@@ -2852,19 +2851,21 @@ const DesktopAdminPanel = ({ onLogout }) => {
         )}
 
         {showForm && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-4">
-            <h3 className="text-xl font-bold mb-4">
-              {editingRate ? 'Yetkazib berish narxini tahrirlash' : 'Yangi yetkazib berish narxi qo\'shish'}
-            </h3>
-            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+          <div className="a-card mb-4">
+            <div className="a-card-h">
+              <h3>
+                {editingRate ? 'Yetkazib berish narxini tahrirlash' : 'Yangi yetkazib berish narxi qo\'shish'}
+              </h3>
+            </div>
+            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4" style={{ padding: 16 }}>
               <div>
-                <label className="block text-sm font-semibold mb-1">Kuryer xizmati *</label>
+                <label className="block text-sm font-semibold mb-1 a-muted">Kuryer xizmati *</label>
                 <input
                   list="courier-rates-list"
                   type="text"
                   value={formData.courier}
                   onChange={(e) => setFormData({ ...formData, courier: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="a-input"
                   placeholder="Masalan: BTS, Yandex, Starex"
                   required
                 />
@@ -2876,15 +2877,15 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">
-                  Viloyat/Hudud * {!editingRate && <span className="text-xs text-gray-500">(bir nechtasi uchun vergul bilan ajrating)</span>}
+                <label className="block text-sm font-semibold mb-1 a-muted">
+                  Viloyat/Hudud * {!editingRate && <span className="text-xs a-faint">(bir nechtasi uchun vergul bilan ajrating)</span>}
                 </label>
                 <input
                   list="state-rates-list"
                   type="text"
                   value={formData.state}
                   onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="a-input"
                   placeholder={editingRate ? "Masalan: Toshkent viloyati" : "Masalan: Toshkent viloyati, Samarqand viloyati"}
                   required
                 />
@@ -2894,47 +2895,47 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   ))}
                 </datalist>
                 {!editingRate && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs a-faint mt-1">
                     💡 Maslahat: Bir nechta hudud uchun narxlarni birdaniga yaratish uchun ularni vergul bilan ajrating
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">Birinchi KG narxi (UZS) *</label>
+                <label className="block text-sm font-semibold mb-1 a-muted">Birinchi KG narxi (UZS) *</label>
                 <input
                   type="number"
                   value={formData.firstKg}
                   onChange={(e) => setFormData({ ...formData, firstKg: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="a-input"
                   placeholder="Masalan: 15000"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-1">Qo'shimcha KG narxi (UZS)</label>
+                <label className="block text-sm font-semibold mb-1 a-muted">Qo'shimcha KG narxi (UZS)</label>
                 <input
                   type="number"
                   value={formData.additionalKg}
                   onChange={(e) => setFormData({ ...formData, additionalKg: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="a-input"
                   placeholder="Masalan: 5000 (qat'iy narx uchun 0)"
                 />
               </div>
 
               <div className="col-span-2">
-                <label className="block text-sm font-semibold mb-1">To'lov usuli *</label>
+                <label className="block text-sm font-semibold mb-1 a-muted">To'lov usuli *</label>
                 <select
                   value={formData.paymentType}
                   onChange={(e) => setFormData({ ...formData, paymentType: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-accent focus:border-accent"
+                  className="a-input"
                   required
                 >
                   <option value="prepaid">Oldindan to'lov (Mijoz mahsulot bilan onlayn to'laydi)</option>
                   <option value="postpaid">Olib ketishda to'lash (Mijoz olib ketish punktida to'laydi)</option>
                 </select>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs a-faint mt-1">
                   💡 Mijozlar ushbu kuryer orqali yetkazib berishni qanday to'lashini tanlang
                 </p>
               </div>
@@ -2942,7 +2943,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               <div className="col-span-2 flex gap-2">
                 <button
                   type="submit"
-                  className="flex-1 bg-accent text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                  className="a-btn a-btn-primary flex-1 justify-center"
                 >
                   {editingRate ? 'Narxni yangilash' : 'Narx qo\'shish'}
                 </button>
@@ -2953,7 +2954,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     setEditingRate(null);
                     setFormData({ courier: '', state: '', firstKg: '', additionalKg: '', paymentType: 'prepaid' });
                   }}
-                  className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                  className="a-btn"
                 >
                   Bekor qilish
                 </button>
@@ -2964,46 +2965,42 @@ const DesktopAdminPanel = ({ onLogout }) => {
 
         <div className="grid gap-4">
           {Object.keys(groupedRates).length === 0 ? (
-            <div className="bg-white rounded-lg shadow-md p-12 text-center">
-              <Truck className="w-20 h-20 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">Yetkazib berish narxlari sozlanmagan</p>
+            <div className="a-card p-12 text-center">
+              <Truck className="w-20 h-20 a-faint mx-auto mb-4" />
+              <p className="a-muted text-lg">Yetkazib berish narxlari sozlanmagan</p>
             </div>
           ) : (
             Object.entries(groupedRates).map(([courier, rates]) => {
               const isCourierExpanded = expandedCouriers.has(courier);
 
               return (
-                <div key={courier} className="bg-white rounded-lg shadow-md overflow-hidden">
+                <div key={courier} className="a-card" style={{ overflow: 'hidden' }}>
                   <button
                     onClick={() => toggleCourier(courier)}
-                    className="w-full flex items-center gap-3 p-6 hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center gap-3 p-6 transition-colors"
                   >
-                    <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${
+                    <ChevronRight className={`w-5 h-5 a-faint transition-transform ${
                       isCourierExpanded ? 'rotate-90' : ''
                     }`} />
-                    <Truck className="w-6 h-6 text-accent" />
+                    <Truck className="w-6 h-6" style={{ color: 'var(--accent)' }} />
                     <div className="flex-1 text-left">
-                      <h3 className="text-xl font-bold text-gray-800">{courier}</h3>
-                      <p className="text-sm text-gray-500">{rates.length} ta yetkazib berish narxi</p>
+                      <h3 className="text-xl font-bold" style={{ color: 'var(--text)' }}>{courier}</h3>
+                      <p className="text-sm a-faint">{rates.length} ta yetkazib berish narxi</p>
                     </div>
                   </button>
 
                   {isCourierExpanded && (
                     <div className="px-6 pb-6 grid gap-3">
                       {rates.map((rate) => (
-                        <div key={rate.id} className="bg-gray-50 rounded-lg p-4 flex items-center justify-between">
+                        <div key={rate.id} className="rounded-lg p-4 flex items-center justify-between" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <p className="font-semibold text-gray-800">{rate.state}</p>
-                              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                rate.paymentType === 'postpaid'
-                                  ? 'bg-orange-100 text-orange-800'
-                                  : 'bg-green-100 text-green-800'
-                              }`}>
+                              <p className="font-semibold" style={{ color: 'var(--text)' }}>{rate.state}</p>
+                              <span className={`a-pill ${rate.paymentType === 'postpaid' ? 'a-pill-warn' : 'a-pill-ok'}`}>
                                 {rate.paymentType === 'postpaid' ? 'Olib ketishda to\'lash' : 'Oldindan to\'lov'}
                               </span>
                             </div>
-                            <div className="flex gap-6 text-sm text-gray-600">
+                            <div className="flex gap-6 text-sm a-muted">
                               <div>
                                 <span className="font-medium">Birinchi KG:</span> {formatPrice(rate.firstKg)}
                               </div>
@@ -3015,13 +3012,15 @@ const DesktopAdminPanel = ({ onLogout }) => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleEdit(rate)}
-                              className="text-accent p-2 hover:bg-red-50 rounded"
+                              className="a-btn"
+                              style={{ color: 'var(--accent)' }}
                             >
                               <Edit className="w-5 h-5" />
                             </button>
                             <button
                               onClick={() => handleDelete(rate.id)}
-                              className="text-error p-2 hover:bg-red-50 rounded"
+                              className="a-btn"
+                              style={{ color: 'var(--danger)' }}
                             >
                               <Trash2 className="w-5 h-5" />
                             </button>
@@ -3205,7 +3204,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
     if (loading) {
       return (
         <div className="flex items-center justify-center p-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: 'var(--accent)' }}></div>
         </div>
       );
     }
@@ -3214,25 +3213,25 @@ const DesktopAdminPanel = ({ onLogout }) => {
       <div className="max-w-6xl space-y-6">
         {/* Save Bar - Sticky at top */}
         {hasUnsavedChanges && (
-          <div className="bg-orange-50 border-l-4 border-orange-500 rounded-lg p-4 flex items-center justify-between shadow-md sticky top-4 z-10">
+          <div className="rounded-lg p-4 flex items-center justify-between sticky top-4 z-10" style={{ background: 'var(--warn-weak)', borderLeft: '4px solid var(--warn)' }}>
             <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-orange-500" />
+              <AlertCircle className="w-5 h-5" style={{ color: 'var(--warn)' }} />
               <div>
-                <p className="font-semibold text-gray-900">Saqlanmagan o'zgarishlar bor</p>
-                <p className="text-sm text-gray-600">Chiqishdan oldin o'zgarishlarni saqlashni unutmang</p>
+                <p className="font-semibold" style={{ color: 'var(--text)' }}>Saqlanmagan o'zgarishlar bor</p>
+                <p className="text-sm a-muted">Chiqishdan oldin o'zgarishlarni saqlashni unutmang</p>
               </div>
             </div>
             <div className="flex gap-2">
               <button
                 onClick={handleDiscardChanges}
-                className="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded-lg font-medium transition-colors"
+                className="a-btn"
               >
                 Bekor qilish
               </button>
               <button
                 onClick={handleSaveAll}
                 disabled={saving}
-                className="bg-primary hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="a-btn a-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {saving ? (
                   <>
@@ -3251,18 +3250,18 @@ const DesktopAdminPanel = ({ onLogout }) => {
         )}
 
         {/* Homepage Banners Carousel */}
-        <div className="bg-white rounded-lg shadow-md p-6 border-2 border-transparent hover:border-blue-100 transition-colors">
+        <div className="a-card p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <Image className="w-6 h-6 text-primary" />
+              <h3 className="text-xl font-bold flex items-center gap-2" style={{ color: 'var(--text)' }}>
+                <Image className="w-6 h-6" style={{ color: 'var(--accent)' }} />
                 Bosh sahifa bannerlari karuseli
               </h3>
-              <p className="text-sm text-gray-600 mt-1">Avtomatik almashinuvchi reklama bannerlarini boshqaring</p>
+              <p className="text-sm a-muted mt-1">Avtomatik almashinuvchi reklama bannerlarini boshqaring</p>
             </div>
             <button
               onClick={handleAddBanner}
-              className="bg-primary hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
+              className="a-btn a-btn-primary"
             >
               <Plus className="w-4 h-4" />
               Banner qo'shish
@@ -3270,12 +3269,12 @@ const DesktopAdminPanel = ({ onLogout }) => {
           </div>
 
           {banners.length === 0 ? (
-            <div className="bg-gray-50 rounded-lg p-12 text-center">
-              <Image className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg mb-4">Bannerlar sozlanmagan</p>
+            <div className="rounded-lg p-12 text-center" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+              <Image className="w-16 h-16 a-faint mx-auto mb-4" />
+              <p className="a-muted text-lg mb-4">Bannerlar sozlanmagan</p>
               <button
                 onClick={handleAddBanner}
-                className="bg-primary hover:bg-red-700 text-white px-6 py-2 rounded-lg font-medium inline-flex items-center gap-2 transition-colors"
+                className="a-btn a-btn-primary inline-flex"
               >
                 <Plus className="w-4 h-4" />
                 Birinchi bannerni yarating
@@ -3284,10 +3283,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
           ) : (
             <div className="space-y-4">
               {banners.map((banner, index) => (
-                <div key={index} className="bg-gray-50 rounded-lg p-5 border-2 border-gray-200 hover:border-blue-200 transition-colors">
+                <div key={index} className="rounded-lg p-5" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                   <div className="flex items-start gap-4">
                     {/* Banner Preview Thumbnail */}
-                    <div className="flex-shrink-0 w-40 h-24 rounded-lg overflow-hidden border-2 border-gray-300">
+                    <div className="flex-shrink-0 w-40 h-24 rounded-lg overflow-hidden" style={{ border: '1px solid var(--border)' }}>
                       <div className="relative w-full h-full">
                         <img
                           src={banner.imageUrl}
@@ -3299,9 +3298,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
                           <p className="text-white text-xs font-semibold truncate">{banner.title}</p>
                         </div>
                         {!banner.enabled && (
-                          <div className="absolute top-1 right-1 bg-gray-900/80 text-white px-2 py-0.5 rounded text-xs">
+                          <span className="a-pill a-pill-danger absolute top-1 right-1">
                             O'chirilgan
-                          </div>
+                          </span>
                         )}
                       </div>
                     </div>
@@ -3313,34 +3312,34 @@ const DesktopAdminPanel = ({ onLogout }) => {
                           {/* Edit Mode */}
                           <div className="grid grid-cols-2 gap-3">
                             <div>
-                              <label className="block text-xs font-semibold mb-1 text-gray-700">Sarlavha</label>
+                              <label className="block text-xs font-semibold mb-1 a-muted">Sarlavha</label>
                               <input
                                 type="text"
                                 value={banner.title}
                                 onChange={(e) => handleUpdateBanner(index, { title: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+                                className="a-input"
                                 placeholder="Banner sarlavhasi"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs font-semibold mb-1 text-gray-700">Kichik sarlavha</label>
+                              <label className="block text-xs font-semibold mb-1 a-muted">Kichik sarlavha</label>
                               <input
                                 type="text"
                                 value={banner.subtitle}
                                 onChange={(e) => handleUpdateBanner(index, { subtitle: e.target.value })}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+                                className="a-input"
                                 placeholder="Banner kichik sarlavhasi"
                               />
                             </div>
                           </div>
                           <div>
-                            <label className="block text-xs font-semibold mb-1 text-gray-700">Rasm URL manzili</label>
+                            <label className="block text-xs font-semibold mb-1 a-muted">Rasm URL manzili</label>
                             <div className="flex gap-2">
                               <input
                                 type="text"
                                 value={banner.imageUrl}
                                 onChange={(e) => handleUpdateBanner(index, { imageUrl: e.target.value })}
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+                                className="a-input flex-1"
                                 placeholder="Rasm URL manzilini joylashtiring"
                               />
                               <input
@@ -3353,14 +3352,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
                               />
                               <label
                                 htmlFor={`banner-upload-${index}`}
-                                className={`px-3 py-2 border-2 border-dashed rounded-lg cursor-pointer text-sm font-medium inline-flex items-center gap-2 ${
-                                  uploadingImage === index
-                                    ? 'bg-gray-100 cursor-not-allowed border-gray-300 text-gray-500'
-                                    : 'hover:border-accent hover:bg-red-50 border-gray-300 text-gray-700'
-                                }`}
+                                className="a-btn cursor-pointer"
+                                style={uploadingImage === index ? { cursor: 'not-allowed', opacity: 0.6 } : undefined}
                               >
                                 {uploadingImage === index ? (
-                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-accent border-t-transparent"></div>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-t-transparent" style={{ borderColor: 'var(--accent)', borderTopColor: 'transparent' }}></div>
                                 ) : (
                                   <Upload className="w-4 h-4" />
                                 )}
@@ -3370,7 +3366,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => setEditingBannerIndex(null)}
-                              className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                              className="a-btn a-btn-primary"
                             >
                               Tahrirlashni tugatish
                             </button>
@@ -3380,15 +3376,14 @@ const DesktopAdminPanel = ({ onLogout }) => {
                         <>
                           {/* View Mode */}
                           <div>
-                            <h4 className="font-bold text-gray-900">{banner.title}</h4>
-                            <p className="text-sm text-gray-600">{banner.subtitle}</p>
+                            <h4 className="font-bold" style={{ color: 'var(--text)' }}>{banner.title}</h4>
+                            <p className="text-sm a-muted">{banner.subtitle}</p>
                           </div>
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => handleUpdateBanner(index, { enabled: !banner.enabled })}
-                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                                banner.enabled ? 'bg-green-500' : 'bg-gray-300'
-                              }`}
+                              className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                              style={{ background: banner.enabled ? 'var(--ok)' : 'var(--border-strong)' }}
                             >
                               <span
                                 className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
@@ -3396,7 +3391,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                                 }`}
                               />
                             </button>
-                            <span className="text-xs text-gray-600">
+                            <span className="text-xs a-muted">
                               {banner.enabled ? 'Yoqilgan' : 'O\'chirilgan'}
                             </span>
                           </div>
@@ -3409,7 +3404,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       {editingBannerIndex !== index && (
                         <button
                           onClick={() => setEditingBannerIndex(index)}
-                          className="p-2 text-accent hover:bg-red-50 rounded transition-colors"
+                          className="a-btn"
+                          style={{ color: 'var(--accent)' }}
                           title="Bannerni tahrirlash"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -3418,7 +3414,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       {index > 0 && (
                         <button
                           onClick={() => handleMoveBanner(index, 'up')}
-                          className="p-2 text-gray-600 hover:bg-gray-200 rounded transition-colors"
+                          className="a-btn"
                           title="Yuqoriga ko'chirish"
                         >
                           <MoveUp className="w-4 h-4" />
@@ -3427,7 +3423,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       {index < banners.length - 1 && (
                         <button
                           onClick={() => handleMoveBanner(index, 'down')}
-                          className="p-2 text-gray-600 hover:bg-gray-200 rounded transition-colors"
+                          className="a-btn"
                           title="Pastga ko'chirish"
                         >
                           <MoveDown className="w-4 h-4" />
@@ -3435,7 +3431,8 @@ const DesktopAdminPanel = ({ onLogout }) => {
                       )}
                       <button
                         onClick={() => handleDeleteBanner(index)}
-                        className="p-2 text-error hover:bg-red-50 rounded transition-colors"
+                        className="a-btn"
+                        style={{ color: 'var(--danger)' }}
                         title="Bannerni o'chirish"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -3448,9 +3445,9 @@ const DesktopAdminPanel = ({ onLogout }) => {
           )}
 
           {banners.length > 0 && (
-            <div className="mt-4 p-4 bg-red-50 rounded-lg">
-              <p className="text-xs text-blue-800 font-medium mb-1">💡 Karusel ko'rinishi</p>
-              <p className="text-sm text-blue-900">
+            <div className="mt-4 p-4 rounded-lg" style={{ background: 'var(--info-weak)' }}>
+              <p className="text-xs font-medium mb-1" style={{ color: 'var(--info)' }}>💡 Karusel ko'rinishi</p>
+              <p className="text-sm" style={{ color: 'var(--info)' }}>
                 {banners.filter(b => b.enabled).length === 0 && 'Hech qanday banner yoqilmagan. Karuselni ko\'rsatish uchun kamida bitta bannerni yoqing.'}
                 {banners.filter(b => b.enabled).length === 1 && 'Bitta banner yoqilgan. U statik banner sifatida ko\'rsatiladi.'}
                 {banners.filter(b => b.enabled).length > 1 && `${banners.filter(b => b.enabled).length} ta banner yoqilgan. Ular har 5 soniyada avtomatik almashadi va surish qo'llab-quvvatlanadi.`}
@@ -3460,37 +3457,32 @@ const DesktopAdminPanel = ({ onLogout }) => {
         </div>
 
         {/* Sale Timer */}
-        <div className="bg-white rounded-lg shadow-md p-6 border-2 border-transparent hover:border-blue-100 transition-colors">
+        <div className="a-card p-6">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-xl font-bold flex items-center gap-2">
-              <Clock className="w-6 h-6 text-primary" />
+            <h3 className="text-xl font-bold flex items-center gap-2" style={{ color: 'var(--text)' }}>
+              <Clock className="w-6 h-6" style={{ color: 'var(--accent)' }} />
               Teskari sanoq taymeri
             </h3>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Holat:</span>
-              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                saleTimer.enabled
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-gray-100 text-gray-600'
-              }`}>
-                {saleTimer.enabled ? '● Faol' : '○ Faol emas'}
+              <span className="text-sm a-faint">Holat:</span>
+              <span className={`a-pill ${saleTimer.enabled ? 'a-pill-ok' : 'a-pill-danger'}`}>
+                {saleTimer.enabled ? 'Faol' : 'Faol emas'}
               </span>
             </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-6">
             <div className="space-y-5">
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="rounded-lg p-4" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="font-semibold text-gray-900">Taymer holati</label>
-                    <p className="text-sm text-gray-500 mt-1">Bosh sahifada teskari sanoqni ko'rsatish</p>
+                    <label className="font-semibold" style={{ color: 'var(--text)' }}>Taymer holati</label>
+                    <p className="text-sm a-faint mt-1">Bosh sahifada teskari sanoqni ko'rsatish</p>
                   </div>
                   <button
                     onClick={() => setSaleTimer({ ...saleTimer, enabled: !saleTimer.enabled })}
-                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
-                      saleTimer.enabled ? 'bg-green-500' : 'bg-gray-300'
-                    }`}
+                    className="relative inline-flex h-7 w-12 items-center rounded-full transition-colors"
+                    style={{ background: saleTimer.enabled ? 'var(--ok)' : 'var(--border-strong)' }}
                   >
                     <span
                       className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
@@ -3502,7 +3494,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold mb-2 text-gray-700">
+                <label className="block text-sm font-semibold mb-2 a-muted">
                   Aksiya tugash sanasi va vaqti
                 </label>
                 <input
@@ -3512,11 +3504,11 @@ const DesktopAdminPanel = ({ onLogout }) => {
                     const newValue = e.target.value.replace('T', ' ') + ':00';
                     setSaleTimer({ ...saleTimer, endDate: newValue });
                   }}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-accent focus:border-accent transition-shadow"
+                  className="a-input"
                 />
-                <div className="mt-2 p-3 bg-red-50 rounded-lg">
-                  <p className="text-xs text-blue-800 font-medium">📅 Tanlangan sana:</p>
-                  <p className="text-sm text-blue-900 font-semibold">
+                <div className="mt-2 p-3 rounded-lg" style={{ background: 'var(--info-weak)' }}>
+                  <p className="text-xs font-medium" style={{ color: 'var(--info)' }}>📅 Tanlangan sana:</p>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--info)' }}>
                     {new Date(saleTimer.endDate).toLocaleString('uz-UZ', {
                       weekday: 'long',
                       year: 'numeric',
@@ -3530,19 +3522,19 @@ const DesktopAdminPanel = ({ onLogout }) => {
               </div>
             </div>
 
-            <div className="flex items-center justify-center bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 rounded-xl p-8 border-2 border-orange-200">
+            <div className="flex items-center justify-center rounded-xl p-8" style={{ background: 'var(--accent-weak)', border: '1px solid var(--border)' }}>
               <div className="text-center">
                 <div className="relative inline-block mb-4">
-                  <Calendar className="w-16 h-16 text-orange-500" />
-                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold animate-pulse">
+                  <Calendar className="w-16 h-16" style={{ color: 'var(--accent)' }} />
+                  <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold animate-pulse" style={{ background: 'var(--accent)' }}>
                     !
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-2 font-medium">Aksiya tugashiga</p>
-                <p className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600">
+                <p className="text-sm a-muted mb-2 font-medium">Aksiya tugashiga</p>
+                <p className="text-4xl font-bold" style={{ color: 'var(--accent)' }}>
                   {Math.ceil((new Date(saleTimer.endDate) - new Date()) / (1000 * 60 * 60 * 24))}
                 </p>
-                <p className="text-lg font-semibold text-gray-700 mt-1">kun qoldi</p>
+                <p className="text-lg font-semibold a-muted mt-1">kun qoldi</p>
               </div>
             </div>
           </div>

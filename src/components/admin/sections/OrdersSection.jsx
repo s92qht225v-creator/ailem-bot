@@ -53,6 +53,14 @@ const OrdersSection = ({ onImageClick }) => {
   const cashOrdersCount = orders.filter(o => o.paymentMethod === 'cash').length;
   const onlineOrdersCount = orders.filter(o => o.paymentMethod !== 'cash').length;
 
+  const pillClass = (status) => {
+    const s = String(status).toLowerCase();
+    if (s === 'approved' || s === 'delivered' || s === 'completed') return 'a-pill-ok';
+    if (s === 'pending') return 'a-pill-warn';
+    if (s === 'rejected') return 'a-pill-danger';
+    return 'a-pill-info';
+  };
+
   const handleApprove = async (orderId) => {
     const order = orders.find(o => o.id === orderId);
     if (!order) return;
@@ -332,126 +340,133 @@ const OrdersSection = ({ onImageClick }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="p-6 border-b space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Buyurtmalarni boshqarish</h3>
-          <div className="flex gap-2">
-            <button
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Yangilash
+    <div className="a-card">
+      <div className="a-card-h" style={{ flexWrap: 'wrap', gap: 12 }}>
+        <h3>Buyurtmalarni boshqarish</h3>
+        <div className="flex gap-2">
+          <button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="a-btn disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RotateCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Yangilash
+          </button>
+
+          <div className="relative group">
+            <button className="a-btn">
+              <Download className="w-4 h-4" />
+              CSV yuklab olish
             </button>
-
-            <div className="relative group">
-              <button className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
-                <Download className="w-4 h-4" />
-                CSV yuklab olish
+            <div className="a-card absolute right-0 mt-1 w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10" style={{ overflow: 'hidden' }}>
+              <button
+                onClick={() => exportOrders(filteredOrders, `orders_${statusFilter}`)}
+                className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-[var(--surface-2)]"
+                style={{ color: 'var(--text)' }}
+              >
+                <FileDown className="w-4 h-4" />
+                Buyurtmalar hisoboti
               </button>
-              <div className="absolute right-0 mt-1 w-48 bg-white border rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10">
-                <button
-                  onClick={() => exportOrders(filteredOrders, `orders_${statusFilter}`)}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
-                >
-                  <FileDown className="w-4 h-4" />
-                  Buyurtmalar hisoboti
-                </button>
-                <button
-                  onClick={() => exportOrderItems(filteredOrders, `order_items_${statusFilter}`)}
-                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2 border-t"
-                >
-                  <FileDown className="w-4 h-4" />
-                  Buyurtma tafsilotlari
-                </button>
-              </div>
+              <button
+                onClick={() => exportOrderItems(filteredOrders, `order_items_${statusFilter}`)}
+                className="w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-[var(--surface-2)]"
+                style={{ color: 'var(--text)', borderTop: '1px solid var(--border)' }}
+              >
+                <FileDown className="w-4 h-4" />
+                Buyurtma tafsilotlari
+              </button>
             </div>
-
-            <select
-              className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
-              value={sourceFilter}
-              onChange={(e) => setSourceFilter(e.target.value)}
-            >
-              <option value="all">Barcha buyurtmalar ({orders.length})</option>
-              <option value="online">Onlayn ({onlineOrdersCount})</option>
-              <option value="cash">Naqd/POS ({cashOrdersCount})</option>
-            </select>
-
-            <select
-              className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">Barcha holatlar</option>
-              <option value="pending">Kutilmoqda ({orders.filter(o => o.status === 'pending').length})</option>
-              <option value="approved">Tasdiqlangan ({orders.filter(o => o.status === 'approved').length})</option>
-              <option value="shipped">Jo'natilgan ({orders.filter(o => o.status === 'shipped').length})</option>
-              <option value="delivered">Yetkazilgan ({orders.filter(o => o.status === 'delivered').length})</option>
-              <option value="completed">Bajarilgan ({orders.filter(o => o.status === 'completed').length})</option>
-              <option value="rejected">Rad etilgan ({orders.filter(o => o.status === 'rejected').length})</option>
-            </select>
           </div>
-        </div>
 
+          <select
+            className="a-input"
+            style={{ width: 'auto' }}
+            value={sourceFilter}
+            onChange={(e) => setSourceFilter(e.target.value)}
+          >
+            <option value="all">Barcha buyurtmalar ({orders.length})</option>
+            <option value="online">Onlayn ({onlineOrdersCount})</option>
+            <option value="cash">Naqd/POS ({cashOrdersCount})</option>
+          </select>
+
+          <select
+            className="a-input"
+            style={{ width: 'auto' }}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">Barcha holatlar</option>
+            <option value="pending">Kutilmoqda ({orders.filter(o => o.status === 'pending').length})</option>
+            <option value="approved">Tasdiqlangan ({orders.filter(o => o.status === 'approved').length})</option>
+            <option value="shipped">Jo'natilgan ({orders.filter(o => o.status === 'shipped').length})</option>
+            <option value="delivered">Yetkazilgan ({orders.filter(o => o.status === 'delivered').length})</option>
+            <option value="completed">Bajarilgan ({orders.filter(o => o.status === 'completed').length})</option>
+            <option value="rejected">Rad etilgan ({orders.filter(o => o.status === 'rejected').length})</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="p-4 space-y-4" style={{ borderBottom: '1px solid var(--border)' }}>
         {/* Date Range Filter */}
         <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm font-medium text-gray-600">Sana oralig'i:</span>
+          <span className="text-sm font-medium a-muted">Sana oralig'i:</span>
           <div className="flex items-center gap-2">
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
-              className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+              className="a-input"
+              style={{ width: 'auto' }}
               placeholder="Dan"
             />
-            <span className="text-gray-400">-</span>
+            <span className="a-faint">-</span>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
-              className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+              className="a-input"
+              style={{ width: 'auto' }}
               placeholder="Gacha"
             />
           </div>
           {(dateFrom || dateTo) && (
             <button
               onClick={() => { setDateFrom(''); setDateTo(''); }}
-              className="px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded"
+              className="a-btn"
+              style={{ padding: '4px 9px', fontSize: 11 }}
             >
               Sanalarni tozalash
             </button>
           )}
-          <span className="ml-auto text-sm text-gray-500">
+          <span className="ml-auto text-sm a-faint">
             {orders.length} tadan {filteredOrders.length} ta ko'rsatilmoqda
           </span>
         </div>
 
         {/* Bulk Operation Progress */}
         {bulkProgress.isProcessing && (
-          <div className="p-4 bg-red-50 rounded-lg border border-blue-200">
+          <div className="p-4 rounded-lg" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-semibold text-blue-900">
+              <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
                 {bulkProgress.action}: {bulkProgress.current} / {bulkProgress.total}
               </span>
-              <span className="text-sm text-blue-700">
+              <span className="text-sm a-num a-muted">
                 {Math.round((bulkProgress.current / bulkProgress.total) * 100)}%
               </span>
             </div>
-            <div className="w-full bg-blue-200 rounded-full h-2.5">
+            <div className="w-full rounded-full h-2.5" style={{ background: 'var(--border)' }}>
               <div
-                className="bg-accent h-2.5 rounded-full transition-all duration-300"
-                style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%` }}
+                className="h-2.5 rounded-full transition-all duration-300"
+                style={{ width: `${(bulkProgress.current / bulkProgress.total) * 100}%`, background: 'var(--accent)' }}
               />
             </div>
-            <p className="text-xs text-blue-700 mt-2">Buyurtmalar qayta ishlanmoqda, iltimos kuting...</p>
+            <p className="text-xs mt-2 a-muted">Buyurtmalar qayta ishlanmoqda, iltimos kuting...</p>
           </div>
         )}
 
         {selectedOrders.length > 0 && !bulkProgress.isProcessing && (
-          <div className="flex items-center gap-3 p-3 bg-red-50 rounded-lg border border-blue-200">
-            <span className="text-sm font-semibold text-blue-900">
+          <div className="flex items-center gap-3 p-3 rounded-lg" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+            <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
               {selectedOrders.length} ta buyurtma tanlandi
             </span>
             <button
@@ -459,7 +474,7 @@ const OrdersSection = ({ onImageClick }) => {
                 const ordersToPrint = orders.filter(o => selectedOrders.includes(o.id));
                 printMultiplePackingSlips(ordersToPrint);
               }}
-              className="px-3 py-1.5 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 flex items-center gap-1.5"
+              className="a-btn"
             >
               <Package className="w-4 h-4" />
               Qadoqlash {selectedOrders.length}
@@ -469,7 +484,7 @@ const OrdersSection = ({ onImageClick }) => {
                 const ordersToPrint = orders.filter(o => selectedOrders.includes(o.id));
                 printMultipleLabels(ordersToPrint);
               }}
-              className="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 flex items-center gap-1.5"
+              className="a-btn"
             >
               <Printer className="w-4 h-4" />
               Yorliq {selectedOrders.length}
@@ -477,7 +492,8 @@ const OrdersSection = ({ onImageClick }) => {
             <select
               value={bulkAction}
               onChange={(e) => setBulkAction(e.target.value)}
-              className="px-3 py-1.5 border rounded-lg text-sm focus:ring-2 focus:ring-accent"
+              className="a-input"
+              style={{ width: 'auto' }}
             >
               <option value="">Amalni tanlang</option>
               <option value="Approve">Tasdiqlash</option>
@@ -488,13 +504,13 @@ const OrdersSection = ({ onImageClick }) => {
             <button
               onClick={handleBulkAction}
               disabled={!bulkAction || bulkProgress.isProcessing}
-              className="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="a-btn a-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {bulkProgress.isProcessing ? 'Bajarilmoqda...' : 'Qo\'llash'}
             </button>
             <button
               onClick={() => setSelectedOrders([])}
-              className="px-3 py-1.5 text-gray-600 hover:text-gray-900 text-sm font-medium"
+              className="a-btn"
             >
               Tozalash
             </button>
@@ -503,73 +519,69 @@ const OrdersSection = ({ onImageClick }) => {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead className="bg-gray-50">
+        <table className="a-table">
+          <thead>
             <tr>
-              <th className="px-4 py-3 text-left">
+              <th>
                 <input
                   type="checkbox"
                   checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
                   onChange={handleSelectAll}
-                  className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                  className="w-4 h-4 rounded"
+                  style={{ accentColor: 'var(--accent)' }}
                 />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Buyurtma ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Mijoz</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Sana</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Jami</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Holat</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amallar</th>
+              <th>Buyurtma ID</th>
+              <th>Mijoz</th>
+              <th>Sana</th>
+              <th>Jami</th>
+              <th>Holat</th>
+              <th>Amallar</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody>
             {filteredOrders.length === 0 ? (
               <tr>
-                <td colSpan="7" className="px-6 py-12 text-center text-gray-500">
+                <td colSpan="7" className="text-center a-faint" style={{ padding: '48px 24px' }}>
                   Tanlangan filtr uchun buyurtma topilmadi
                 </td>
               </tr>
             ) : (
               filteredOrders.map((order) => (
-                <tr key={order.id} className={`hover:bg-gray-50 ${selectedOrders.includes(order.id) ? 'bg-red-50' : ''}`}>
-                  <td className="px-4 py-4">
+                <tr key={order.id} style={selectedOrders.includes(order.id) ? { background: 'var(--accent-weak)' } : undefined}>
+                  <td>
                     <input
                       type="checkbox"
                       checked={selectedOrders.includes(order.id)}
                       onChange={() => handleSelectOrder(order.id)}
-                      className="w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary"
+                      className="w-4 h-4 rounded"
+                      style={{ accentColor: 'var(--accent)' }}
                     />
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                  <td className="a-num" style={{ fontWeight: 500, color: 'var(--text)' }}>
                     <div className="flex items-center gap-2">
                       #{order.id}
                       {order.paymentMethod === 'cash' && (
-                        <span className="px-1.5 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">
+                        <span className="a-pill a-pill-ok">
                           POS
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-900">{order.userName}</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{formatDate(order.createdAt || order.date)}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{formatPrice(order.total)}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                      order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                      order.status === 'approved' ? 'bg-green-100 text-green-800' :
-                      order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
-                      order.status === 'delivered' ? 'bg-purple-100 text-purple-800' :
-                      order.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
+                  <td style={{ color: 'var(--text)' }}>{order.userName}</td>
+                  <td className="a-muted">{formatDate(order.createdAt || order.date)}</td>
+                  <td className="a-num" style={{ fontWeight: 500, color: 'var(--text)' }}>{formatPrice(order.total)}</td>
+                  <td>
+                    <span className={`a-pill ${pillClass(order.status)}`}>
                       {getStatusLabel(order.status)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm">
-                    <div className="flex gap-2 flex-wrap">
+                  <td>
+                    <div className="flex gap-2 flex-wrap items-center">
                       <button
                         onClick={() => setSelectedOrder(order)}
-                        className="text-accent hover:text-red-800 font-medium whitespace-nowrap"
+                        className="font-medium whitespace-nowrap"
+                        style={{ color: 'var(--accent-ink)' }}
                       >
                         Ko'rish
                       </button>
@@ -577,13 +589,15 @@ const OrdersSection = ({ onImageClick }) => {
                         <>
                           <button
                             onClick={() => handleApprove(order.id)}
-                            className="text-green-600 hover:text-green-800 font-medium whitespace-nowrap"
+                            className="font-medium whitespace-nowrap"
+                            style={{ color: 'var(--ok)' }}
                           >
                             Tasdiqlash
                           </button>
                           <button
                             onClick={() => handleReject(order.id)}
-                            className="text-red-600 hover:text-red-800 font-medium whitespace-nowrap"
+                            className="font-medium whitespace-nowrap"
+                            style={{ color: 'var(--danger)' }}
                           >
                             Rad etish
                           </button>
@@ -593,21 +607,24 @@ const OrdersSection = ({ onImageClick }) => {
                         <>
                           <button
                             onClick={() => printPackingSlip(order)}
-                            className="text-orange-600 hover:text-orange-800 font-medium whitespace-nowrap flex items-center gap-1"
+                            className="font-medium whitespace-nowrap flex items-center gap-1"
+                            style={{ color: 'var(--warn)' }}
                           >
                             <Package className="w-4 h-4" />
                             Qadoqlash
                           </button>
                           <button
                             onClick={() => printShippingLabel(order)}
-                            className="text-green-600 hover:text-green-800 font-medium whitespace-nowrap flex items-center gap-1"
+                            className="font-medium whitespace-nowrap flex items-center gap-1"
+                            style={{ color: 'var(--ok)' }}
                           >
                             <Printer className="w-4 h-4" />
                             Yorliq
                           </button>
                           <button
                             onClick={() => handleMarkShipped(order.id)}
-                            className="text-accent hover:text-red-800 font-medium whitespace-nowrap"
+                            className="font-medium whitespace-nowrap"
+                            style={{ color: 'var(--accent-ink)' }}
                           >
                             Jo'natildi
                           </button>
@@ -617,14 +634,16 @@ const OrdersSection = ({ onImageClick }) => {
                         <>
                           <button
                             onClick={() => printShippingLabel(order)}
-                            className="text-green-600 hover:text-green-800 font-medium whitespace-nowrap flex items-center gap-1"
+                            className="font-medium whitespace-nowrap flex items-center gap-1"
+                            style={{ color: 'var(--ok)' }}
                           >
                             <Printer className="w-4 h-4" />
                             Yorliq
                           </button>
                           <button
                             onClick={() => handleMarkDelivered(order.id)}
-                            className="text-purple-600 hover:text-purple-800 font-medium whitespace-nowrap"
+                            className="font-medium whitespace-nowrap"
+                            style={{ color: 'var(--info)' }}
                           >
                             Yetkazildi
                           </button>
@@ -642,34 +661,32 @@ const OrdersSection = ({ onImageClick }) => {
       {/* Order Details Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedOrder(null)}>
-          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="p-6 border-b">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold">Buyurtma #{selectedOrder.id}</h3>
-                <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-gray-600">
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
+          <div className="a-card max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="a-card-h">
+              <h3 style={{ fontSize: 18 }}>Buyurtma #{selectedOrder.id}</h3>
+              <button onClick={() => setSelectedOrder(null)} className="a-faint hover:text-[var(--text)]">
+                <X className="w-6 h-6" />
+              </button>
             </div>
             <div className="p-6 space-y-6">
               {/* Customer Information */}
               <div>
-                <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                  <UsersIcon className="w-5 h-5 text-primary" />
+                <h4 className="font-semibold text-lg mb-3 flex items-center gap-2" style={{ color: 'var(--text)' }}>
+                  <UsersIcon className="w-5 h-5" style={{ color: 'var(--text-2)' }} />
                   Mijoz ma'lumotlari
                 </h4>
-                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                <div className="rounded-lg p-4 space-y-2" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Ism:</span>
-                    <span className="text-sm font-medium text-gray-900">{selectedOrder.userName}</span>
+                    <span className="text-sm a-muted">Ism:</span>
+                    <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>{selectedOrder.userName}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Telefon:</span>
-                    <span className="text-sm font-medium text-gray-900">{selectedOrder.userPhone}</span>
+                    <span className="text-sm a-muted">Telefon:</span>
+                    <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>{selectedOrder.userPhone}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-gray-600">Foydalanuvchi ID:</span>
-                    <span className="text-sm font-medium text-gray-900">{selectedOrder.userId}</span>
+                    <span className="text-sm a-muted">Foydalanuvchi ID:</span>
+                    <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>{selectedOrder.userId}</span>
                   </div>
                 </div>
               </div>
@@ -677,40 +694,40 @@ const OrdersSection = ({ onImageClick }) => {
               {/* Delivery Information */}
               {selectedOrder.deliveryInfo && (
                 <div>
-                  <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                    <Truck className="w-5 h-5 text-primary" />
+                  <h4 className="font-semibold text-lg mb-3 flex items-center gap-2" style={{ color: 'var(--text)' }}>
+                    <Truck className="w-5 h-5" style={{ color: 'var(--text-2)' }} />
                     Yetkazib berish tafsilotlari
                   </h4>
-                  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <div className="rounded-lg p-4 space-y-2" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                     {selectedOrder.deliveryInfo.fullName && (
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Qabul qiluvchi:</span>
-                        <span className="text-sm font-medium text-gray-900">{selectedOrder.deliveryInfo.fullName}</span>
+                        <span className="text-sm a-muted">Qabul qiluvchi:</span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>{selectedOrder.deliveryInfo.fullName}</span>
                       </div>
                     )}
                     {selectedOrder.deliveryInfo.phone && (
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Aloqa:</span>
-                        <span className="text-sm font-medium text-gray-900">{selectedOrder.deliveryInfo.phone}</span>
+                        <span className="text-sm a-muted">Aloqa:</span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>{selectedOrder.deliveryInfo.phone}</span>
                       </div>
                     )}
                     {selectedOrder.deliveryInfo.city && (
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Shahar:</span>
-                        <span className="text-sm font-medium text-gray-900">{selectedOrder.deliveryInfo.city}</span>
+                        <span className="text-sm a-muted">Shahar:</span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>{selectedOrder.deliveryInfo.city}</span>
                       </div>
                     )}
                     {selectedOrder.deliveryInfo.address && (
                       <div>
-                        <span className="text-sm text-gray-600 block mb-1">Manzil:</span>
-                        <span className="text-sm font-medium text-gray-900">{selectedOrder.deliveryInfo.address}</span>
+                        <span className="text-sm a-muted block mb-1">Manzil:</span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>{selectedOrder.deliveryInfo.address}</span>
                       </div>
                     )}
                     {selectedOrder.courier && (
-                      <div className="pt-2 border-t border-gray-200">
+                      <div className="pt-2" style={{ borderTop: '1px solid var(--border)' }}>
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-600">Kuryer xizmati:</span>
-                          <span className="text-sm font-semibold text-primary">
+                          <span className="text-sm a-muted">Kuryer xizmati:</span>
+                          <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
                             {typeof selectedOrder.courier === 'string' && selectedOrder.courier.startsWith('{')
                               ? JSON.parse(selectedOrder.courier).name
                               : typeof selectedOrder.courier === 'object'
@@ -722,8 +739,8 @@ const OrdersSection = ({ onImageClick }) => {
                     )}
                     {selectedOrder.deliveryFee > 0 && (
                       <div className="flex justify-between">
-                        <span className="text-sm text-gray-600">Yetkazib berish narxi:</span>
-                        <span className="text-sm font-medium text-gray-900">{formatPrice(selectedOrder.deliveryFee)}</span>
+                        <span className="text-sm a-muted">Yetkazib berish narxi:</span>
+                        <span className="text-sm font-medium" style={{ color: 'var(--text)' }}>{formatPrice(selectedOrder.deliveryFee)}</span>
                       </div>
                     )}
                   </div>
@@ -733,13 +750,13 @@ const OrdersSection = ({ onImageClick }) => {
 
               {/* Order Items */}
               <div>
-                <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5 text-primary" />
+                <h4 className="font-semibold text-lg mb-3 flex items-center gap-2" style={{ color: 'var(--text)' }}>
+                  <ShoppingBag className="w-5 h-5" style={{ color: 'var(--text-2)' }} />
                   Buyurtma tarkibi
                 </h4>
                 <div className="space-y-3">
                   {selectedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                    <div key={idx} className="flex items-start gap-3 p-3 rounded-lg" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
                       {item.image && (
                         <img
                           src={item.image}
@@ -749,23 +766,23 @@ const OrdersSection = ({ onImageClick }) => {
                         />
                       )}
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium" style={{ color: 'var(--text)' }}>
                           {item.productName || item.name || 'Noma\'lum mahsulot'}
                         </p>
                         {(item.color || item.size) && (
-                          <p className="text-xs text-gray-500 mt-1">
+                          <p className="text-xs a-faint mt-1">
                             {item.color && <span>{item.color}</span>}
                             {item.color && item.size && <span> • </span>}
                             {item.size && <span>{item.size}</span>}
                           </p>
                         )}
-                        <p className="text-sm text-gray-600 mt-1">Soni: {item.quantity}</p>
+                        <p className="text-sm a-muted mt-1">Soni: {item.quantity}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-gray-900">
+                        <p className="font-semibold a-num" style={{ color: 'var(--text)' }}>
                           {formatPrice(item.price * item.quantity)}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs a-faint a-num">
                           {formatPrice(item.price)} / dona
                         </p>
                       </div>
@@ -775,66 +792,66 @@ const OrdersSection = ({ onImageClick }) => {
               </div>
 
               {/* Order Summary */}
-              <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-                <h4 className="font-semibold text-lg mb-3 flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-primary" />
+              <div className="rounded-lg p-4 space-y-2" style={{ background: 'var(--surface-2)', border: '1px solid var(--border)' }}>
+                <h4 className="font-semibold text-lg mb-3 flex items-center gap-2" style={{ color: 'var(--text)' }}>
+                  <DollarSign className="w-5 h-5" style={{ color: 'var(--text-2)' }} />
                   Buyurtma hisoboti
                 </h4>
                 <div className="space-y-2">
                   {selectedOrder.subtotal && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Oraliq summa:</span>
-                      <span className="font-medium text-gray-900">{formatPrice(selectedOrder.subtotal)}</span>
+                      <span className="a-muted">Oraliq summa:</span>
+                      <span className="font-medium a-num" style={{ color: 'var(--text)' }}>{formatPrice(selectedOrder.subtotal)}</span>
                     </div>
                   )}
                   {selectedOrder.deliveryFee > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Yetkazib berish narxi:</span>
-                      <span className="font-medium text-gray-900">{formatPrice(selectedOrder.deliveryFee)}</span>
+                      <span className="a-muted">Yetkazib berish narxi:</span>
+                      <span className="font-medium a-num" style={{ color: 'var(--text)' }}>{formatPrice(selectedOrder.deliveryFee)}</span>
                     </div>
                   )}
                   {selectedOrder.bonusDiscount > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-green-600">Bonus chegirma:</span>
-                      <span className="font-medium text-green-600">-{formatPrice(selectedOrder.bonusDiscount)}</span>
+                      <span style={{ color: 'var(--ok)' }}>Bonus chegirma:</span>
+                      <span className="font-medium a-num" style={{ color: 'var(--ok)' }}>-{formatPrice(selectedOrder.bonusDiscount)}</span>
                     </div>
                   )}
                   {selectedOrder.bonusPointsUsed > 0 && (
                     <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Ishlatilgan bonus:</span>
-                      <span className="font-medium text-gray-900">{selectedOrder.bonusPointsUsed} ball</span>
+                      <span className="a-muted">Ishlatilgan bonus:</span>
+                      <span className="font-medium a-num" style={{ color: 'var(--text)' }}>{selectedOrder.bonusPointsUsed} ball</span>
                     </div>
                   )}
-                  <div className="border-t border-gray-300 pt-2 mt-2">
+                  <div className="pt-2 mt-2" style={{ borderTop: '1px solid var(--border-strong)' }}>
                     <div className="flex justify-between">
-                      <span className="text-lg font-bold text-gray-900">Jami:</span>
-                      <span className="text-lg font-bold text-primary">{formatPrice(selectedOrder.total)}</span>
+                      <span className="text-lg font-bold" style={{ color: 'var(--text)' }}>Jami:</span>
+                      <span className="text-lg font-bold a-num" style={{ color: 'var(--accent-ink)' }}>{formatPrice(selectedOrder.total)}</span>
                     </div>
                   </div>
 
                   {/* Cash Payment Details */}
                   {selectedOrder.paymentMethod === 'cash' && (
-                    <div className="border-t border-gray-300 pt-2 mt-2 space-y-2">
+                    <div className="pt-2 mt-2 space-y-2" style={{ borderTop: '1px solid var(--border-strong)' }}>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">To'lov usuli:</span>
-                        <span className="font-medium text-green-700">Naqd (POS)</span>
+                        <span className="a-muted">To'lov usuli:</span>
+                        <span className="font-medium" style={{ color: 'var(--ok)' }}>Naqd (POS)</span>
                       </div>
                       {selectedOrder.cashReceived > 0 && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Qabul qilingan naqd:</span>
-                          <span className="font-medium text-gray-900">{formatPrice(selectedOrder.cashReceived)}</span>
+                          <span className="a-muted">Qabul qilingan naqd:</span>
+                          <span className="font-medium a-num" style={{ color: 'var(--text)' }}>{formatPrice(selectedOrder.cashReceived)}</span>
                         </div>
                       )}
                       {selectedOrder.changeGiven > 0 && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Qaytim:</span>
-                          <span className="font-medium text-gray-900">{formatPrice(selectedOrder.changeGiven)}</span>
+                          <span className="a-muted">Qaytim:</span>
+                          <span className="font-medium a-num" style={{ color: 'var(--text)' }}>{formatPrice(selectedOrder.changeGiven)}</span>
                         </div>
                       )}
                       {selectedOrder.cashierName && (
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Kassir:</span>
-                          <span className="font-medium text-gray-900">{selectedOrder.cashierName}</span>
+                          <span className="a-muted">Kassir:</span>
+                          <span className="font-medium" style={{ color: 'var(--text)' }}>{selectedOrder.cashierName}</span>
                         </div>
                       )}
                     </div>
@@ -843,23 +860,16 @@ const OrdersSection = ({ onImageClick }) => {
               </div>
 
               {/* Order Status & Date */}
-              <div className="flex items-center justify-between pt-4 border-t">
+              <div className="flex items-center justify-between pt-4" style={{ borderTop: '1px solid var(--border)' }}>
                 <div>
-                  <p className="text-sm text-gray-600">Buyurtma holati</p>
-                  <span className={`inline-block mt-1 px-3 py-1 text-sm font-semibold rounded-full ${
-                    selectedOrder.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                    selectedOrder.status === 'approved' ? 'bg-green-100 text-green-800' :
-                    selectedOrder.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
-                    selectedOrder.status === 'delivered' ? 'bg-purple-100 text-purple-800' :
-                    selectedOrder.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
+                  <p className="text-sm a-muted">Buyurtma holati</p>
+                  <span className={`a-pill ${pillClass(selectedOrder.status)}`} style={{ marginTop: 4 }}>
                     {getStatusLabel(selectedOrder.status)}
                   </span>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-600">Buyurtma sanasi</p>
-                  <p className="text-sm font-medium text-gray-900 mt-1">{formatDate(selectedOrder.createdAt || selectedOrder.date)}</p>
+                  <p className="text-sm a-muted">Buyurtma sanasi</p>
+                  <p className="text-sm font-medium mt-1" style={{ color: 'var(--text)' }}>{formatDate(selectedOrder.createdAt || selectedOrder.date)}</p>
                 </div>
               </div>
             </div>

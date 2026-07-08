@@ -64,13 +64,13 @@ const AuditLogsSection = () => {
   };
 
   const getActionColor = (action) => {
-    if (action.includes('create')) return 'bg-green-100 text-green-800';
-    if (action.includes('delete')) return 'bg-red-100 text-red-800';
-    if (action.includes('update') || action.includes('toggle')) return 'bg-blue-100 text-blue-800';
-    if (action.includes('approve') || action.includes('deliver')) return 'bg-purple-100 text-purple-800';
-    if (action.includes('reject')) return 'bg-orange-100 text-orange-800';
-    if (action.includes('ship')) return 'bg-cyan-100 text-cyan-800';
-    return 'bg-gray-100 text-gray-800';
+    if (action.includes('create')) return 'a-pill-ok';
+    if (action.includes('delete')) return 'a-pill-danger';
+    if (action.includes('update') || action.includes('toggle')) return 'a-pill-info';
+    if (action.includes('approve') || action.includes('deliver')) return 'a-pill-ok';
+    if (action.includes('reject')) return 'a-pill-danger';
+    if (action.includes('ship')) return 'a-pill-info';
+    return 'a-pill-info';
   };
 
   const entityTypes = [...new Set(Object.values(AUDIT_ACTIONS).map(a => a.split('.')[0]))];
@@ -80,16 +80,16 @@ const AuditLogsSection = () => {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="a-card" style={{ padding: 24 }}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Audit tarixi</h3>
-            <p className="text-sm text-gray-600">Barcha admin amallari va o'zgarishlarni kuzatish</p>
+            <h3 className="text-lg" style={{ fontWeight: 600, color: 'var(--text)' }}>Audit tarixi</h3>
+            <p className="text-sm a-muted">Barcha admin amallari va o'zgarishlarni kuzatish</p>
           </div>
           <button
             onClick={loadLogs}
             disabled={loading}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center gap-2 disabled:opacity-50"
+            className="a-btn"
           >
             <RotateCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Yangilash
@@ -99,11 +99,11 @@ const AuditLogsSection = () => {
         {/* Filters */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Amal turi</label>
+            <label className="block text-xs mb-1 a-muted" style={{ fontWeight: 500 }}>Amal turi</label>
             <select
               value={actionFilter}
               onChange={(e) => { setActionFilter(e.target.value); setPage(0); }}
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+              className="a-input"
             >
               <option value="">Barcha amallar</option>
               {Object.values(AUDIT_ACTIONS).map(action => (
@@ -113,11 +113,11 @@ const AuditLogsSection = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Obyekt turi</label>
+            <label className="block text-xs mb-1 a-muted" style={{ fontWeight: 500 }}>Obyekt turi</label>
             <select
               value={entityFilter}
               onChange={(e) => { setEntityFilter(e.target.value); setPage(0); }}
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+              className="a-input"
             >
               <option value="">Barcha obyektlar</option>
               {entityTypes.map(type => (
@@ -127,45 +127,46 @@ const AuditLogsSection = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Admin email</label>
+            <label className="block text-xs mb-1 a-muted" style={{ fontWeight: 500 }}>Admin email</label>
             <input
               type="text"
               value={adminFilter}
               onChange={(e) => { setAdminFilter(e.target.value); setPage(0); }}
               placeholder="Adminni qidirish..."
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+              className="a-input"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Sanadan</label>
+            <label className="block text-xs mb-1 a-muted" style={{ fontWeight: 500 }}>Sanadan</label>
             <input
               type="date"
               value={dateFrom}
               onChange={(e) => { setDateFrom(e.target.value); setPage(0); }}
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+              className="a-input"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Sanagacha</label>
+            <label className="block text-xs mb-1 a-muted" style={{ fontWeight: 500 }}>Sanagacha</label>
             <input
               type="date"
               value={dateTo}
               onChange={(e) => { setDateTo(e.target.value); setPage(0); }}
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-accent focus:border-accent"
+              className="a-input"
             />
           </div>
         </div>
 
         {(actionFilter || entityFilter || adminFilter || dateFrom || dateTo) && (
           <div className="mt-3 flex items-center justify-between">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm a-muted">
               {totalCount} tadan {logs.length} ta ko'rsatilmoqda
             </span>
             <button
               onClick={clearFilters}
-              className="text-sm text-accent hover:text-red-800"
+              className="text-sm"
+              style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               Barcha filtrlarni tozalash
             </button>
@@ -174,52 +175,53 @@ const AuditLogsSection = () => {
       </div>
 
       {/* Logs Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="a-card" style={{ overflow: 'hidden' }}>
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <RotateCw className="w-8 h-8 animate-spin text-primary" />
+            <RotateCw className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} />
           </div>
         ) : logs.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <Activity className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+          <div className="text-center py-12 a-faint">
+            <Activity className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--text-3)' }} />
             <p>Audit yozuvlari topilmadi</p>
             <p className="text-sm mt-1">audit_logs jadvali yaratilgach admin amallari shu yerda ko'rinadi</p>
           </div>
         ) : (
           <>
-            <table className="w-full">
-              <thead className="bg-gray-50">
+            <table className="a-table">
+              <thead>
                 <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Vaqt</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amal</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Obyekt</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Admin</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tafsilotlar</th>
+                  <th>Vaqt</th>
+                  <th>Amal</th>
+                  <th>Obyekt</th>
+                  <th>Admin</th>
+                  <th>Tafsilotlar</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody>
                 {logs.map((log) => (
                   <>
-                    <tr key={log.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                    <tr key={log.id}>
+                      <td className="text-sm a-muted">
                         {formatDate(log.created_at)}
                       </td>
-                      <td className="px-4 py-3">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getActionColor(log.action)}`}>
+                      <td>
+                        <span className={`a-pill ${getActionColor(log.action)}`}>
                           {formatAuditAction(log.action)}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-sm">
-                        <span className="font-medium text-gray-900">{log.entity_type}</span>
-                        <span className="text-gray-500 ml-1">#{log.entity_id?.slice(0, 8)}</span>
+                      <td className="text-sm">
+                        <span style={{ fontWeight: 500, color: 'var(--text)' }}>{log.entity_type}</span>
+                        <span className="a-faint ml-1">#{log.entity_id?.slice(0, 8)}</span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
+                      <td className="text-sm a-muted">
                         {log.admin_email}
                       </td>
-                      <td className="px-4 py-3">
+                      <td>
                         <button
                           onClick={() => setExpandedLog(expandedLog === log.id ? null : log.id)}
-                          className="text-accent hover:text-red-800 flex items-center gap-1 text-sm"
+                          className="flex items-center gap-1 text-sm"
+                          style={{ color: 'var(--accent)', background: 'none', border: 'none', cursor: 'pointer' }}
                         >
                           {expandedLog === log.id ? 'Yashirish' : 'Ko\'rish'}
                           {expandedLog === log.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -228,33 +230,33 @@ const AuditLogsSection = () => {
                     </tr>
                     {expandedLog === log.id && (
                       <tr key={`${log.id}-details`}>
-                        <td colSpan="5" className="px-4 py-4 bg-gray-50">
+                        <td colSpan="5" style={{ background: 'var(--surface-2)' }}>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {log.old_data && (
                               <div>
-                                <h4 className="text-xs font-semibold text-gray-700 mb-2">Oldingi holat</h4>
-                                <pre className="bg-white border rounded p-3 text-xs overflow-auto max-h-48">
+                                <h4 className="text-xs mb-2" style={{ fontWeight: 600, color: 'var(--text-2)' }}>Oldingi holat</h4>
+                                <pre className="text-xs overflow-auto max-h-48" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--a-r-sm)', padding: 12, color: 'var(--text)' }}>
                                   {JSON.stringify(JSON.parse(log.old_data), null, 2)}
                                 </pre>
                               </div>
                             )}
                             {log.new_data && (
                               <div>
-                                <h4 className="text-xs font-semibold text-gray-700 mb-2">Yangi holat</h4>
-                                <pre className="bg-white border rounded p-3 text-xs overflow-auto max-h-48">
+                                <h4 className="text-xs mb-2" style={{ fontWeight: 600, color: 'var(--text-2)' }}>Yangi holat</h4>
+                                <pre className="text-xs overflow-auto max-h-48" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--a-r-sm)', padding: 12, color: 'var(--text)' }}>
                                   {JSON.stringify(JSON.parse(log.new_data), null, 2)}
                                 </pre>
                               </div>
                             )}
                             {log.metadata && log.metadata !== '{}' && (
                               <div className={log.old_data || log.new_data ? 'md:col-span-2' : ''}>
-                                <h4 className="text-xs font-semibold text-gray-700 mb-2">Metadata</h4>
-                                <pre className="bg-white border rounded p-3 text-xs overflow-auto max-h-48">
+                                <h4 className="text-xs mb-2" style={{ fontWeight: 600, color: 'var(--text-2)' }}>Metadata</h4>
+                                <pre className="text-xs overflow-auto max-h-48" style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--a-r-sm)', padding: 12, color: 'var(--text)' }}>
                                   {JSON.stringify(JSON.parse(log.metadata), null, 2)}
                                 </pre>
                               </div>
                             )}
-                            <div className="md:col-span-2 text-xs text-gray-500">
+                            <div className="md:col-span-2 text-xs a-faint">
                               <span>Foydalanuvchi agenti: {log.user_agent || 'N/A'}</span>
                             </div>
                           </div>
@@ -268,22 +270,22 @@ const AuditLogsSection = () => {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="px-4 py-3 border-t bg-gray-50 flex items-center justify-between">
-                <span className="text-sm text-gray-600">
+              <div className="flex items-center justify-between" style={{ padding: '12px 16px', borderTop: '1px solid var(--border)', background: 'var(--surface-2)' }}>
+                <span className="text-sm a-muted">
                   {totalPages} sahifadan {page + 1}-sahifa
                 </span>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setPage(p => Math.max(0, p - 1))}
                     disabled={page === 0}
-                    className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                    className="a-btn"
                   >
                     Oldingi
                   </button>
                   <button
                     onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                     disabled={page >= totalPages - 1}
-                    className="px-3 py-1 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                    className="a-btn"
                   >
                     Keyingi
                   </button>

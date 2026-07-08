@@ -106,8 +106,8 @@ const InventorySettingsSection = () => {
   if (loading) {
     return (
       <div className="max-w-4xl">
-        <div className="bg-white rounded-lg shadow-md p-6 text-center">
-          <p className="text-gray-600">Ombor sozlamalari yuklanmoqda...</p>
+        <div className="a-card" style={{ padding: 24, textAlign: 'center' }}>
+          <p className="a-muted">Ombor sozlamalari yuklanmoqda...</p>
         </div>
       </div>
     );
@@ -115,22 +115,22 @@ const InventorySettingsSection = () => {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h3 className="text-2xl font-bold mb-2 flex items-center gap-2">
-          <Bell className="w-7 h-7 text-orange-600" />
+      <div className="a-card" style={{ padding: 24 }}>
+        <h3 className="text-2xl mb-2 flex items-center gap-2" style={{ fontWeight: 700, color: 'var(--text)' }}>
+          <Bell className="w-6 h-6" style={{ color: 'var(--warn)' }} />
           Ombor ogohlantirishlari sozlamalari
         </h3>
-        <p className="text-gray-600">
+        <p className="a-muted">
           Kam zaxira chegaralarini sozlang va adminga ombor ogohlantirishlarini yuboring
         </p>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="p-5 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200">
-          <label className="block text-lg font-bold mb-2 text-orange-900 flex items-center gap-2">
+      <div className="a-card" style={{ padding: 24 }}>
+        <div style={{ padding: 20, background: 'var(--surface-2)', borderRadius: 'var(--a-r)', border: '1px solid var(--border)' }}>
+          <label className="block text-lg mb-2 flex items-center gap-2" style={{ fontWeight: 700, color: 'var(--text)' }}>
             ⚠️ Kam zaxira chegarasi
           </label>
-          <p className="text-sm text-gray-700 mb-4">
+          <p className="text-sm mb-4 a-muted">
             Mahsulot zaxirasi shu songa teng yoki undan past bo'lganda ogohlantirish yuboriladi
           </p>
           <div className="flex items-center gap-3">
@@ -139,15 +139,17 @@ const InventorySettingsSection = () => {
               value={threshold}
               onChange={(e) => setThreshold(parseInt(e.target.value) || 0)}
               onBlur={() => saveThreshold(threshold)}
-              className="w-32 px-4 py-3 border-2 border-orange-300 rounded-lg text-lg font-semibold focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              className="a-input"
+              style={{ width: 128, fontSize: 18, fontWeight: 600 }}
               min="0"
               max="1000"
               step="1"
             />
-            <span className="text-2xl font-bold text-orange-900">dona</span>
+            <span className="text-2xl" style={{ fontWeight: 700, color: 'var(--text)' }}>dona</span>
             <button
               onClick={() => saveThreshold(threshold)}
-              className="ml-4 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+              className="a-btn a-btn-primary"
+              style={{ marginLeft: 16 }}
             >
               <Save className="w-4 h-4 inline mr-2" />
               Saqlash
@@ -156,36 +158,37 @@ const InventorySettingsSection = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h4 className="text-lg font-bold mb-4 flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-gray-700" />
+      <div className="a-card" style={{ padding: 24 }}>
+        <h4 className="text-lg mb-4 flex items-center gap-2" style={{ fontWeight: 700, color: 'var(--text)' }}>
+          <BarChart3 className="w-5 h-5 a-muted" />
           Joriy ombor holati
         </h4>
 
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <div className="p-4 bg-red-50 border-2 border-red-200 rounded-lg">
+          <div style={{ padding: 16, background: 'var(--danger-weak)', border: '1px solid var(--border)', borderRadius: 'var(--a-r-sm)' }}>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-red-900">Tugagan</span>
-              <AlertCircle className="w-5 h-5 text-red-600" />
+              <span className="text-sm" style={{ fontWeight: 500, color: 'var(--danger)' }}>Tugagan</span>
+              <AlertCircle className="w-5 h-5" style={{ color: 'var(--danger)' }} />
             </div>
-            <p className="text-3xl font-bold text-red-600 mt-2">{inventoryStatus.outOfStock.length}</p>
-            <p className="text-xs text-red-700 mt-1">mahsulot mavjud emas</p>
+            <p className="text-3xl mt-2 a-num" style={{ fontWeight: 700, color: 'var(--danger)' }}>{inventoryStatus.outOfStock.length}</p>
+            <p className="text-xs mt-1 a-muted">mahsulot mavjud emas</p>
           </div>
 
-          <div className="p-4 bg-yellow-50 border-2 border-yellow-200 rounded-lg">
+          <div style={{ padding: 16, background: 'var(--warn-weak)', border: '1px solid var(--border)', borderRadius: 'var(--a-r-sm)' }}>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-yellow-900">Kam qolgan</span>
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
+              <span className="text-sm" style={{ fontWeight: 500, color: 'var(--warn)' }}>Kam qolgan</span>
+              <AlertTriangle className="w-5 h-5" style={{ color: 'var(--warn)' }} />
             </div>
-            <p className="text-3xl font-bold text-yellow-600 mt-2">{inventoryStatus.lowStock.length}</p>
-            <p className="text-xs text-yellow-700 mt-1">≤ {threshold} dona qolgan</p>
+            <p className="text-3xl mt-2 a-num" style={{ fontWeight: 700, color: 'var(--warn)' }}>{inventoryStatus.lowStock.length}</p>
+            <p className="text-xs mt-1 a-muted">≤ {threshold} dona qolgan</p>
           </div>
         </div>
 
         <button
           onClick={checkInventory}
           disabled={checking}
-          className="w-full py-3 bg-accent text-white rounded-lg hover:bg-red-800 transition-colors font-semibold disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="a-btn a-btn-primary"
+          style={{ width: '100%', justifyContent: 'center', padding: '12px' }}
         >
           {checking ? (
             <>
@@ -201,27 +204,27 @@ const InventorySettingsSection = () => {
         </button>
 
         {lastCheck && (
-          <p className="text-sm text-gray-500 mt-2 text-center">
+          <p className="text-sm mt-2 text-center a-faint">
             Oxirgi tekshiruv: {lastCheck.toLocaleString()}
           </p>
         )}
       </div>
 
       {(inventoryStatus.outOfStock.length > 0 || inventoryStatus.lowStock.length > 0) && (
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h4 className="text-lg font-bold mb-4">E'tibor talab qiladigan mahsulotlar</h4>
+        <div className="a-card" style={{ padding: 24 }}>
+          <h4 className="text-lg mb-4" style={{ fontWeight: 700, color: 'var(--text)' }}>E'tibor talab qiladigan mahsulotlar</h4>
 
           {inventoryStatus.outOfStock.length > 0 && (
             <div className="mb-6">
-              <h5 className="text-md font-semibold text-red-600 mb-2 flex items-center gap-2">
+              <h5 className="text-md mb-2 flex items-center gap-2" style={{ fontWeight: 600, color: 'var(--danger)' }}>
                 <AlertCircle className="w-4 h-4" />
                 Tugagan ({inventoryStatus.outOfStock.length})
               </h5>
               <div className="space-y-2">
                 {inventoryStatus.outOfStock.map(product => (
-                  <div key={product.id} className="p-3 bg-red-50 border border-red-200 rounded-lg flex justify-between items-center">
-                    <span className="font-medium text-gray-800">{product.name}</span>
-                    <span className="text-sm font-bold text-red-600">0 dona</span>
+                  <div key={product.id} style={{ padding: 12, background: 'var(--danger-weak)', border: '1px solid var(--border)', borderRadius: 'var(--a-r-sm)' }} className="flex justify-between items-center">
+                    <span style={{ fontWeight: 500, color: 'var(--text)' }}>{product.name}</span>
+                    <span className="text-sm a-num" style={{ fontWeight: 700, color: 'var(--danger)' }}>0 dona</span>
                   </div>
                 ))}
               </div>
@@ -230,15 +233,15 @@ const InventorySettingsSection = () => {
 
           {inventoryStatus.lowStock.length > 0 && (
             <div>
-              <h5 className="text-md font-semibold text-yellow-600 mb-2 flex items-center gap-2">
+              <h5 className="text-md mb-2 flex items-center gap-2" style={{ fontWeight: 600, color: 'var(--warn)' }}>
                 <AlertTriangle className="w-4 h-4" />
                 Kam qolgan ({inventoryStatus.lowStock.length})
               </h5>
               <div className="space-y-2">
                 {inventoryStatus.lowStock.map(product => (
-                  <div key={product.id} className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg flex justify-between items-center">
-                    <span className="font-medium text-gray-800">{product.name}</span>
-                    <span className="text-sm font-bold text-yellow-600">{product.stock} dona</span>
+                  <div key={product.id} style={{ padding: 12, background: 'var(--warn-weak)', border: '1px solid var(--border)', borderRadius: 'var(--a-r-sm)' }} className="flex justify-between items-center">
+                    <span style={{ fontWeight: 500, color: 'var(--text)' }}>{product.name}</span>
+                    <span className="text-sm a-num" style={{ fontWeight: 700, color: 'var(--warn)' }}>{product.stock} dona</span>
                   </div>
                 ))}
               </div>
