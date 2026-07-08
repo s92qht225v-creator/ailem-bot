@@ -3,7 +3,7 @@ import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
 import { t } from "../../utils/translation-fallback";
 import { useCart } from '../../hooks/useCart';
 import { useProducts } from '../../hooks/useProducts';
-import { formatPrice } from '../../utils/helpers';
+import { formatPrice, getVisibleCartItems } from '../../utils/helpers';
 import ProductCard from '../product/ProductCard';
 import { UserContext } from '../../context/UserContext';
 import { CartContext } from '../../context/CartContext';
@@ -37,11 +37,7 @@ const CartPage = ({ onNavigate }) => {
   // Cart stores snapshots — volume_pricing may be stale if admin changed it
   const visibleCartItems = useMemo(() => {
     if (!products.length) return cartItems;
-    return cartItems
-      .filter(item => {
-        const liveProduct = products.find(p => p.id === item.id);
-        return !liveProduct || liveProduct.visible !== false;
-      })
+    return getVisibleCartItems(cartItems, products)
       .map(item => {
         const liveProduct = products.find(p => p.id === item.id);
         if (!liveProduct) return item;

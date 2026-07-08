@@ -179,6 +179,17 @@ export const getStatusColor = (status) => {
   return colors[status.toLowerCase()] || 'bg-gray-500 text-white';
 };
 
+// Cart items that are still purchasable — product either unknown (not yet
+// resolvable) or not hidden. Keeps the header cart badge in sync with CartPage,
+// which excludes hidden products. Before products load, returns all items.
+export const getVisibleCartItems = (cartItems = [], products = []) => {
+  if (!products.length) return cartItems;
+  return cartItems.filter(item => {
+    const liveProduct = products.find(p => p.id === item.id);
+    return !liveProduct || liveProduct.visible !== false;
+  });
+};
+
 // Human-readable Uzbek label for an order status
 export const getStatusLabel = (status) => {
   const labels = {

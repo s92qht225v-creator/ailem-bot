@@ -3,6 +3,7 @@ import { ShoppingCart, LogIn, Search, Heart, X } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useCart } from '../../hooks/useCart';
 import { useProducts } from '../../hooks/useProducts';
+import { getVisibleCartItems } from '../../utils/helpers';
 
 const Header = ({ onNavigate, currentPage }) => {
   const { user, favorites } = useContext(UserContext);
@@ -12,7 +13,12 @@ const Header = ({ onNavigate, currentPage }) => {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const mobileInputRef = useRef(null);
 
-  const cartCount = cartItems.reduce((c, i) => c + i.quantity, 0);
+  // Count only purchasable items — matches what CartPage displays, so the badge
+  // never shows a phantom count for hidden/removed products.
+  const cartCount = useMemo(
+    () => getVisibleCartItems(cartItems, allProducts).reduce((c, i) => c + i.quantity, 0),
+    [cartItems, allProducts]
+  );
   const isGuest = user?.isGuest;
 
   const favoritesCount = useMemo(() => {
