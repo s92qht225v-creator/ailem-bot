@@ -256,7 +256,7 @@ const ShopPage = ({ onNavigate, initialCategory, initialSearch }) => {
             <button
               onClick={clearSearch}
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              aria-label="Clear search"
+              aria-label="Qidiruvni tozalash"
             >
               <X className="w-5 h-5" />
             </button>

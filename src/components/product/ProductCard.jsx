@@ -101,7 +101,7 @@ const ProductCard = memo(({ product, onView, isFavorite, onToggleFavorite, onQui
             onToggleFavorite(product.id);
           }}
           className="absolute top-2 right-2 z-10 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-sm hover:scale-110 transition-transform"
-          aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+          aria-label={isFavorite ? "Sevimlilardan olib tashlash" : "Sevimlilarga qo'shish"}
         >
           <Heart
             className={`w-5 h-5 ${isFavorite ? 'fill-error text-error' : 'text-gray-400'}`}

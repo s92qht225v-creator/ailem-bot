@@ -16,16 +16,16 @@ const AuthModal = ({ isOpen, onClose, onLogin }) => {
     setError('');
 
     if (!email && !phone) {
-      setError('Please provide either email or phone number');
+      setError('Email yoki telefon raqamini kiriting');
       return;
     }
 
     setIsLoading(true);
     try {
-      await onLogin(email || null, phone || null, name || 'User');
+      await onLogin(email || null, phone || null, name || 'Foydalanuvchi');
       onClose();
     } catch (err) {
-      setError(err.message || 'Failed to login');
+      setError(err.message || 'Kirishda xatolik yuz berdi');
     } finally {
       setIsLoading(false);
     }
@@ -36,7 +36,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }) => {
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Login / Sign Up</h2>
+          <h2 className="text-xl font-bold">Kirish / Ro'yxatdan o'tish</h2>
           <button
             onClick={onClose}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors"
@@ -49,13 +49,13 @@ const AuthModal = ({ isOpen, onClose, onLogin }) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name (optional)
+              Ism (ixtiyoriy)
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
+              placeholder="Ismingiz"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
@@ -73,11 +73,11 @@ const AuthModal = ({ isOpen, onClose, onLogin }) => {
             />
           </div>
 
-          <div className="text-center text-sm text-gray-500">OR</div>
+          <div className="text-center text-sm text-gray-500">YOKI</div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone
+              Telefon
             </label>
             <input
               type="tel"
@@ -99,7 +99,7 @@ const AuthModal = ({ isOpen, onClose, onLogin }) => {
             disabled={isLoading}
             className="w-full bg-accent text-white py-3 rounded-lg font-semibold hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Loading...' : 'Continue'}
+            {isLoading ? 'Yuklanmoqda...' : 'Davom etish'}
           </button>
 
           <p className="text-xs text-gray-500 text-center">

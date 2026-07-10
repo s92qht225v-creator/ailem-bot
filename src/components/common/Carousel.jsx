@@ -143,14 +143,14 @@ const Carousel = ({ banners = [], autoSlideInterval = 5000 }) => {
       <button
         onClick={goToPrevious}
         className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-        aria-label="Previous slide"
+        aria-label="Oldingi slayd"
       >
         <ChevronLeft size={24} />
       </button>
       <button
         onClick={goToNext}
         className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-        aria-label="Next slide"
+        aria-label="Keyingi slayd"
       >
         <ChevronRight size={24} />
       </button>

@@ -390,7 +390,7 @@ const ProductDetails = ({ product, onAddToCart, onNavigate }) => {
     <>
     {/* Breadcrumbs */}
     {onNavigate && (
-      <nav className="px-4 py-3 text-sm text-gray-500 bg-white border-b border-gray-100" aria-label="Breadcrumb">
+      <nav className="px-4 py-3 text-sm text-gray-500 bg-white border-b border-gray-100" aria-label="Sahifa yo'li">
         <ol className="flex items-center gap-1 flex-wrap">
           <li>
             <button onClick={() => onNavigate('home')} className="hover:text-accent transition-colors">

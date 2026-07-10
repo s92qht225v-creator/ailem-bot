@@ -116,7 +116,7 @@ const OrderCard = ({ order, onViewDetails, onWriteReview, hasUnreviewedItems }) 
         ))}
         {order.items.length > 2 && (
           <p className="text-xs text-gray-500 mt-2">
-            +{order.items.length - 2} more item{order.items.length - 2 > 1 ? 's' : ''}
+            +{order.items.length - 2} ta boshqa mahsulot
           </p>
         )}
       </div>
