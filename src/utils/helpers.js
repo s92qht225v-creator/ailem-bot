@@ -190,6 +190,14 @@ export const getVisibleCartItems = (cartItems = [], products = []) => {
   });
 };
 
+// Favorite product IDs whose product still exists AND is visible — matches what
+// FavoritesPage displays, so the favorites badge never over-counts hidden/removed
+// products. Returns [] until products have loaded.
+export const getVisibleFavorites = (favorites = [], products = []) => {
+  if (!favorites?.length || !products?.length) return [];
+  return favorites.filter(id => products.some(p => p.id === id && p.visible !== false));
+};
+
 // Human-readable Uzbek label for an order status
 export const getStatusLabel = (status) => {
   const labels = {

@@ -3,6 +3,7 @@ import { useContext, useMemo } from 'react';
 import { UserContext } from '../../context/UserContext';
 import { useCart } from '../../hooks/useCart';
 import { useProducts } from '../../hooks/useProducts';
+import { getVisibleFavorites } from '../../utils/helpers';
 
 const BottomNav = ({ currentPage, onNavigate }) => {
   const { favorites } = useContext(UserContext);
@@ -20,11 +21,11 @@ const BottomNav = ({ currentPage, onNavigate }) => {
       .reduce((count, item) => count + item.quantity, 0);
   }, [cartItems, allProducts]);
 
-  // Count only favorites that match existing products
-  const favoritesCount = useMemo(() => {
-    if (!allProducts || !favorites) return 0;
-    return favorites.filter(fav => allProducts.some(p => p.id === fav)).length;
-  }, [allProducts, favorites]);
+  // Count only favorites whose product is still visible (matches FavoritesPage)
+  const favoritesCount = useMemo(
+    () => getVisibleFavorites(favorites, allProducts).length,
+    [allProducts, favorites]
+  );
 
   const navItems = [
     { id: 'home', href: '/', icon: Home },

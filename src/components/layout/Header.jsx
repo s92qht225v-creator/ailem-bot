@@ -3,7 +3,7 @@ import { ShoppingCart, LogIn, Search, Heart, X } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { useCart } from '../../hooks/useCart';
 import { useProducts } from '../../hooks/useProducts';
-import { getVisibleCartItems } from '../../utils/helpers';
+import { getVisibleCartItems, getVisibleFavorites } from '../../utils/helpers';
 
 const Header = ({ onNavigate, currentPage }) => {
   const { user, favorites } = useContext(UserContext);
@@ -21,10 +21,12 @@ const Header = ({ onNavigate, currentPage }) => {
   );
   const isGuest = user?.isGuest;
 
-  const favoritesCount = useMemo(() => {
-    if (!allProducts || !favorites) return 0;
-    return favorites.filter(fav => allProducts.some(p => p.id === fav)).length;
-  }, [allProducts, favorites]);
+  // Count only favorites whose product is still visible — matches FavoritesPage,
+  // so the badge never shows a phantom count for hidden/removed products.
+  const favoritesCount = useMemo(
+    () => getVisibleFavorites(favorites, allProducts).length,
+    [allProducts, favorites]
+  );
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();

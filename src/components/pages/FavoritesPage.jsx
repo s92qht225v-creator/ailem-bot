@@ -4,17 +4,18 @@ import { Heart, ShoppingCart } from 'lucide-react';
 import { UserContext } from '../../context/UserContext';
 import { CartContext } from '../../context/CartContext';
 import { useProducts } from '../../hooks/useProducts';
-import { formatPrice, calculateDiscountedPrice } from '../../utils/helpers';
+import { formatPrice, calculateDiscountedPrice, getVisibleFavorites } from '../../utils/helpers';
 
 const FavoritesPage = ({ onNavigate }) => {
   const { toggleFavorite, favorites } = useContext(UserContext);
   const { addToCart } = useContext(CartContext);
   const { allProducts } = useProducts(); // Use allProducts to ignore category filters
 
-  // Get favorite products by matching against favorites array
+  // Get favorite products — same visibility rule the header/nav badge uses,
+  // so the count and this list always agree (no phantom badge for hidden items).
   const favoriteProducts = useMemo(() => {
-    if (!allProducts || !favorites) return [];
-    return allProducts.filter(product => favorites.includes(product?.id) && product.visible !== false);
+    const ids = new Set(getVisibleFavorites(favorites, allProducts));
+    return (allProducts || []).filter(product => ids.has(product?.id));
   }, [allProducts, favorites]);
 
   const handleAddToCart = (product) => {
