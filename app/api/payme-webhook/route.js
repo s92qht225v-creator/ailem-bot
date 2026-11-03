@@ -3,17 +3,17 @@
 // https://developer.help.paycom.uz/protokol-merchant-api
 
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient } from '../../../src/lib/supabase-server';
 import { rateLimit } from '../../../src/lib/rate-limit';
 
-// Lazy-init to avoid build-time errors when env vars aren't available
+// Server-only service-role client: this trusted webhook updates orders,
+// stock and bonuses, which API roles may not write once RLS is enforced
+// (supabase-migrations/secure-products.sql). Lazy-init avoids build-time
+// errors when env vars aren't available.
 let _supabase;
 function getSupabase() {
   if (!_supabase) {
-    _supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
+    _supabase = createServerSupabaseClient();
   }
   return _supabase;
 }
@@ -39,57 +39,6 @@ async function sendTelegramNotification(chatId, message) {
     });
   } catch (error) {
     console.error('Telegram notification error:', error);
-  }
-}
-
-// Deduct stock for order items
-async function deductStock(order) {
-  if (!order || !order.items || order.items.length === 0) return;
-
-  try {
-    for (const item of order.items) {
-      const productId = item.id || item.productId || item.product_id;
-      if (!productId) continue;
-
-      const { data: product, error: productError } = await getSupabase()
-        .from('products')
-        .select('*')
-        .eq('id', productId)
-        .single();
-
-      if (productError || !product) continue;
-
-      const itemColor = item.color || item.selectedColor;
-      const itemSize = item.size || item.selectedSize;
-
-      if (product.variants && product.variants.length > 0 && itemColor && itemSize) {
-        const itemColorLower = itemColor.toLowerCase();
-        const itemSizeLower = itemSize.toLowerCase();
-
-        const updatedVariants = product.variants.map((v) => {
-          const matchesColor =
-            v.color?.toLowerCase() === itemColorLower ||
-            v.color_ru?.toLowerCase() === itemColorLower;
-          const matchesSize =
-            v.size?.toLowerCase() === itemSizeLower ||
-            v.size_ru?.toLowerCase() === itemSizeLower;
-
-          if (matchesColor && matchesSize) {
-            return { ...v, stock: Math.max(0, (v.stock || 0) - item.quantity) };
-          }
-          return v;
-        });
-
-        await getSupabase().from('products').update({ variants: updatedVariants }).eq('id', product.id);
-      } else {
-        const newStock = Math.max(0, (product.stock || 0) - item.quantity);
-        await getSupabase().from('products').update({ stock: newStock }).eq('id', product.id);
-      }
-    }
-
-    await checkLowStockAndAlert(order);
-  } catch (error) {
-    console.error('Failed to deduct stock:', error);
   }
 }
 
@@ -137,76 +86,6 @@ async function sendLowStockAlert(product, stock, isOutOfStock) {
     : `⚠️ <b>Low Stock Alert</b>\n\nProduct: <b>${product.name}</b>\nCurrent Stock: <b>${stock} units</b>\nStatus: Running low\n\nPlease consider restocking soon to avoid stockouts.`;
 
   await sendTelegramNotification(ADMIN_CHAT_ID, message);
-}
-
-async function awardBonusPoints(order) {
-  const userId = order.user_id || order.userId;
-  if (!userId) return;
-
-  try {
-    let purchaseBonusPercentage = 1;
-    let referralCommission = 3;
-
-    const { data: settings, error: settingsError } = await getSupabase()
-      .from('app_settings')
-      .select('bonus_config')
-      .eq('id', 1)
-      .single();
-
-    if (!settingsError && settings?.bonus_config) {
-      if (settings.bonus_config.purchaseBonus) {
-        purchaseBonusPercentage = settings.bonus_config.purchaseBonus;
-      }
-      if (settings.bonus_config.referralCommission) {
-        referralCommission = settings.bonus_config.referralCommission;
-      }
-    }
-
-    const bonusBase = order.subtotal || order.total;
-    const purchaseBonusPoints = Math.round((bonusBase * purchaseBonusPercentage) / 100);
-
-    const { data: user, error: userError } = await getSupabase()
-      .from('users')
-      .select('bonus_points, total_orders, referred_by')
-      .eq('id', userId)
-      .single();
-
-    if (userError || !user) return;
-
-    const newBonusPoints = (user.bonus_points || 0) + purchaseBonusPoints;
-    const newTotalOrders = (user.total_orders || 0) + 1;
-
-    await getSupabase()
-      .from('users')
-      .update({ bonus_points: newBonusPoints, total_orders: newTotalOrders })
-      .eq('id', userId);
-
-    // Award referral commission to referrer
-    if (user.referred_by) {
-      try {
-        const { data: referrer } = await getSupabase()
-          .from('users')
-          .select('id, bonus_points, referrals, telegram_id, name')
-          .eq('referral_code', user.referred_by)
-          .single();
-
-        if (referrer) {
-          const commissionAmount = Math.round((bonusBase * referralCommission) / 100);
-          const newReferrerBonus = (referrer.bonus_points || 0) + commissionAmount;
-          const newReferrals = (referrer.referrals || 0) + 1;
-
-          await getSupabase()
-            .from('users')
-            .update({ bonus_points: newReferrerBonus, referrals: newReferrals })
-            .eq('id', referrer.id);
-        }
-      } catch (refError) {
-        console.error('Failed to award referral commission:', refError);
-      }
-    }
-  } catch (error) {
-    console.error('Failed to award bonus points:', error);
-  }
 }
 
 function getCourierName(order) {
@@ -360,11 +239,13 @@ async function checkPerformTransaction(params, requestId) {
     });
   }
 
-  if (order.status === 'approved' && order.payme_transaction_id) {
+  // Advisory only — CreateTransaction re-checks this under the order lock
+  if (order.status !== 'pending' || order.fulfilled_at
+      || (order.payme_transaction_id && Number(order.payme_state) >= 1)) {
     return NextResponse.json({
       jsonrpc: '2.0',
       id: requestId,
-      error: { code: -31051, message: 'Order already paid' },
+      error: { code: -31051, message: 'Order already paid or being paid' },
     });
   }
 
@@ -372,94 +253,70 @@ async function checkPerformTransaction(params, requestId) {
 }
 
 async function createTransaction(params, requestId) {
-  const { id, time, account } = params;
+  const { id, time, account, amount } = params;
   const paymeOrderId = String(account.order_id);
 
-  const { data: existingOrder } = await getSupabase()
-    .from('orders')
-    .select('*')
-    .eq('payme_transaction_id', id)
-    .eq('payme_order_id', paymeOrderId)
-    .maybeSingle();
-
-  if (existingOrder) {
-    return NextResponse.json({
-      jsonrpc: '2.0',
-      id: requestId,
-      result: { create_time: existingOrder.payme_create_time || time, transaction: id, state: existingOrder.payme_state || 1 },
-    });
-  }
-
-  const { data: order, error: orderError } = await getSupabase()
-    .from('orders')
-    .select('*')
-    .eq('payme_order_id', paymeOrderId)
-    .single();
-
-  if (orderError || !order) {
-    return NextResponse.json({
-      jsonrpc: '2.0',
-      id: requestId,
-      error: { code: -31050, message: 'Order not found' },
-    });
-  }
-
-  const { data, error } = await getSupabase()
-    .from('orders')
-    .update({ payme_transaction_id: id, payme_create_time: time, payme_state: 1 })
-    .eq('id', order.id)
-    .select()
-    .single();
+  // Binding, amount and eligibility are decided atomically in the database
+  // (supabase-migrations/add-payment-fulfillment.sql): a different transaction
+  // can never replace one that is active or performed.
+  const { data, error } = await getSupabase().rpc('payme_create_transaction', {
+    p_payme_order_id: paymeOrderId,
+    p_transaction_id: typeof id === 'string' ? id : null,
+    p_time: Number.isSafeInteger(time) ? time : Date.now(),
+    p_amount: Number.isFinite(Number(amount)) ? Number(amount) : null,
+  });
 
   if (error || !data) {
+    console.error('payme_create_transaction failed:', error);
     return NextResponse.json({
       jsonrpc: '2.0',
       id: requestId,
-      error: { code: -31003, message: 'Failed to create transaction' },
+      error: { code: -31008, message: 'Failed to create transaction' },
     });
   }
 
-  return NextResponse.json({
-    jsonrpc: '2.0',
-    id: requestId,
-    result: { create_time: time, transaction: id, state: 1 },
-  });
+  switch (data.result) {
+    case 'created':
+    case 'existing':
+      return NextResponse.json({
+        jsonrpc: '2.0',
+        id: requestId,
+        result: { create_time: data.create_time, transaction: id, state: data.state },
+      });
+    case 'order_not_found':
+      return NextResponse.json({
+        jsonrpc: '2.0',
+        id: requestId,
+        error: { code: -31050, message: 'Order not found' },
+      });
+    case 'wrong_amount':
+      return NextResponse.json({
+        jsonrpc: '2.0',
+        id: requestId,
+        error: { code: -31001, message: `Incorrect amount. Expected ${data.expected} tiyin, got ${amount} tiyin` },
+      });
+    default:
+      return NextResponse.json({
+        jsonrpc: '2.0',
+        id: requestId,
+        error: { code: -31051, message: 'Order already paid or being paid' },
+      });
+  }
 }
 
 async function performTransaction(params, requestId) {
   const { id } = params;
-  const performTime = Date.now();
 
-  const { data: order } = await getSupabase()
-    .from('orders')
-    .select('*')
-    .eq('payme_transaction_id', id)
-    .single();
+  // Marking the order paid, stock and bonuses happen in ONE database
+  // transaction, at most once per order. A failure changes nothing (Payme's
+  // retry repeats it); a retry after a lost response gets the stored result.
+  const { data, error } = await getSupabase().rpc('payme_perform_transaction', {
+    p_transaction_id: typeof id === 'string' ? id : null,
+    p_time: Date.now(),
+  });
 
-  if (!order) {
-    return NextResponse.json({
-      jsonrpc: '2.0',
-      id: requestId,
-      error: { code: -31003, message: 'Transaction not found' },
-    });
-  }
-
-  // Idempotency: if already performed, return cached result
-  if (order.payme_state === 2 && order.status === 'approved') {
-    return NextResponse.json({
-      jsonrpc: '2.0',
-      id: requestId,
-      result: { transaction: id, perform_time: order.payme_perform_time || performTime, state: 2 },
-    });
-  }
-
-  const { error } = await getSupabase()
-    .from('orders')
-    .update({ status: 'approved', payme_perform_time: performTime, payme_state: 2 })
-    .eq('payme_transaction_id', id)
-    .eq('payme_state', 1); // Only update if still in state 1 (created) — prevents race conditions
-
-  if (error) {
+  if (error || !data) {
+    console.error('payme_perform_transaction failed:', error);
     return NextResponse.json({
       jsonrpc: '2.0',
       id: requestId,
@@ -467,12 +324,38 @@ async function performTransaction(params, requestId) {
     });
   }
 
+  if (data.result === 'transaction_not_found') {
+    return NextResponse.json({
+      jsonrpc: '2.0',
+      id: requestId,
+      error: { code: -31003, message: 'Transaction not found' },
+    });
+  }
+
+  if (data.result === 'already_performed') {
+    return NextResponse.json({
+      jsonrpc: '2.0',
+      id: requestId,
+      result: { transaction: id, perform_time: data.perform_time, state: 2 },
+    });
+  }
+
+  if (data.result !== 'performed') {
+    return NextResponse.json({
+      jsonrpc: '2.0',
+      id: requestId,
+      error: { code: -31008, message: 'Unable to perform operation' },
+    });
+  }
+
+  // Committed. Notifications are separate from fulfillment: a failure here
+  // never repeats or undoes the database effects.
+  const order = data.order;
   const startTime = Date.now();
   const courierName = getCourierName(order);
 
   await Promise.all([
-    deductStock(order).catch((e) => console.error('Stock deduction failed:', e)),
-    awardBonusPoints(order).catch((e) => console.error('Bonus points failed:', e)),
+    checkLowStockAndAlert(order).catch((e) => console.error('Low stock check failed:', e)),
     (async () => {
       const userChatId = order.user_telegram_id;
       if (userChatId && !String(userChatId).startsWith('demo-')) {
@@ -507,7 +390,7 @@ async function performTransaction(params, requestId) {
   return NextResponse.json({
     jsonrpc: '2.0',
     id: requestId,
-    result: { transaction: id, perform_time: performTime, state: 2 },
+    result: { transaction: id, perform_time: data.perform_time, state: 2 },
   });
 }
 

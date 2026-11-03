@@ -2,17 +2,19 @@
 // Handles prepare and complete requests from Click proxy
 
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerSupabaseClient } from '../../../src/lib/supabase-server';
+import { canonicalClickTransId } from '../../../src/lib/paymentIds';
 import crypto from 'crypto';
 import { rateLimit } from '../../../src/lib/rate-limit';
 
+// Server-only service-role client: this trusted webhook updates orders,
+// stock and bonuses, which API roles may not write once RLS is enforced
+// (supabase-migrations/secure-products.sql). Lazy-init avoids build-time
+// errors when env vars aren't available.
 let _supabase;
 function getSupabase() {
   if (!_supabase) {
-    _supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-    );
+    _supabase = createServerSupabaseClient();
   }
   return _supabase;
 }
@@ -67,51 +69,6 @@ async function sendTelegramNotification(chatId, message) {
   }
 }
 
-async function deductStock(order) {
-  if (!order || !order.items || order.items.length === 0) return;
-
-  try {
-    for (const item of order.items) {
-      const productId = item.id || item.productId || item.product_id;
-      if (!productId) continue;
-
-      const { data: product, error: productError } = await getSupabase()
-        .from('products')
-        .select('*')
-        .eq('id', productId)
-        .single();
-
-      if (productError || !product) continue;
-
-      const itemColor = item.color || item.selectedColor;
-      const itemSize = item.size || item.selectedSize;
-
-      if (product.variants && product.variants.length > 0 && itemColor && itemSize) {
-        const itemColorLower = itemColor.toLowerCase();
-        const itemSizeLower = itemSize.toLowerCase();
-
-        const updatedVariants = product.variants.map((v) => {
-          const matchesColor = v.color?.toLowerCase() === itemColorLower || v.color_ru?.toLowerCase() === itemColorLower;
-          const matchesSize = v.size?.toLowerCase() === itemSizeLower || v.size_ru?.toLowerCase() === itemSizeLower;
-          if (matchesColor && matchesSize) {
-            return { ...v, stock: Math.max(0, (v.stock || 0) - item.quantity) };
-          }
-          return v;
-        });
-
-        await getSupabase().from('products').update({ variants: updatedVariants }).eq('id', product.id);
-      } else {
-        const newStock = Math.max(0, (product.stock || 0) - item.quantity);
-        await getSupabase().from('products').update({ stock: newStock }).eq('id', product.id);
-      }
-    }
-
-    await checkLowStockAndAlert(order);
-  } catch (error) {
-    console.error('Failed to deduct stock:', error);
-  }
-}
-
 async function checkLowStockAndAlert(order) {
   try {
     const { data: settings } = await getSupabase()
@@ -152,43 +109,6 @@ async function sendLowStockAlert(product, stock, isOutOfStock) {
     ? `🚨 <b>OUT OF STOCK ALERT</b>\n\nProduct: <b>${product.name}</b>\nCurrent Stock: <b>${stock} units</b>\n\n❌ This product is now unavailable to customers!`
     : `⚠️ <b>Low Stock Alert</b>\n\nProduct: <b>${product.name}</b>\nCurrent Stock: <b>${stock} units</b>\nStatus: Running low`;
   await sendTelegramNotification(adminChatId, message);
-}
-
-async function awardBonusPoints(order) {
-  const userId = order.user_id || order.userId;
-  if (!userId) return;
-
-  try {
-    let purchaseBonusPercentage = 1;
-    const { data: settings, error: settingsError } = await getSupabase()
-      .from('app_settings')
-      .select('bonus_config')
-      .eq('id', 1)
-      .single();
-
-    if (!settingsError && settings?.bonus_config?.purchaseBonus) {
-      purchaseBonusPercentage = settings.bonus_config.purchaseBonus;
-    }
-
-    const purchaseBonusPoints = Math.round((order.total * purchaseBonusPercentage) / 100);
-    const { data: user, error: userError } = await getSupabase()
-      .from('users')
-      .select('bonus_points, total_orders')
-      .eq('id', userId)
-      .single();
-
-    if (userError || !user) return;
-
-    await getSupabase()
-      .from('users')
-      .update({
-        bonus_points: (user.bonus_points || 0) + purchaseBonusPoints,
-        total_orders: (user.total_orders || 0) + 1,
-      })
-      .eq('id', userId);
-  } catch (error) {
-    console.error('Failed to award bonus points:', error);
-  }
 }
 
 function getCourierName(order) {
@@ -294,9 +214,11 @@ async function handlePrepare(params) {
 
 async function handleComplete(params) {
   const { click_trans_id, service_id, click_paydoc_id, merchant_trans_id, merchant_prepare_id, error: click_error } = params;
+  // Same id whether Click sends it as a number or a string (orders.click_trans_id is TEXT)
+  const transId = canonicalClickTransId(click_trans_id);
 
   // Validate required fields
-  if (!click_trans_id || !service_id || !merchant_trans_id) {
+  if (!transId || !service_id || !merchant_trans_id) {
     return NextResponse.json({
       click_trans_id, merchant_trans_id, merchant_confirm_id: 0,
       error: -8, error_note: 'Missing required parameters',
@@ -310,50 +232,72 @@ async function handleComplete(params) {
     });
   }
 
-  const { data: order, error: fetchError } = await getSupabase()
-    .from('orders')
-    .select('*')
-    .eq('click_order_id', merchant_trans_id)
-    .single();
-
-  if (fetchError || !order) {
-    return NextResponse.json({
-      click_trans_id, merchant_trans_id, merchant_confirm_id: Date.now(),
-      error: -5, error_note: 'Order not found',
-    });
-  }
-
-  // Idempotency: if already processed this click_trans_id, return success
-  if (order.click_trans_id === click_trans_id && order.status === 'approved') {
-    return NextResponse.json({
-      click_trans_id, merchant_trans_id, merchant_confirm_id: Date.now(),
-      merchant_prepare_id: merchant_prepare_id || 0,
-      click_paydoc_id,
-      error: 0, error_note: 'Already processed',
-    });
-  }
-
   const merchant_confirm_id = Date.now();
-  const isApproved = !click_error || click_error >= 0;
+  const isApproved = click_error === undefined || click_error === null || Number(click_error) >= 0;
+  const clickError = isApproved ? null : (Number.isSafeInteger(Number(click_error)) ? Number(click_error) : -1);
 
-  await getSupabase()
-    .from('orders')
-    .update({
-      status: isApproved ? 'approved' : 'rejected',
-      click_trans_id,
-      click_complete_time: Date.now(),
-      click_error: click_error || null,
-    })
-    .eq('click_order_id', merchant_trans_id);
+  // Status change, stock and bonuses happen in ONE database transaction
+  // under the order lock (supabase-migrations/add-payment-fulfillment.sql),
+  // at most once per order. A failure changes nothing, so Click's retry
+  // repeats it; a retry after a lost response gets "already processed".
+  const { data, error: completeError } = await getSupabase().rpc('click_complete_payment', {
+    p_click_order_id: String(merchant_trans_id),
+    p_trans_id: transId,
+    p_error: clickError,
+    p_time: Date.now(),
+  });
 
-  if (isApproved) {
+  if (completeError || !data) {
+    console.error('click_complete_payment failed:', completeError);
+    return NextResponse.json({
+      click_trans_id, merchant_trans_id, merchant_confirm_id: 0,
+      error: -7, error_note: 'Failed to update order',
+    });
+  }
+
+  switch (data.result) {
+    case 'completed':
+    case 'rejected':
+      break;
+    case 'already_processed':
+      return NextResponse.json({
+        click_trans_id, merchant_trans_id, merchant_confirm_id,
+        merchant_prepare_id: merchant_prepare_id || 0,
+        click_paydoc_id,
+        error: 0, error_note: 'Already processed',
+      });
+    case 'order_not_found':
+      return NextResponse.json({
+        click_trans_id, merchant_trans_id, merchant_confirm_id: Date.now(),
+        error: -5, error_note: 'Order not found',
+      });
+    case 'already_paid':
+      return NextResponse.json({
+        click_trans_id, merchant_trans_id, merchant_confirm_id: 0,
+        error: -4, error_note: 'Already paid',
+      });
+    case 'cancelled':
+      return NextResponse.json({
+        click_trans_id, merchant_trans_id, merchant_confirm_id: 0,
+        error: -9, error_note: 'Transaction cancelled',
+      });
+    default:
+      return NextResponse.json({
+        click_trans_id, merchant_trans_id, merchant_confirm_id: 0,
+        error: -7, error_note: 'Failed to update order',
+      });
+  }
+
+  if (data.result === 'completed') {
+    // Committed. Notifications are separate from fulfillment: a failure here
+    // never repeats or undoes the database effects.
+    const order = data.order;
     const startTime = Date.now();
     const courierName = getCourierName(order);
     const { adminChatId } = getTelegramConfig();
 
     await Promise.all([
-      deductStock(order).catch((e) => console.error('Stock deduction failed:', e)),
-      awardBonusPoints(order).catch((e) => console.error('Bonus points failed:', e)),
+      checkLowStockAndAlert(order).catch((e) => console.error('Low stock check failed:', e)),
       (async () => {
         const userChatId = order.user_telegram_id;
         if (userChatId && !String(userChatId).startsWith('demo-')) {

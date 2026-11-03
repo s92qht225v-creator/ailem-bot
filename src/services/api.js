@@ -957,21 +957,23 @@ export const ordersAPI = {
 
     console.log('📤 Creating order in Supabase:', dbOrder);
 
-    const { data, error } = await supabase
+    // No .select(): anon may insert orders but not read them back (SELECT was
+    // revoked for customer privacy), and asking for the inserted row makes the
+    // whole insert fail with 42501. Every key is generated here, so the order
+    // is rebuilt from what was sent — only after the insert succeeded.
+    const { error } = await supabase
       .from('orders')
-      .insert([dbOrder])
-      .select()
-      .single();
+      .insert([dbOrder]);
 
     if (error) {
       console.error('❌ Failed to create order:', error);
       throw error;
     }
 
-    console.log('✅ Order created successfully:', data);
+    console.log('✅ Order created successfully:', dbOrder.id);
 
     // Map database fields back to app format
-    return this._mapOrderFromDB(data);
+    return this._mapOrderFromDB({ ...dbOrder, created_at: new Date().toISOString() });
   },
 
   // Update order status
