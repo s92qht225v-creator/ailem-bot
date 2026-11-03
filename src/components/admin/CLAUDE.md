@@ -11,7 +11,7 @@ All admin UI strings in Uzbek (Cyrillic).
 - Migration: `supabase-migrations/add-admin-auth.sql`
 - File: `src/components/AdminAuth.jsx`
 
-## 13 Sections (`src/components/admin/sections/`)
+## 14 Sections (`src/components/admin/sections/`)
 
 ### DashboardSection
 Quick stats: total revenue, pending orders, total users, recent activity.
@@ -87,11 +87,26 @@ Two-way support chat admin panel. Lists all user sessions (left sidebar), shows 
 ### SettingsSection
 Placeholder (not yet implemented).
 
+### CategoriesSection
+Module-level component (was nested in DesktopAdminPanel, which remounted it and lost drafts).
+- **One explicit draft**: Add always starts empty; Edit loads that category; Cancel/Close discard directly (explicit decision). Switching drafts with unsaved changes asks first.
+- **Leaving** — one rule (`askToLeave`) for every exit: save in flight → refused; dirty draft or running upload → confirm; else leave. In-app (sidebar, dashboard shortcuts, logout) via `useAdminExitGuard`; browser via `useBrowserExitGuard` (`src/components/admin/exitGuard.js`): `beforeunload` for reload/close and a same-URL history sentinel for Back (cancel re-arms it; verified against the Next 14 App Router in Chromium).
+- **Unmount** invalidates pending uploads and cleans up unsaved draft uploads (held images are skipped).
+- **Saves carry an operation id** (`newOperationId`, `src/utils/operationId.js`) → `admin_save_category` records it in the same transaction. Before sending, the section **holds** every involved image (`holdImagesForWrite`, localStorage `categoryWriteHolds`); cleanup skips held URLs. Definitive outcome → `releaseWriteHold` (+ reference-checked cleanup). Lost response → `resolve_category_write` (waits for the in-flight transaction): committed = success, aborted = `category_not_saved`, unknown = hold kept, resolved again whenever the section opens.
+- **Draft ownership ≠ operation holds** (V3-01): images the open form uses are registered in memory (`setDraftImages`) and cleanup skips them (`in_draft`), so a background resolution (e.g. *aborted*) never deletes an image the form still shows. The form is notified (inline `role="status"` notice): *aborted* → nothing saved, image kept, retry is safe; *committed* → after the refresh (and only if the same draft is still open) closes if unchanged, otherwise the committed record becomes the draft's saved baseline (`draft.original`) with the admin's later edits kept, so dirty checks, exit guards and the next save compare against what is really stored (V4-01); an Add draft becomes an Edit of the created category. The draft cleans its own uploads on Cancel/Close, image replacement and unmount (ownership released first).
+- **Saving**: synchronous `savingRef` guard + disabled button. Name normalized, ≤100 chars, unique case-insensitively. **Image required**.
+- **Uploads**: `storageAPI.uploadCategoryImage()` — PNG/JPG/WEBP/SVG ≤2 MB. Each upload is tied to draft key + sequence number; stale results are deleted.
+- **Create/edit** go through `categoriesAPI.save` → `admin_save_category` RPC (one transaction, admin-only, expected-name check; a rename moves products via trigger). No client-side compensation: unresolvable outcomes or stale data trigger `refreshCatalog()`; errors carry `code`/`definitive`.
+- **Delete** blocked while products remain (UI count + DB trigger).
+- **Order**: `categories.sort_order` + `reorder_categories` RPC (full list, verified row count); failure reverts, is never audit-logged.
+- **Storage cleanup** (`src/utils/storageCleanup.js`): only after the DB write, only owned URLs, only on a definitive `unreferenced` from `storage_reference_status` for the same canonical object (bucket + decoded path). `unknown` keeps the file and the retry entry.
+- All successful mutations audit-logged (`category.create|update|delete|visibility|reorder`).
+- **Unresolved saves** count as unsaved work (exit guards stay on); submitting again settles them first, else sends full values. Commits recovered in the background are audit-logged with `metadata.recoveredAfterUnknownOutcome`. Replays of a committed op are idempotent on the server; stale errors are `PT409` (never 40001 — PostgREST retries it).
+- **Local staging**: `local-staging/README.md` (isolated app + local Supabase, fault-injection proxy for interrupted saves).
+- **Requires** `supabase-migrations/add-category-integrity.sql` + recommended `protect-referenced-storage-objects.sql` (prerequisites, rollout and old-tab transition in the header). DB tests incl. a two-connection concurrency test: `npm run test:db`.
+
 ## Inline Sections (DesktopAdminPanel)
 
-- **Categories**: CRUD, drag-to-reorder, visibility toggle (Eye/EyeOff), image upload
-  - Hidden categories shown with "Yashirilgan" badge
-  - Storage cleanup on delete
 - **Promotions**: Banner management (up to 5), countdown timer config
 - **Pickup Points**: Delivery locations, courier/state/city hierarchy
 - **Shipping Rates**: Courier pricing by region and weight tiers

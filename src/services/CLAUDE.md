@@ -7,6 +7,12 @@ All API modules auto-transform DB snake_case ↔ app camelCase.
 
 ### categoriesAPI
 - `getAll()`, `create(data)`, `update(id, updates)`, `delete(id)`, `toggleVisibility(id, visible)`
+- create/update share normalization + `validateCategory` (name ≤100, image required); errors carry `code` + `definitive` (`category_duplicate`, `category_in_use`, `category_forbidden`, `category_stale`, `migration_required`, `outcome_unknown`, …)
+- `save({ opId, id?, name, image, expectedName? })` → `admin_save_category` RPC (create or update incl. atomic rename + products; `opId` recorded in the same transaction)
+- `resolveWrite(opId)` → `resolve_category_write`: `'committed' | 'aborted'` (waits for an in-flight save) or `'unknown'` on any error
+- `delete(id)` throws `category_not_deleted` if no row was removed
+- `reorder(ids)` → `reorder_categories` RPC, must return `ids.length`; `countProducts(name)`
+- `isDefinitiveError(err)` — true when the server answered (SQLSTATE / PGRST code); false for network/timeouts (outcome unknown)
 
 ### productsAPI
 - `getAll(preloadedReviews?)` — accepts pre-fetched reviews to avoid duplicate DB call
@@ -38,7 +44,10 @@ All API modules auto-transform DB snake_case ↔ app camelCase.
 
 ### storageAPI
 - `uploadProductImage(file)` → `{ url }` — uploads to `product-images` bucket
-- `deleteFile(path)` — deletes from storage
+- `uploadImage()` validates type/size first (`validateImageFile`, default ≤10 MB images incl. SVG/HEIC); `uploadCategoryImage(file)` uses stricter category rules
+- `referenceStatus(url)` → `storage_reference_status` RPC → `{ status: 'referenced'|'unreferenced'|'unknown', bucket, path }` by canonical object identity; any error → `unknown`
+- `extractOwnedStoragePath(url)` — like `extractStoragePath` but only for this project's bucket URL
+- `deleteImage(path)` — throws `storage_not_removed` when Storage removed nothing (missing object or refused by policy)
 - Bucket requires RLS policies — see `fix-storage-rls.sql` if uploads return 403
 
 ### Other APIs
@@ -81,10 +90,11 @@ Telegram Bot API wrapper (`src/services/telegram.js`).
 Next.js API Route (serverless) handling Payme payment callbacks.
 On successful payment:
 1. Verifies merchant credentials
-2. Updates order status to `'approved'`
-3. Deducts inventory per ordered items
-4. Awards bonus points from `order.subtotal` (referral commission to referrer)
-5. Sends Telegram notification to customer
+2. `PerformTransaction` calls the service-role-only RPC `payme_perform_transaction` (`supabase-migrations/add-payment-fulfillment.sql`): in ONE database transaction it sets `'approved'` / state 2, deducts inventory and awards bonus points from `order.subtotal` (referral commission to referrer), once per order (`orders.fulfilled_at`). A failure changes nothing; a retry returns the stored result.
+3. `CreateTransaction` binds the transaction in the RPC `payme_create_transaction`, which refuses another transaction while one is active/performed or the order is not pending
+4. Sends Telegram notifications only after the commit (never part of the payment transaction)
+
+The Click webhook uses `click_complete_payment` the same way (base = `order.total`, no referral commission — as before). Never move stock/bonus updates back into JS read-modify-write calls.
 
 **Note**: This webhook awards bonus to the **referrer**. PaymentStatusPage deducts bonus from the **buyer** (for bonus points used at checkout). These are two separate operations.
 

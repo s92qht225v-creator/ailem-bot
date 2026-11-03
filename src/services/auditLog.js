@@ -23,6 +23,8 @@ export const AUDIT_ACTIONS = {
   CATEGORY_CREATE: 'category.create',
   CATEGORY_UPDATE: 'category.update',
   CATEGORY_DELETE: 'category.delete',
+  CATEGORY_VISIBILITY: 'category.visibility',
+  CATEGORY_REORDER: 'category.reorder',
 
   // Shipping rate actions
   SHIPPING_RATE_CREATE: 'shipping_rate.create',
@@ -181,6 +183,8 @@ export const formatAuditAction = (action) => {
     [AUDIT_ACTIONS.CATEGORY_CREATE]: 'Created category',
     [AUDIT_ACTIONS.CATEGORY_UPDATE]: 'Updated category',
     [AUDIT_ACTIONS.CATEGORY_DELETE]: 'Deleted category',
+    [AUDIT_ACTIONS.CATEGORY_VISIBILITY]: 'Changed category visibility',
+    [AUDIT_ACTIONS.CATEGORY_REORDER]: 'Reordered categories',
     [AUDIT_ACTIONS.SHIPPING_RATE_CREATE]: 'Created shipping rate',
     [AUDIT_ACTIONS.SHIPPING_RATE_UPDATE]: 'Updated shipping rate',
     [AUDIT_ACTIONS.SHIPPING_RATE_DELETE]: 'Deleted shipping rate',
