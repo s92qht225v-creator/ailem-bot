@@ -10,7 +10,7 @@ let featuredProductsCache = null;
 let featuredHadOrders = false;
 
 export const useProducts = () => {
-  const { products, orders } = useContext(AdminContext);
+  const { products, orders, categories, loading, error } = useContext(AdminContext);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(() => {
     return loadFromLocalStorage('selectedCategory', t('shop.all'));
@@ -25,6 +25,17 @@ export const useProducts = () => {
   useEffect(() => {
     saveToLocalStorage('selectedCategory', selectedCategory);
   }, [selectedCategory]);
+
+  // A persisted or URL-provided selection may name a category that was
+  // renamed, deleted or hidden since. Once categories have loaded, fall back
+  // to "All" instead of filtering the shop down to nothing.
+  useEffect(() => {
+    // Skip while loading or after a failed load (categories would be empty)
+    if (loading || error || !Array.isArray(categories)) return;
+    if (selectedCategory === t('shop.all')) return;
+    const valid = categories.some(c => c.name === selectedCategory && c.visible !== false);
+    if (!valid) setSelectedCategory(t('shop.all'));
+  }, [loading, error, categories, selectedCategory]);
 
   const filteredProducts = useMemo(() => {
     let filtered = [...products];

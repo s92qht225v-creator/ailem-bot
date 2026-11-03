@@ -16,8 +16,8 @@ import {
   Edit, Trash2, Plus, ChevronRight, Edit2, ShoppingBag, Truck, Gift,
   Image, MapPin, Clock, Phone, Copy, DollarSign, LayoutGrid, Upload,
   TrendingUp, TrendingDown, BarChart3, Calendar, AlertTriangle, AlertCircle,
-  Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, Eye, EyeOff, ImagePlus,
-  Download, FileDown, ChevronUp, ChevronDown, RotateCw, Printer, Search, ClipboardList,
+  Menu, X, Home, Settings, Bell, Save, MoveUp, MoveDown, ImagePlus,
+  Download, FileDown, RotateCw, Printer, Search, ClipboardList,
   MessageCircle
 } from 'lucide-react';
 import { AdminContext } from '../../context/AdminContext';
@@ -55,6 +55,8 @@ import {
   SupportSection
 } from '../admin/sections';
 import { ErrorBoundary } from '../admin/shared';
+import CategoriesSection from '../admin/sections/CategoriesSection';
+import { AdminExitGuardContext, createExitGuardRegistry } from '../admin/exitGuard';
 
 const DesktopAdminPanel = ({ onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -75,9 +77,19 @@ const DesktopAdminPanel = ({ onLogout }) => {
       return next;
     });
   };
-  const { products, categories, orders, reviews, users, loading, addProduct, updateProduct, deleteProduct, addCategory, updateCategory, deleteCategory, reorderCategories, toggleCategoryVisibility, approveReview, deleteReview } = useContext(AdminContext);
+  const { products, categories, orders, reviews, users, loading, addProduct, updateProduct, deleteProduct, approveReview, deleteReview } = useContext(AdminContext);
   const toast = useToast();
   const confirm = useConfirm();
+
+  // Sections with unsaved work (e.g. a category draft) can veto leaving them
+  const exitGuard = useMemo(createExitGuardRegistry, []);
+  const navigateToSection = async (sectionId) => {
+    if (sectionId === activeSection) return;
+    if (await exitGuard.canLeave()) setActiveSection(sectionId);
+  };
+  const handleLogout = async () => {
+    if (await exitGuard.canLeave()) onLogout?.();
+  };
 
   // Expose diagnostic utility to browser console
   useEffect(() => {
@@ -218,6 +230,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
   ];
 
   return (
+    <AdminExitGuardContext.Provider value={exitGuard}>
     <div className="admin-ui flex h-screen" data-theme={theme || undefined}>
       {/* Sidebar */}
       <div
@@ -251,7 +264,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveSection(item.id)}
+                onClick={() => navigateToSection(item.id)}
                 className={`a-nav ${isActive ? 'a-nav-active' : ''}`}
                 title={sidebarCollapsed ? item.label : undefined}
               >
@@ -316,7 +329,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
                   <p style={{ fontSize: 11, color: 'var(--text-3)', margin: 0 }}>Administrator</p>
                 </div>
                 <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,var(--accent),#ff8a3d)', color: '#fff', display: 'grid', placeItems: 'center', fontSize: 12, fontWeight: 700 }}>A</div>
-                <button onClick={onLogout} className="a-btn" style={{ marginLeft: 4 }} title="Admin paneldan chiqish">
+                <button onClick={handleLogout} className="a-btn" style={{ marginLeft: 4 }} title="Admin paneldan chiqish">
                   Chiqish
                 </button>
               </div>
@@ -328,7 +341,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         <main className="flex-1 overflow-auto p-6">
           <ErrorBoundary key={activeSection} fallbackMessage={`Ushbu bo'limda xatolik yuz berdi.`}>
             {/* Modular components */}
-            {activeSection === 'dashboard' && <DashboardSection onNavigate={setActiveSection} />}
+            {activeSection === 'dashboard' && <DashboardSection onNavigate={navigateToSection} />}
             {activeSection === 'orders' && <OrdersSection onImageClick={setSelectedImage} />}
             {activeSection === 'stock-requests' && <StockRequestsSection />}
             {activeSection === 'reviews' && <ReviewsSection />}
@@ -341,10 +354,10 @@ const DesktopAdminPanel = ({ onLogout }) => {
             {activeSection === 'audit-logs' && <AuditLogsSection />}
             {activeSection === 'support' && <SupportSection />}
 
-            {/* Extracted section */}
+            {/* Extracted sections */}
             {activeSection === 'products' && <ProductsSection />}
+            {activeSection === 'categories' && <CategoriesSection />}
             {/* Inline components (complex, to be extracted later) */}
-            {activeSection === 'categories' && <CategoriesContent />}
             {activeSection === 'promotions' && <PromotionsContent />}
             {activeSection === 'pickup-points' && <PickupPointsContent />}
             {activeSection === 'shipping-rates' && <ShippingRatesContent />}
@@ -360,6 +373,7 @@ const DesktopAdminPanel = ({ onLogout }) => {
         />
       )}
     </div>
+    </AdminExitGuardContext.Provider>
   );
 
   // Dashboard Content Component
@@ -428,21 +442,21 @@ const DesktopAdminPanel = ({ onLogout }) => {
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
             <div className="space-y-2">
               <button
-                onClick={() => setActiveSection('products')}
+                onClick={() => navigateToSection('products')}
                 className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-50 rounded-lg"
               >
                 <Plus className="w-5 h-5 text-purple-600" />
                 <span>Add New Product</span>
               </button>
               <button
-                onClick={() => setActiveSection('orders')}
+                onClick={() => navigateToSection('orders')}
                 className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-50 rounded-lg"
               >
                 <CheckCircle className="w-5 h-5 text-green-600" />
                 <span>Review Pending Orders ({pendingOrders})</span>
               </button>
               <button
-                onClick={() => setActiveSection('reviews')}
+                onClick={() => navigateToSection('reviews')}
                 className="w-full flex items-center gap-3 p-3 text-left hover:bg-gray-50 rounded-lg"
               >
                 <Star className="w-5 h-5 text-yellow-600" />
@@ -1204,347 +1218,6 @@ const DesktopAdminPanel = ({ onLogout }) => {
                 </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  function CategoriesContent() {
-    const [showForm, setShowForm] = useState(false);
-    const [editingCategory, setEditingCategory] = useState(null);
-    const [uploadingImage, setUploadingImage] = useState(false);
-    const [formData, setFormData] = useState({
-      name: '',
-      image: ''
-    });
-
-    const handleImageUpload = async (e) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
-
-      try {
-        setUploadingImage(true);
-        console.log('📤 Uploading category image to Supabase...', {
-          fileName: file.name,
-          fileSize: file.size,
-          fileType: file.type
-        });
-
-        const { storageAPI } = await import('../../services/api');
-
-        // Add timeout to prevent infinite hanging (30 seconds)
-        const uploadPromise = storageAPI.uploadProductImage(file);
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Upload timeout - please check your internet connection and try again')), 60000)
-        );
-
-        const result = await Promise.race([uploadPromise, timeoutPromise]);
-
-        console.log('✅ Image uploaded:', result.url);
-        setFormData(prev => ({ ...prev, image: result.url }));
-      } catch (error) {
-        console.error('❌ Image upload failed:', error);
-        toast.error(`Rasm yuklashda xatolik: ${error.message}`);
-      } finally {
-        setUploadingImage(false);
-        e.target.value = '';
-      }
-    };
-
-    const handleSubmit = async (e) => {
-      e.preventDefault();
-
-      try {
-        const categoryData = {
-          name: formData.name,
-          image: formData.image || null
-        };
-
-        if (editingCategory) {
-          await updateCategory(editingCategory.id, categoryData);
-          console.log('✅ Category updated successfully');
-          toast.success('Kategoriya muvaffaqiyatli yangilandi');
-        } else {
-          await addCategory(categoryData);
-          console.log('✅ Category created successfully');
-          toast.success('Kategoriya muvaffaqiyatli qo\'shildi');
-        }
-
-        setShowForm(false);
-        setEditingCategory(null);
-        setFormData({ name: '', image: '' });
-      } catch (error) {
-        console.error('❌ Failed to save category:', error);
-        toast.error('Kategoriyani saqlashda xatolik. Qayta urinib ko\'ring.');
-      }
-    };
-
-    const handleEdit = (category) => {
-      setEditingCategory(category);
-      setFormData({
-        name: category.name || '',
-        image: category.image || ''
-      });
-      setShowForm(true);
-    };
-
-    const handleDelete = async (categoryId) => {
-      const confirmed = await confirm({
-        title: 'Kategoriyani o\'chirish',
-        message: 'Ushbu kategoriyani o\'chirishga ishonchingiz komilmi? Bu amalni ortga qaytarib bo\'lmaydi.',
-        type: 'danger',
-        confirmText: 'O\'chirish',
-        cancelText: 'Bekor qilish'
-      });
-      if (confirmed) {
-        try {
-          await deleteCategory(categoryId);
-          console.log('✅ Category deleted successfully');
-          toast.success('Kategoriya muvaffaqiyatli o\'chirildi');
-        } catch (error) {
-          console.error('❌ Failed to delete category:', error);
-          toast.error('Kategoriyani o\'chirishda xatolik. Qayta urinib ko\'ring.');
-        }
-      }
-    };
-
-    const handleMoveCategory = (index, direction) => {
-      const newIndex = direction === 'up' ? index - 1 : index + 1;
-      if (newIndex < 0 || newIndex >= categories.length) return;
-
-      // Create a copy of categories array
-      const reorderedCategoriesArray = [...categories];
-
-      // Swap the categories
-      [reorderedCategoriesArray[index], reorderedCategoriesArray[newIndex]] =
-      [reorderedCategoriesArray[newIndex], reorderedCategoriesArray[index]];
-
-      // Update the order in AdminContext (which also saves to localStorage)
-      reorderCategories(reorderedCategoriesArray);
-    };
-
-    const handleToggleVisibility = async (categoryId, currentVisibility) => {
-      try {
-        await toggleCategoryVisibility(categoryId, !currentVisibility);
-        toast.success(!currentVisibility ? 'Kategoriya ko\'rsatilmoqda' : 'Kategoriya yashirildi');
-      } catch (error) {
-        console.error('❌ Failed to toggle category visibility:', error);
-        toast.error('Kategoriya holatini o\'zgartirishda xatolik');
-      }
-    };
-
-    return (
-      <div className="space-y-6">
-        {/* Header Actions */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold" style={{ color: 'var(--text)' }}>Kategoriyalarni boshqarish</h3>
-            <p className="a-muted">{categories.length} ta kategoriya</p>
-          </div>
-          <button
-            onClick={() => setShowForm(true)}
-            className="a-btn a-btn-primary"
-          >
-            <Plus className="w-5 h-5" />
-            Kategoriya qo'shish
-          </button>
-        </div>
-
-        {/* Add/Edit Form */}
-        {showForm && (
-          <div className="a-card">
-            <div className="a-card-h">
-              <h3>
-                {editingCategory ? 'Kategoriyani tahrirlash' : 'Yangi kategoriya qo\'shish'}
-              </h3>
-              <button
-                onClick={() => {
-                  setShowForm(false);
-                  setEditingCategory(null);
-                }}
-                className="a-faint hover:opacity-70"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4" style={{ padding: 16 }}>
-              <div>
-                <label className="block text-sm font-medium a-muted mb-2">Kategoriya nomi *</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="a-input"
-                  placeholder="Masalan: Choyshablar"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium a-muted mb-2">Kategoriya rasmi</label>
-                <div className="space-y-3">
-                  <div>
-                    <label className="a-btn a-btn-primary w-full justify-center cursor-pointer" style={{ padding: '12px 16px' }}>
-                      <Upload className="w-5 h-5" />
-                      <span>{uploadingImage ? 'Yuklanmoqda...' : 'Qurilmadan rasm yuklash'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        className="hidden"
-                        disabled={uploadingImage}
-                      />
-                    </label>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <div className="flex-1 h-px" style={{ background: 'var(--border)' }}></div>
-                    <span className="text-sm a-faint font-medium">YOKI</span>
-                    <div className="flex-1 h-px" style={{ background: 'var(--border)' }}></div>
-                  </div>
-
-                  <input
-                    type="url"
-                    value={formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="a-input"
-                    placeholder="Rasm URL manzilini kiriting (https://...)"
-                  />
-
-                  {formData.image && (
-                    <div className="mt-2">
-                      <img
-                        src={formData.image}
-                        alt="Ko'rinishi"
-                        className="w-32 h-32 object-cover rounded-lg"
-                        style={{ border: '1px solid var(--border)' }}
-                        onError={(e) => { e.target.style.display = 'none'; }}
-                      />
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <button
-                  type="submit"
-                  className="a-btn a-btn-primary"
-                >
-                  {editingCategory ? 'Kategoriyani yangilash' : 'Kategoriya qo\'shish'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    setEditingCategory(null);
-                  }}
-                  className="a-btn"
-                >
-                  Bekor qilish
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((category, index) => (
-            <div key={category.id} className="a-card" style={{ overflow: 'hidden', opacity: category.visible === false ? 0.6 : 1 }}>
-              <div className="relative overflow-hidden" style={{ height: '128px', background: 'var(--surface-2)' }}>
-                {category.visible === false && (
-                  <span className="a-pill a-pill-danger absolute top-2 right-2 z-10">
-                    <EyeOff className="w-3 h-3" />
-                    Yashirilgan
-                  </span>
-                )}
-                {category.image ? (
-                  <img
-                    src={category.image}
-                    alt={category.name}
-                    className="w-full h-full object-contain p-3"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center a-faint">
-                    <Image className="w-9 h-9" strokeWidth={1.5} />
-                  </div>
-                )}
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold mb-3" style={{ color: 'var(--text)' }}>{category.name}</h3>
-                <div className="flex gap-2 mb-2">
-                  <button
-                    onClick={() => handleEdit(category)}
-                    className="a-btn flex-1 justify-center"
-                  >
-                    <Edit className="w-4 h-4" />
-                    Tahrirlash
-                  </button>
-                  <button
-                    onClick={() => handleDelete(category.id)}
-                    className="a-btn flex-1 justify-center"
-                    style={{ color: 'var(--danger)' }}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    O'chirish
-                  </button>
-                </div>
-                <div className="flex gap-2 mb-2">
-                  <button
-                    onClick={() => handleToggleVisibility(category.id, category.visible !== false)}
-                    className="a-btn flex-1 justify-center"
-                    style={category.visible === false ? { color: 'var(--ok)' } : undefined}
-                  >
-                    {category.visible === false ? (
-                      <>
-                        <Eye className="w-4 h-4" />
-                        Ko'rsatish
-                      </>
-                    ) : (
-                      <>
-                        <EyeOff className="w-4 h-4" />
-                        Yashirish
-                      </>
-                    )}
-                  </button>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleMoveCategory(index, 'up')}
-                    disabled={index === 0}
-                    className="a-btn flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronUp className="w-4 h-4" />
-                    Yuqoriga
-                  </button>
-                  <button
-                    onClick={() => handleMoveCategory(index, 'down')}
-                    disabled={index === categories.length - 1}
-                    className="a-btn flex-1 justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <ChevronDown className="w-4 h-4" />
-                    Pastga
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {categories.length === 0 && !showForm && (
-          <div className="a-card p-12 text-center">
-            <LayoutGrid className="w-16 h-16 a-faint mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text)' }}>Hozircha kategoriyalar yo'q</h3>
-            <p className="a-muted mb-4">Mahsulotlarni tartibga solish uchun birinchi kategoriyangizni yarating</p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="a-btn a-btn-primary inline-flex"
-            >
-              <Plus className="w-5 h-5" />
-              Birinchi kategoriyani qo'shish
-            </button>
           </div>
         )}
       </div>

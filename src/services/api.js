@@ -4,8 +4,12 @@ import {
   validateCategory,
   validateShippingRate,
   validatePickupPoint,
-  validateReview
+  validateReview,
+  normalizeCategoryName,
+  validateImageFile,
+  IMAGE_UPLOAD_RULES
 } from '../utils/validation';
+import { sortCategories } from '../utils/categories';
 
 // ============================================
 // COMBINED RPC — single round-trip for essential data
@@ -73,6 +77,55 @@ export const essentialDataAPI = {
 // CATEGORIES API
 // ============================================
 
+// A Postgres SQLSTATE (5 chars) or PostgREST "PGRST..." code means the server
+// answered, so the write definitely did or did not happen. Anything else
+// (network failure, timeout, gateway error) leaves the outcome unknown.
+export const isDefinitiveError = (error) =>
+  !!error && (
+    error.definitive === true ||
+    error.name === 'ValidationError' ||
+    /^[0-9A-Z]{5}$/.test(error.code || '') ||
+    /^PGRST/.test(error.code || '')
+  );
+
+const tagged = (message, code, cause, definitive = true) =>
+  Object.assign(new Error(message), { code, cause, definitive });
+
+// Map Supabase/Postgres errors from category writes to messages the admin can act on
+const categoryWriteError = (error) => {
+  if (!error) return error;
+  const text = `${error.message || ''} ${error.details || ''}`;
+  if (error.code === 'PGRST202' || error.code === '42883') {
+    return tagged('Ma\'lumotlar bazasi yangilanmagan: add-category-integrity.sql migratsiyasini ishga tushiring.', 'migration_required', error);
+  }
+  if (error.code === '23505') return tagged('Bunday nomli kategoriya allaqachon mavjud', 'category_duplicate', error);
+  if (error.code === '23503' || text.includes('category_in_use')) {
+    return tagged('Kategoriyada mahsulotlar bor. Avval ularni boshqa kategoriyaga o\'tkazing.', 'category_in_use', error);
+  }
+  if (error.code === '42501') return tagged('Ruxsat yo\'q: kategoriyalarni faqat administratorlar o\'zgartira oladi.', 'category_forbidden', error);
+  // Stale data is raised as PT409 (PostgREST turns it into HTTP 409). Never use
+  // 40001 for this: PostgREST does not return it as a normal error (the local
+  // staging run got a 504 gateway timeout), which would look like an unknown outcome.
+  if (error.code === 'PT409' || error.code === '40001' || /category(_order)?_stale/.test(text)) return tagged('Kategoriyalar boshqa joyda o\'zgartirilgan. Ma\'lumotlar yangilandi — qayta urinib ko\'ring.', 'category_stale', error);
+  if (error.code === 'P0002') return tagged('Kategoriya topilmadi', 'category_not_found', error);
+  // The save's operation id was already resolved (e.g. reported aborted): it was not applied
+  if (error.code === '55000') return tagged('Kategoriya saqlanmadi. Qayta urinib ko\'ring.', 'category_not_saved', error);
+  // .single() matched no row: missing id, or the UPDATE was filtered by RLS
+  if (error.code === 'PGRST116') return tagged('Kategoriya topilmadi yoki o\'zgartirishga ruxsat yo\'q', 'category_not_updated', error);
+  if (error.code === '22023' || error.code === '23514') return tagged('Kategoriya ma\'lumotlari noto\'g\'ri', 'category_invalid', error);
+  if (isDefinitiveError(error)) return Object.assign(error, { definitive: true });
+  return tagged('Server javobi olinmadi: amal bajarilgan-bajarilmagani noma\'lum.', 'outcome_unknown', error, false);
+};
+
+const normalizeCategoryInput = (input) => {
+  const out = {};
+  if (input.name !== undefined) out.name = normalizeCategoryName(input.name);
+  if (input.image !== undefined) out.image = typeof input.image === 'string' ? input.image.trim() : input.image;
+  if (input.visible !== undefined) out.visible = input.visible;
+  if (input.sort_order !== undefined) out.sort_order = input.sort_order;
+  return out;
+};
+
 export const categoriesAPI = {
   // Get all categories
   async getAll() {
@@ -82,45 +135,58 @@ export const categoriesAPI = {
       .order('created_at', { ascending: true });
 
     if (error) throw error;
-    return data;
+    return sortCategories(data || []);
   },
 
-  // Create category
-  async create(category) {
-    // Validate category data
-    validateCategory(category);
+  // Create (no id) or update a category through the admin_save_category RPC:
+  // one transaction that also moves products on a rename. `opId` is a
+  // client-generated UUID recorded in the same transaction, so an uncertain
+  // outcome can later be resolved with resolveWrite(opId). `expectedName`
+  // (updates) rejects edits based on stale data.
+  async save({ opId, id = null, name, image, expectedName = null }) {
+    const row = normalizeCategoryInput({ name, image });
+    validateCategory(row);
+    if (!opId) throw tagged('Operatsiya identifikatori yo\'q', 'category_invalid', null);
 
-    const { data, error } = await supabase
-      .from('categories')
-      .insert([category])
-      .select()
-      .single();
+    const { data, error } = await supabase.rpc('admin_save_category', {
+      p_op_id: opId,
+      p_id: id,
+      p_name: row.name,
+      p_image: row.image,
+      p_expected_name: expectedName
+    });
 
-    if (error) throw error;
-    return data;
+    if (error) throw categoryWriteError(error);
+    const saved = Array.isArray(data) ? data[0] : data;
+    if (!saved?.id) throw tagged('Server javobi noto\'g\'ri: natija noma\'lum.', 'outcome_unknown', null, false);
+    return saved;
   },
 
-  // Update category
-  async update(id, updates) {
-    const { data, error } = await supabase
-      .from('categories')
-      .update(updates)
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+  // Definitive outcome of a save: 'committed' | 'aborted'. Waits on the server
+  // while that save is still running. Anything else (network error, timeout,
+  // odd answer) is 'unknown' — the caller must keep treating it as uncertain.
+  async resolveWrite(opId) {
+    try {
+      const { data, error } = await supabase.rpc('resolve_category_write', { p_op_id: opId });
+      if (error || (data !== 'committed' && data !== 'aborted')) return 'unknown';
+      return data;
+    } catch {
+      return 'unknown';
+    }
   },
 
-  // Delete category
+  // Delete category — fails if no row was deleted (missing id or blocked by RLS)
   async delete(id) {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('categories')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .select('id');
 
-    if (error) throw error;
+    if (error) throw categoryWriteError(error);
+    if (!data || data.length === 0) {
+      throw tagged('Kategoriya topilmadi yoki o\'chirishga ruxsat yo\'q', 'category_not_deleted', null);
+    }
   },
 
   // Toggle category visibility
@@ -132,8 +198,30 @@ export const categoriesAPI = {
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) throw categoryWriteError(error);
     return data;
+  },
+
+  // Persist a full display order in one call. The RPC rejects missing,
+  // duplicate, stale or forbidden ids and returns the number of rows updated.
+  async reorder(orderedIds) {
+    const { data, error } = await supabase.rpc('reorder_categories', { p_ids: orderedIds });
+    if (error) throw categoryWriteError(error);
+    if (data !== orderedIds.length) {
+      throw tagged('Tartib saqlanganini tasdiqlab bo\'lmadi.', 'outcome_unknown', null, false);
+    }
+    return data;
+  },
+
+  // Number of products assigned to a category (membership is by category_name)
+  async countProducts(categoryName) {
+    const { count, error } = await supabase
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .eq('category_name', categoryName);
+
+    if (error) throw error;
+    return count || 0;
   }
 };
 
@@ -1330,9 +1418,28 @@ export const extractStoragePath = (url) => {
   return url.substring(idx + marker.length);
 };
 
+// Like extractStoragePath, but only for objects in THIS project's public
+// product-images bucket. Foreign URLs that merely contain "/product-images/"
+// return null so they are never deleted.
+export const extractOwnedStoragePath = (url, bucket = 'product-images') => {
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/+$/, '');
+  if (!url || !base) return null;
+  const prefix = `${base}/storage/v1/object/public/${bucket}/`;
+  if (!url.startsWith(prefix)) return null;
+  let path;
+  try {
+    path = decodeURIComponent(url.slice(prefix.length).split(/[?#]/)[0]);
+  } catch {
+    return null; // malformed encoding: never treat as ours
+  }
+  if (!path || path.split('/').includes('..')) return null;
+  return path;
+};
+
 export const storageAPI = {
-  // Upload image to Supabase Storage
-  async uploadImage(file, folder = 'products', bucket = 'product-images') {
+  // Upload image to Supabase Storage. `rules` = { types, maxBytes } (see IMAGE_UPLOAD_RULES)
+  async uploadImage(file, folder = 'products', bucket = 'product-images', rules = IMAGE_UPLOAD_RULES.default) {
+    validateImageFile(file, rules);
     try {
       // Generate unique filename
       const fileExt = file.name.split('.').pop().toLowerCase();
@@ -1395,8 +1502,30 @@ export const storageAPI = {
   },
 
   // Upload product image to public bucket
-  async uploadProductImage(file) {
-    return await this.uploadImage(file, 'products', 'product-images');
+  async uploadProductImage(file, rules) {
+    return await this.uploadImage(file, 'products', 'product-images', rules);
+  },
+
+  // Category images go to their own folder with stricter rules
+  async uploadCategoryImage(file) {
+    return await this.uploadImage(file, 'categories', 'product-images', IMAGE_UPLOAD_RULES.category);
+  },
+
+  // Reference status of a storage URL by canonical object identity
+  // (bucket + decoded path; query strings/encodings ignored), checked in the
+  // database (storage_reference_status RPC). Returns
+  // { status: 'referenced' | 'unreferenced' | 'unknown', bucket, path }.
+  // Any error or unexpected answer is 'unknown' — never 'unreferenced'.
+  async referenceStatus(url) {
+    try {
+      const { data, error } = await supabase.rpc('storage_reference_status', { p_url: url });
+      if (error || !data || !['referenced', 'unreferenced', 'unknown'].includes(data.status)) {
+        return { status: 'unknown', bucket: null, path: null };
+      }
+      return { status: data.status, bucket: data.bucket ?? null, path: data.path ?? null };
+    } catch {
+      return { status: 'unknown', bucket: null, path: null };
+    }
   },
 
   // Upload multiple images
@@ -1412,11 +1541,16 @@ export const storageAPI = {
     try {
       console.log('🗑️ Deleting image from Supabase Storage:', path);
 
-      const { error } = await supabase.storage
+      const { data, error } = await supabase.storage
         .from('product-images')
         .remove([path]);
 
       if (error) throw error;
+      // Storage reports success with an empty list when nothing was removed
+      // (object missing, or refused by a storage policy)
+      if (Array.isArray(data) && data.length === 0) {
+        throw Object.assign(new Error('Rasm o\'chirilmadi'), { code: 'storage_not_removed' });
+      }
 
       console.log('✅ Image deleted successfully');
     } catch (err) {

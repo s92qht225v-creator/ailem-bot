@@ -1,8 +1,13 @@
 import { createContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
-import { essentialDataAPI, categoriesAPI, productsAPI, ordersAPI, reviewsAPI, usersAPI, storageAPI, extractStoragePath } from '../services/api';
+import { essentialDataAPI, categoriesAPI, productsAPI, ordersAPI, reviewsAPI, usersAPI, storageAPI, extractStoragePath, isDefinitiveError } from '../services/api';
 import { decreaseVariantStock, updateVariantStock, getTotalVariantStock } from '../utils/variants';
-import { loadFromLocalStorage, saveToLocalStorage } from '../utils/helpers';
+import { removeFromLocalStorage } from '../utils/helpers';
+import { sortCategories, countProductsInCategory } from '../utils/categories';
+import { categoryNameKey } from '../utils/validation';
+import { newOperationId } from '../utils/operationId';
+import { cleanupUnusedImage } from '../utils/storageCleanup';
+import { logAuditAction, AUDIT_ACTIONS } from '../services/auditLog';
 
 export const AdminContext = createContext();
 
@@ -37,28 +42,10 @@ export const AdminProvider = ({ children }) => {
       setProducts(productsData || []);
       setReviews(reviewsData || []);
 
-      // Apply saved category order from localStorage
-      const savedOrder = loadFromLocalStorage('categoryOrder');
-      if (savedOrder && Array.isArray(savedOrder)) {
-        const orderedCategories = [];
-        const categoryMap = new Map(categoriesData.map(cat => [cat.id, cat]));
-
-        // Add categories in saved order
-        savedOrder.forEach(id => {
-          const cat = categoryMap.get(id);
-          if (cat) {
-            orderedCategories.push(cat);
-            categoryMap.delete(id);
-          }
-        });
-
-        // Add any new categories that weren't in saved order
-        categoryMap.forEach(cat => orderedCategories.push(cat));
-
-        setCategories(orderedCategories);
-      } else {
-        setCategories(categoriesData || []);
-      }
+      // Shared display order comes from the database (categories.sort_order).
+      // The old per-browser 'categoryOrder' preference is no longer used.
+      setCategories(sortCategories(categoriesData || []));
+      removeFromLocalStorage('categoryOrder');
     } catch (err) {
       console.error('❌ Failed to load essential data:', err);
       setError(err.message);
@@ -442,79 +429,212 @@ export const AdminProvider = ({ children }) => {
   };
 
   // Category management
-  const addCategory = async (category) => {
+  // Membership is by name (products.category / category_name). Renames run as
+  // one database transaction (admin_save_category RPC) that also moves the
+  // products; deletion is refused while products remain. Storage cleanup only
+  // runs after the database change has succeeded.
+
+  // Reload products + categories from the server without toggling `loading`
+  // (which would unmount the admin panel). Used after outcomes the client
+  // cannot know (network failure mid-write) or that prove it is stale.
+  const refreshCatalog = async () => {
+    const { products: productsData, categories: categoriesData } =
+      await essentialDataAPI.getAll({ lightweight: false });
+    const catalog = { products: productsData || [], categories: sortCategories(categoriesData || []) };
+    setProducts(catalog.products);
+    setCategories(catalog.categories);
+    return catalog;
+  };
+
+  // Refresh when the outcome is unknown or our copy is stale; returns an
+  // accurate error for the caller either way.
+  // 'Not found / nothing changed' can also mean our request already took
+  // effect (a retried delivery after a lost response) — refresh for those too.
+  const REFRESH_CODES = ['category_stale', 'category_not_deleted', 'category_not_updated', 'category_not_found'];
+  const reconcileAfterFailure = async (err) => {
+    if (isDefinitiveError(err) && !REFRESH_CODES.includes(err.code)) return err;
+    let refreshed = false;
     try {
-      const newCategory = await categoriesAPI.create(category);
-      setCategories(prev => {
-        const updated = [...prev, newCategory];
-        // Update saved order
-        saveToLocalStorage('categoryOrder', updated.map(cat => cat.id));
-        return updated;
+      refreshed = !!(await refreshCatalog());
+    } catch (refreshErr) {
+      console.error('❌ Failed to refresh catalog after an uncertain write:', refreshErr);
+    }
+    if (isDefinitiveError(err)) return err;
+    return Object.assign(
+      new Error(refreshed
+        ? 'Saqlash natijasi aniq emas. Ma\'lumotlar serverdan qayta yuklandi — natijani tekshiring.'
+        : 'Saqlash natijasi aniq emas va ma\'lumotlarni yangilab bo\'lmadi. Sahifani yangilang.'),
+      { code: 'outcome_unknown', definitive: false, refreshed, cause: err }
+    );
+  };
+
+  // Save through admin_save_category with an operation id. If the response
+  // is lost, ask the database for the real outcome of that operation
+  // (resolve_category_write waits while the save is still in flight):
+  //   committed → refresh and report success; aborted → definitive failure;
+  //   unknown   → propagate (reconcileAfterFailure → 'outcome_unknown').
+  // Callers that hold images for this save keep the hold on 'outcome_unknown'.
+  const saveCategoryRecord = async (payload) => {
+    try {
+      return { row: await categoriesAPI.save(payload), catalog: null };
+    } catch (err) {
+      if (isDefinitiveError(err)) throw err;
+      const outcome = await categoriesAPI.resolveWrite(payload.opId);
+      if (outcome === 'aborted') {
+        throw Object.assign(new Error('Kategoriya saqlanmadi (aloqa uzildi). Qayta urinib ko\'ring.'),
+          { code: 'category_not_saved', definitive: true, cause: err });
+      }
+      if (outcome !== 'committed') throw err;
+      return { row: null, catalog: await refreshCatalog() };
+    }
+  };
+
+  const addCategory = async (category, { opId = newOperationId() } = {}) => {
+    try {
+      const { row, catalog } = await saveCategoryRecord({ opId, name: category.name, image: category.image });
+      const key = categoryNameKey(category.name);
+      const newCategory = row || catalog.categories.find(c => categoryNameKey(c.name) === key);
+      if (!newCategory) throw Object.assign(new Error('Saqlangan kategoriya topilmadi'), { code: 'outcome_unknown', definitive: false });
+      if (row) setCategories(prev => sortCategories([...prev, newCategory]));
+      await logAuditAction({
+        action: AUDIT_ACTIONS.CATEGORY_CREATE,
+        entityType: 'category',
+        entityId: newCategory.id,
+        newData: newCategory
       });
       return newCategory;
     } catch (err) {
       console.error('Failed to add category:', err);
-      throw err;
+      throw await reconcileAfterFailure(err);
     }
   };
 
-  const updateCategory = async (categoryId, updates) => {
+  const updateCategory = async (categoryId, updates, { opId = newOperationId() } = {}) => {
     try {
-      const updatedCategory = await categoriesAPI.update(categoryId, updates);
-      setCategories(prev =>
-        prev.map(category =>
-          category.id === categoryId ? updatedCategory : category
-        )
-      );
+      const oldCategory = categories.find(c => c.id === categoryId);
+      // One transaction for the category and (on a rename) its products
+      const { row, catalog } = await saveCategoryRecord({
+        opId,
+        id: categoryId,
+        name: updates.name ?? oldCategory?.name,
+        image: updates.image ?? oldCategory?.image,
+        expectedName: oldCategory?.name ?? null
+      });
+      const updatedCategory = row || catalog.categories.find(c => c.id === categoryId);
+      if (!updatedCategory) throw Object.assign(new Error('Saqlangan kategoriya topilmadi'), { code: 'outcome_unknown', definitive: false });
+
+      if (row) {
+        if (oldCategory && updatedCategory.name !== oldCategory.name) {
+          setProducts(prev => prev.map(p =>
+            p.category === oldCategory.name
+              ? { ...p, category: updatedCategory.name, category_name: updatedCategory.name }
+              : p
+          ));
+        }
+        setCategories(prev => sortCategories(
+          prev.map(category => category.id === categoryId ? updatedCategory : category)
+        ));
+      }
+
+      await logAuditAction({
+        action: AUDIT_ACTIONS.CATEGORY_UPDATE,
+        entityType: 'category',
+        entityId: categoryId,
+        oldData: oldCategory || null,
+        newData: updatedCategory
+      });
+
+      // Replaced image: remove the old object only if nothing else uses it
+      // (skipped while a caller still holds it for this save)
+      if (oldCategory?.image && oldCategory.image !== updatedCategory.image) {
+        cleanupUnusedImage(oldCategory.image).catch(() => {});
+      }
       return updatedCategory;
     } catch (err) {
       console.error('Failed to update category:', err);
-      throw err;
+      throw await reconcileAfterFailure(err);
     }
   };
 
   const deleteCategory = async (categoryId) => {
     try {
       const category = categories.find(c => c.id === categoryId);
+      if (!category) throw new Error('Kategoriya topilmadi');
 
-      // Clean up storage image (non-blocking)
-      if (category?.image) {
-        const path = extractStoragePath(category.image);
-        if (path) {
-          try { await storageAPI.deleteImage(path); } catch (e) { /* non-blocking */ }
-        }
+      // Refuse to orphan products (client state and database)
+      const localCount = countProductsInCategory(products, category.name);
+      const productCount = localCount > 0 ? localCount : await categoriesAPI.countProducts(category.name);
+      if (productCount > 0) {
+        throw Object.assign(
+          new Error(`Bu kategoriyada ${productCount} ta mahsulot bor. Avval ularni boshqa kategoriyaga o'tkazing.`),
+          { code: 'category_in_use', productCount }
+        );
       }
 
       await categoriesAPI.delete(categoryId);
-      setCategories(prev => {
-        const updated = prev.filter(category => category.id !== categoryId);
-        // Update saved order
-        saveToLocalStorage('categoryOrder', updated.map(cat => cat.id));
-        return updated;
+      setCategories(prev => prev.filter(c => c.id !== categoryId));
+
+      await logAuditAction({
+        action: AUDIT_ACTIONS.CATEGORY_DELETE,
+        entityType: 'category',
+        entityId: categoryId,
+        oldData: category
       });
+
+      // Record is gone; now clean up its image if unreferenced (never throws)
+      if (category.image) {
+        cleanupUnusedImage(category.image).catch(() => {});
+      }
     } catch (err) {
       console.error('Failed to delete category:', err);
-      throw err;
+      throw err.code === 'category_in_use' && err.productCount ? err : await reconcileAfterFailure(err);
     }
   };
 
-  const reorderCategories = (reorderedCategories) => {
-    setCategories(reorderedCategories);
-    saveToLocalStorage('categoryOrder', reorderedCategories.map(cat => cat.id));
+  // Persist a new display order for everyone (reorder_categories RPC).
+  // Optimistic; on any failure the local order is reverted (and refreshed
+  // from the server when the outcome is unknown or the list was stale).
+  // Only a confirmed success is audit-logged.
+  const reorderCategories = async (reorderedCategories) => {
+    const previous = categories;
+    const withOrder = reorderedCategories.map((c, i) => ({ ...c, sort_order: i + 1 }));
+    setCategories(withOrder);
+    try {
+      await categoriesAPI.reorder(withOrder.map(c => c.id));
+    } catch (err) {
+      console.error('Failed to reorder categories:', err);
+      setCategories(previous);
+      throw await reconcileAfterFailure(err);
+    }
+    await logAuditAction({
+      action: AUDIT_ACTIONS.CATEGORY_REORDER,
+      entityType: 'category',
+      entityId: 'order',
+      oldData: previous.map(c => c.id),
+      newData: withOrder.map(c => c.id)
+    });
   };
 
   const toggleCategoryVisibility = async (categoryId, visible) => {
     try {
+      const oldCategory = categories.find(c => c.id === categoryId);
       const updatedCategory = await categoriesAPI.toggleVisibility(categoryId, visible);
       setCategories(prev =>
         prev.map(category =>
           category.id === categoryId ? updatedCategory : category
         )
       );
+      await logAuditAction({
+        action: AUDIT_ACTIONS.CATEGORY_VISIBILITY,
+        entityType: 'category',
+        entityId: categoryId,
+        oldData: { visible: oldCategory?.visible !== false },
+        newData: { visible }
+      });
       return updatedCategory;
     } catch (err) {
       console.error('Failed to toggle category visibility:', err);
-      throw err;
+      throw await reconcileAfterFailure(err);
     }
   };
 
@@ -546,6 +666,7 @@ export const AdminProvider = ({ children }) => {
     deleteCategory,
     reorderCategories,
     toggleCategoryVisibility,
+    refreshCatalog,
     orders,
     addOrder,
     updateOrderStatus,

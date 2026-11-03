@@ -329,20 +329,89 @@ export const validateOrder = (order) => {
   return true;
 };
 
+export const CATEGORY_NAME_MAX_LENGTH = 100;
+
 /**
- * Validate category data
+ * Normalize a category name once, the same way for create and update:
+ * Unicode NFC, collapse internal whitespace, trim the ends.
  */
-export const validateCategory = (category) => {
+export const normalizeCategoryName = (name) =>
+  String(name ?? '').normalize('NFC').replace(/\s+/g, ' ').trim();
+
+// Comparison key for duplicate detection (matches the DB index lower(btrim(name)))
+export const categoryNameKey = (name) => normalizeCategoryName(name).toLowerCase();
+
+/**
+ * Validate category data. Expects an already-normalized name.
+ * partial=true (updates) only checks the fields that are present.
+ */
+export const validateCategory = (category, { partial = false } = {}) => {
   const errors = [];
 
-  try {
-    validateString(category.name, 'name', { required: true, minLength: 1, maxLength: 100 });
-  } catch (e) {
-    errors.push(e.message);
+  if (!partial || category.name !== undefined) {
+    try {
+      validateString(category.name, 'name', { required: true, minLength: 1, maxLength: CATEGORY_NAME_MAX_LENGTH });
+    } catch (e) {
+      errors.push(e.message);
+    }
+  }
+
+  // Image is required: categories.image is NOT NULL in the database
+  if (!partial || category.image !== undefined) {
+    try {
+      validateString(category.image, 'image', { required: true });
+    } catch (e) {
+      errors.push(e.message);
+    }
   }
 
   if (errors.length > 0) {
     throw new ValidationError('category', errors.join('; '));
+  }
+
+  return true;
+};
+
+/**
+ * Image upload rules. The default matches the product-images bucket limits
+ * (supabase-migrations/restrict-product-images-bucket.sql). SVG is allowed
+ * because existing category icons are SVG; they are only ever rendered via
+ * <img>/background-image, where embedded scripts do not run.
+ */
+export const IMAGE_UPLOAD_RULES = {
+  default: {
+    maxBytes: 10 * 1024 * 1024,
+    types: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/svg+xml', 'image/heic', 'image/heif']
+  },
+  category: {
+    maxBytes: 2 * 1024 * 1024,
+    types: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']
+  }
+};
+
+const EXTENSION_TYPES = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp',
+  avif: 'image/avif', svg: 'image/svg+xml', heic: 'image/heic', heif: 'image/heif'
+};
+
+/**
+ * Validate a file before uploading it. Throws ValidationError with an
+ * Uzbek message suitable for showing to the admin.
+ */
+export const validateImageFile = (file, rules = IMAGE_UPLOAD_RULES.default) => {
+  if (!file) throw new ValidationError('file', 'Fayl tanlanmagan');
+
+  const ext = String(file.name || '').split('.').pop().toLowerCase();
+  // Some browsers report an empty type (e.g. HEIC); fall back to the extension
+  const type = file.type || EXTENSION_TYPES[ext] || '';
+
+  if (!rules.types.includes(type)) {
+    const allowed = [...new Set(rules.types.map(t => t.replace('image/', '').replace('+xml', '').toUpperCase()))].join(', ');
+    throw new ValidationError('file', `Faqat rasm fayllari qabul qilinadi (${allowed})`);
+  }
+
+  if (typeof file.size === 'number' && file.size > rules.maxBytes) {
+    throw new ValidationError('file', `Rasm hajmi ${Math.round(rules.maxBytes / 1024 / 1024)} MB dan oshmasligi kerak`);
   }
 
   return true;
