@@ -11,6 +11,8 @@ Scope is **frozen**: Categories, payments (P) and checkout (B8). No new fixes or
 - [x] B8 checkout repair (insert without read-back) implemented in the release code **and** in image A.
 - [x] B4: service-role key present in the running container (`role=service_role`, correct project) — read-only, 2026-10-25.
 - [x] B7: production payment path confirmed broken (anon cannot read `orders`; last completed online payment 2026-03-06) — read-only, 2026-10-25.
+- [x] A2: production pre-check re-run 2026-11-03 — PASS, identical to the 2026-10-25 baseline (`precheck-results/2026-11-03.md`).
+- [x] A3: private backup `~/ailem-backups/20261103-2355-pre-release` + restore test PASS 2026-11-04 (2.3).
 - [x] Image A tested at every database stage (before P: fails closed; P; P + 1–5; P + 1–5 + 7): webhooks 30/30, old-admin calls 6/6, browser checkout → Payme → status page.
 - [x] Re-verified on this tree today (2026-11-03): client 189/189; `npm run test:db` all pass (category, security, audit, payment, 8 concurrency); `rollback-compat-webhooks.patch` applies to `13d61f7` and its files are identical to the tested sources; `git diff --check` clean. Last full local-staging run (2026-10-25): API 93/93, webhooks 30/30, `verify-after-migration.sql` 0 FAIL, build OK. (ACCEPTANCE §4 still shows the earlier 185 / 90 / 28 counts — superseded by these.)
 
@@ -47,18 +49,29 @@ Scope is **frozen**: Categories, payments (P) and checkout (B8). No new fixes or
 
 ### 2.2 Outstanding production checks (read-only)
 
-- [ ] Re-run `production-precheck.sql` in the SQL Editor (the 2026-10-25 results are 9 days old). Expected: nothing of this release applied; RLS/grants as on 2026-10-25; section 13a all columns present, 13b duplicates 0/0/0, 13c `anon_select = false`.
+- [x] Re-run `production-precheck.sql` — done 2026-11-03, PASS (`precheck-results/2026-11-03.md`). Re-run sections 2 and 12 right before P and before migration 1 (RUNBOOK 1.5).
 - [ ] Re-confirm B4 (key present) and the running image tag, right before deploying image A.
 - [ ] `pg_stat_activity` quiet before each migration step (pre-check §12).
 
 ### 2.3 Backup and restore verification (B1)
 
-Before P, and again at the start of the window. Private directory outside the repo (contains customer data; never committed or shared).
+Before P, and again at the start of the window. Exact commands: RUNBOOK 1.2–1.4. Private directory under `~/ailem-backups/` (owner-only; contains customer data; never committed, uploaded or shared). Production is only read.
 
-- [ ] `supabase link --project-ref jbdzhwenzedlwbdpguyt` (DB password entered by you).
-- [ ] Dumps: `schema.sql`, `roles.sql`, `data.sql` (public, auth, storage) + copy of the `product-images` bucket (≈170 objects).
-- [ ] **Restore test** into a disposable local stack: load roles → schema → data; row counts match production (`categories` 10, `products` 37, `admin_users` ≥ 1, `orders`, `users`); bucket copy count matches.
-- [ ] Do not continue if the restore fails.
+- [x] **Before P — done 2026-11-03/04:** `~/ailem-backups/20261103-2355-pre-release` (102 MB, 175 checksums), restore test passed (below). Its `RESTORE.md` holds the same procedure.
+- [ ] **Window backup** (fresh, at the start of Phase B):
+  - [ ] DB password typed by you at a hidden prompt only (never chat, file or command line).
+  - [ ] Dumps `roles.sql`, `schema.sql`, `data.sql` (public, auth, storage) + `product-images/` (≈170 objects); CLI unlinked afterwards.
+  - [ ] **Required supplement** `access-privileges.sql` from `export-access-privileges.sql` (read-only). Without it a restore grants anon SELECT on `orders`/`users`.
+  - [ ] **Required supplement** `storage-policies.sql` from `export-storage-policies.sql` (read-only). The dump has no storage policies.
+  - [ ] `MANIFEST.sha256`, permissions 700/600.
+- [ ] **Restore test** in a disposable local Supabase stack (own project id and ports, not `local-staging/`):
+  - [ ] Auth/Storage pinned to ≥ production (tested **auth v2.197.0, storage v1.84.25**; read the current versions from `/auth/v1/health` and `/storage/v1/version`).
+  - [ ] As superuser **`supabase_admin`**, in order: `roles.sql` → `schema.sql` → `SET session_replication_role = replica` → `data.sql` (one transaction) → `access-privileges.sql` → `storage-policies.sql`; all without error.
+  - [ ] Row counts: every table = dump, and = live production (tested 48 tables / 1,032 rows; `orders` 163, `users` 164, `products` 37, `categories` 10, `admin_users` 1, `auth.users` 2, `storage.objects` 170).
+  - [ ] Access rules = production (pre-check 4b, 5, 6c–6e, 8, 13c `anon_select = false`).
+  - [ ] Storage: manifest OK; each file's size + MD5 = `storage.objects` metadata; no missing/extra files (tested 170/170).
+  - [ ] No outbound effects (no app connected, no HTTP-calling functions, no cron); then `supabase stop --no-backup` and delete the scratch folder.
+- [ ] Do not continue if any check fails.
 
 ### 2.4 Migration and deployment order
 
@@ -84,7 +97,7 @@ Before P, and again at the start of the window. Private directory outside the re
 - **Code:** image A (`sha-<A>` recorded in step 3). Never `sha-13d61f7` (anon webhooks, broken checkout, R6-02).
   `sed -i 's/^IMAGE_TAG=.*/IMAGE_TAG=sha-<A>/' /opt/ailem/.deploy.env` → `docker compose --env-file .deploy.env pull app && up -d`; revert the release merge on `main` (keep PR A).
 - **Database:** no rollback of any protection (RLS, grants, storage policies, audit trigger, P functions). Problems are fixed forward (RUNBOOK §7). Image A is tested against every migration stage.
-- **Last resort:** full restore from 2.3, then immediately re-apply P, 1–5 and 7.
+- **Last resort:** full restore from 2.3 in the tested order (RUNBOOK 7.8): roles → schema → data → `access-privileges.sql` → `storage-policies.sql` → re-upload `product-images/`; then immediately re-apply P, 1–5 and 7. Only the local restore is tested; rehearse a hosted restore in a scratch project first.
 
 ### 2.6 Smoke checks
 

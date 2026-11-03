@@ -68,18 +68,49 @@ curl -s -o /dev/null -w "click_complete_payment %{http_code} (expect 401)\n" -X 
 
 1.1 Announce the window; every admin **saves and closes all `/admin` tabs**; confirm each one.
 
-1.2 **you** — `supabase link --project-ref jbdzhwenzedlwbdpguyt` (enter the DB password yourself).
+1.2 **you** — the database password of `ailem-production` (Postgres password, not the Supabase login). Type it only at a hidden prompt (`read -s`) in your own terminal; never paste it into chat, a file or a command line. It cannot be viewed in the Dashboard (only reset — a production credential change; avoid during the release).
 
-1.3 Private backup **outside the repo** (contains customer data — never commit or share):
+1.3 Private backup **outside the repo** (contains customer data — never commit, upload or share). Production is only read. Tested 2026-11-03 (`~/ailem-backups/20261103-2355-pre-release`, 102 MB):
 ```bash
-B=~/ailem-backups/$(date +%Y%m%d-%H%M)-pre-release && mkdir -p "$B" && chmod 700 "$B"
+umask 077
+B=~/ailem-backups/$(date +%Y%m%d-%H%M)-pre-release
+mkdir -p "$B/work" && chmod 700 ~/ailem-backups "$B" && cd "$B/work"   # link state stays outside the repo
+IFS= read -rs SUPABASE_DB_PASSWORD && export SUPABASE_DB_PASSWORD     # hidden prompt
+supabase link --project-ref jbdzhwenzedlwbdpguyt
 supabase db dump --linked -f "$B/schema.sql"
 supabase db dump --linked --role-only -f "$B/roles.sql"
 supabase db dump --linked --data-only --use-copy -s public,auth,storage -f "$B/data.sql"
 supabase storage cp -r ss:///product-images "$B/product-images" --experimental --linked
+unset SUPABASE_DB_PASSWORD; supabase unlink; cd "$B" && rm -rf work
 ```
+Then the **two required supplements** (the dump alone does not restore production's access rules). Both are read-only single SELECTs returning one text cell — run each in the SQL Editor and save the cell, or with `psql -X -At -f … >` using the session-pooler URL (password at the prompt):
+- `release/2026-10-categories/export-access-privileges.sql` → `$B/access-privileges.sql` — exact grants of every public table, sequence and function. Without it a restore into a fresh project **grants anon SELECT on `orders` and `users`** (pg_dump emits no REVOKEs relative to Supabase's default privileges), undoing the July PII fix.
+- `release/2026-10-categories/export-storage-policies.sql` → `$B/storage-policies.sql` — the `storage.objects` policies (`product_images_delete/insert/select/update`). `supabase db dump` excludes the storage schema, so they are not in `schema.sql`.
 
-1.4 **Verify the backup is restorable** (not just present): start a scratch local stack (`local-staging/` or any disposable Postgres), restore `roles.sql`, `schema.sql`, `data.sql`, and check row counts against production (`categories` 10, `products` 37, `admin_users` 1, `orders`, `users`); count files in `$B/product-images` ≈ 170. Do not continue until this succeeds.
+Finally `find . -type f ! -name MANIFEST.sha256 -print0 | sort -z | xargs -0 shasum -a 256 > MANIFEST.sha256` and `chmod -R go-rwx "$B"`.
+
+1.4 **Verify the backup is restorable** — the tested procedure (2026-11-04). Do not continue until every check passes.
+
+*Disposable environment* (never `local-staging/`, never the repo):
+- A new folder outside the repo with `supabase init`; own `project_id` (e.g. `ailem-restore-test`) and own ports (e.g. 566xx); `studio`, `inbucket`, `analytics`, `edge_runtime`, `realtime` disabled.
+- **Auth/Storage versions ≥ production**, pinned before `supabase start` in `supabase/.temp/gotrue-version` and `supabase/.temp/storage-version`. Tested: **auth `v2.197.0`, storage `v1.84.25`** (postgres image `17.6.1.075`). Read production's current versions first (read-only): `GET <project-url>/auth/v1/health` → `version`, `GET <project-url>/storage/v1/version`. With the CLI defaults (auth v2.186.0, storage v1.35.3) the restore fails (`auth.custom_oauth_providers` does not exist).
+
+*Restore order* — as the **superuser `supabase_admin`** (the `postgres` role gets `permission denied for table buckets_vectors`); every step must end without error:
+```bash
+DB=postgresql://supabase_admin:postgres@127.0.0.1:<db-port>/postgres   # local disposable stack only
+psql "$DB" --single-transaction -v ON_ERROR_STOP=1 -f "$B/roles.sql" -f "$B/schema.sql" -c 'SET session_replication_role = replica' -f "$B/data.sql"
+psql "$DB" -v ON_ERROR_STOP=1 -f "$B/access-privileges.sql"   # REQUIRED
+psql "$DB" -v ON_ERROR_STOP=1 -f "$B/storage-policies.sql"    # REQUIRED
+```
+`session_replication_role = replica` keeps triggers from firing while data loads. Send restore output to a private file and print only error headlines: COPY errors can quote row content.
+
+*Checks* (counts and checksums only — never print records):
+- Row counts per table: restored = rows in `data.sql` for **every** table, and = live production (count-only requests). Tested: 48/48 tables, 1,032 rows; production `categories` 10, `products` 37, `orders` 163, `users` 164, `admin_users` 1, `auth.users` 2, `storage.objects` 170.
+- Access rules = production: run `production-precheck.sql` (combined form) against the restored database — sections 4b policies, 5 grants, 6c/6d/6e storage, 8 functions, 13c (`anon_select = false`) equal production. (A policy may print `uid()` instead of `auth.uid()` when `auth` is on the session's search path — same function.)
+- Storage: `shasum -a 256 -c MANIFEST.sha256` all OK; every file's size and MD5 equal `storage.objects.metadata` (`size`, `eTag`) of the restored rows; no missing or extra files. Tested: 170/170.
+- No outbound effects: no application connected; no public function calls `net.http`/`http_request`/`dblink`; no `cron` schema.
+
+*Teardown*: `supabase stop --no-backup` (deletes the volumes holding restored customer data) and delete the folder and any logs.
 
 1.5 Re-run pre-check sections 2 and 12 right before step 2.
 
@@ -166,7 +197,7 @@ then revert the release merge on `main` (keep PR A's commit). Admins hard-reload
 
 7.7 **Admin login broken** after step 2.1: fix the SELECT policy, e.g. `CREATE POLICY admin_users_select_own ON public.admin_users FOR SELECT TO authenticated USING (auth.uid() = user_id);` — do not re-grant writes.
 
-7.8 **Full restore** (last resort, loses later writes): from the step 1.3/1.4 backup into a fresh project or after a coordinated cleanup; re-upload the bucket copy. Restoring the pre-release dump also restores the pre-release permissions — re-apply P (if the dump predates it), migrations 1–5 and 7 immediately after, before re-opening the site.
+7.8 **Full restore** (last resort, loses later writes): from the step 1.3 backup, in the order proven in 1.4 — `roles.sql` → `schema.sql` → `SET session_replication_role = replica` → `data.sql` → **`access-privileges.sql`** → **`storage-policies.sql`** — into a fresh project whose auth/storage versions are ≥ the backup's (see 1.4), then re-upload `product-images/`. Skipping `access-privileges.sql` re-opens anon reads of `orders`/`users`; skipping `storage-policies.sql` leaves the bucket without policies. Only the local restore as `supabase_admin` is tested: a hosted project's `postgres` role cannot write the newer storage tables (`buckets_vectors`, `buckets_analytics`, `vector_indexes`, `s3_multipart_*` — all empty in the 2026-11-03 backup), so rehearse a hosted restore in a scratch project before relying on it. Restoring the pre-release dump also restores the pre-release permissions — re-apply P (if the dump predates it), migrations 1–5 and 7 immediately after, before re-opening the site.
 
 ### Limitations
 
